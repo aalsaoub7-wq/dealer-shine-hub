@@ -49,11 +49,15 @@ serve(async (req) => {
     const editedImageBlob = await response.blob();
     console.log('Successfully edited image, size:', editedImageBlob.size);
 
-    // Return the edited image
-    return new Response(editedImageBlob, {
+    // Convert to base64 for JSON response
+    const arrayBuffer = await editedImageBlob.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+
+    // Return the edited image as base64
+    return new Response(JSON.stringify({ image: base64 }), {
       headers: {
         ...corsHeaders,
-        'Content-Type': 'image/png',
+        'Content-Type': 'application/json',
       },
     });
   } catch (error: any) {

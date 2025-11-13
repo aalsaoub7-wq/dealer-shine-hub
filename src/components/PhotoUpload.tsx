@@ -46,8 +46,14 @@ const PhotoUpload = ({
 
     if (error) throw error;
     
-    // The response is the edited image blob
-    return data;
+    // Convert base64 response to blob
+    const base64 = data.image;
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return new Blob([bytes], { type: 'image/png' });
   };
 
   const handleUpload = async () => {
