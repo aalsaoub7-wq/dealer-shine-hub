@@ -64,10 +64,10 @@ const PhotoUpload = ({
 
         // Upload edited photo to storage
         const fileExt = file.name.split(".").pop();
-        const editedFileName = `${carId}/edited-${Date.now()}-${Math.random()}.${fileExt}`;
+        const editedFileName = `${carId}/edited-${Date.now()}-${Math.random()}.png`;
         const { error: editedUploadError } = await supabase.storage
           .from("car-photos")
-          .upload(editedFileName, editedBlob);
+          .upload(editedFileName, editedBlob, { contentType: 'image/png' });
 
         if (editedUploadError) throw editedUploadError;
 
@@ -79,7 +79,7 @@ const PhotoUpload = ({
         const originalFileName = `${carId}/original-${Date.now()}-${Math.random()}.${fileExt}`;
         const { error: originalUploadError } = await supabase.storage
           .from("car-photos")
-          .upload(originalFileName, file);
+          .upload(originalFileName, file, { contentType: file.type || 'application/octet-stream' });
 
         if (originalUploadError) throw originalUploadError;
 
