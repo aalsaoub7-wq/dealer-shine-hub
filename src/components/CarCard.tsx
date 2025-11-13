@@ -29,25 +29,25 @@ const CarCard = ({ car }: CarCardProps) => {
 
       {/* BILD ÖVER HELA ÖVRE DELEN */}
       {car.photo_url && (
-        <div className="w-full h-40 md:h-48 overflow-hidden">
+        <div className="relative w-full h-40 md:h-48 overflow-hidden">
           <img
             src={car.photo_url}
             alt={`${car.make} ${car.model}`}
             className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
           />
+          {/* ÅRTALET PÅ BILDEN NERE HÖGER */}
+          <div className="absolute bottom-3 right-3">
+            <Badge
+              variant="secondary"
+              className="bg-secondary/70 group-hover:bg-primary/80 transition-colors duration-300"
+            >
+              {car.year}
+            </Badge>
+          </div>
         </div>
       )}
 
       <CardContent className="p-6 relative">
-        <div className="flex items-start justify-end mb-4">
-          <Badge
-            variant="secondary"
-            className="bg-secondary/50 group-hover:bg-primary/20 transition-colors duration-300"
-          >
-            {car.year}
-          </Badge>
-        </div>
-
         <h3 className="text-xl font-bold mb-1 group-hover:text-primary transition-all duration-300 group-hover:translate-x-1">
           {car.make} {car.model}
         </h3>
