@@ -38,7 +38,7 @@ const CarCard = ({ car }: CarCardProps) => {
           </Badge>
         </div>
 
-        <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-all duration-300 group-hover:translate-x-1">
+        <h3 className="text-xl font-bold mb-1 group-hover:text-primary transition-all duration-300 group-hover:translate-x-1">
           {car.make} {car.model}
         </h3>
 
