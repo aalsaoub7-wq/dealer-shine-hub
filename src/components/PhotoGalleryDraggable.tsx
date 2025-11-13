@@ -1,0 +1,254 @@
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Trash2, Check, Download, GripVertical } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import ImageLightbox from "./ImageLightbox";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+interface Photo {
+  id: string;
+  url: string;
+  is_edited: boolean;
+  original_url: string | null;
+  display_order: number;
+}
+
+interface PhotoGalleryProps {
+  photos: Photo[];
+  onUpdate: () => void;
+}
+
+interface SortablePhotoCardProps {
+  photo: Photo;
+  index: number;
+  onDelete: (photoId: string) => void;
+  onImageClick: (url: string) => void;
+  onDownload: (url: string) => void;
+}
+
+const SortablePhotoCard = ({
+  photo,
+  index,
+  onDelete,
+  onImageClick,
+  onDownload,
+}: SortablePhotoCardProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: photo.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <Card
+      ref={setNodeRef}
+      style={style}
+      className="bg-gradient-card border-border/50 overflow-hidden group shadow-card hover:shadow-intense hover:-translate-y-2 transition-all duration-500 animate-fade-in-up"
+      {...attributes}
+    >
+      <div className="relative aspect-video bg-secondary">
+        <div
+          className="absolute top-2 left-2 z-10 cursor-grab active:cursor-grabbing p-2 bg-background/80 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+          {...listeners}
+        >
+          <GripVertical className="w-4 h-4 text-foreground" />
+        </div>
+        <img
+          src={photo.url}
+          alt="Bilfoto"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 cursor-pointer"
+          onClick={() => onImageClick(photo.url)}
+          onError={(e) => {
+            const el = e.currentTarget as HTMLImageElement;
+            if (photo.original_url && el.src !== photo.original_url) {
+              el.src = photo.original_url;
+              return;
+            }
+            if (el.src.endsWith('.png')) el.src = el.src.replace('.png', '.webp');
+            else if (el.src.endsWith('.webp')) el.src = el.src.replace('.webp', '.png');
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-20 transition-opacity duration-500" />
+        {photo.is_edited && (
+          <Badge className="absolute top-2 right-2 bg-gradient-primary shadow-glow animate-scale-in">
+            <Check className="w-3 h-3 mr-1" />
+            Redigerad
+          </Badge>
+        )}
+        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 flex gap-2">
+          <Button
+            size="icon"
+            variant="secondary"
+            onClick={() => onDownload(photo.url)}
+            className="h-8 w-8 hover:scale-110 transition-transform duration-300"
+          >
+            <Download className="w-4 h-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="destructive"
+            onClick={() => onDelete(photo.id)}
+            className="h-8 w-8 hover:scale-110 transition-transform duration-300"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+const PhotoGalleryDraggable = ({ photos, onUpdate }: PhotoGalleryProps) => {
+  const { toast } = useToast();
+  const [items, setItems] = useState(photos);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDelete = async (photoId: string) => {
+    try {
+      const { error } = await supabase.from("photos").delete().eq("id", photoId);
+      if (error) throw error;
+      toast({ title: "Foto raderat" });
+      onUpdate();
+    } catch (error: any) {
+      toast({
+        title: "Fel vid radering av foto",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownload = async (url: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `photo-${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(downloadUrl);
+      document.body.removeChild(a);
+    } catch (error) {
+      toast({
+        title: "Fel vid nedladdning",
+        description: "Kunde inte ladda ner bilden",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = items.findIndex((item) => item.id === active.id);
+      const newIndex = items.findIndex((item) => item.id === over.id);
+
+      const newItems = arrayMove(items, oldIndex, newIndex);
+      setItems(newItems);
+
+      try {
+        const updates = newItems.map((item, index) => ({
+          id: item.id,
+          display_order: index,
+        }));
+
+        for (const update of updates) {
+          await supabase
+            .from("photos")
+            .update({ display_order: update.display_order })
+            .eq("id", update.id);
+        }
+
+        toast({ title: "Ordning uppdaterad" });
+        onUpdate();
+      } catch (error: any) {
+        toast({
+          title: "Fel vid uppdatering av ordning",
+          description: error.message,
+          variant: "destructive",
+        });
+        setItems(photos);
+      }
+    }
+  };
+
+  if (photos.length === 0) {
+    return (
+      <Card className="bg-gradient-card border-border/50 p-12 text-center animate-fade-in">
+        <p className="text-muted-foreground">Inga foton uppladdade än</p>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={items.map((p) => p.id)} strategy={rectSortingStrategy}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {items.map((photo, index) => (
+              <SortablePhotoCard
+                key={photo.id}
+                photo={photo}
+                index={index}
+                onDelete={handleDelete}
+                onImageClick={setLightboxUrl}
+                onDownload={handleDownload}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+      {lightboxUrl && (
+        <ImageLightbox
+          imageUrl={lightboxUrl}
+          isOpen={!!lightboxUrl}
+          onClose={() => setLightboxUrl(null)}
+        />
+      )}
+    </>
+  );
+};
+
+export default PhotoGalleryDraggable;

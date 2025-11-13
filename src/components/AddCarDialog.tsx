@@ -37,6 +37,18 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
     setLoading(true);
 
     try {
+      // Get user's company
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Användare ej inloggad");
+
+      const { data: userCompany, error: companyError } = await supabase
+        .from("user_companies")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (companyError) throw companyError;
+
       const { error } = await supabase.from("cars").insert({
         make: formData.make,
         model: formData.model,
@@ -45,6 +57,7 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
         color: formData.color || null,
         mileage: formData.mileage ? parseInt(formData.mileage) : null,
         notes: formData.notes || null,
+        company_id: userCompany.company_id,
       });
 
       if (error) throw error;

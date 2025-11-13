@@ -4,10 +4,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Upload, Image as ImageIcon, FileText } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft, Upload, Image as ImageIcon, FileText, Trash2, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PhotoUpload from "@/components/PhotoUpload";
-import PhotoGallery from "@/components/PhotoGallery";
+import PhotoGalleryDraggable from "@/components/PhotoGalleryDraggable";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface CarData {
   id: string;
@@ -26,6 +37,7 @@ interface Photo {
   photo_type: "main" | "documentation";
   is_edited: boolean;
   original_url: string | null;
+  display_order: number;
 }
 
 const CarDetail = () => {
@@ -36,6 +48,9 @@ const CarDetail = () => {
   const [loading, setLoading] = useState(true);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadType, setUploadType] = useState<"main" | "documentation">("main");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editedNotes, setEditedNotes] = useState<string>("");
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -56,12 +71,14 @@ const CarDetail = () => {
 
       if (carError) throw carError;
       setCar(carData);
+      setEditedNotes(carData.notes || "");
 
       // Fetch photos
       const { data: photosData, error: photosError } = await supabase
         .from("photos")
         .select("*")
         .eq("car_id", id)
+        .order("display_order", { ascending: true })
         .order("created_at", { ascending: false });
 
       if (photosError) throw photosError;
@@ -75,6 +92,43 @@ const CarDetail = () => {
       navigate("/");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteCar = async () => {
+    try {
+      const { error } = await supabase.from("cars").delete().eq("id", id);
+      if (error) throw error;
+      toast({ title: "Bil raderad" });
+      navigate("/");
+    } catch (error: any) {
+      toast({
+        title: "Fel vid radering av bil",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveNotes = async () => {
+    if (!car) return;
+    setIsSavingNotes(true);
+    try {
+      const { error } = await supabase
+        .from("cars")
+        .update({ notes: editedNotes })
+        .eq("id", id);
+      if (error) throw error;
+      setCar({ ...car, notes: editedNotes });
+      toast({ title: "Anteckningar sparade" });
+    } catch (error: any) {
+      toast({
+        title: "Fel vid sparande av anteckningar",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingNotes(false);
     }
   };
 
@@ -94,14 +148,24 @@ const CarDetail = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
       <div className="container mx-auto px-4 py-8">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/")}
-          className="mb-6 hover:bg-secondary hover:scale-105 hover:-translate-x-1 transition-all duration-300 group animate-fade-in"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
-          Tillbaka till huvudsidan
-        </Button>
+        <div className="flex justify-between items-center mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/")}
+            className="hover:bg-secondary hover:scale-105 hover:-translate-x-1 transition-all duration-300 group animate-fade-in"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
+            Tillbaka till huvudsidan
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => setDeleteDialogOpen(true)}
+            className="hover:scale-105 transition-all duration-300"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Ta bort bil
+          </Button>
+        </div>
 
         {/* Car Info Card */}
         <Card className="mb-8 bg-gradient-card border-border/50 shadow-card hover:shadow-glow transition-all duration-500 animate-scale-in">
@@ -130,12 +194,26 @@ const CarDetail = () => {
                   <p>{car.mileage.toLocaleString()} km</p>
                 </div>
               )}
-              {car.notes && (
-                <div className="md:col-span-2 lg:col-span-3">
-                  <p className="text-sm text-muted-foreground">Anteckningar</p>
-                  <p className="text-sm">{car.notes}</p>
+              <div className="md:col-span-2 lg:col-span-3">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-sm text-muted-foreground">Anteckningar (delat med företaget)</p>
+                  <Button
+                    size="sm"
+                    onClick={handleSaveNotes}
+                    disabled={isSavingNotes}
+                    className="bg-gradient-primary hover:opacity-90"
+                  >
+                    <Save className="w-3 h-3 mr-1" />
+                    Spara
+                  </Button>
                 </div>
-              )}
+                <Textarea
+                  value={editedNotes}
+                  onChange={(e) => setEditedNotes(e.target.value)}
+                  placeholder="Lägg till anteckningar om bilen här..."
+                  className="min-h-[100px]"
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -172,7 +250,7 @@ const CarDetail = () => {
                 Ladda upp huvudfoton
               </Button>
             </div>
-            <PhotoGallery photos={mainPhotos} onUpdate={fetchCarData} />
+            <PhotoGalleryDraggable photos={mainPhotos} onUpdate={fetchCarData} />
           </TabsContent>
 
           <TabsContent value="docs" className="space-y-6">
@@ -188,7 +266,7 @@ const CarDetail = () => {
                 Ladda upp dokumentation
               </Button>
             </div>
-            <PhotoGallery photos={docPhotos} onUpdate={fetchCarData} />
+            <PhotoGalleryDraggable photos={docPhotos} onUpdate={fetchCarData} />
           </TabsContent>
         </Tabs>
       </div>
@@ -200,6 +278,26 @@ const CarDetail = () => {
         photoType={uploadType}
         onUploadComplete={fetchCarData}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Är du säker?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Detta kommer permanent radera bilen och alla tillhörande foton. Denna åtgärd kan inte ångras.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteCar}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Ta bort
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
