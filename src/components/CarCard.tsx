@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Car, Palette } from "lucide-react";
+import { Palette } from "lucide-react";
 import licensePlate from "@/assets/license-plate.png";
 
 interface CarCardProps {
@@ -39,10 +39,7 @@ const CarCard = ({ car }: CarCardProps) => {
       )}
 
       <CardContent className="p-6 relative">
-        <div className="flex items-start justify-between mb-4">
-          <div className="p-2 bg-gradient-primary rounded-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-glow">
-            <Car className="w-6 h-6 text-primary-foreground" />
-          </div>
+        <div className="flex items-start justify-end mb-4">
           <Badge
             variant="secondary"
             className="bg-secondary/50 group-hover:bg-primary/20 transition-colors duration-300"
