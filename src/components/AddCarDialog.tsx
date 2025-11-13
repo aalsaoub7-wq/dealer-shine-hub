@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 
 interface AddCarDialogProps {
@@ -29,6 +30,12 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
     color: "",
     mileage: "",
     notes: "",
+    price: "",
+    registration_number: "",
+    fuel: "",
+    gearbox: "",
+    description: "",
+    publish_on_blocket: false,
   });
   const { toast } = useToast();
 
@@ -57,6 +64,12 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
         color: formData.color || null,
         mileage: formData.mileage ? parseInt(formData.mileage) : null,
         notes: formData.notes || null,
+        price: formData.price ? parseInt(formData.price) : null,
+        registration_number: formData.registration_number || null,
+        fuel: formData.fuel || null,
+        gearbox: formData.gearbox || null,
+        description: formData.description || null,
+        publish_on_blocket: formData.publish_on_blocket,
         company_id: userCompany.company_id,
       });
 
@@ -73,6 +86,12 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
         color: "",
         mileage: "",
         notes: "",
+        price: "",
+        registration_number: "",
+        fuel: "",
+        gearbox: "",
+        description: "",
+        publish_on_blocket: false,
       });
     } catch (error: any) {
       toast({
@@ -162,15 +181,82 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
               />
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="price">Pris (SEK)</Label>
+              <Input
+                id="price"
+                type="number"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                className="bg-secondary border-border"
+                placeholder="Ex: 250000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="registration_number">Registreringsnummer</Label>
+              <Input
+                id="registration_number"
+                value={formData.registration_number}
+                onChange={(e) => setFormData({ ...formData, registration_number: e.target.value })}
+                className="bg-secondary border-border"
+                placeholder="Ex: ABC123"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="fuel">Bränsle</Label>
+              <Input
+                id="fuel"
+                value={formData.fuel}
+                onChange={(e) => setFormData({ ...formData, fuel: e.target.value })}
+                className="bg-secondary border-border"
+                placeholder="Ex: Bensin, Diesel, El"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="gearbox">Växellåda</Label>
+              <Input
+                id="gearbox"
+                value={formData.gearbox}
+                onChange={(e) => setFormData({ ...formData, gearbox: e.target.value })}
+                className="bg-secondary border-border"
+                placeholder="Ex: Manuell, Automat"
+              />
+            </div>
+          </div>
           <div className="space-y-2">
-            <Label htmlFor="notes">Anteckningar</Label>
+            <Label htmlFor="description">Beskrivning (för Blocket)</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="bg-secondary border-border resize-none"
+              rows={3}
+              placeholder="Detaljerad beskrivning av bilen..."
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="notes">Interna anteckningar</Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="bg-secondary border-border resize-none"
-              rows={3}
+              rows={2}
+              placeholder="Interna noteringar (syns inte på Blocket)"
             />
+          </div>
+          <div className="flex items-center space-x-2 p-4 bg-secondary/50 rounded-lg border border-border">
+            <Switch
+              id="publish_on_blocket"
+              checked={formData.publish_on_blocket}
+              onCheckedChange={(checked) => setFormData({ ...formData, publish_on_blocket: checked })}
+            />
+            <Label htmlFor="publish_on_blocket" className="cursor-pointer">
+              Publicera på Blocket automatiskt
+            </Label>
           </div>
           <div className="flex justify-end gap-3">
             <Button
