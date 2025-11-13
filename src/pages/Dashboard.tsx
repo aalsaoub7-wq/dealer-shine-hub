@@ -122,7 +122,7 @@ const Dashboard = () => {
                 <Car className="w-6 h-6 text-primary-foreground" />
               </div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-                LuBild
+                LuBild AI
               </h1>
             </div>
             <Button
