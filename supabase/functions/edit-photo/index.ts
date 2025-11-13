@@ -27,14 +27,20 @@ serve(async (req) => {
 
     // Create FormData for PhotoRoom API
     const photoroomFormData = new FormData();
-    photoroomFormData.append('image_file', imageFile);
+    photoroomFormData.append('imageFile', imageFile);
+    photoroomFormData.append('outputSize', '3840x2880');
+    photoroomFormData.append('padding', '0.10');
+    photoroomFormData.append('horizontalAlignment', 'center');
+    photoroomFormData.append('verticalAlignment', 'center');
+    photoroomFormData.append('background.prompt', 'car on on clean ceramic floor with the colour #c8cfdb, with Plain white walls in the backgrond in the background, evenly lit');
 
     // Call PhotoRoom API
-    const response = await fetch('https://sdk.photoroom.com/v1/segment', {
+    const response = await fetch('https://image-api.photoroom.com/v2/edit', {
       method: 'POST',
       headers: {
         'Accept': 'image/png, application/json',
         'x-api-key': PHOTOROOM_API_KEY,
+        'pr-ai-background-model-version': 'background-studio-beta-2025-03-17',
       },
       body: photoroomFormData,
     });
