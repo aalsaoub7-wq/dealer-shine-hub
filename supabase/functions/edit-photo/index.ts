@@ -49,9 +49,18 @@ serve(async (req) => {
     const editedImageBlob = await response.blob();
     console.log('Successfully edited image, size:', editedImageBlob.size);
 
-    // Convert to base64 for JSON response
+    // Convert to base64 for JSON response (handle large files)
     const arrayBuffer = await editedImageBlob.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    // Convert to base64 in chunks to avoid stack overflow
+    let binary = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
+      binary += String.fromCharCode.apply(null, Array.from(chunk));
+    }
+    const base64 = btoa(binary);
 
     // Return the edited image as base64
     return new Response(JSON.stringify({ image: base64 }), {
