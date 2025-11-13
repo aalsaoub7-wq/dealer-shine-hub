@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Car, Calendar, Palette } from "lucide-react";
+import { Car, Palette } from "lucide-react";
+import licensePlate from "@/assets/license-plate.png";
 
 interface CarCardProps {
   car: {
@@ -34,23 +35,31 @@ const CarCard = ({ car }: CarCardProps) => {
           </Badge>
         </div>
         
-        <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-all duration-300 group-hover:translate-x-1">
+        <h3 className="text-xl font-bold mb-4 group-hover:text-primary transition-all duration-300 group-hover:translate-x-1">
           {car.make} {car.model}
         </h3>
         
-        <div className="space-y-2 text-sm text-muted-foreground">
-          {car.vin && (
-            <div className="flex items-center gap-2 group-hover:text-foreground transition-colors duration-300">
-              <span className="font-mono text-xs">{car.vin}</span>
+        {car.vin && (
+          <div className="relative mb-3 group-hover:scale-105 transition-transform duration-300">
+            <img 
+              src={licensePlate} 
+              alt="Registreringsskylt" 
+              className="w-full h-auto"
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="font-bold text-black text-lg tracking-widest" style={{ fontFamily: 'monospace' }}>
+                {car.vin}
+              </span>
             </div>
-          )}
-          {car.color && (
-            <div className="flex items-center gap-2 group-hover:text-foreground transition-colors duration-300">
-              <Palette className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
-              <span>{car.color}</span>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
+        
+        {car.color && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300">
+            <Palette className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+            <span>{car.color}</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
