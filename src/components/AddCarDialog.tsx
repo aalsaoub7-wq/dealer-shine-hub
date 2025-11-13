@@ -194,18 +194,6 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="registration_number">Registreringsnummer</Label>
-              <Input
-                id="registration_number"
-                value={formData.registration_number}
-                onChange={(e) => setFormData({ ...formData, registration_number: e.target.value })}
-                className="bg-secondary border-border"
-                placeholder="Ex: ABC123"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
               <Label htmlFor="fuel">Bränsle</Label>
               <Input
                 id="fuel"
@@ -215,6 +203,8 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
                 placeholder="Ex: Bensin, Diesel, El"
               />
             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="gearbox">Växellåda</Label>
               <Input
