@@ -26,7 +26,7 @@ const Auth = () => {
           password,
         });
         if (error) throw error;
-        toast({ title: "Welcome back!" });
+        toast({ title: "Välkommen tillbaka!" });
         navigate("/");
       } else {
         const { error } = await supabase.auth.signUp({
@@ -37,12 +37,12 @@ const Auth = () => {
           },
         });
         if (error) throw error;
-        toast({ title: "Account created! Please sign in." });
+        toast({ title: "Konto skapat! Vänligen logga in." });
         setIsLogin(true);
       }
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: "Fel",
         description: error.message,
         variant: "destructive",
       });
@@ -62,7 +62,7 @@ const Auth = () => {
           </div>
           <CardTitle className="text-2xl font-bold">CarPhoto Pro</CardTitle>
           <CardDescription>
-            {isLogin ? "Sign in to your dealer account" : "Create your dealer account"}
+            {isLogin ? "Logga in på ditt återförsäljarkonto" : "Skapa ditt återförsäljarkonto"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -70,7 +70,7 @@ const Auth = () => {
             <div className="space-y-2">
               <Input
                 type="email"
-                placeholder="Email"
+                placeholder="E-post"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -80,7 +80,7 @@ const Auth = () => {
             <div className="space-y-2">
               <Input
                 type="password"
-                placeholder="Password"
+                placeholder="Lösenord"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -92,7 +92,7 @@ const Auth = () => {
               className="w-full bg-gradient-primary hover:opacity-90 transition-opacity"
               disabled={loading}
             >
-              {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
+              {loading ? "Laddar..." : isLogin ? "Logga in" : "Registrera"}
             </Button>
           </form>
           <div className="mt-4 text-center">
@@ -100,7 +100,7 @@ const Auth = () => {
               onClick={() => setIsLogin(!isLogin)}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
+              {isLogin ? "Behöver du ett konto? Registrera dig" : "Har du redan ett konto? Logga in"}
             </button>
           </div>
         </CardContent>

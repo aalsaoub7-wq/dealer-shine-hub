@@ -24,11 +24,11 @@ const PhotoGallery = ({ photos, onUpdate }: PhotoGalleryProps) => {
     try {
       const { error } = await supabase.from("photos").delete().eq("id", photoId);
       if (error) throw error;
-      toast({ title: "Photo deleted" });
+      toast({ title: "Foto raderat" });
       onUpdate();
     } catch (error: any) {
       toast({
-        title: "Error deleting photo",
+        title: "Fel vid radering av foto",
         description: error.message,
         variant: "destructive",
       });
@@ -38,7 +38,7 @@ const PhotoGallery = ({ photos, onUpdate }: PhotoGalleryProps) => {
   if (photos.length === 0) {
     return (
       <Card className="bg-gradient-card border-border/50 p-12 text-center animate-fade-in">
-        <p className="text-muted-foreground">No photos uploaded yet</p>
+        <p className="text-muted-foreground">Inga foton uppladdade än</p>
       </Card>
     );
   }
@@ -54,7 +54,7 @@ const PhotoGallery = ({ photos, onUpdate }: PhotoGalleryProps) => {
           <div className="relative aspect-video bg-secondary">
             <img
               src={photo.url}
-              alt="Car photo"
+              alt="Bilfoto"
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
               onError={(e) => {
                 const el = e.currentTarget as HTMLImageElement;
@@ -72,7 +72,7 @@ const PhotoGallery = ({ photos, onUpdate }: PhotoGalleryProps) => {
             {photo.is_edited && (
               <Badge className="absolute top-2 left-2 bg-gradient-primary shadow-glow animate-scale-in">
                 <Check className="w-3 h-3 mr-1" />
-                Edited
+                Redigerad
               </Badge>
             )}
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300">

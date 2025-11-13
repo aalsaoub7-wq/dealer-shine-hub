@@ -49,7 +49,7 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
 
       if (error) throw error;
 
-      toast({ title: "Car added successfully!" });
+      toast({ title: "Bil tillagd!" });
       onCarAdded();
       onOpenChange(false);
       setFormData({
@@ -63,7 +63,7 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
       });
     } catch (error: any) {
       toast({
-        title: "Error adding car",
+        title: "Fel vid tillägg av bil",
         description: error.message,
         variant: "destructive",
       });
@@ -77,16 +77,16 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
       <DialogContent className="bg-gradient-card border-border/50 max-w-2xl shadow-intense animate-scale-in">
         <DialogHeader>
           <DialogTitle className="text-2xl bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-            Add New Car
+            Lägg till ny bil
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Enter the car details below. You can add photos after creating the car.
+            Ange biluppgifterna nedan. Du kan lägga till foton efter att bilen skapats.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="make">Make *</Label>
+              <Label htmlFor="make">Märke *</Label>
               <Input
                 id="make"
                 value={formData.make}
@@ -96,7 +96,7 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="model">Model *</Label>
+              <Label htmlFor="model">Modell *</Label>
               <Input
                 id="model"
                 value={formData.model}
@@ -108,7 +108,7 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="year">Year *</Label>
+              <Label htmlFor="year">År *</Label>
               <Input
                 id="year"
                 type="number"
@@ -119,7 +119,7 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="color">Color</Label>
+              <Label htmlFor="color">Färg</Label>
               <Input
                 id="color"
                 value={formData.color}
@@ -130,7 +130,7 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="vin">VIN</Label>
+              <Label htmlFor="vin">Regnr (Registreringsnummer)</Label>
               <Input
                 id="vin"
                 value={formData.vin}
@@ -139,7 +139,7 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="mileage">Mileage</Label>
+              <Label htmlFor="mileage">Miltal (km)</Label>
               <Input
                 id="mileage"
                 type="number"
@@ -150,7 +150,7 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes">Anteckningar</Label>
             <Textarea
               id="notes"
               value={formData.notes}
@@ -166,14 +166,14 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
               onClick={() => onOpenChange(false)}
               className="border-border hover:scale-105 transition-all duration-300"
             >
-              Cancel
+              Avbryt
             </Button>
             <Button
               type="submit"
               disabled={loading}
               className="bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300"
             >
-              {loading ? "Adding..." : "Add Car"}
+              {loading ? "Lägger till..." : "Lägg till bil"}
             </Button>
           </div>
         </form>
