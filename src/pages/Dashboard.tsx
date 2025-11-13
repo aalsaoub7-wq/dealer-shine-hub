@@ -62,13 +62,10 @@ const Dashboard = () => {
   const fetchCars = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("cars")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("cars").select("*").order("created_at", { ascending: false });
 
       if (error) throw error;
-      
+
       // Fetch first photo for each car
       const carsWithPhotos = await Promise.all(
         (data || []).map(async (car) => {
@@ -79,14 +76,14 @@ const Dashboard = () => {
             .eq("photo_type", "main")
             .order("created_at", { ascending: true })
             .limit(1);
-          
+
           return {
             ...car,
             photo_url: photos?.[0]?.url || null,
           };
-        })
+        }),
       );
-      
+
       setCars(carsWithPhotos);
     } catch (error: any) {
       toast({
@@ -125,7 +122,7 @@ const Dashboard = () => {
                 <Car className="w-6 h-6 text-primary-foreground" />
               </div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-                CarPhoto Pro
+                LuBild
               </h1>
             </div>
             <Button
@@ -191,11 +188,7 @@ const Dashboard = () => {
         )}
       </main>
 
-      <AddCarDialog
-        open={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
-        onCarAdded={fetchCars}
-      />
+      <AddCarDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onCarAdded={fetchCars} />
     </div>
   );
 };
