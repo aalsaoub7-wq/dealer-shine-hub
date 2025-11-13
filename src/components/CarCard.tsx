@@ -46,7 +46,7 @@ const CarCard = ({ car }: CarCardProps) => {
           <div className="relative mb-3 w-48 group-hover:scale-105 transition-transform duration-300 -ml-4">
             <img src={licensePlate} alt="Registreringsskylt" className="w-full h-auto" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="font-bold text-black text-sm tracking-widest" style={{ fontFamily: "monospace" }}>
+              <span className="font-bold text-black text-sm tracking-widest ml-2" style={{ fontFamily: "monospace" }}>
                 {car.vin}
               </span>
             </div>
