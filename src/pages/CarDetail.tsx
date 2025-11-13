@@ -68,7 +68,7 @@ const CarDetail = () => {
       setPhotos((photosData || []) as Photo[]);
     } catch (error: any) {
       toast({
-        title: "Error loading car data",
+        title: "Fel vid laddning av bildata",
         description: error.message,
         variant: "destructive",
       });
@@ -84,7 +84,7 @@ const CarDetail = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-card to-background flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">Laddar...</p>
       </div>
     );
   }
@@ -100,7 +100,7 @@ const CarDetail = () => {
           className="mb-6 hover:bg-secondary hover:scale-105 hover:-translate-x-1 transition-all duration-300 group animate-fade-in"
         >
           <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
-          Back to Dashboard
+          Tillbaka till huvudsidan
         </Button>
 
         {/* Car Info Card */}
@@ -114,25 +114,25 @@ const CarDetail = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {car.vin && (
                 <div>
-                  <p className="text-sm text-muted-foreground">VIN</p>
-                  <p className="font-mono text-sm">{car.vin}</p>
+                  <p className="text-sm text-muted-foreground">Regnr</p>
+                  <p>{car.vin}</p>
                 </div>
               )}
               {car.color && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Color</p>
+                  <p className="text-sm text-muted-foreground">Färg</p>
                   <p>{car.color}</p>
                 </div>
               )}
               {car.mileage && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Mileage</p>
-                  <p>{car.mileage.toLocaleString()} miles</p>
+                  <p className="text-sm text-muted-foreground">Miltal</p>
+                  <p>{car.mileage.toLocaleString()} km</p>
                 </div>
               )}
               {car.notes && (
                 <div className="md:col-span-2 lg:col-span-3">
-                  <p className="text-sm text-muted-foreground">Notes</p>
+                  <p className="text-sm text-muted-foreground">Anteckningar</p>
                   <p className="text-sm">{car.notes}</p>
                 </div>
               )}
@@ -148,14 +148,14 @@ const CarDetail = () => {
               className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300"
             >
               <ImageIcon className="w-4 h-4 mr-2" />
-              Main Photos ({mainPhotos.length})
+              Huvudfoton ({mainPhotos.length})
             </TabsTrigger>
             <TabsTrigger 
               value="docs" 
               className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300"
             >
               <FileText className="w-4 h-4 mr-2" />
-              Documentation ({docPhotos.length})
+              Dokumentation ({docPhotos.length})
             </TabsTrigger>
           </TabsList>
 
@@ -169,7 +169,7 @@ const CarDetail = () => {
                 className="bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300"
               >
                 <Upload className="w-4 h-4 mr-2" />
-                Upload Main Photos
+                Ladda upp huvudfoton
               </Button>
             </div>
             <PhotoGallery photos={mainPhotos} onUpdate={fetchCarData} />
@@ -185,7 +185,7 @@ const CarDetail = () => {
                 className="bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300"
               >
                 <Upload className="w-4 h-4 mr-2" />
-                Upload Documentation
+                Ladda upp dokumentation
               </Button>
             </div>
             <PhotoGallery photos={docPhotos} onUpdate={fetchCarData} />

@@ -58,7 +58,7 @@ const PhotoUpload = ({
 
   const handleUpload = async () => {
     if (selectedFiles.length === 0) {
-      toast({ title: "Please select files to upload", variant: "destructive" });
+      toast({ title: "Vänligen välj filer att ladda upp", variant: "destructive" });
       return;
     }
 
@@ -128,13 +128,13 @@ const PhotoUpload = ({
         if (dbError) throw dbError;
       }
 
-      toast({ title: "Photos uploaded and edited successfully!" });
+      toast({ title: "Foton uppladdade!" });
       onUploadComplete();
       onOpenChange(false);
       setSelectedFiles([]);
     } catch (error: any) {
       toast({
-        title: "Error uploading photos",
+        title: "Fel vid uppladdning av foton",
         description: error.message,
         variant: "destructive",
       });
@@ -148,10 +148,10 @@ const PhotoUpload = ({
       <DialogContent className="bg-card border-border">
         <DialogHeader>
           <DialogTitle>
-            Upload {photoType === "main" ? "Main Photos" : "Documentation"}
+            Ladda upp {photoType === "main" ? "huvudfoton" : "dokumentation"}
           </DialogTitle>
           <DialogDescription>
-            Select photos to upload. They will be automatically edited via PhotoRoom API.
+            Välj foton att ladda upp. De kommer att behandlas automatiskt.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -169,11 +169,11 @@ const PhotoUpload = ({
               htmlFor="file-upload"
               className="cursor-pointer text-primary hover:text-primary/80 transition-colors"
             >
-              Click to select photos
+              Välj filer
             </label>
             {selectedFiles.length > 0 && (
               <p className="mt-2 text-sm text-muted-foreground">
-                {selectedFiles.length} file(s) selected
+                {selectedFiles.length} {selectedFiles.length === 1 ? "fil vald" : "filer valda"}
               </p>
             )}
           </div>
@@ -187,7 +187,7 @@ const PhotoUpload = ({
               disabled={uploading}
               className="border-border"
             >
-              Cancel
+              Avbryt
             </Button>
             <Button
               onClick={handleUpload}
@@ -197,10 +197,10 @@ const PhotoUpload = ({
               {uploading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Processing...
+                  Bearbetar...
                 </>
               ) : (
-                "Upload & Edit"
+                "Ladda upp"
               )}
             </Button>
           </div>

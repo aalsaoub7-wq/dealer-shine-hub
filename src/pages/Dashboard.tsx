@@ -90,7 +90,7 @@ const Dashboard = () => {
       setCars(carsWithPhotos);
     } catch (error: any) {
       toast({
-        title: "Error loading cars",
+        title: "Fel vid laddning av bilar",
         description: error.message,
         variant: "destructive",
       });
@@ -146,7 +146,7 @@ const Dashboard = () => {
           <div className="relative flex-1 group animate-slide-in-right">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors duration-300" />
             <Input
-              placeholder="Search by make, model, year, or VIN..."
+              placeholder="Sök på märke, modell, år eller regnr..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 bg-secondary border-border focus:border-primary focus:shadow-glow transition-all duration-300"
@@ -157,20 +157,20 @@ const Dashboard = () => {
             className="bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300 animate-scale-in"
           >
             <Plus className="w-5 h-5 mr-2" />
-            Add Car
+            Lägg till bil
           </Button>
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-muted-foreground animate-fade-in">Loading cars...</div>
+          <div className="text-center py-12 text-muted-foreground animate-fade-in">Laddar bilar...</div>
         ) : filteredCars.length === 0 ? (
           <div className="text-center py-12 animate-scale-in">
             <div className="animate-float">
               <Car className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">No cars found</h3>
+            <h3 className="text-xl font-semibold mb-2">Inga bilar hittades</h3>
             <p className="text-muted-foreground mb-4">
-              {searchQuery ? "Try a different search" : "Get started by adding your first car"}
+              {searchQuery ? "Prova en annan sökning" : "Kom igång genom att lägga till din första bil"}
             </p>
             {!searchQuery && (
               <Button
@@ -178,7 +178,7 @@ const Dashboard = () => {
                 className="bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300"
               >
                 <Plus className="w-5 h-5 mr-2" />
-                Add Your First Car
+                Lägg till din första bil
               </Button>
             )}
           </div>
