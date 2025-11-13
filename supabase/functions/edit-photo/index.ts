@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,6 +15,34 @@ serve(async (req) => {
     const PHOTOROOM_API_KEY = Deno.env.get('PHOTOROOM_API_KEY');
     if (!PHOTOROOM_API_KEY) {
       throw new Error('PHOTOROOM_API_KEY not configured');
+    }
+
+    // Get user's AI settings for background prompt
+    const authHeader = req.headers.get('Authorization');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: { Authorization: authHeader ?? '' },
+      },
+    });
+
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    let backgroundPrompt = 'car on on clean ceramic floor with the colour #c8cfdb, with Plain white walls in the backgrond in the background, evenly lit';
+    
+    if (user) {
+      const { data: aiSettings } = await supabase
+        .from('ai_settings')
+        .select('background_prompt')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (aiSettings?.background_prompt) {
+        backgroundPrompt = aiSettings.background_prompt;
+        console.log('Using custom background prompt from user settings');
+      }
     }
 
     const formData = await req.formData();
@@ -32,7 +61,7 @@ serve(async (req) => {
     photoroomFormData.append('padding', '0.10');
     photoroomFormData.append('horizontalAlignment', 'center');
     photoroomFormData.append('verticalAlignment', 'center');
-    photoroomFormData.append('background.prompt', 'car on on clean ceramic floor with the colour #c8cfdb, with Plain white walls in the backgrond in the background, evenly lit');
+    photoroomFormData.append('background.prompt', backgroundPrompt);
 
     // Call PhotoRoom API
     const response = await fetch('https://image-api.photoroom.com/v2/edit', {
