@@ -9,6 +9,7 @@ import { ArrowLeft, Upload, Image as ImageIcon, FileText, Trash2, Save } from "l
 import { useToast } from "@/hooks/use-toast";
 import PhotoUpload from "@/components/PhotoUpload";
 import PhotoGalleryDraggable from "@/components/PhotoGalleryDraggable";
+import { BlocketSyncButton } from "@/components/BlocketSyncButton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +30,12 @@ interface CarData {
   color: string | null;
   mileage: number | null;
   notes: string | null;
+  price: number | null;
+  registration_number: string | null;
+  fuel: string | null;
+  gearbox: string | null;
+  description: string | null;
+  publish_on_blocket: boolean;
 }
 
 interface Photo {
@@ -157,14 +164,17 @@ const CarDetail = () => {
             <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
             Tillbaka till huvudsidan
           </Button>
-          <Button
-            variant="destructive"
-            onClick={() => setDeleteDialogOpen(true)}
-            className="hover:scale-105 transition-all duration-300"
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Ta bort bil
-          </Button>
+          <div className="flex gap-2">
+            <BlocketSyncButton carId={car.id} car={car} variant="outline" />
+            <Button
+              variant="destructive"
+              onClick={() => setDeleteDialogOpen(true)}
+              className="hover:scale-105 transition-all duration-300"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Ta bort bil
+            </Button>
+          </div>
         </div>
 
         {/* Car Info Card */}
@@ -176,9 +186,21 @@ const CarDetail = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {car.price && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Pris</p>
+                  <p className="font-semibold">{car.price.toLocaleString()} SEK</p>
+                </div>
+              )}
+              {car.registration_number && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Registreringsnummer</p>
+                  <p>{car.registration_number}</p>
+                </div>
+              )}
               {car.vin && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Regnr</p>
+                  <p className="text-sm text-muted-foreground">VIN</p>
                   <p>{car.vin}</p>
                 </div>
               )}
@@ -192,6 +214,24 @@ const CarDetail = () => {
                 <div>
                   <p className="text-sm text-muted-foreground">Miltal</p>
                   <p>{car.mileage.toLocaleString()} km</p>
+                </div>
+              )}
+              {car.fuel && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Bränsle</p>
+                  <p>{car.fuel}</p>
+                </div>
+              )}
+              {car.gearbox && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Växellåda</p>
+                  <p>{car.gearbox}</p>
+                </div>
+              )}
+              {car.description && (
+                <div className="md:col-span-2 lg:col-span-3">
+                  <p className="text-sm text-muted-foreground">Beskrivning</p>
+                  <p className="whitespace-pre-wrap">{car.description}</p>
                 </div>
               )}
               <div className="md:col-span-2 lg:col-span-3">

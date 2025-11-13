@@ -2,3 +2,6 @@ project_id = "abepwxatllszoapfmccl"
 
 [functions.edit-photo]
 verify_jwt = true
+
+[functions.blocket-sync]
+verify_jwt = false
