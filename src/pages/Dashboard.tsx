@@ -76,7 +76,7 @@ const Dashboard = () => {
             .from("photos")
             .select("url")
             .eq("car_id", car.id)
-            .eq("type", "main")
+            .eq("photo_type", "main")
             .order("created_at", { ascending: true })
             .limit(1);
           
