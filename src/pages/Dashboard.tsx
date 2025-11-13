@@ -8,6 +8,7 @@ import { LogOut, Plus, Search } from "lucide-react";
 import luveroLogo from "@/assets/luvero-logo.png";
 import CarCard from "@/components/CarCard";
 import AddCarDialog from "@/components/AddCarDialog";
+import { AiSettingsDialog } from "@/components/AiSettingsDialog";
 import { useToast } from "@/hooks/use-toast";
 
 interface CarData {
@@ -123,6 +124,7 @@ const Dashboard = () => {
               <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
                 LuBild AI ©
               </h1>
+              <AiSettingsDialog />
             </div>
             <Button
               variant="ghost"
