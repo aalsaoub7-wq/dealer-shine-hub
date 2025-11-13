@@ -200,7 +200,7 @@ const CarDetail = () => {
               )}
               {car.vin && (
                 <div>
-                  <p className="text-sm text-muted-foreground">VIN</p>
+                  <p className="text-sm text-muted-foreground">Reg.nr.</p>
                   <p>{car.vin}</p>
                 </div>
               )}
