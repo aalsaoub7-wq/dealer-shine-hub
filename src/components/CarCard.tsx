@@ -46,8 +46,11 @@ const CarCard = ({ car }: CarCardProps) => {
           <div className="relative mb-3 w-48 group-hover:scale-105 transition-transform duration-300 -ml-4">
             <img src={licensePlate} alt="Registreringsskylt" className="w-full h-auto" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="font-bold text-black text-2xl tracking-widest ml-4" style={{ fontFamily: "monospace" }}>
-                {car.vin.length === 6 ? `${car.vin.slice(0, 3)} ${car.vin.slice(3)}` : car.vin}
+              <span
+                className="font-bold text-black text-2.5xl tracking-widest ml-4"
+                style={{ fontFamily: "monospace" }}
+              >
+                {(car.vin.length === 6 ? `${car.vin.slice(0, 3)} ${car.vin.slice(3)}` : car.vin).toUpperCase()}
               </span>
             </div>
           </div>
