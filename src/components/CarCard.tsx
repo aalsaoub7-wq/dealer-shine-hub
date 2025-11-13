@@ -40,14 +40,14 @@ const CarCard = ({ car }: CarCardProps) => {
         </h3>
         
         {car.vin && (
-          <div className="relative mb-3 group-hover:scale-105 transition-transform duration-300">
+          <div className="relative mb-3 w-48 group-hover:scale-105 transition-transform duration-300">
             <img 
               src={licensePlate} 
               alt="Registreringsskylt" 
               className="w-full h-auto"
             />
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="font-bold text-black text-lg tracking-widest" style={{ fontFamily: 'monospace' }}>
+              <span className="font-bold text-black text-sm tracking-widest" style={{ fontFamily: 'monospace' }}>
                 {car.vin}
               </span>
             </div>
