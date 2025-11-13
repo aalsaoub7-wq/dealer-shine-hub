@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trash2, Check, Download, GripVertical } from "lucide-react";
+import { Trash2, Check, Download, GripVertical, Maximize2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ImageLightbox from "./ImageLightbox";
@@ -104,6 +104,14 @@ const SortablePhotoCard = ({
           </Badge>
         )}
         <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 flex gap-2">
+          <Button
+            size="icon"
+            variant="secondary"
+            onClick={() => onImageClick(photo.url)}
+            className="h-8 w-8 hover:scale-110 transition-transform duration-300"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </Button>
           <Button
             size="icon"
             variant="secondary"
