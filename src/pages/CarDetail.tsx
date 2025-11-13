@@ -97,16 +97,16 @@ const CarDetail = () => {
         <Button
           variant="ghost"
           onClick={() => navigate("/")}
-          className="mb-6 hover:bg-secondary"
+          className="mb-6 hover:bg-secondary hover:scale-105 hover:-translate-x-1 transition-all duration-300 group animate-fade-in"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
           Back to Dashboard
         </Button>
 
         {/* Car Info Card */}
-        <Card className="mb-8 bg-gradient-card border-border/50 shadow-card">
+        <Card className="mb-8 bg-gradient-card border-border/50 shadow-card hover:shadow-glow transition-all duration-500 animate-scale-in">
           <CardHeader>
-            <CardTitle className="text-2xl">
+            <CardTitle className="text-2xl bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
               {car.year} {car.make} {car.model}
             </CardTitle>
           </CardHeader>
@@ -141,13 +141,19 @@ const CarDetail = () => {
         </Card>
 
         {/* Photos Section */}
-        <Tabs defaultValue="main" className="space-y-6">
-          <TabsList className="bg-card border border-border">
-            <TabsTrigger value="main" className="data-[state=active]:bg-gradient-primary">
+        <Tabs defaultValue="main" className="space-y-6 animate-fade-in-up">
+          <TabsList className="bg-card border border-border shadow-card">
+            <TabsTrigger 
+              value="main" 
+              className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300"
+            >
               <ImageIcon className="w-4 h-4 mr-2" />
               Main Photos ({mainPhotos.length})
             </TabsTrigger>
-            <TabsTrigger value="docs" className="data-[state=active]:bg-gradient-primary">
+            <TabsTrigger 
+              value="docs" 
+              className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300"
+            >
               <FileText className="w-4 h-4 mr-2" />
               Documentation ({docPhotos.length})
             </TabsTrigger>
@@ -160,7 +166,7 @@ const CarDetail = () => {
                   setUploadType("main");
                   setUploadDialogOpen(true);
                 }}
-                className="bg-gradient-primary hover:opacity-90"
+                className="bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300"
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Upload Main Photos
@@ -176,7 +182,7 @@ const CarDetail = () => {
                   setUploadType("documentation");
                   setUploadDialogOpen(true);
                 }}
-                className="bg-gradient-primary hover:opacity-90"
+                className="bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300"
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Upload Documentation

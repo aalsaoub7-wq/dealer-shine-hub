@@ -74,10 +74,12 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border max-w-2xl">
+      <DialogContent className="bg-gradient-card border-border/50 max-w-2xl shadow-intense animate-scale-in">
         <DialogHeader>
-          <DialogTitle>Add New Car</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-2xl bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+            Add New Car
+          </DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             Enter the car details below. You can add photos after creating the car.
           </DialogDescription>
         </DialogHeader>
@@ -162,14 +164,14 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="border-border"
+              className="border-border hover:scale-105 transition-all duration-300"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading}
-              className="bg-gradient-primary hover:opacity-90"
+              className="bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300"
             >
               {loading ? "Adding..." : "Add Car"}
             </Button>

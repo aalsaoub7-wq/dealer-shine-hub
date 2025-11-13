@@ -97,20 +97,22 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
       {/* Header */}
-      <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b border-border/50 bg-card/50 backdrop-blur-lg sticky top-0 z-10 shadow-card animate-fade-in">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-primary rounded-lg">
+              <div className="p-2 bg-gradient-primary rounded-lg shadow-glow animate-float">
                 <Car className="w-6 h-6 text-primary-foreground" />
               </div>
-              <h1 className="text-2xl font-bold">CarPhoto Pro</h1>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                CarPhoto Pro
+              </h1>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={handleLogout}
-              className="hover:bg-secondary"
+              className="hover:bg-secondary hover:scale-110 transition-all duration-300"
             >
               <LogOut className="w-5 h-5" />
             </Button>
@@ -119,20 +121,20 @@ const Dashboard = () => {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 animate-fade-in">
         <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <div className="relative flex-1 group animate-slide-in-right">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors duration-300" />
             <Input
               placeholder="Search by make, model, year, or VIN..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-secondary border-border"
+              className="pl-10 bg-secondary border-border focus:border-primary focus:shadow-glow transition-all duration-300"
             />
           </div>
           <Button
             onClick={() => setIsAddDialogOpen(true)}
-            className="bg-gradient-primary hover:opacity-90 transition-opacity"
+            className="bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300 animate-scale-in"
           >
             <Plus className="w-5 h-5 mr-2" />
             Add Car
@@ -140,10 +142,12 @@ const Dashboard = () => {
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-muted-foreground">Loading cars...</div>
+          <div className="text-center py-12 text-muted-foreground animate-fade-in">Loading cars...</div>
         ) : filteredCars.length === 0 ? (
-          <div className="text-center py-12">
-            <Car className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+          <div className="text-center py-12 animate-scale-in">
+            <div className="animate-float">
+              <Car className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            </div>
             <h3 className="text-xl font-semibold mb-2">No cars found</h3>
             <p className="text-muted-foreground mb-4">
               {searchQuery ? "Try a different search" : "Get started by adding your first car"}
@@ -151,7 +155,7 @@ const Dashboard = () => {
             {!searchQuery && (
               <Button
                 onClick={() => setIsAddDialogOpen(true)}
-                className="bg-gradient-primary hover:opacity-90"
+                className="bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300"
               >
                 <Plus className="w-5 h-5 mr-2" />
                 Add Your First Car
