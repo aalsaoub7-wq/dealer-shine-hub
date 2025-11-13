@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Car, LogOut, Plus, Search } from "lucide-react";
+import { LogOut, Plus, Search } from "lucide-react";
+import luveroLogo from "@/assets/luvero-logo.png";
 import CarCard from "@/components/CarCard";
 import AddCarDialog from "@/components/AddCarDialog";
 import { useToast } from "@/hooks/use-toast";
@@ -118,9 +119,7 @@ const Dashboard = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-primary rounded-lg shadow-glow animate-float">
-                <Car className="w-6 h-6 text-primary-foreground" />
-              </div>
+              <img src={luveroLogo} alt="Luvero Orbit Logo" className="w-10 h-10" />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
                 LuBild AI ©
               </h1>
@@ -162,8 +161,8 @@ const Dashboard = () => {
           <div className="text-center py-12 text-muted-foreground animate-fade-in">Laddar bilar...</div>
         ) : filteredCars.length === 0 ? (
           <div className="text-center py-12 animate-scale-in">
-            <div className="animate-float">
-              <Car className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <div>
+              <img src={luveroLogo} alt="Luvero Orbit Logo" className="w-16 h-16 mx-auto mb-4 opacity-50" />
             </div>
             <h3 className="text-xl font-semibold mb-2">Inga bilar hittades</h3>
             <p className="text-muted-foreground mb-4">
