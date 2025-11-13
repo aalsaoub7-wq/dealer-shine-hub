@@ -36,15 +36,18 @@ const PhotoUpload = ({
     }
   };
 
-  const mockEditPhoto = async (file: File): Promise<string> => {
-    // Mock API call - in production, this would call your editing API
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Return the same file URL for now - in production this would be the edited version
-        const url = URL.createObjectURL(file);
-        resolve(url);
-      }, 1000);
+  const editPhotoWithAPI = async (file: File): Promise<Blob> => {
+    const formData = new FormData();
+    formData.append('image_file', file);
+
+    const { data, error } = await supabase.functions.invoke('edit-photo', {
+      body: formData,
     });
+
+    if (error) throw error;
+    
+    // The response is the edited image blob
+    return data;
   };
 
   const handleUpload = async () => {
@@ -56,27 +59,39 @@ const PhotoUpload = ({
     setUploading(true);
     try {
       for (const file of selectedFiles) {
-        // Upload original to storage
+        // Edit photo through API
+        const editedBlob = await editPhotoWithAPI(file);
+
+        // Upload edited photo to storage
         const fileExt = file.name.split(".").pop();
-        const fileName = `${carId}/${Date.now()}-${Math.random()}.${fileExt}`;
-        const { error: uploadError, data } = await supabase.storage
+        const editedFileName = `${carId}/edited-${Date.now()}-${Math.random()}.${fileExt}`;
+        const { error: editedUploadError } = await supabase.storage
           .from("car-photos")
-          .upload(fileName, file);
+          .upload(editedFileName, editedBlob);
 
-        if (uploadError) throw uploadError;
+        if (editedUploadError) throw editedUploadError;
 
-        const { data: { publicUrl } } = supabase.storage
+        const { data: { publicUrl: editedUrl } } = supabase.storage
           .from("car-photos")
-          .getPublicUrl(fileName);
+          .getPublicUrl(editedFileName);
 
-        // Mock API call for editing
-        const editedUrl = await mockEditPhoto(file);
+        // Upload original to storage
+        const originalFileName = `${carId}/original-${Date.now()}-${Math.random()}.${fileExt}`;
+        const { error: originalUploadError } = await supabase.storage
+          .from("car-photos")
+          .upload(originalFileName, file);
+
+        if (originalUploadError) throw originalUploadError;
+
+        const { data: { publicUrl: originalUrl } } = supabase.storage
+          .from("car-photos")
+          .getPublicUrl(originalFileName);
 
         // Save to database
         const { error: dbError } = await supabase.from("photos").insert({
           car_id: carId,
-          url: editedUrl, // In production, this would be the edited photo URL
-          original_url: publicUrl,
+          url: editedUrl,
+          original_url: originalUrl,
           photo_type: photoType,
           is_edited: true,
         });
@@ -107,7 +122,7 @@ const PhotoUpload = ({
             Upload {photoType === "main" ? "Main Photos" : "Documentation"}
           </DialogTitle>
           <DialogDescription>
-            Select photos to upload. They will be automatically edited via our API.
+            Select photos to upload. They will be automatically edited via PhotoRoom API.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">

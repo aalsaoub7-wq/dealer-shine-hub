@@ -1,1 +1,4 @@
 project_id = "abepwxatllszoapfmccl"
+
+[functions.edit-photo]
+verify_jwt = true
