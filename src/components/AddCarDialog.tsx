@@ -106,7 +106,7 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-gradient-card border-border/50 max-w-2xl shadow-intense animate-scale-in">
+      <DialogContent className="bg-gradient-card border-border/50 max-w-2xl shadow-intense animate-scale-in max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
             Lägg till ny bil
