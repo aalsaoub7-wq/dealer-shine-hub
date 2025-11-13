@@ -18,6 +18,7 @@ interface CarData {
   color: string | null;
   mileage: number | null;
   notes: string | null;
+  photo_url?: string | null;
 }
 
 const Dashboard = () => {
@@ -67,7 +68,26 @@ const Dashboard = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setCars(data || []);
+      
+      // Fetch first photo for each car
+      const carsWithPhotos = await Promise.all(
+        (data || []).map(async (car) => {
+          const { data: photos } = await supabase
+            .from("photos")
+            .select("url")
+            .eq("car_id", car.id)
+            .eq("type", "main")
+            .order("created_at", { ascending: true })
+            .limit(1);
+          
+          return {
+            ...car,
+            photo_url: photos?.[0]?.url || null,
+          };
+        })
+      );
+      
+      setCars(carsWithPhotos);
     } catch (error: any) {
       toast({
         title: "Error loading cars",
