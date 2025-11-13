@@ -63,6 +63,8 @@ export const AiSettingsDialog = () => {
           user_id: user.id,
           background_prompt: backgroundPrompt,
           example_descriptions: exampleDescriptions,
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;
