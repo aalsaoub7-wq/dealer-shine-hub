@@ -51,6 +51,13 @@ serve(async (req) => {
       throw new Error(`PhotoRoom API error: ${response.status} - ${errorText}`);
     }
 
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.startsWith('image/')) {
+      const errorText = await response.text();
+      console.error('PhotoRoom API unexpected content-type:', contentType, errorText);
+      throw new Error(`PhotoRoom API returned non-image response: ${contentType} - ${errorText}`);
+    }
+
     // Get the edited image as blob
     const editedImageBlob = await response.blob();
     console.log('Successfully edited image, size:', editedImageBlob.size);
