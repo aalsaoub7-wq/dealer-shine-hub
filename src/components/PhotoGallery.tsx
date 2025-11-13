@@ -55,6 +55,17 @@ const PhotoGallery = ({ photos, onUpdate }: PhotoGalleryProps) => {
               src={photo.url}
               alt="Car photo"
               className="w-full h-full object-cover"
+              onError={(e) => {
+                const el = e.currentTarget as HTMLImageElement;
+                // Try original_url fallback first
+                if (photo.original_url && el.src !== photo.original_url) {
+                  el.src = photo.original_url;
+                  return;
+                }
+                // Try swapping extension between png/webp as a last resort
+                if (el.src.endsWith('.png')) el.src = el.src.replace('.png', '.webp');
+                else if (el.src.endsWith('.webp')) el.src = el.src.replace('.webp', '.png');
+              }}
             />
             {photo.is_edited && (
               <Badge className="absolute top-2 left-2 bg-gradient-primary">

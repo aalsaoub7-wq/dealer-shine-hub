@@ -81,6 +81,18 @@ const PhotoUpload = ({
           .from("car-photos")
           .getPublicUrl(editedFileName);
 
+        // Verify accessibility; fallback to signed URL if needed
+        let finalEditedUrl = editedUrl;
+        try {
+          const head = await fetch(editedUrl, { method: 'HEAD' });
+          if (!head.ok) {
+            const { data: signedEdited } = await supabase.storage
+              .from('car-photos')
+              .createSignedUrl(editedFileName, 60 * 60 * 24 * 365);
+            if (signedEdited?.signedUrl) finalEditedUrl = signedEdited.signedUrl;
+          }
+        } catch {}
+
         // Upload original to storage
         const originalFileName = `${carId}/original-${Date.now()}-${Math.random()}.${fileExt}`;
         const { error: originalUploadError } = await supabase.storage
@@ -93,11 +105,22 @@ const PhotoUpload = ({
           .from("car-photos")
           .getPublicUrl(originalFileName);
 
+        let finalOriginalUrl = originalUrl;
+        try {
+          const head2 = await fetch(originalUrl, { method: 'HEAD' });
+          if (!head2.ok) {
+            const { data: signedOriginal } = await supabase.storage
+              .from('car-photos')
+              .createSignedUrl(originalFileName, 60 * 60 * 24 * 365);
+            if (signedOriginal?.signedUrl) finalOriginalUrl = signedOriginal.signedUrl;
+          }
+        } catch {}
+
         // Save to database
         const { error: dbError } = await supabase.from("photos").insert({
           car_id: carId,
-          url: editedUrl,
-          original_url: originalUrl,
+          url: finalEditedUrl,
+          original_url: finalOriginalUrl,
           photo_type: photoType,
           is_edited: true,
         });
