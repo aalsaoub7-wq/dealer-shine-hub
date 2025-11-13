@@ -47,7 +47,7 @@ const CarCard = ({ car }: CarCardProps) => {
             <img src={licensePlate} alt="Registreringsskylt" className="w-full h-auto" />
             <div className="absolute inset-0 flex items-center justify-center">
               <span className="font-bold text-black text-2xl tracking-widest ml-4" style={{ fontFamily: "monospace" }}>
-                {car.vin}
+                {car.vin.length === 6 ? `${car.vin.slice(0, 3)} ${car.vin.slice(3)}` : car.vin}
               </span>
             </div>
           </div>
