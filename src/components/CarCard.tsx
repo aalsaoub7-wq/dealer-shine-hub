@@ -12,6 +12,7 @@ interface CarCardProps {
     year: number;
     color: string | null;
     vin: string | null;
+    photo_url?: string | null;
   };
   onUpdate: () => void;
 }
@@ -27,9 +28,19 @@ const CarCard = ({ car }: CarCardProps) => {
       <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
       <CardContent className="p-6 relative">
         <div className="flex items-start justify-between mb-4">
-          <div className="p-2 bg-gradient-primary rounded-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-glow">
-            <Car className="w-6 h-6 text-primary-foreground" />
-          </div>
+          {car.photo_url ? (
+            <div className="w-24 h-24 rounded-lg overflow-hidden group-hover:scale-110 transition-all duration-300 shadow-glow">
+              <img 
+                src={car.photo_url} 
+                alt={`${car.make} ${car.model}`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="p-2 bg-gradient-primary rounded-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-glow">
+              <Car className="w-6 h-6 text-primary-foreground" />
+            </div>
+          )}
           <Badge
             variant="secondary"
             className="bg-secondary/50 group-hover:bg-primary/20 transition-colors duration-300"
