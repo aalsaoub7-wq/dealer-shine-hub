@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Upload, Image as ImageIcon, FileText, Trash2, Save, Settings } from "lucide-react";
+import { ArrowLeft, Upload, Image as ImageIcon, FileText, Trash2, Save, Settings, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PhotoUpload from "@/components/PhotoUpload";
 import PhotoGalleryDraggable from "@/components/PhotoGalleryDraggable";
@@ -60,6 +60,8 @@ const CarDetail = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editedNotes, setEditedNotes] = useState<string>("");
   const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const [selectedMainPhotos, setSelectedMainPhotos] = useState<string[]>([]);
+  const [selectedDocPhotos, setSelectedDocPhotos] = useState<string[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -113,6 +115,19 @@ const CarDetail = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleSharePhotos = (photoIds: string[]) => {
+    const photoUrls = photos
+      .filter(p => photoIds.includes(p.id))
+      .map(p => p.url)
+      .join('\n');
+    
+    navigator.clipboard.writeText(photoUrls);
+    toast({
+      title: "Länkarna har kopierats!",
+      description: `${photoIds.length} fotolänkar kopierades till urklipp`,
+    });
   };
 
   const handleSaveNotes = async () => {
@@ -283,7 +298,17 @@ const CarDetail = () => {
           </TabsList>
 
           <TabsContent value="main" className="space-y-6">
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              {selectedMainPhotos.length > 0 && (
+                <Button
+                  onClick={() => handleSharePhotos(selectedMainPhotos)}
+                  variant="outline"
+                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Dela ({selectedMainPhotos.length})
+                </Button>
+              )}
               <Button
                 onClick={() => {
                   setUploadType("main");
@@ -295,11 +320,26 @@ const CarDetail = () => {
                 Ladda upp huvudfoton
               </Button>
             </div>
-            <PhotoGalleryDraggable photos={mainPhotos} onUpdate={fetchCarData} />
+            <PhotoGalleryDraggable 
+              photos={mainPhotos} 
+              onUpdate={fetchCarData}
+              selectedPhotos={selectedMainPhotos}
+              onSelectionChange={setSelectedMainPhotos}
+            />
           </TabsContent>
 
           <TabsContent value="docs" className="space-y-6">
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              {selectedDocPhotos.length > 0 && (
+                <Button
+                  onClick={() => handleSharePhotos(selectedDocPhotos)}
+                  variant="outline"
+                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Dela ({selectedDocPhotos.length})
+                </Button>
+              )}
               <Button
                 onClick={() => {
                   setUploadType("documentation");
@@ -311,7 +351,12 @@ const CarDetail = () => {
                 Ladda upp dokumentation
               </Button>
             </div>
-            <PhotoGalleryDraggable photos={docPhotos} onUpdate={fetchCarData} />
+            <PhotoGalleryDraggable 
+              photos={docPhotos} 
+              onUpdate={fetchCarData}
+              selectedPhotos={selectedDocPhotos}
+              onSelectionChange={setSelectedDocPhotos}
+            />
           </TabsContent>
         </Tabs>
       </div>
