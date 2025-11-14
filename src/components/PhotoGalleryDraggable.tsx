@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2, Check, Download, GripVertical, Maximize2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +36,8 @@ interface Photo {
 interface PhotoGalleryProps {
   photos: Photo[];
   onUpdate: () => void;
+  selectedPhotos: string[];
+  onSelectionChange: (selectedIds: string[]) => void;
 }
 
 interface SortablePhotoCardProps {
@@ -43,6 +46,8 @@ interface SortablePhotoCardProps {
   onDelete: (photoId: string) => void;
   onImageClick: (url: string) => void;
   onDownload: (url: string) => void;
+  isSelected: boolean;
+  onSelect: (photoId: string, selected: boolean) => void;
 }
 
 const SortablePhotoCard = ({
@@ -51,6 +56,8 @@ const SortablePhotoCard = ({
   onDelete,
   onImageClick,
   onDownload,
+  isSelected,
+  onSelect,
 }: SortablePhotoCardProps) => {
   const {
     attributes,
@@ -80,6 +87,16 @@ const SortablePhotoCard = ({
           {...listeners}
         >
           <GripVertical className="w-4 h-4 text-foreground" />
+        </div>
+        <div 
+          className="absolute bottom-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Checkbox 
+            checked={isSelected}
+            onCheckedChange={(checked) => onSelect(photo.id, checked === true)}
+            className="bg-background/80 border-2"
+          />
         </div>
         <img
           src={photo.url}
@@ -134,7 +151,7 @@ const SortablePhotoCard = ({
   );
 };
 
-const PhotoGalleryDraggable = ({ photos, onUpdate }: PhotoGalleryProps) => {
+const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionChange }: PhotoGalleryProps) => {
   const { toast } = useToast();
   const [items, setItems] = useState(photos);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
@@ -243,6 +260,14 @@ const PhotoGalleryDraggable = ({ photos, onUpdate }: PhotoGalleryProps) => {
                 onDelete={handleDelete}
                 onImageClick={setLightboxUrl}
                 onDownload={handleDownload}
+                isSelected={selectedPhotos.includes(photo.id)}
+                onSelect={(photoId, selected) => {
+                  if (selected) {
+                    onSelectionChange([...selectedPhotos, photoId]);
+                  } else {
+                    onSelectionChange(selectedPhotos.filter(id => id !== photoId));
+                  }
+                }}
               />
             ))}
           </div>
