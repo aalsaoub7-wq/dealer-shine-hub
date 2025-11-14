@@ -122,7 +122,7 @@ const Dashboard = () => {
             <div className="flex items-center gap-3">
               <img src={luveroLogo} alt="Luvero Orbit Logo" className="w-10 h-10" />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-                LuBild AI ©
+                LuFlow AI ©
               </h1>
               <AiSettingsDialog />
             </div>
