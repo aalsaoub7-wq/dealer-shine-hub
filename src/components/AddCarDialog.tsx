@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { Sparkles } from "lucide-react";
 
 interface AddCarDialogProps {
   open: boolean;
@@ -22,6 +23,7 @@ interface AddCarDialogProps {
 
 const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => {
   const [loading, setLoading] = useState(false);
+  const [generatingDescription, setGeneratingDescription] = useState(false);
   const [formData, setFormData] = useState({
     make: "",
     model: "",
@@ -101,6 +103,46 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenerateDescription = async () => {
+    setGeneratingDescription(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-car-description', {
+        body: {
+          carData: {
+            make: formData.make,
+            model: formData.model,
+            year: formData.year,
+            mileage: formData.mileage,
+            color: formData.color,
+            fuel: formData.fuel,
+            gearbox: formData.gearbox,
+            price: formData.price,
+            vin: formData.vin,
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.description) {
+        setFormData(prev => ({ ...prev, description: data.description }));
+        toast({
+          title: "Beskrivning genererad",
+          description: "AI har skapat en beskrivning som du kan redigera",
+        });
+      }
+    } catch (error: any) {
+      console.error('Error generating description:', error);
+      toast({
+        title: "Fel vid generering",
+        description: error.message || "Kunde inte generera beskrivning",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingDescription(false);
     }
   };
 
@@ -217,7 +259,19 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description">Beskrivning (för Blocket)</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="description">Beskrivning (för Blocket)</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleGenerateDescription}
+                disabled={generatingDescription || !formData.make || !formData.model}
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                {generatingDescription ? "Genererar..." : "Generera Beskrivning med AI"}
+              </Button>
+            </div>
             <Textarea
               id="description"
               value={formData.description}

@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.blocket-sync]
 verify_jwt = false
+
+[functions.generate-car-description]
+verify_jwt = true
