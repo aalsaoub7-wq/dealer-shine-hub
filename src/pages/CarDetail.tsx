@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Upload, Image as ImageIcon, FileText, Trash2, Save } from "lucide-react";
+import { ArrowLeft, Upload, Image as ImageIcon, FileText, Trash2, Save, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PhotoUpload from "@/components/PhotoUpload";
 import PhotoGalleryDraggable from "@/components/PhotoGalleryDraggable";
 import { BlocketSyncButton } from "@/components/BlocketSyncButton";
+import EditCarDialog from "@/components/EditCarDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,6 +57,7 @@ const CarDetail = () => {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadType, setUploadType] = useState<"main" | "documentation">("main");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editedNotes, setEditedNotes] = useState<string>("");
   const [isSavingNotes, setIsSavingNotes] = useState(false);
   const { toast } = useToast();
@@ -180,9 +182,19 @@ const CarDetail = () => {
         {/* Car Info Card */}
         <Card className="mb-8 bg-gradient-card border-border/50 shadow-card hover:shadow-glow transition-all duration-500 animate-scale-in">
           <CardHeader>
-            <CardTitle className="text-2xl bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-              {car.year} {car.make} {car.model}
-            </CardTitle>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-2xl bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                {car.year} {car.make} {car.model}
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setEditDialogOpen(true)}
+                className="hover:scale-110 transition-transform duration-300"
+              >
+                <Settings className="w-5 h-5" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -338,6 +350,15 @@ const CarDetail = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {car && (
+        <EditCarDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          car={car}
+          onCarUpdated={fetchCarData}
+        />
+      )}
     </div>
   );
 };
