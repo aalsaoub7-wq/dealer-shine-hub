@@ -72,11 +72,7 @@ const CarDetail = () => {
     setLoading(true);
     try {
       // Fetch car details
-      const { data: carData, error: carError } = await supabase
-        .from("cars")
-        .select("*")
-        .eq("id", id)
-        .single();
+      const { data: carData, error: carError } = await supabase.from("cars").select("*").eq("id", id).single();
 
       if (carError) throw carError;
       setCar(carData);
@@ -123,10 +119,7 @@ const CarDetail = () => {
     if (!car) return;
     setIsSavingNotes(true);
     try {
-      const { error } = await supabase
-        .from("cars")
-        .update({ notes: editedNotes })
-        .eq("id", id);
+      const { error } = await supabase.from("cars").update({ notes: editedNotes }).eq("id", id);
       if (error) throw error;
       setCar({ ...car, notes: editedNotes });
       toast({ title: "Anteckningar sparade" });
@@ -256,7 +249,7 @@ const CarDetail = () => {
                     className="bg-gradient-primary hover:opacity-90"
                   >
                     <Save className="w-3 h-3 mr-1" />
-                    Spara
+                    Spara Anteckningar
                   </Button>
                 </div>
                 <Textarea
@@ -273,15 +266,15 @@ const CarDetail = () => {
         {/* Photos Section */}
         <Tabs defaultValue="main" className="space-y-6 animate-fade-in-up">
           <TabsList className="bg-card border border-border shadow-card">
-            <TabsTrigger 
-              value="main" 
+            <TabsTrigger
+              value="main"
               className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300"
             >
               <ImageIcon className="w-4 h-4 mr-2" />
               Huvudfoton ({mainPhotos.length})
             </TabsTrigger>
-            <TabsTrigger 
-              value="docs" 
+            <TabsTrigger
+              value="docs"
               className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300"
             >
               <FileText className="w-4 h-4 mr-2" />
@@ -352,12 +345,7 @@ const CarDetail = () => {
       </AlertDialog>
 
       {car && (
-        <EditCarDialog
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          car={car}
-          onCarUpdated={fetchCarData}
-        />
+        <EditCarDialog open={editDialogOpen} onOpenChange={setEditDialogOpen} car={car} onCarUpdated={fetchCarData} />
       )}
     </div>
   );
