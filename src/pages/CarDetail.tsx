@@ -208,55 +208,55 @@ const CarDetail = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {car.price && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Pris</p>
+                  <p className="text-base text-muted-foreground font-medium">Pris</p>
                   <p className="font-semibold">{car.price.toLocaleString()} SEK</p>
                 </div>
               )}
               {car.registration_number && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Registreringsnummer</p>
+                  <p className="text-base text-muted-foreground font-medium">Registreringsnummer</p>
                   <p>{car.registration_number}</p>
                 </div>
               )}
               {car.vin && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Reg.nr.</p>
+                  <p className="text-base text-muted-foreground font-medium">Reg.nr.</p>
                   <p>{car.vin}</p>
                 </div>
               )}
               {car.color && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Färg</p>
+                  <p className="text-base text-muted-foreground font-medium">Färg</p>
                   <p>{car.color}</p>
                 </div>
               )}
               {car.mileage && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Miltal</p>
+                  <p className="text-base text-muted-foreground font-medium">Miltal</p>
                   <p>{car.mileage.toLocaleString()} km</p>
                 </div>
               )}
               {car.fuel && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Bränsle</p>
+                  <p className="text-base text-muted-foreground font-medium">Bränsle</p>
                   <p>{car.fuel}</p>
                 </div>
               )}
               {car.gearbox && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Växellåda</p>
+                  <p className="text-base text-muted-foreground font-medium">Växellåda</p>
                   <p>{car.gearbox}</p>
                 </div>
               )}
               {car.description && (
                 <div className="md:col-span-2 lg:col-span-3">
-                  <p className="text-sm text-muted-foreground">Beskrivning</p>
+                  <p className="text-base text-muted-foreground font-medium">Beskrivning</p>
                   <p className="whitespace-pre-wrap">{car.description}</p>
                 </div>
               )}
               <div className="md:col-span-2 lg:col-span-3">
                 <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm text-muted-foreground">Anteckningar (delat med företaget)</p>
+                  <p className="text-base text-muted-foreground font-medium">Anteckningar (delat med företaget)</p>
                   <Button
                     size="sm"
                     onClick={handleSaveNotes}
