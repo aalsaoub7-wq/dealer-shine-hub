@@ -117,7 +117,7 @@ export const WatermarkPreview = ({
       ctx.strokeRect(localX, localY, logoWidth, logoHeight);
       
       // Draw resize handle (red circle in bottom-right corner)
-      const handleSize = 30;
+      const handleSize = 45;
       const handleX = localX + logoWidth;
       const handleY = localY + logoHeight;
       
@@ -129,17 +129,17 @@ export const WatermarkPreview = ({
       
       // Draw red circle border
       ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 4;
       ctx.beginPath();
       ctx.arc(handleX, handleY, handleSize, 0, 2 * Math.PI);
       ctx.stroke();
       
       // Draw diagonal double arrow inside the circle
       ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = 2.5;
+      ctx.lineWidth = 3.5;
       ctx.lineCap = 'round';
       
-      const arrowSize = 12;
+      const arrowSize = 18;
       const arrowOffset = arrowSize / Math.sqrt(2);
       
       // Main diagonal line
@@ -151,17 +151,17 @@ export const WatermarkPreview = ({
       // Top-left arrow head
       ctx.beginPath();
       ctx.moveTo(handleX - arrowOffset, handleY - arrowOffset);
-      ctx.lineTo(handleX - arrowOffset + 5, handleY - arrowOffset);
+      ctx.lineTo(handleX - arrowOffset + 7, handleY - arrowOffset);
       ctx.moveTo(handleX - arrowOffset, handleY - arrowOffset);
-      ctx.lineTo(handleX - arrowOffset, handleY - arrowOffset + 5);
+      ctx.lineTo(handleX - arrowOffset, handleY - arrowOffset + 7);
       ctx.stroke();
       
       // Bottom-right arrow head
       ctx.beginPath();
       ctx.moveTo(handleX + arrowOffset, handleY + arrowOffset);
-      ctx.lineTo(handleX + arrowOffset - 5, handleY + arrowOffset);
+      ctx.lineTo(handleX + arrowOffset - 7, handleY + arrowOffset);
       ctx.moveTo(handleX + arrowOffset, handleY + arrowOffset);
-      ctx.lineTo(handleX + arrowOffset, handleY + arrowOffset - 5);
+      ctx.lineTo(handleX + arrowOffset, handleY + arrowOffset - 7);
       ctx.stroke();
     }
   }, [localX, localY, localSize, localOpacity, isSelected]);
@@ -184,7 +184,7 @@ export const WatermarkPreview = ({
     const mouseX = (e.clientX - rect.left) * scaleX;
     const mouseY = (e.clientY - rect.top) * scaleY;
 
-    const handleSize = 30;
+    const handleSize = 45;
     const handleX = localX + logoSize.width;
     const handleY = localY + logoSize.height;
     
