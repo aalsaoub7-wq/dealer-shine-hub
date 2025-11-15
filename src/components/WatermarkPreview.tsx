@@ -273,7 +273,7 @@ export const WatermarkPreview = ({
         <p className="text-sm text-muted-foreground mb-2">
           Klicka på vattenmärket för att välja det. Dra för att flytta, dra den röda pricken för att ändra storlek.
         </p>
-        <Card className="p-4 bg-secondary">
+        <Card className="p-4 bg-muted/30 border-muted">
           <canvas
             ref={canvasRef}
             className="w-full h-auto cursor-move touch-none"

@@ -55,8 +55,8 @@ export const LandingPagePreview = ({
     fill: 'object-fill'
   }[headerFit];
   return (
-    <Card className="overflow-hidden border-2">
-      <div 
+    <Card className="overflow-hidden border-muted">
+      <div
         className="p-4 space-y-3"
         style={{ backgroundColor }}
       >
