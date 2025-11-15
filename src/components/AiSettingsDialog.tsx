@@ -314,7 +314,7 @@ export const AiSettingsDialog = () => {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Settings className="h-4 w-4 mr-2" />
-          <span className="hidden md:inline">Ställ in AI för bakgrund och beskrivning</span>
+          <span className="hidden md:inline">Inställningar</span>
           <span className="md:hidden">Inställningar</span>
         </Button>
       </DialogTrigger>
