@@ -3,7 +3,8 @@ export const applyWatermark = async (
   logoUrl: string,
   x: number = 20,
   y: number = 20,
-  sizePercent: number = 15
+  sizePercent: number = 15,
+  opacity: number = 0.8
 ): Promise<Blob> => {
   // Load both images
   const [image, logo] = await Promise.all([
@@ -28,8 +29,8 @@ export const applyWatermark = async (
   const logoWidth = logo.width * logoScale;
   const logoHeight = logo.height * logoScale;
 
-  // Draw logo with slight transparency
-  ctx.globalAlpha = 0.8;
+  // Draw logo with transparency
+  ctx.globalAlpha = opacity;
   ctx.drawImage(logo, x, y, logoWidth, logoHeight);
   ctx.globalAlpha = 1.0;
 

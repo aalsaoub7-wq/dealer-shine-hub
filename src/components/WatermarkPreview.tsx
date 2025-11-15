@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import testImage from "@/assets/watermark-test.jpg";
 
 interface WatermarkPreviewProps {
@@ -8,8 +9,10 @@ interface WatermarkPreviewProps {
   x: number;
   y: number;
   size: number;
+  opacity: number;
   onPositionChange: (x: number, y: number) => void;
   onSizeChange: (size: number) => void;
+  onOpacityChange: (opacity: number) => void;
 }
 
 export const WatermarkPreview = ({
@@ -17,8 +20,10 @@ export const WatermarkPreview = ({
   x,
   y,
   size,
+  opacity,
   onPositionChange,
   onSizeChange,
+  onOpacityChange,
 }: WatermarkPreviewProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const testImgRef = useRef<HTMLImageElement | null>(null);
@@ -34,6 +39,7 @@ export const WatermarkPreview = ({
   const [localX, setLocalX] = useState(x);
   const [localY, setLocalY] = useState(y);
   const [localSize, setLocalSize] = useState(size);
+  const [localOpacity, setLocalOpacity] = useState(opacity);
   const [logoSize, setLogoSize] = useState({ width: 0, height: 0 });
 
   // Sync local state with props when not interacting
@@ -42,8 +48,9 @@ export const WatermarkPreview = ({
       setLocalX(x);
       setLocalY(y);
       setLocalSize(size);
+      setLocalOpacity(opacity);
     }
-  }, [x, y, size, isDragging, isResizing]);
+  }, [x, y, size, opacity, isDragging, isResizing]);
 
   // Load images once
   useEffect(() => {
@@ -99,7 +106,7 @@ export const WatermarkPreview = ({
     setLogoSize({ width: logoWidth, height: logoHeight });
 
     // Draw logo with transparency
-    ctx.globalAlpha = 0.8;
+    ctx.globalAlpha = localOpacity;
     ctx.drawImage(logoImgRef.current, localX, localY, logoWidth, logoHeight);
     ctx.globalAlpha = 1.0;
 
@@ -116,7 +123,7 @@ export const WatermarkPreview = ({
       ctx.arc(localX + logoWidth, localY + logoHeight, handleSize, 0, 2 * Math.PI);
       ctx.fill();
     }
-  }, [localX, localY, localSize, isSelected]);
+  }, [localX, localY, localSize, localOpacity, isSelected]);
 
   // Trigger render when local state changes
   useEffect(() => {
@@ -229,6 +236,22 @@ export const WatermarkPreview = ({
             style={{ imageRendering: 'auto' }}
           />
         </Card>
+      </div>
+
+      <div>
+        <Label className="mb-2 block">Transparens ({Math.round(localOpacity * 100)}%)</Label>
+        <Slider
+          value={[localOpacity * 100]}
+          onValueChange={(values) => {
+            const newOpacity = values[0] / 100;
+            setLocalOpacity(newOpacity);
+            onOpacityChange(newOpacity);
+          }}
+          min={0}
+          max={100}
+          step={1}
+          className="w-full"
+        />
       </div>
     </div>
   );
