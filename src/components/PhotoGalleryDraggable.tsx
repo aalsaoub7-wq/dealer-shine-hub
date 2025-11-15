@@ -82,7 +82,7 @@ const SortablePhotoCard = ({
     <Card
       ref={setNodeRef}
       style={style}
-      className="bg-gradient-card border-border/50 overflow-hidden group shadow-card hover:shadow-intense hover:-translate-y-2 transition-all duration-500 animate-fade-in-up"
+      className={`bg-gradient-card border-border/50 overflow-hidden group shadow-card hover:shadow-intense hover:-translate-y-2 transition-all duration-500 animate-fade-in-up ${isSelected ? 'ring-2 ring-primary' : ''}`}
       {...attributes}
     >
       <div className="relative aspect-video bg-secondary">
@@ -102,7 +102,7 @@ const SortablePhotoCard = ({
           <GripVertical className="w-4 h-4 text-foreground" />
         </div>
         <div 
-          className="absolute bottom-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+          className={`absolute bottom-2 left-2 z-10 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
           onClick={(e) => e.stopPropagation()}
         >
           <Checkbox 
