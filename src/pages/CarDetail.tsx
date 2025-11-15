@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Upload, Image as ImageIcon, FileText, Trash2, Save, Settings, Share2 } from "lucide-react";
+import { ArrowLeft, Upload, Image as ImageIcon, FileText, Trash2, Save, Settings, Share2, Stamp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PhotoUpload from "@/components/PhotoUpload";
 import PhotoGalleryDraggable from "@/components/PhotoGalleryDraggable";
 import { BlocketSyncButton } from "@/components/BlocketSyncButton";
 import EditCarDialog from "@/components/EditCarDialog";
+import { applyWatermark } from "@/lib/watermark";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,6 +63,7 @@ const CarDetail = () => {
   const [isSavingNotes, setIsSavingNotes] = useState(false);
   const [selectedMainPhotos, setSelectedMainPhotos] = useState<string[]>([]);
   const [selectedDocPhotos, setSelectedDocPhotos] = useState<string[]>([]);
+  const [applyingWatermark, setApplyingWatermark] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -146,6 +148,89 @@ const CarDetail = () => {
       });
     } finally {
       setIsSavingNotes(false);
+    }
+  };
+
+  const handleApplyWatermark = async (photoIds: string[], photoType: 'main' | 'documentation') => {
+    setApplyingWatermark(true);
+    try {
+      // Get user's logo
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Ingen användare inloggad");
+
+      const { data: settings } = await supabase
+        .from("ai_settings")
+        .select("logo_url")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!settings?.logo_url) {
+        toast({
+          title: "Ingen logotyp",
+          description: "Du måste ladda upp en logotyp i AI-inställningar först",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Process each photo
+      const photosToProcess = photos.filter(p => photoIds.includes(p.id));
+      
+      for (const photo of photosToProcess) {
+        try {
+          // Apply watermark
+          const watermarkedBlob = await applyWatermark(photo.url, settings.logo_url, 'top-left');
+          
+          // Upload the watermarked image
+          const fileExt = 'png';
+          const fileName = `watermarked-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+          const filePath = `${car.id}/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('car-photos')
+            .upload(filePath, watermarkedBlob, { upsert: true });
+
+          if (uploadError) throw uploadError;
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('car-photos')
+            .getPublicUrl(filePath);
+
+          // Update photo record
+          await supabase
+            .from('photos')
+            .update({
+              url: publicUrl,
+              original_url: photo.original_url || photo.url,
+              is_edited: true,
+            })
+            .eq('id', photo.id);
+
+        } catch (error) {
+          console.error(`Error processing photo ${photo.id}:`, error);
+        }
+      }
+
+      toast({
+        title: "Vattenmärke tillagt",
+        description: `${photosToProcess.length} bilder har uppdaterats`,
+      });
+      
+      // Clear selection and refresh
+      if (photoType === 'main') {
+        setSelectedMainPhotos([]);
+      } else {
+        setSelectedDocPhotos([]);
+      }
+      fetchCarData();
+    } catch (error: any) {
+      toast({
+        title: "Fel vid tillägg av vattenmärke",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setApplyingWatermark(false);
     }
   };
 
@@ -300,14 +385,25 @@ const CarDetail = () => {
           <TabsContent value="main" className="space-y-6">
             <div className="flex justify-end gap-2">
               {selectedMainPhotos.length > 0 && (
-                <Button
-                  onClick={() => handleSharePhotos(selectedMainPhotos)}
-                  variant="outline"
-                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Dela ({selectedMainPhotos.length})
-                </Button>
+                <>
+                  <Button
+                    onClick={() => handleApplyWatermark(selectedMainPhotos, 'main')}
+                    variant="outline"
+                    disabled={applyingWatermark}
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                  >
+                    <Stamp className="w-4 h-4 mr-2" />
+                    {applyingWatermark ? "Lägger till..." : `Lägg till vattenmärke (${selectedMainPhotos.length})`}
+                  </Button>
+                  <Button
+                    onClick={() => handleSharePhotos(selectedMainPhotos)}
+                    variant="outline"
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Dela ({selectedMainPhotos.length})
+                  </Button>
+                </>
               )}
               <Button
                 onClick={() => {
@@ -331,14 +427,25 @@ const CarDetail = () => {
           <TabsContent value="docs" className="space-y-6">
             <div className="flex justify-end gap-2">
               {selectedDocPhotos.length > 0 && (
-                <Button
-                  onClick={() => handleSharePhotos(selectedDocPhotos)}
-                  variant="outline"
-                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Dela ({selectedDocPhotos.length})
-                </Button>
+                <>
+                  <Button
+                    onClick={() => handleApplyWatermark(selectedDocPhotos, 'documentation')}
+                    variant="outline"
+                    disabled={applyingWatermark}
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                  >
+                    <Stamp className="w-4 h-4 mr-2" />
+                    {applyingWatermark ? "Lägger till..." : `Lägg till vattenmärke (${selectedDocPhotos.length})`}
+                  </Button>
+                  <Button
+                    onClick={() => handleSharePhotos(selectedDocPhotos)}
+                    variant="outline"
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Dela ({selectedDocPhotos.length})
+                  </Button>
+                </>
               )}
               <Button
                 onClick={() => {
