@@ -302,7 +302,7 @@ export const AiSettingsDialog = () => {
             <TabsTrigger value="landing">Landningssida</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="background" className="space-y-4 mt-4 p-3 md:p-4 border-2 border-border rounded-xl bg-card shadow-sm">
+          <TabsContent value="background" className="space-y-4 mt-4 p-3 md:p-4 border border-border md:border-2 rounded-xl bg-muted/40 md:bg-card shadow-sm overflow-hidden">
             <div className="space-y-2">
               <Label htmlFor="background-prompt">Instruktioner (prompt) för bakgrunden</Label>
               <Textarea
@@ -315,7 +315,7 @@ export const AiSettingsDialog = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="descriptions" className="space-y-4 mt-4 p-3 md:p-4 border-2 border-border rounded-xl bg-card shadow-sm">
+          <TabsContent value="descriptions" className="space-y-4 mt-4 p-3 md:p-4 border border-border md:border-2 rounded-xl bg-muted/40 md:bg-card shadow-sm overflow-hidden">
             <div className="space-y-2">
               <Label htmlFor="example-descriptions">Exempel Beskrivningar</Label>
               <Textarea
@@ -328,7 +328,7 @@ export const AiSettingsDialog = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="watermark" className="space-y-4 mt-4 p-3 md:p-4 border-2 border-border rounded-xl bg-card shadow-sm">
+          <TabsContent value="watermark" className="space-y-4 mt-4 p-3 md:p-4 border border-border md:border-2 rounded-xl bg-muted/40 md:bg-card shadow-sm overflow-hidden">
             <div className="space-y-4">
               <div>
                 <Label>Logotyp för vattenmärke</Label>
@@ -386,7 +386,7 @@ export const AiSettingsDialog = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="landing" className="space-y-4 mt-4 p-3 md:p-4 border-2 border-border rounded-xl bg-card shadow-sm">
+          <TabsContent value="landing" className="space-y-4 mt-4 p-3 md:p-4 border border-border md:border-2 rounded-xl bg-muted/40 md:bg-card shadow-sm overflow-hidden">
             <div className="grid md:grid-cols-2 gap-6">
               {/* Settings */}
               <div className="space-y-4">
