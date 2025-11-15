@@ -106,7 +106,7 @@ export function PlatformSyncDialog({
                 <img
                   src={platform.logo}
                   alt={platform.name}
-                  className={platform.id === "blocket" ? "h-16 w-16 object-contain" : "h-8 w-8 object-contain"}
+                  className="h-8 w-8 object-contain"
                 />
                 <Label
                   htmlFor={platform.id}
