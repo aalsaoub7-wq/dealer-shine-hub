@@ -295,7 +295,7 @@ export const AiSettingsDialog = () => {
             <TabsTrigger value="landing">Landningssida</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="background" className="space-y-4 mt-4">
+          <TabsContent value="background" className="space-y-4 mt-4 p-4 border border-border rounded-lg bg-card/50">
             <div className="space-y-2">
               <Label htmlFor="background-prompt">Instruktioner (prompt) för bakgrunden</Label>
               <Textarea
@@ -308,7 +308,7 @@ export const AiSettingsDialog = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="descriptions" className="space-y-4 mt-4">
+          <TabsContent value="descriptions" className="space-y-4 mt-4 p-4 border border-border rounded-lg bg-card/50">
             <div className="space-y-2">
               <Label htmlFor="example-descriptions">Exempel Beskrivningar</Label>
               <Textarea
@@ -321,7 +321,7 @@ export const AiSettingsDialog = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="watermark" className="space-y-4 mt-4">
+          <TabsContent value="watermark" className="space-y-4 mt-4 p-4 border border-border rounded-lg bg-card/50">
             <div className="space-y-4">
               <div>
                 <Label>Logotyp för vattenmärke</Label>
@@ -379,7 +379,7 @@ export const AiSettingsDialog = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="landing" className="space-y-4 mt-4">
+          <TabsContent value="landing" className="space-y-4 mt-4 p-4 border border-border rounded-lg bg-card/50">
             <div className="grid md:grid-cols-2 gap-6">
               {/* Settings */}
               <div className="space-y-4">
