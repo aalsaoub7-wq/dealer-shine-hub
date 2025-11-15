@@ -42,20 +42,13 @@ interface PlatformSyncDialogProps {
   car: any;
 }
 
-export function PlatformSyncDialog({
-  open,
-  onOpenChange,
-  carId,
-  car,
-}: PlatformSyncDialogProps) {
+export function PlatformSyncDialog({ open, onOpenChange, carId, car }: PlatformSyncDialogProps) {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const { isLoading, syncToBlocket } = useBlocketSync(carId);
 
   const togglePlatform = (platformId: string) => {
     setSelectedPlatforms((prev) =>
-      prev.includes(platformId)
-        ? prev.filter((id) => id !== platformId)
-        : [...prev, platformId]
+      prev.includes(platformId) ? prev.filter((id) => id !== platformId) : [...prev, platformId],
     );
   };
 
@@ -77,18 +70,11 @@ export function PlatformSyncDialog({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Synka till plattformar</DialogTitle>
-          <DialogDescription>
-            Välj vilka plattformar du vill synka bilen till
-          </DialogDescription>
+          <DialogDescription>Välj vilka plattformar du vill synka bilen till</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <Button
-            variant="outline"
-            onClick={selectAll}
-            className="w-full"
-            type="button"
-          >
+          <Button variant="outline" onClick={selectAll} className="w-full" type="button">
             Välj alla
           </Button>
 
@@ -106,12 +92,9 @@ export function PlatformSyncDialog({
                 <img
                   src={platform.logo}
                   alt={platform.name}
-                  className={`h-8 w-8 object-contain ${platform.id === 'blocket' ? 'scale-150' : ''}`}
+                  className={`h-8 w-8 object-contain ${platform.id === "blocket" ? "scale-180" : ""}`}
                 />
-                <Label
-                  htmlFor={platform.id}
-                  className="flex-1 cursor-pointer font-medium"
-                >
+                <Label htmlFor={platform.id} className="flex-1 cursor-pointer font-medium">
                   {platform.name}
                 </Label>
               </div>
@@ -120,17 +103,10 @@ export function PlatformSyncDialog({
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isLoading}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
             Avbryt
           </Button>
-          <Button
-            onClick={handleSync}
-            disabled={selectedPlatforms.length === 0 || isLoading}
-          >
+          <Button onClick={handleSync} disabled={selectedPlatforms.length === 0 || isLoading}>
             {isLoading ? (
               <>
                 <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
