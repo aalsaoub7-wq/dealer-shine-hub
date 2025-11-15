@@ -92,7 +92,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car }: PlatformS
                 <img
                   src={platform.logo}
                   alt={platform.name}
-                  className={`h-8 w-8 object-contain ${platform.id === "blocket" ? "scale-180" : ""}`}
+                  className={`h-8 w-8 object-contain ${platform.id === "blocket" ? "scale-200" : ""}`}
                 />
                 <Label htmlFor={platform.id} className="flex-1 cursor-pointer font-medium">
                   {platform.name}
