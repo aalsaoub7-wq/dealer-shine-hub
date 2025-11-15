@@ -124,7 +124,6 @@ const Dashboard = () => {
               <h1 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
                 LuFlow AI ©
               </h1>
-              <AiSettingsDialog />
             </div>
             <div className="flex items-center gap-1.5 md:gap-2">
               <AiSettingsDialog />
@@ -155,7 +154,7 @@ const Dashboard = () => {
           </div>
           <Button
             onClick={() => setIsAddDialogOpen(true)}
-            className="bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300 animate-scale-in h-9 md:h-10 text-sm md:text-base"
+            className="w-full md:w-auto bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300 animate-scale-in h-9 md:h-10 text-sm md:text-base"
           >
             <Plus className="w-4 h-4 md:w-5 md:h-5 mr-1.5 md:mr-2" />
             <span className="hidden xs:inline">Lägg till bil</span>
