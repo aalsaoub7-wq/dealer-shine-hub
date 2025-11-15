@@ -1,7 +1,8 @@
 export const applyWatermark = async (
   imageUrl: string,
   logoUrl: string,
-  position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' = 'top-left'
+  position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' = 'top-left',
+  sizePercent: number = 15
 ): Promise<Blob> => {
   // Load both images
   const [image, logo] = await Promise.all([
@@ -20,8 +21,8 @@ export const applyWatermark = async (
   // Draw original image
   ctx.drawImage(image, 0, 0);
 
-  // Calculate logo size (10% of image width, maintaining aspect ratio)
-  const logoMaxWidth = image.width * 0.15;
+  // Calculate logo size based on sizePercent parameter
+  const logoMaxWidth = image.width * (sizePercent / 100);
   const logoScale = logoMaxWidth / logo.width;
   const logoWidth = logo.width * logoScale;
   const logoHeight = logo.height * logoScale;

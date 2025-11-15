@@ -3,9 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { WatermarkPreview } from "./WatermarkPreview";
 
 export const AiSettingsDialog = () => {
   const [open, setOpen] = useState(false);
@@ -14,6 +16,8 @@ export const AiSettingsDialog = () => {
   );
   const [exampleDescriptions, setExampleDescriptions] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
+  const [watermarkPosition, setWatermarkPosition] = useState('top-left');
+  const [watermarkSize, setWatermarkSize] = useState(15);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -31,7 +35,7 @@ export const AiSettingsDialog = () => {
 
       const { data, error } = await supabase
         .from('ai_settings')
-        .select('background_prompt, example_descriptions, logo_url')
+        .select('background_prompt, example_descriptions, logo_url, watermark_position, watermark_size')
         .eq('user_id', user.id)
         .single();
 
@@ -43,6 +47,8 @@ export const AiSettingsDialog = () => {
         setBackgroundPrompt(data.background_prompt);
         setExampleDescriptions(data.example_descriptions || '');
         setLogoUrl(data.logo_url || '');
+        setWatermarkPosition(data.watermark_position || 'top-left');
+        setWatermarkSize(data.watermark_size || 15);
       }
     } catch (error: any) {
       console.error('Error loading AI settings:', error);
@@ -112,6 +118,8 @@ export const AiSettingsDialog = () => {
           background_prompt: backgroundPrompt,
           example_descriptions: exampleDescriptions,
           logo_url: logoUrl,
+          watermark_position: watermarkPosition,
+          watermark_size: watermarkSize,
         }, {
           onConflict: 'user_id'
         });
@@ -143,76 +151,100 @@ export const AiSettingsDialog = () => {
           Ställ in AI för bakgrund och beskrivning
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-card border-border">
         <DialogHeader>
-          <DialogTitle>AI-inställningar</DialogTitle>
+          <DialogTitle className="bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+            AI-inställningar
+          </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="logo">Logotyp för vattenmärke</Label>
-            <div className="flex flex-col gap-2">
-              {logoUrl ? (
-                <div className="relative w-32 h-32 border rounded-lg overflow-hidden bg-muted">
-                  <img src={logoUrl} alt="Logotyp" className="w-full h-full object-contain p-2" />
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    className="absolute top-1 right-1 h-6 w-6"
-                    onClick={handleRemoveLogo}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="file"
-                    id="logo-upload"
-                    accept="image/*"
-                    onChange={handleLogoUpload}
-                    className="hidden"
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={() => document.getElementById('logo-upload')?.click()}
-                    disabled={uploadingLogo}
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    {uploadingLogo ? "Laddar upp..." : "Ladda upp logotyp"}
-                  </Button>
-                </div>
-              )}
+
+        <Tabs defaultValue="background" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="background">Bakgrund</TabsTrigger>
+            <TabsTrigger value="descriptions">Beskrivningar</TabsTrigger>
+            <TabsTrigger value="watermark">Vattenmärke</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="background" className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label htmlFor="background-prompt">Instruktioner (prompt) för bakgrunden</Label>
+              <Textarea
+                id="background-prompt"
+                value={backgroundPrompt}
+                onChange={(e) => setBackgroundPrompt(e.target.value)}
+                placeholder="Beskriv hur bakgrunden ska se ut..."
+                className="min-h-[100px]"
+              />
             </div>
-            <p className="text-sm text-muted-foreground">
-              Denna logotyp placeras som vattenmärke på dina bilder
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="background-prompt">
-              Instruktioner (prompt) för bakgrunden
-            </Label>
-            <Textarea
-              id="background-prompt"
-              value={backgroundPrompt}
-              onChange={(e) => setBackgroundPrompt(e.target.value)}
-              placeholder="Beskriv hur bakgrunden ska se ut..."
-              className="min-h-[100px]"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="example-descriptions">
-              Exempel Beskrivningar
-            </Label>
-            <Textarea
-              id="example-descriptions"
-              value={exampleDescriptions}
-              onChange={(e) => setExampleDescriptions(e.target.value)}
-              placeholder="Lägg till exempel på beskrivningar..."
-              className="min-h-[100px]"
-            />
-          </div>
-        </div>
-        <div className="flex justify-end gap-2">
+          </TabsContent>
+
+          <TabsContent value="descriptions" className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label htmlFor="example-descriptions">Exempel Beskrivningar</Label>
+              <Textarea
+                id="example-descriptions"
+                value={exampleDescriptions}
+                onChange={(e) => setExampleDescriptions(e.target.value)}
+                placeholder="Lägg till exempel på beskrivningar..."
+                className="min-h-[100px]"
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="watermark" className="space-y-4 mt-4">
+            <div className="space-y-4">
+              <div>
+                <Label>Logotyp för vattenmärke</Label>
+                <div className="mt-2 flex flex-col gap-2">
+                  {logoUrl ? (
+                    <div className="relative w-32 h-32 border rounded-lg overflow-hidden bg-muted">
+                      <img src={logoUrl} alt="Logotyp" className="w-full h-full object-contain p-2" />
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        className="absolute top-1 right-1 h-6 w-6"
+                        onClick={handleRemoveLogo}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        id="logo-upload"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => document.getElementById('logo-upload')?.click()}
+                        disabled={uploadingLogo}
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        {uploadingLogo ? "Laddar upp..." : "Ladda upp logotyp"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Denna logotyp placeras som vattenmärke på dina bilder
+                </p>
+              </div>
+
+              <WatermarkPreview
+                logoUrl={logoUrl}
+                position={watermarkPosition}
+                size={watermarkSize}
+                onPositionChange={setWatermarkPosition}
+                onSizeChange={setWatermarkSize}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        <div className="flex justify-end gap-2 mt-4">
           <Button variant="outline" onClick={() => setOpen(false)}>
             Avbryt
           </Button>

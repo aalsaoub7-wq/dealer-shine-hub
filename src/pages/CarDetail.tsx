@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Upload, Image as ImageIcon, FileText, Trash2, Save, Settings, Share2, Stamp } from "lucide-react";
+import { ArrowLeft, Upload, Image as ImageIcon, FileText, Trash2, Save, Settings, Share2, Stamp, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PhotoUpload from "@/components/PhotoUpload";
 import PhotoGalleryDraggable from "@/components/PhotoGalleryDraggable";
@@ -64,6 +64,7 @@ const CarDetail = () => {
   const [selectedMainPhotos, setSelectedMainPhotos] = useState<string[]>([]);
   const [selectedDocPhotos, setSelectedDocPhotos] = useState<string[]>([]);
   const [applyingWatermark, setApplyingWatermark] = useState(false);
+  const [editingPhotos, setEditingPhotos] = useState<Record<string, { timeLeft: number; isEditing: boolean }>>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -151,16 +152,125 @@ const CarDetail = () => {
     }
   };
 
+  const handleEditPhotos = async (photoIds: string[], photoType: 'main' | 'documentation') => {
+    // Initialize countdown timers for selected photos
+    const newEditingState: Record<string, { timeLeft: number; isEditing: boolean }> = {};
+    photoIds.forEach(id => {
+      newEditingState[id] = { timeLeft: 240, isEditing: true }; // 4 minutes = 240 seconds
+    });
+    setEditingPhotos(prev => ({ ...prev, ...newEditingState }));
+
+    // Start countdown for each photo
+    photoIds.forEach(photoId => {
+      const intervalId = setInterval(() => {
+        setEditingPhotos(prev => {
+          const current = prev[photoId];
+          if (!current || current.timeLeft <= 1) {
+            clearInterval(intervalId);
+            return prev;
+          }
+          return {
+            ...prev,
+            [photoId]: { ...current, timeLeft: current.timeLeft - 1 }
+          };
+        });
+      }, 1000);
+    });
+
+    // Process photos with API
+    try {
+      const photosToProcess = photos.filter(p => photoIds.includes(p.id));
+      
+      for (const photo of photosToProcess) {
+        try {
+          // Call edit-photo edge function
+          const response = await fetch(photo.url);
+          const blob = await response.blob();
+          const file = new File([blob], 'photo.jpg', { type: blob.type });
+          
+          const formData = new FormData();
+          formData.append('image_file', file);
+
+          const { data, error } = await supabase.functions.invoke('edit-photo', {
+            body: formData,
+          });
+
+          if (error) throw error;
+
+          // Convert base64 to blob
+          const base64 = data.image;
+          const binaryString = atob(base64);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          const editedBlob = new Blob([bytes], { type: 'image/png' });
+
+          // Upload edited image
+          const editedFileName = `${car.id}/edited-${Date.now()}-${Math.random()}.png`;
+          const { error: uploadError } = await supabase.storage
+            .from('car-photos')
+            .upload(editedFileName, editedBlob, { upsert: true });
+
+          if (uploadError) throw uploadError;
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('car-photos')
+            .getPublicUrl(editedFileName);
+
+          // Update photo record
+          await supabase
+            .from('photos')
+            .update({
+              url: publicUrl,
+              is_edited: true,
+            })
+            .eq('id', photo.id);
+
+        } catch (error) {
+          console.error(`Error editing photo ${photo.id}:`, error);
+        }
+      }
+
+      toast({
+        title: "Bilder redigerade",
+        description: `${photosToProcess.length} bilder har redigerats`,
+      });
+      
+      // Clear selection and editing state
+      if (photoType === 'main') {
+        setSelectedMainPhotos([]);
+      } else {
+        setSelectedDocPhotos([]);
+      }
+      
+      // Clear editing state after completion
+      setEditingPhotos(prev => {
+        const newState = { ...prev };
+        photoIds.forEach(id => delete newState[id]);
+        return newState;
+      });
+      
+      fetchCarData();
+    } catch (error: any) {
+      toast({
+        title: "Fel vid redigering av bilder",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleApplyWatermark = async (photoIds: string[], photoType: 'main' | 'documentation') => {
     setApplyingWatermark(true);
     try {
-      // Get user's logo
+      // Get user's settings
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Ingen användare inloggad");
 
       const { data: settings } = await supabase
         .from("ai_settings")
-        .select("logo_url")
+        .select("logo_url, watermark_position, watermark_size")
         .eq("user_id", user.id)
         .single();
 
@@ -178,8 +288,13 @@ const CarDetail = () => {
       
       for (const photo of photosToProcess) {
         try {
-          // Apply watermark
-          const watermarkedBlob = await applyWatermark(photo.url, settings.logo_url, 'top-left');
+          // Apply watermark with user's settings
+          const watermarkedBlob = await applyWatermark(
+            photo.url, 
+            settings.logo_url, 
+            (settings.watermark_position || 'top-left') as any,
+            settings.watermark_size || 15
+          );
           
           // Upload the watermarked image
           const fileExt = 'png';
@@ -387,6 +502,14 @@ const CarDetail = () => {
               {selectedMainPhotos.length > 0 && (
                 <>
                   <Button
+                    onClick={() => handleEditPhotos(selectedMainPhotos, 'main')}
+                    variant="outline"
+                    className="border-accent text-accent hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Få bilder redigerade ({selectedMainPhotos.length})
+                  </Button>
+                  <Button
                     onClick={() => handleApplyWatermark(selectedMainPhotos, 'main')}
                     variant="outline"
                     disabled={applyingWatermark}
@@ -421,6 +544,7 @@ const CarDetail = () => {
               onUpdate={fetchCarData}
               selectedPhotos={selectedMainPhotos}
               onSelectionChange={setSelectedMainPhotos}
+              editingPhotos={editingPhotos}
             />
           </TabsContent>
 
@@ -463,6 +587,7 @@ const CarDetail = () => {
               onUpdate={fetchCarData}
               selectedPhotos={selectedDocPhotos}
               onSelectionChange={setSelectedDocPhotos}
+              editingPhotos={editingPhotos}
             />
           </TabsContent>
         </Tabs>

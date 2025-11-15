@@ -38,6 +38,7 @@ interface PhotoGalleryProps {
   onUpdate: () => void;
   selectedPhotos: string[];
   onSelectionChange: (selectedIds: string[]) => void;
+  editingPhotos?: Record<string, { timeLeft: number; isEditing: boolean }>;
 }
 
 interface SortablePhotoCardProps {
@@ -48,6 +49,7 @@ interface SortablePhotoCardProps {
   onDownload: (url: string) => void;
   isSelected: boolean;
   onSelect: (photoId: string, selected: boolean) => void;
+  editingState?: { timeLeft: number; isEditing: boolean };
 }
 
 const SortablePhotoCard = ({
@@ -58,6 +60,7 @@ const SortablePhotoCard = ({
   onDownload,
   isSelected,
   onSelect,
+  editingState,
 }: SortablePhotoCardProps) => {
   const {
     attributes,
@@ -83,6 +86,15 @@ const SortablePhotoCard = ({
       {...attributes}
     >
       <div className="relative aspect-video bg-secondary">
+        {editingState?.isEditing && (
+          <div className="absolute inset-0 bg-background/90 z-20 flex flex-col items-center justify-center">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-sm text-foreground font-medium">Bilden är klar om</p>
+            <p className="text-2xl font-bold text-primary">
+              {Math.floor(editingState.timeLeft / 60)}:{String(editingState.timeLeft % 60).padStart(2, '0')}
+            </p>
+          </div>
+        )}
         <div
           className="absolute top-2 left-2 z-10 cursor-grab active:cursor-grabbing p-2 bg-background/80 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
           {...listeners}
@@ -152,7 +164,7 @@ const SortablePhotoCard = ({
   );
 };
 
-const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionChange }: PhotoGalleryProps) => {
+const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionChange, editingPhotos = {} }: PhotoGalleryProps) => {
   const { toast } = useToast();
   const [items, setItems] = useState(photos);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
@@ -273,6 +285,7 @@ const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionCh
                     onSelectionChange(selectedPhotos.filter(id => id !== photoId));
                   }
                 }}
+                editingState={editingPhotos[photo.id]}
               />
             ))}
           </div>
