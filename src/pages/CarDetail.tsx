@@ -552,114 +552,115 @@ const CarDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
+      <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 md:gap-0 mb-4 md:mb-6">
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
-            className="hover:bg-secondary hover:scale-105 hover:-translate-x-1 transition-all duration-300 group animate-fade-in"
+            className="hover:bg-secondary hover:scale-105 hover:-translate-x-1 transition-all duration-300 group animate-fade-in text-sm md:text-base h-8 md:h-10"
           >
-            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
-            Tillbaka till huvudsidan
+            <ArrowLeft className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
+            Tillbaka
           </Button>
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 md:gap-2 w-full sm:w-auto">
             <BlocketSyncButton carId={car.id} car={car} variant="outline" />
             <Button
               variant="destructive"
               onClick={() => setDeleteDialogOpen(true)}
-              className="hover:scale-105 transition-all duration-300"
+              className="hover:scale-105 transition-all duration-300 flex-1 sm:flex-none text-xs md:text-sm h-8 md:h-10"
             >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Ta bort bil
+              <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+              <span className="hidden xs:inline">Ta bort bil</span>
+              <span className="xs:hidden">Ta bort</span>
             </Button>
           </div>
         </div>
 
         {/* Car Info Card */}
-        <Card className="mb-8 bg-gradient-card border-border/50 shadow-card hover:shadow-glow transition-all duration-500 animate-scale-in">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-2xl bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+        <Card className="mb-4 md:mb-8 bg-gradient-card border-border/50 shadow-card hover:shadow-glow transition-all duration-500 animate-scale-in">
+          <CardHeader className="p-4 md:p-6">
+            <div className="flex justify-between items-start gap-2">
+              <CardTitle className="text-lg md:text-2xl bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
                 {car.year} {car.make} {car.model}
               </CardTitle>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setEditDialogOpen(true)}
-                className="hover:scale-110 transition-transform duration-300"
+                className="hover:scale-110 transition-transform duration-300 h-8 w-8 md:h-10 md:w-10 shrink-0"
               >
-                <Settings className="w-5 h-5" />
+                <Settings className="w-4 h-4 md:w-5 md:h-5" />
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <CardContent className="p-4 md:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               {car.price && (
                 <div>
-                  <p className="text-base text-muted-foreground font-medium">Pris</p>
-                  <p className="font-semibold">{car.price.toLocaleString()} SEK</p>
+                  <p className="text-sm md:text-base text-muted-foreground font-medium">Pris</p>
+                  <p className="font-semibold text-sm md:text-base">{car.price.toLocaleString()} SEK</p>
                 </div>
               )}
               {car.registration_number && (
                 <div>
-                  <p className="text-base text-muted-foreground font-medium">Registreringsnummer</p>
-                  <p>{car.registration_number}</p>
+                  <p className="text-sm md:text-base text-muted-foreground font-medium">Registreringsnummer</p>
+                  <p className="text-sm md:text-base">{car.registration_number}</p>
                 </div>
               )}
               {car.vin && (
                 <div>
-                  <p className="text-base text-muted-foreground font-medium">Reg.nr.</p>
-                  <p>{car.vin}</p>
+                  <p className="text-sm md:text-base text-muted-foreground font-medium">Reg.nr.</p>
+                  <p className="text-sm md:text-base">{car.vin}</p>
                 </div>
               )}
               {car.color && (
                 <div>
-                  <p className="text-base text-muted-foreground font-medium">Färg</p>
-                  <p>{car.color}</p>
+                  <p className="text-sm md:text-base text-muted-foreground font-medium">Färg</p>
+                  <p className="text-sm md:text-base">{car.color}</p>
                 </div>
               )}
               {car.mileage && (
                 <div>
-                  <p className="text-base text-muted-foreground font-medium">Miltal</p>
-                  <p>{car.mileage.toLocaleString()} km</p>
+                  <p className="text-sm md:text-base text-muted-foreground font-medium">Miltal</p>
+                  <p className="text-sm md:text-base">{car.mileage.toLocaleString()} km</p>
                 </div>
               )}
               {car.fuel && (
                 <div>
-                  <p className="text-base text-muted-foreground font-medium">Bränsle</p>
-                  <p>{car.fuel}</p>
+                  <p className="text-sm md:text-base text-muted-foreground font-medium">Bränsle</p>
+                  <p className="text-sm md:text-base">{car.fuel}</p>
                 </div>
               )}
               {car.gearbox && (
                 <div>
-                  <p className="text-base text-muted-foreground font-medium">Växellåda</p>
-                  <p>{car.gearbox}</p>
+                  <p className="text-sm md:text-base text-muted-foreground font-medium">Växellåda</p>
+                  <p className="text-sm md:text-base">{car.gearbox}</p>
                 </div>
               )}
               {car.description && (
-                <div className="md:col-span-2 lg:col-span-3">
-                  <p className="text-base text-muted-foreground font-medium">Beskrivning</p>
-                  <p className="whitespace-pre-wrap">{car.description}</p>
+                <div className="sm:col-span-2 lg:col-span-3">
+                  <p className="text-sm md:text-base text-muted-foreground font-medium">Beskrivning</p>
+                  <p className="whitespace-pre-wrap text-sm md:text-base">{car.description}</p>
                 </div>
               )}
-              <div className="md:col-span-2 lg:col-span-3">
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-base text-muted-foreground font-medium">Anteckningar (delat med företaget)</p>
+              <div className="sm:col-span-2 lg:col-span-3">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
+                  <p className="text-sm md:text-base text-muted-foreground font-medium">Anteckningar (delat med företaget)</p>
                   <Button
                     size="sm"
                     onClick={handleSaveNotes}
                     disabled={isSavingNotes}
-                    className="bg-gradient-primary hover:opacity-90"
+                    className="bg-gradient-primary hover:opacity-90 text-xs md:text-sm h-8 md:h-9"
                   >
                     <Save className="w-3 h-3 mr-1" />
-                    Spara Anteckningar
+                    Spara
                   </Button>
                 </div>
                 <Textarea
                   value={editedNotes}
                   onChange={(e) => setEditedNotes(e.target.value)}
                   placeholder="Lägg till anteckningar om bilen här..."
-                  className="min-h-[100px]"
+                  className="min-h-[100px] text-sm md:text-base"
                 />
               </div>
             </div>
@@ -667,35 +668,35 @@ const CarDetail = () => {
         </Card>
 
         {/* Photos Section */}
-        <Tabs defaultValue="main" className="space-y-6 animate-fade-in-up">
-          <TabsList className="bg-card border border-border shadow-card">
+        <Tabs defaultValue="main" className="space-y-4 md:space-y-6 animate-fade-in-up">
+          <TabsList className="bg-card border border-border shadow-card w-full sm:w-auto">
             <TabsTrigger
               value="main"
-              className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300"
+              className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300 text-xs md:text-sm flex-1 sm:flex-none"
             >
-              <ImageIcon className="w-4 h-4 mr-2" />
-              Huvudfoton ({mainPhotos.length})
+              <ImageIcon className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+              <span className="hidden xs:inline">Huvudfoton</span> ({mainPhotos.length})
             </TabsTrigger>
             <TabsTrigger
               value="docs"
-              className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300"
+              className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300 text-xs md:text-sm flex-1 sm:flex-none"
             >
-              <FileText className="w-4 h-4 mr-2" />
-              Dokumentation ({docPhotos.length})
+              <FileText className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+              <span className="hidden xs:inline">Dokumentation</span> ({docPhotos.length})
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="main" className="space-y-6">
-            <div className="flex justify-end gap-2">
+          <TabsContent value="main" className="space-y-4 md:space-y-6">
+            <div className="flex flex-col sm:flex-row justify-end gap-2">
               {allSelectedPhotos.length > 0 && (
                 <Button
                   onClick={() => handleSharePhotos(allSelectedPhotos)}
                   variant="outline"
                   disabled={sharing}
-                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-8 md:h-10"
                 >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  {sharing ? "Skapar länk..." : `Dela valda (${allSelectedPhotos.length})`}
+                  <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                  {sharing ? "Skapar länk..." : `Dela (${allSelectedPhotos.length})`}
                 </Button>
               )}
               {selectedMainPhotos.length > 0 && (
@@ -703,10 +704,11 @@ const CarDetail = () => {
                   <Button
                     onClick={() => handleEditPhotos(selectedMainPhotos, 'main')}
                     variant="outline"
-                    className="border-accent text-accent hover:bg-accent hover:text-accent-foreground"
+                    className="border-accent text-accent hover:bg-accent hover:text-accent-foreground text-xs md:text-sm h-8 md:h-10"
                   >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Få bilder redigerade ({selectedMainPhotos.length})
+                    <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                    <span className="hidden sm:inline">AI redigera ({selectedMainPhotos.length})</span>
+                    <span className="sm:hidden">AI ({selectedMainPhotos.length})</span>
                   </Button>
                   <Button
                     onClick={() => allSelectedMainAreEdited 
@@ -715,14 +717,14 @@ const CarDetail = () => {
                     }
                     variant="outline"
                     disabled={applyingWatermark}
-                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-8 md:h-10"
                   >
-                    <Stamp className="w-4 h-4 mr-2" />
+                    <Stamp className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                     {applyingWatermark 
                       ? (allSelectedMainAreEdited ? "Tar bort..." : "Lägger till...") 
                       : (allSelectedMainAreEdited 
-                          ? `Ta bort vattenmärke (${selectedMainPhotos.length})` 
-                          : `Lägg till vattenmärke (${selectedMainPhotos.length})`
+                          ? <><span className="hidden sm:inline">Ta bort vattenmärke ({selectedMainPhotos.length})</span><span className="sm:hidden">Ta bort ({selectedMainPhotos.length})</span></> 
+                          : <><span className="hidden sm:inline">Lägg till vattenmärke ({selectedMainPhotos.length})</span><span className="sm:hidden">Vattenmärke ({selectedMainPhotos.length})</span></>
                         )
                     }
                   </Button>
@@ -733,10 +735,11 @@ const CarDetail = () => {
                   setUploadType("main");
                   setUploadDialogOpen(true);
                 }}
-                className="bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300"
+                className="bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300 text-xs md:text-sm h-8 md:h-10"
               >
-                <Upload className="w-4 h-4 mr-2" />
-                Ladda upp huvudfoton
+                <Upload className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                <span className="hidden sm:inline">Ladda upp huvudfoton</span>
+                <span className="sm:hidden">Ladda upp</span>
               </Button>
             </div>
             <PhotoGalleryDraggable 
@@ -748,17 +751,17 @@ const CarDetail = () => {
             />
           </TabsContent>
 
-          <TabsContent value="docs" className="space-y-6">
-            <div className="flex justify-end gap-2">
+          <TabsContent value="docs" className="space-y-4 md:space-y-6">
+            <div className="flex flex-col sm:flex-row justify-end gap-2">
               {allSelectedPhotos.length > 0 && (
                 <Button
                   onClick={() => handleSharePhotos(allSelectedPhotos)}
                   variant="outline"
                   disabled={sharing}
-                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-8 md:h-10"
                 >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  {sharing ? "Skapar länk..." : `Dela valda (${allSelectedPhotos.length})`}
+                  <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                  {sharing ? "Skapar länk..." : `Dela (${allSelectedPhotos.length})`}
                 </Button>
               )}
               {selectedDocPhotos.length > 0 && (
@@ -770,14 +773,14 @@ const CarDetail = () => {
                     }
                     variant="outline"
                     disabled={applyingWatermark}
-                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-8 md:h-10"
                   >
-                    <Stamp className="w-4 h-4 mr-2" />
+                    <Stamp className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                     {applyingWatermark 
                       ? (allSelectedDocAreEdited ? "Tar bort..." : "Lägger till...") 
                       : (allSelectedDocAreEdited 
-                          ? `Ta bort vattenmärke (${selectedDocPhotos.length})` 
-                          : `Lägg till vattenmärke (${selectedDocPhotos.length})`
+                          ? <><span className="hidden sm:inline">Ta bort vattenmärke ({selectedDocPhotos.length})</span><span className="sm:hidden">Ta bort ({selectedDocPhotos.length})</span></> 
+                          : <><span className="hidden sm:inline">Lägg till vattenmärke ({selectedDocPhotos.length})</span><span className="sm:hidden">Vattenmärke ({selectedDocPhotos.length})</span></>
                         )
                     }
                   </Button>
@@ -788,13 +791,14 @@ const CarDetail = () => {
                   setUploadType("documentation");
                   setUploadDialogOpen(true);
                 }}
-                className="bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300"
+                className="bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300 text-xs md:text-sm h-8 md:h-10"
               >
-                <Upload className="w-4 h-4 mr-2" />
-                Ladda upp dokumentation
+                <Upload className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                <span className="hidden sm:inline">Ladda upp dokumentation</span>
+                <span className="sm:hidden">Ladda upp</span>
               </Button>
             </div>
-            <PhotoGalleryDraggable 
+            <PhotoGalleryDraggable
               photos={docPhotos} 
               onUpdate={() => fetchCarData(true)}
               selectedPhotos={selectedDocPhotos}
