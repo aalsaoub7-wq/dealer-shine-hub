@@ -327,38 +327,18 @@ export const AiSettingsDialog = () => {
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
           <div className="mt-4 rounded-xl border border-border bg-muted p-3 shadow-sm md:bg-transparent md:border-0 md:p-0 md:rounded-none">
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1 rounded-lg bg-muted/70 p-1">
-              <TabsTrigger
-                value="background"
-                className="text-xs md:text-sm px-2 py-2 rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-              >
-                Bakgrund
-              </TabsTrigger>
-              <TabsTrigger
-                value="descriptions"
-                className="text-xs md:text-sm px-2 py-2 rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-              >
-                Beskrivningar
-              </TabsTrigger>
-              <TabsTrigger
-                value="watermark"
-                className="text-xs md:text-sm px-2 py-2 rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-              >
-                Vattenmärke
-              </TabsTrigger>
-              <TabsTrigger
-                value="landing"
-                className="text-xs md:text-sm px-2 py-2 rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-              >
-                Landningssida
-              </TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
+              <TabsTrigger value="background">Bakgrund</TabsTrigger>
+              <TabsTrigger value="descriptions">Beskrivningar</TabsTrigger>
+              <TabsTrigger value="watermark">Vattenmärke</TabsTrigger>
+              <TabsTrigger value="landing">Landningssida</TabsTrigger>
             </TabsList>
 
-            {/* Separator borttagen – ful linje försvinner */}
+            <Separator className="my-10 md:hidden" />
 
             <TabsContent
               value="background"
-              className="space-y-4 mt-3 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+              className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
@@ -376,7 +356,7 @@ export const AiSettingsDialog = () => {
 
             <TabsContent
               value="descriptions"
-              className="space-y-4 mt-3 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+              className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
@@ -394,7 +374,7 @@ export const AiSettingsDialog = () => {
 
             <TabsContent
               value="watermark"
-              className="space-y-4 mt-3 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+              className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
@@ -457,7 +437,7 @@ export const AiSettingsDialog = () => {
 
             <TabsContent
               value="landing"
-              className="space-y-4 mt-3 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+              className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
