@@ -149,15 +149,15 @@ const SharedPhotos = () => {
   const backgroundColor = collection.landing_page_background_color;
 
   const logoSizeClass = {
-    small: 'h-12',
-    medium: 'h-16',
-    large: 'h-24'
+    small: 'h-8',
+    medium: 'h-12',
+    large: 'h-16'
   }[collection.landing_page_logo_size];
 
   const headerHeightClass = {
-    small: 'h-32',
-    medium: 'h-48',
-    large: 'h-64'
+    small: 'h-16',
+    medium: 'h-24',
+    large: 'h-32'
   }[collection.landing_page_header_height];
 
   const headerFitClass = {
@@ -167,9 +167,15 @@ const SharedPhotos = () => {
   }[collection.landing_page_header_fit];
 
   const logoAlignClass = {
-    left: 'items-start',
-    center: 'items-center',
-    right: 'items-end'
+    left: 'justify-start',
+    center: 'justify-center',
+    right: 'justify-end'
+  }[collection.landing_page_logo_position];
+
+  const textAlignClass = {
+    left: 'text-left',
+    center: 'text-center',
+    right: 'text-right'
   }[collection.landing_page_logo_position];
 
   return (
@@ -178,52 +184,40 @@ const SharedPhotos = () => {
       style={{ backgroundColor }}
     >
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8">
-        {collection.landing_page_header_image_url && (
-          <div className="mb-8 rounded-lg overflow-hidden shadow-lg">
+      <div className="max-w-7xl mx-auto mb-8 space-y-4">
+        {collection.landing_page_logo_url && (
+          <div className={`flex ${logoAlignClass}`}>
             <img
-              src={collection.landing_page_header_image_url}
-              alt="Header"
-              className={`w-full ${headerHeightClass} ${headerFitClass}`}
+              src={collection.landing_page_logo_url}
+              alt="Logo"
+              className={`${logoSizeClass} object-contain`}
             />
           </div>
         )}
         
-        <div className={`flex flex-col ${logoAlignClass} gap-4 mb-6`}>
-          {collection.landing_page_logo_url && (
-            <img
-              src={collection.landing_page_logo_url}
-              alt="Logo"
-              className={`${logoSizeClass} w-auto object-contain`}
-            />
-          )}
-          <div className={`flex flex-col ${collection.landing_page_logo_position === 'center' ? 'items-center text-center' : collection.landing_page_logo_position === 'right' ? 'items-end text-right' : 'items-start text-left'} gap-2`}>
-            <h1 
-              className="text-4xl font-bold"
-              style={{ color: collection.landing_page_text_color }}
-            >
-              {collection.landing_page_title}
-            </h1>
-            {collection.landing_page_description && (
-              <p 
-                className="text-lg max-w-2xl"
-                style={{ color: collection.landing_page_text_color, opacity: 0.8 }}
-              >
-                {collection.landing_page_description}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="flex justify-between items-center">
-          <div></div>
+        {collection.landing_page_header_image_url && (
+          <img
+            src={collection.landing_page_header_image_url}
+            alt="Header"
+            className={`w-full ${headerHeightClass} ${headerFitClass} rounded`}
+          />
+        )}
+        
+        <h1 
+          className={`text-xl font-bold ${textAlignClass}`}
+          style={{ color: collection.landing_page_text_color }}
+        >
+          {collection.landing_page_title}
+        </h1>
+        
+        {collection.landing_page_description && (
           <p 
-            className="text-lg"
-            style={{ color: collection.landing_page_text_color, opacity: 0.7 }}
+            className={`text-sm ${textAlignClass}`}
+            style={{ color: collection.landing_page_text_color, opacity: 0.8 }}
           >
-            {collection.photos.length} bilder
+            {collection.landing_page_description}
           </p>
-        </div>
+        )}
       </div>
 
       {/* Photos */}
@@ -354,7 +348,7 @@ const SharedPhotos = () => {
         {collection.landing_page_footer_text && (
           <div className="text-center pt-8">
             <p 
-              className="text-sm"
+              className="text-xs"
               style={{ color: collection.landing_page_text_color, opacity: 0.6 }}
             >
               {collection.landing_page_footer_text}
