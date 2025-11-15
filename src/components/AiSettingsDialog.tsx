@@ -8,6 +8,8 @@ import { Settings, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { WatermarkPreview } from "./WatermarkPreview";
+import { LandingPagePreview } from "./LandingPagePreview";
+import { Input } from "@/components/ui/input";
 
 export const AiSettingsDialog = () => {
   const [open, setOpen] = useState(false);
@@ -24,6 +26,11 @@ export const AiSettingsDialog = () => {
   const [landingPageBackgroundColor, setLandingPageBackgroundColor] = useState('#ffffff');
   const [landingPageLayout, setLandingPageLayout] = useState<'grid' | 'carousel' | 'masonry'>('grid');
   const [landingPageHeaderImageUrl, setLandingPageHeaderImageUrl] = useState('');
+  const [landingPageTextColor, setLandingPageTextColor] = useState('#000000');
+  const [landingPageAccentColor, setLandingPageAccentColor] = useState('#000000');
+  const [landingPageTitle, setLandingPageTitle] = useState('Mina Bilder');
+  const [landingPageDescription, setLandingPageDescription] = useState('');
+  const [landingPageFooterText, setLandingPageFooterText] = useState('');
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingLandingLogo, setUploadingLandingLogo] = useState(false);
   const [uploadingHeaderImage, setUploadingHeaderImage] = useState(false);
@@ -43,7 +50,7 @@ export const AiSettingsDialog = () => {
 
       const { data, error } = await supabase
         .from('ai_settings')
-        .select('background_prompt, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity, landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url')
+        .select('background_prompt, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity, landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text')
         .eq('user_id', user.id)
         .single();
 
@@ -63,6 +70,11 @@ export const AiSettingsDialog = () => {
         setLandingPageBackgroundColor(data.landing_page_background_color || '#ffffff');
         setLandingPageLayout((data.landing_page_layout as 'grid' | 'carousel' | 'masonry') || 'grid');
         setLandingPageHeaderImageUrl(data.landing_page_header_image_url || '');
+        setLandingPageTextColor(data.landing_page_text_color || '#000000');
+        setLandingPageAccentColor(data.landing_page_accent_color || '#000000');
+        setLandingPageTitle(data.landing_page_title || 'Mina Bilder');
+        setLandingPageDescription(data.landing_page_description || '');
+        setLandingPageFooterText(data.landing_page_footer_text || '');
       }
     } catch (error: any) {
       console.error('Error loading AI settings:', error);
@@ -222,6 +234,11 @@ export const AiSettingsDialog = () => {
           landing_page_background_color: landingPageBackgroundColor,
           landing_page_layout: landingPageLayout,
           landing_page_header_image_url: landingPageHeaderImageUrl,
+          landing_page_text_color: landingPageTextColor,
+          landing_page_accent_color: landingPageAccentColor,
+          landing_page_title: landingPageTitle,
+          landing_page_description: landingPageDescription,
+          landing_page_footer_text: landingPageFooterText,
         }, {
           onConflict: 'user_id'
         });
@@ -353,126 +370,215 @@ export const AiSettingsDialog = () => {
           </TabsContent>
 
           <TabsContent value="landing" className="space-y-4 mt-4">
-            <div className="space-y-4">
-              <div>
-                <Label>Logotyp för landningssida</Label>
-                <div className="mt-2 flex flex-col gap-2">
-                  {landingPageLogoUrl ? (
-                    <div className="relative w-32 h-32 border rounded-lg overflow-hidden bg-muted">
-                      <img src={landingPageLogoUrl} alt="Landing logotyp" className="w-full h-full object-contain p-2" />
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        className="absolute top-1 right-1 h-6 w-6"
-                        onClick={() => setLandingPageLogoUrl('')}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="file"
-                        id="landing-logo-upload"
-                        accept="image/*"
-                        onChange={handleLandingLogoUpload}
-                        className="hidden"
-                      />
-                      <Button
-                        variant="outline"
-                        onClick={() => document.getElementById('landing-logo-upload')?.click()}
-                        disabled={uploadingLandingLogo}
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        {uploadingLandingLogo ? "Laddar upp..." : "Ladda upp logotyp"}
-                      </Button>
-                    </div>
-                  )}
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Settings */}
+              <div className="space-y-4">
+                <div>
+                  <Label>Logotyp för landningssida</Label>
+                  <div className="mt-2 flex flex-col gap-2">
+                    {landingPageLogoUrl ? (
+                      <div className="relative w-32 h-32 border rounded-lg overflow-hidden bg-muted">
+                        <img src={landingPageLogoUrl} alt="Landing logotyp" className="w-full h-full object-contain p-2" />
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          className="absolute top-1 right-1 h-6 w-6"
+                          onClick={() => setLandingPageLogoUrl('')}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="file"
+                          id="landing-logo-upload"
+                          accept="image/*"
+                          onChange={handleLandingLogoUpload}
+                          className="hidden"
+                        />
+                        <Button
+                          variant="outline"
+                          onClick={() => document.getElementById('landing-logo-upload')?.click()}
+                          disabled={uploadingLandingLogo}
+                        >
+                          <Upload className="w-4 h-4 mr-2" />
+                          {uploadingLandingLogo ? "Laddar upp..." : "Ladda upp logotyp"}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <Label>Header-bild (valfritt)</Label>
-                <div className="mt-2 flex flex-col gap-2">
-                  {landingPageHeaderImageUrl ? (
-                    <div className="relative w-full h-32 border rounded-lg overflow-hidden bg-muted">
-                      <img src={landingPageHeaderImageUrl} alt="Header bild" className="w-full h-full object-cover" />
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        className="absolute top-1 right-1 h-6 w-6"
-                        onClick={() => setLandingPageHeaderImageUrl('')}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="file"
-                        id="header-upload"
-                        accept="image/*"
-                        onChange={handleHeaderImageUpload}
-                        className="hidden"
-                      />
-                      <Button
-                        variant="outline"
-                        onClick={() => document.getElementById('header-upload')?.click()}
-                        disabled={uploadingHeaderImage}
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        {uploadingHeaderImage ? "Laddar upp..." : "Ladda upp header-bild"}
-                      </Button>
-                    </div>
-                  )}
+                <div>
+                  <Label>Header-bild (valfritt)</Label>
+                  <div className="mt-2 flex flex-col gap-2">
+                    {landingPageHeaderImageUrl ? (
+                      <div className="relative w-full h-32 border rounded-lg overflow-hidden bg-muted">
+                        <img src={landingPageHeaderImageUrl} alt="Header bild" className="w-full h-full object-cover" />
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          className="absolute top-1 right-1 h-6 w-6"
+                          onClick={() => setLandingPageHeaderImageUrl('')}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="file"
+                          id="header-upload"
+                          accept="image/*"
+                          onChange={handleHeaderImageUpload}
+                          className="hidden"
+                        />
+                        <Button
+                          variant="outline"
+                          onClick={() => document.getElementById('header-upload')?.click()}
+                          disabled={uploadingHeaderImage}
+                        >
+                          <Upload className="w-4 h-4 mr-2" />
+                          {uploadingHeaderImage ? "Laddar upp..." : "Ladda upp header-bild"}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="bg-color">Bakgrundsfärg</Label>
-                <div className="flex gap-2 items-center">
-                  <input
-                    type="color"
-                    id="bg-color"
-                    value={landingPageBackgroundColor}
-                    onChange={(e) => setLandingPageBackgroundColor(e.target.value)}
-                    className="w-20 h-10 rounded border cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={landingPageBackgroundColor}
-                    onChange={(e) => setLandingPageBackgroundColor(e.target.value)}
-                    className="flex-1 px-3 py-2 border rounded-md"
-                    placeholder="#ffffff"
+                <div className="space-y-2">
+                  <Label htmlFor="landing-title">Titel</Label>
+                  <Input
+                    id="landing-title"
+                    value={landingPageTitle}
+                    onChange={(e) => setLandingPageTitle(e.target.value)}
+                    placeholder="Mina Bilder"
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="landing-description">Beskrivning (valfritt)</Label>
+                  <Textarea
+                    id="landing-description"
+                    value={landingPageDescription}
+                    onChange={(e) => setLandingPageDescription(e.target.value)}
+                    placeholder="En kort beskrivning..."
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="landing-footer">Footer text (valfritt)</Label>
+                  <Input
+                    id="landing-footer"
+                    value={landingPageFooterText}
+                    onChange={(e) => setLandingPageFooterText(e.target.value)}
+                    placeholder="© 2024 Mitt Företag"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="bg-color">Bakgrundsfärg</Label>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="color"
+                        id="bg-color"
+                        value={landingPageBackgroundColor}
+                        onChange={(e) => setLandingPageBackgroundColor(e.target.value)}
+                        className="w-12 h-10 rounded border cursor-pointer"
+                      />
+                      <Input
+                        type="text"
+                        value={landingPageBackgroundColor}
+                        onChange={(e) => setLandingPageBackgroundColor(e.target.value)}
+                        placeholder="#ffffff"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="text-color">Textfärg</Label>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="color"
+                        id="text-color"
+                        value={landingPageTextColor}
+                        onChange={(e) => setLandingPageTextColor(e.target.value)}
+                        className="w-12 h-10 rounded border cursor-pointer"
+                      />
+                      <Input
+                        type="text"
+                        value={landingPageTextColor}
+                        onChange={(e) => setLandingPageTextColor(e.target.value)}
+                        placeholder="#000000"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="accent-color">Accentfärg (knappar)</Label>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="color"
+                      id="accent-color"
+                      value={landingPageAccentColor}
+                      onChange={(e) => setLandingPageAccentColor(e.target.value)}
+                      className="w-12 h-10 rounded border cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={landingPageAccentColor}
+                      onChange={(e) => setLandingPageAccentColor(e.target.value)}
+                      placeholder="#000000"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Layout</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button
+                      variant={landingPageLayout === 'grid' ? 'default' : 'outline'}
+                      onClick={() => setLandingPageLayout('grid')}
+                      className="w-full"
+                    >
+                      Grid
+                    </Button>
+                    <Button
+                      variant={landingPageLayout === 'carousel' ? 'default' : 'outline'}
+                      onClick={() => setLandingPageLayout('carousel')}
+                      className="w-full"
+                    >
+                      Carousel
+                    </Button>
+                    <Button
+                      variant={landingPageLayout === 'masonry' ? 'default' : 'outline'}
+                      onClick={() => setLandingPageLayout('masonry')}
+                      className="w-full"
+                    >
+                      Masonry
+                    </Button>
+                  </div>
+                </div>
               </div>
 
+              {/* Preview */}
               <div className="space-y-2">
-                <Label>Layout</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  <Button
-                    variant={landingPageLayout === 'grid' ? 'default' : 'outline'}
-                    onClick={() => setLandingPageLayout('grid')}
-                    className="w-full"
-                  >
-                    Grid
-                  </Button>
-                  <Button
-                    variant={landingPageLayout === 'carousel' ? 'default' : 'outline'}
-                    onClick={() => setLandingPageLayout('carousel')}
-                    className="w-full"
-                  >
-                    Carousel
-                  </Button>
-                  <Button
-                    variant={landingPageLayout === 'masonry' ? 'default' : 'outline'}
-                    onClick={() => setLandingPageLayout('masonry')}
-                    className="w-full"
-                  >
-                    Masonry
-                  </Button>
-                </div>
+                <Label>Förhandsvisning</Label>
+                <LandingPagePreview
+                  logoUrl={landingPageLogoUrl}
+                  headerImageUrl={landingPageHeaderImageUrl}
+                  backgroundColor={landingPageBackgroundColor}
+                  textColor={landingPageTextColor}
+                  accentColor={landingPageAccentColor}
+                  title={landingPageTitle}
+                  description={landingPageDescription}
+                  footerText={landingPageFooterText}
+                  layout={landingPageLayout}
+                />
               </div>
             </div>
           </TabsContent>
