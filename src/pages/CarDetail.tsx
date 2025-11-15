@@ -74,6 +74,38 @@ const CarDetail = () => {
     }
   }, [id]);
 
+  // Handle timers for editing photos
+  useEffect(() => {
+    const intervals = new Map<string, NodeJS.Timeout>();
+
+    Object.entries(editingPhotos).forEach(([photoId, state]) => {
+      if (state.isEditing && state.timeLeft > 0) {
+        // Only create timer if one doesn't exist for this photo
+        if (!intervals.has(photoId)) {
+          const intervalId = setInterval(() => {
+            setEditingPhotos(prev => {
+              const current = prev[photoId];
+              if (!current || current.timeLeft <= 1) {
+                clearInterval(intervalId);
+                fetchCarData(true);
+                return prev;
+              }
+              return {
+                ...prev,
+                [photoId]: { ...current, timeLeft: current.timeLeft - 1 }
+              };
+            });
+          }, 1000);
+          intervals.set(photoId, intervalId);
+        }
+      }
+    });
+
+    return () => {
+      intervals.forEach(clearInterval);
+    };
+  }, [Object.keys(editingPhotos).filter(id => editingPhotos[id].isEditing).join(',')]);
+
   const fetchCarData = async (preserveScroll = false) => {
     // Save current scroll position if requested
     const scrollY = preserveScroll ? window.scrollY : 0;
@@ -107,8 +139,7 @@ const CarDetail = () => {
           .in('photo_id', photoIds)
           .eq('completed', false);
 
-        if (pendingData) {
-          // Setup timers and state for pending edits
+        if (pendingData && pendingData.length > 0) {
           const newPendingEdits: Record<string, { publicUrl: string; completeAt: Date }> = {};
           const newEditingState: Record<string, { timeLeft: number; isEditing: boolean }> = {};
 
@@ -126,29 +157,13 @@ const CarDetail = () => {
               timeLeft: timeLeftSeconds,
               isEditing: timeLeftSeconds > 0,
             };
-
-            // Setup timer if still pending
-            if (timeLeftSeconds > 0) {
-              const intervalId = setInterval(() => {
-                setEditingPhotos(prev => {
-                  const current = prev[edit.photo_id];
-                  if (!current || current.timeLeft <= 1) {
-                    clearInterval(intervalId);
-                    // Just refresh data - the cron job will update the database
-                    fetchCarData(true);
-                    return prev;
-                  }
-                  return {
-                    ...prev,
-                    [edit.photo_id]: { ...current, timeLeft: current.timeLeft - 1 }
-                  };
-                });
-              }, 1000);
-            }
           });
 
           setPendingEdits(newPendingEdits);
           setEditingPhotos(newEditingState);
+        } else {
+          setPendingEdits({});
+          setEditingPhotos({});
         }
       }
       
