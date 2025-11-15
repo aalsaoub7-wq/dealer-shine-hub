@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 
 export const AiSettingsDialog = () => {
   const [open, setOpen] = useState(false);
+  const [currentTab, setCurrentTab] = useState("background");
   const [backgroundPrompt, setBackgroundPrompt] = useState(
     "car on on clean ceramic floor with the colour #c8cfdb, with Plain white walls in the backgrond in the background, evenly lit",
   );
@@ -40,7 +41,36 @@ export const AiSettingsDialog = () => {
   const [uploadingLandingLogo, setUploadingLandingLogo] = useState(false);
   const [uploadingHeaderImage, setUploadingHeaderImage] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
   const { toast } = useToast();
+
+  const tabs = ["background", "descriptions", "watermark", "landing"];
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart) return;
+    
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStart - touchEnd;
+    const minSwipeDistance = 50;
+
+    if (Math.abs(diff) > minSwipeDistance) {
+      const currentIndex = tabs.indexOf(currentTab);
+      
+      if (diff > 0 && currentIndex < tabs.length - 1) {
+        // Swipe left - next tab
+        setCurrentTab(tabs[currentIndex + 1]);
+      } else if (diff < 0 && currentIndex > 0) {
+        // Swipe right - previous tab
+        setCurrentTab(tabs[currentIndex - 1]);
+      }
+    }
+    
+    setTouchStart(null);
+  };
 
   useEffect(() => {
     if (open) {
@@ -294,7 +324,7 @@ export const AiSettingsDialog = () => {
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="background" className="w-full">
+        <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
           <div className="mt-4 rounded-xl border border-border bg-muted p-3 shadow-sm md:bg-transparent md:border-0 md:p-0 md:rounded-none">
             <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
             <TabsTrigger value="background">Bakgrund</TabsTrigger>
@@ -303,7 +333,12 @@ export const AiSettingsDialog = () => {
             <TabsTrigger value="landing">Landningssida</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="background" className="space-y-4 mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden">
+          <TabsContent 
+            value="background" 
+            className="space-y-4 mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
             <div className="space-y-2">
               <Label htmlFor="background-prompt">Instruktioner (prompt) för bakgrunden</Label>
               <Textarea
@@ -316,7 +351,12 @@ export const AiSettingsDialog = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="descriptions" className="space-y-4 mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden">
+          <TabsContent 
+            value="descriptions" 
+            className="space-y-4 mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
             <div className="space-y-2">
               <Label htmlFor="example-descriptions">Exempel Beskrivningar</Label>
               <Textarea
@@ -329,7 +369,12 @@ export const AiSettingsDialog = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="watermark" className="space-y-4 mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden">
+          <TabsContent 
+            value="watermark" 
+            className="space-y-4 mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
             <div className="space-y-4">
               <div>
                 <Label>Logotyp för vattenmärke</Label>
@@ -387,7 +432,12 @@ export const AiSettingsDialog = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="landing" className="space-y-4 mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden">
+          <TabsContent 
+            value="landing" 
+            className="space-y-4 mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
             <div className="grid md:grid-cols-2 gap-6">
               {/* Settings */}
               <div className="space-y-4">
