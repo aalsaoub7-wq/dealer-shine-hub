@@ -321,7 +321,7 @@ export const AiSettingsDialog = () => {
       <DialogContent className="max-w-[95vw] md:max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-card border-border p-4 md:p-6">
         <DialogHeader>
           <DialogTitle className="bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-            AI-inställningar
+            Inställningar
           </DialogTitle>
         </DialogHeader>
 
