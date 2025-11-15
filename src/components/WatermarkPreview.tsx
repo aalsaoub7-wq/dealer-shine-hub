@@ -219,13 +219,15 @@ export const WatermarkPreview = ({
     const mouseX = (e.clientX - rect.left) * scaleX;
     const mouseY = (e.clientY - rect.top) * scaleY;
 
-    if (isResizing) {
-      // Calculate new size based on distance from logo position
+    if (isResizing && logoImgRef.current) {
+      // Calculate new size based on mouse position relative to logo's top-left corner
       const deltaX = mouseX - localX;
       const deltaY = mouseY - localY;
+      
+      // Use the larger dimension to maintain aspect ratio
       const diagonal = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
       
-      // Convert diagonal to size percentage
+      // Convert diagonal distance to size percentage
       const newSize = (diagonal / canvas.width) * 100;
       setLocalSize(Math.max(1, Math.min(200, newSize)));
       return;
