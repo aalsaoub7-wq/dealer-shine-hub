@@ -17,6 +17,11 @@ interface SharedCollection {
   landing_page_background_color: string;
   landing_page_layout: 'grid' | 'carousel' | 'masonry';
   landing_page_header_image_url: string | null;
+  landing_page_text_color: string;
+  landing_page_accent_color: string;
+  landing_page_title: string;
+  landing_page_description: string | null;
+  landing_page_footer_text: string | null;
   photos: Photo[];
 }
 
@@ -47,7 +52,7 @@ const SharedPhotos = () => {
       // Get user's AI settings for landing page design
       const { data: settings } = await supabase
         .from("ai_settings")
-        .select("landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url")
+        .select("landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text")
         .eq("user_id", collectionData.user_id)
         .single();
 
@@ -65,6 +70,11 @@ const SharedPhotos = () => {
         landing_page_background_color: settings?.landing_page_background_color || "#ffffff",
         landing_page_layout: (settings?.landing_page_layout as 'grid' | 'carousel' | 'masonry') || "grid",
         landing_page_header_image_url: settings?.landing_page_header_image_url || null,
+        landing_page_text_color: settings?.landing_page_text_color || "#000000",
+        landing_page_accent_color: settings?.landing_page_accent_color || "#000000",
+        landing_page_title: settings?.landing_page_title || "Mina Bilder",
+        landing_page_description: settings?.landing_page_description || null,
+        landing_page_footer_text: settings?.landing_page_footer_text || null,
         photos: photos || [],
       });
     } catch (error: any) {
@@ -148,7 +158,7 @@ const SharedPhotos = () => {
         )}
         
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-2">
             {collection.landing_page_logo_url && (
               <img
                 src={collection.landing_page_logo_url}
@@ -156,11 +166,27 @@ const SharedPhotos = () => {
                 className="h-16 w-auto object-contain"
               />
             )}
-            {collection.title && (
-              <h1 className="text-4xl font-bold text-foreground">{collection.title}</h1>
+            <h1 
+              className="text-4xl font-bold"
+              style={{ color: collection.landing_page_text_color }}
+            >
+              {collection.landing_page_title}
+            </h1>
+            {collection.landing_page_description && (
+              <p 
+                className="text-lg"
+                style={{ color: collection.landing_page_text_color, opacity: 0.8 }}
+              >
+                {collection.landing_page_description}
+              </p>
             )}
           </div>
-          <p className="text-muted-foreground">{collection.photos.length} bilder</p>
+          <p 
+            className="text-lg"
+            style={{ color: collection.landing_page_text_color, opacity: 0.7 }}
+          >
+            {collection.photos.length} bilder
+          </p>
         </div>
       </div>
 
@@ -184,6 +210,10 @@ const SharedPhotos = () => {
                   variant="secondary"
                   onClick={() => handleDownload(photo.url, index)}
                   className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{ 
+                    backgroundColor: collection.landing_page_accent_color,
+                    color: '#ffffff'
+                  }}
                 >
                   <Download className="w-4 h-4" />
                 </Button>
@@ -207,15 +237,25 @@ const SharedPhotos = () => {
                 variant="outline"
                 size="icon"
                 disabled={collection.photos.length <= 1}
+                style={{
+                  borderColor: collection.landing_page_accent_color,
+                  color: collection.landing_page_text_color
+                }}
               >
                 <ChevronLeft className="w-5 h-5" />
               </Button>
-              <p className="text-muted-foreground">
+              <p 
+                className="text-lg"
+                style={{ color: collection.landing_page_text_color }}
+              >
                 {currentImageIndex + 1} / {collection.photos.length}
               </p>
               <Button
                 onClick={() => handleDownload(collection.photos[currentImageIndex]?.url, currentImageIndex)}
-                variant="outline"
+                style={{ 
+                  backgroundColor: collection.landing_page_accent_color,
+                  color: '#ffffff'
+                }}
               >
                 <Download className="w-4 h-4 mr-2" />
                 Ladda ner
@@ -225,6 +265,10 @@ const SharedPhotos = () => {
                 variant="outline"
                 size="icon"
                 disabled={collection.photos.length <= 1}
+                style={{
+                  borderColor: collection.landing_page_accent_color,
+                  color: collection.landing_page_text_color
+                }}
               >
                 <ChevronRight className="w-5 h-5" />
               </Button>
@@ -258,12 +302,28 @@ const SharedPhotos = () => {
                   variant="secondary"
                   onClick={() => handleDownload(photo.url, index)}
                   className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{ 
+                    backgroundColor: collection.landing_page_accent_color,
+                    color: '#ffffff'
+                  }}
                 >
                   <Download className="w-4 h-4" />
                 </Button>
               </div>
             ))}
           </Masonry>
+        )}
+
+        {/* Footer */}
+        {collection.landing_page_footer_text && (
+          <div className="text-center pt-8">
+            <p 
+              className="text-sm"
+              style={{ color: collection.landing_page_text_color, opacity: 0.6 }}
+            >
+              {collection.landing_page_footer_text}
+            </p>
+          </div>
         )}
       </div>
     </div>

@@ -20,10 +20,15 @@ export type Database = {
           created_at: string
           example_descriptions: string | null
           id: string
+          landing_page_accent_color: string | null
           landing_page_background_color: string | null
+          landing_page_description: string | null
+          landing_page_footer_text: string | null
           landing_page_header_image_url: string | null
           landing_page_layout: string | null
           landing_page_logo_url: string | null
+          landing_page_text_color: string | null
+          landing_page_title: string | null
           logo_url: string | null
           updated_at: string
           user_id: string
@@ -37,10 +42,15 @@ export type Database = {
           created_at?: string
           example_descriptions?: string | null
           id?: string
+          landing_page_accent_color?: string | null
           landing_page_background_color?: string | null
+          landing_page_description?: string | null
+          landing_page_footer_text?: string | null
           landing_page_header_image_url?: string | null
           landing_page_layout?: string | null
           landing_page_logo_url?: string | null
+          landing_page_text_color?: string | null
+          landing_page_title?: string | null
           logo_url?: string | null
           updated_at?: string
           user_id: string
@@ -54,10 +64,15 @@ export type Database = {
           created_at?: string
           example_descriptions?: string | null
           id?: string
+          landing_page_accent_color?: string | null
           landing_page_background_color?: string | null
+          landing_page_description?: string | null
+          landing_page_footer_text?: string | null
           landing_page_header_image_url?: string | null
           landing_page_layout?: string | null
           landing_page_logo_url?: string | null
+          landing_page_text_color?: string | null
+          landing_page_title?: string | null
           logo_url?: string | null
           updated_at?: string
           user_id?: string
