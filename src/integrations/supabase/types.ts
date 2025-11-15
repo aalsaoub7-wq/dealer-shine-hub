@@ -20,6 +20,10 @@ export type Database = {
           created_at: string
           example_descriptions: string | null
           id: string
+          landing_page_background_color: string | null
+          landing_page_header_image_url: string | null
+          landing_page_layout: string | null
+          landing_page_logo_url: string | null
           logo_url: string | null
           updated_at: string
           user_id: string
@@ -33,6 +37,10 @@ export type Database = {
           created_at?: string
           example_descriptions?: string | null
           id?: string
+          landing_page_background_color?: string | null
+          landing_page_header_image_url?: string | null
+          landing_page_layout?: string | null
+          landing_page_logo_url?: string | null
           logo_url?: string | null
           updated_at?: string
           user_id: string
@@ -46,6 +54,10 @@ export type Database = {
           created_at?: string
           example_descriptions?: string | null
           id?: string
+          landing_page_background_color?: string | null
+          landing_page_header_image_url?: string | null
+          landing_page_layout?: string | null
+          landing_page_logo_url?: string | null
           logo_url?: string | null
           updated_at?: string
           user_id?: string
@@ -283,6 +295,36 @@ export type Database = {
           },
         ]
       }
+      shared_collections: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          photo_ids: string[]
+          share_token: string
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          photo_ids?: string[]
+          share_token: string
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          photo_ids?: string[]
+          share_token?: string
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_companies: {
         Row: {
           company_id: string
@@ -317,6 +359,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_share_token: { Args: never; Returns: string }
       user_belongs_to_company: {
         Args: { company_uuid: string }
         Returns: boolean

@@ -20,7 +20,13 @@ export const AiSettingsDialog = () => {
   const [watermarkY, setWatermarkY] = useState(20);
   const [watermarkSize, setWatermarkSize] = useState(15);
   const [watermarkOpacity, setWatermarkOpacity] = useState(0.8);
+  const [landingPageLogoUrl, setLandingPageLogoUrl] = useState('');
+  const [landingPageBackgroundColor, setLandingPageBackgroundColor] = useState('#ffffff');
+  const [landingPageLayout, setLandingPageLayout] = useState<'grid' | 'carousel' | 'masonry'>('grid');
+  const [landingPageHeaderImageUrl, setLandingPageHeaderImageUrl] = useState('');
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingLandingLogo, setUploadingLandingLogo] = useState(false);
+  const [uploadingHeaderImage, setUploadingHeaderImage] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -37,7 +43,7 @@ export const AiSettingsDialog = () => {
 
       const { data, error } = await supabase
         .from('ai_settings')
-        .select('background_prompt, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity')
+        .select('background_prompt, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity, landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url')
         .eq('user_id', user.id)
         .single();
 
@@ -53,6 +59,10 @@ export const AiSettingsDialog = () => {
         setWatermarkY(data.watermark_y || 20);
         setWatermarkSize(data.watermark_size || 15);
         setWatermarkOpacity(data.watermark_opacity || 0.8);
+        setLandingPageLogoUrl(data.landing_page_logo_url || '');
+        setLandingPageBackgroundColor(data.landing_page_background_color || '#ffffff');
+        setLandingPageLayout((data.landing_page_layout as 'grid' | 'carousel' | 'masonry') || 'grid');
+        setLandingPageHeaderImageUrl(data.landing_page_header_image_url || '');
       }
     } catch (error: any) {
       console.error('Error loading AI settings:', error);
@@ -109,6 +119,88 @@ export const AiSettingsDialog = () => {
     setLogoUrl('');
   };
 
+  const handleLandingLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingLandingLogo(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Inte inloggad');
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-landing-logo-${Date.now()}.${fileExt}`;
+      const filePath = `logos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('car-photos')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('car-photos')
+        .getPublicUrl(filePath);
+
+      setLandingPageLogoUrl(publicUrl);
+      
+      toast({
+        title: "Logotyp uppladdad",
+        description: "Landningssidans logotyp har laddats upp",
+      });
+    } catch (error: any) {
+      console.error('Error uploading landing logo:', error);
+      toast({
+        title: "Fel vid uppladdning",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingLandingLogo(false);
+    }
+  };
+
+  const handleHeaderImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingHeaderImage(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Inte inloggad');
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-header-${Date.now()}.${fileExt}`;
+      const filePath = `headers/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('car-photos')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('car-photos')
+        .getPublicUrl(filePath);
+
+      setLandingPageHeaderImageUrl(publicUrl);
+      
+      toast({
+        title: "Header-bild uppladdad",
+        description: "Landningssidans header-bild har laddats upp",
+      });
+    } catch (error: any) {
+      console.error('Error uploading header image:', error);
+      toast({
+        title: "Fel vid uppladdning",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingHeaderImage(false);
+    }
+  };
+
   const saveSettings = async () => {
     setLoading(true);
     try {
@@ -126,6 +218,10 @@ export const AiSettingsDialog = () => {
           watermark_y: watermarkY,
           watermark_size: watermarkSize,
           watermark_opacity: watermarkOpacity,
+          landing_page_logo_url: landingPageLogoUrl,
+          landing_page_background_color: landingPageBackgroundColor,
+          landing_page_layout: landingPageLayout,
+          landing_page_header_image_url: landingPageHeaderImageUrl,
         }, {
           onConflict: 'user_id'
         });
@@ -165,10 +261,11 @@ export const AiSettingsDialog = () => {
         </DialogHeader>
 
         <Tabs defaultValue="background" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="background">Bakgrund</TabsTrigger>
             <TabsTrigger value="descriptions">Beskrivningar</TabsTrigger>
             <TabsTrigger value="watermark">Vattenmärke</TabsTrigger>
+            <TabsTrigger value="landing">Landningssida</TabsTrigger>
           </TabsList>
 
           <TabsContent value="background" className="space-y-4 mt-4">
@@ -252,6 +349,131 @@ export const AiSettingsDialog = () => {
                 onSizeChange={setWatermarkSize}
                 onOpacityChange={setWatermarkOpacity}
               />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="landing" className="space-y-4 mt-4">
+            <div className="space-y-4">
+              <div>
+                <Label>Logotyp för landningssida</Label>
+                <div className="mt-2 flex flex-col gap-2">
+                  {landingPageLogoUrl ? (
+                    <div className="relative w-32 h-32 border rounded-lg overflow-hidden bg-muted">
+                      <img src={landingPageLogoUrl} alt="Landing logotyp" className="w-full h-full object-contain p-2" />
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        className="absolute top-1 right-1 h-6 w-6"
+                        onClick={() => setLandingPageLogoUrl('')}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        id="landing-logo-upload"
+                        accept="image/*"
+                        onChange={handleLandingLogoUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => document.getElementById('landing-logo-upload')?.click()}
+                        disabled={uploadingLandingLogo}
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        {uploadingLandingLogo ? "Laddar upp..." : "Ladda upp logotyp"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <Label>Header-bild (valfritt)</Label>
+                <div className="mt-2 flex flex-col gap-2">
+                  {landingPageHeaderImageUrl ? (
+                    <div className="relative w-full h-32 border rounded-lg overflow-hidden bg-muted">
+                      <img src={landingPageHeaderImageUrl} alt="Header bild" className="w-full h-full object-cover" />
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        className="absolute top-1 right-1 h-6 w-6"
+                        onClick={() => setLandingPageHeaderImageUrl('')}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        id="header-upload"
+                        accept="image/*"
+                        onChange={handleHeaderImageUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => document.getElementById('header-upload')?.click()}
+                        disabled={uploadingHeaderImage}
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        {uploadingHeaderImage ? "Laddar upp..." : "Ladda upp header-bild"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bg-color">Bakgrundsfärg</Label>
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="color"
+                    id="bg-color"
+                    value={landingPageBackgroundColor}
+                    onChange={(e) => setLandingPageBackgroundColor(e.target.value)}
+                    className="w-20 h-10 rounded border cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={landingPageBackgroundColor}
+                    onChange={(e) => setLandingPageBackgroundColor(e.target.value)}
+                    className="flex-1 px-3 py-2 border rounded-md"
+                    placeholder="#ffffff"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Layout</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    variant={landingPageLayout === 'grid' ? 'default' : 'outline'}
+                    onClick={() => setLandingPageLayout('grid')}
+                    className="w-full"
+                  >
+                    Grid
+                  </Button>
+                  <Button
+                    variant={landingPageLayout === 'carousel' ? 'default' : 'outline'}
+                    onClick={() => setLandingPageLayout('carousel')}
+                    className="w-full"
+                  >
+                    Carousel
+                  </Button>
+                  <Button
+                    variant={landingPageLayout === 'masonry' ? 'default' : 'outline'}
+                    onClick={() => setLandingPageLayout('masonry')}
+                    className="w-full"
+                  >
+                    Masonry
+                  </Button>
+                </div>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
