@@ -295,14 +295,15 @@ export const AiSettingsDialog = () => {
         </DialogHeader>
 
         <Tabs defaultValue="background" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
+          <div className="mt-4 rounded-xl border border-border bg-muted p-3 shadow-sm md:bg-transparent md:border-0 md:p-0 md:rounded-none">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
             <TabsTrigger value="background">Bakgrund</TabsTrigger>
             <TabsTrigger value="descriptions">Beskrivningar</TabsTrigger>
             <TabsTrigger value="watermark">Vattenmärke</TabsTrigger>
             <TabsTrigger value="landing">Landningssida</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="background" className="space-y-4 mt-4 p-3 md:p-4 border border-border md:border-2 rounded-xl bg-muted/40 md:bg-card shadow-sm overflow-hidden">
+          <TabsContent value="background" className="space-y-4 mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden">
             <div className="space-y-2">
               <Label htmlFor="background-prompt">Instruktioner (prompt) för bakgrunden</Label>
               <Textarea
@@ -315,7 +316,7 @@ export const AiSettingsDialog = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="descriptions" className="space-y-4 mt-4 p-3 md:p-4 border border-border md:border-2 rounded-xl bg-muted/40 md:bg-card shadow-sm overflow-hidden">
+          <TabsContent value="descriptions" className="space-y-4 mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden">
             <div className="space-y-2">
               <Label htmlFor="example-descriptions">Exempel Beskrivningar</Label>
               <Textarea
@@ -328,7 +329,7 @@ export const AiSettingsDialog = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="watermark" className="space-y-4 mt-4 p-3 md:p-4 border border-border md:border-2 rounded-xl bg-muted/40 md:bg-card shadow-sm overflow-hidden">
+          <TabsContent value="watermark" className="space-y-4 mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden">
             <div className="space-y-4">
               <div>
                 <Label>Logotyp för vattenmärke</Label>
@@ -386,7 +387,7 @@ export const AiSettingsDialog = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="landing" className="space-y-4 mt-4 p-3 md:p-4 border border-border md:border-2 rounded-xl bg-muted/40 md:bg-card shadow-sm overflow-hidden">
+          <TabsContent value="landing" className="space-y-4 mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden">
             <div className="grid md:grid-cols-2 gap-6">
               {/* Settings */}
               <div className="space-y-4">
@@ -675,6 +676,7 @@ export const AiSettingsDialog = () => {
               </div>
             </div>
           </TabsContent>
+        </div>
         </Tabs>
 
         <div className="flex justify-end gap-2 mt-4">
