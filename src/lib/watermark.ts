@@ -1,7 +1,8 @@
 export const applyWatermark = async (
   imageUrl: string,
   logoUrl: string,
-  position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' = 'top-left',
+  x: number = 20,
+  y: number = 20,
   sizePercent: number = 15
 ): Promise<Blob> => {
   // Load both images
@@ -26,29 +27,6 @@ export const applyWatermark = async (
   const logoScale = logoMaxWidth / logo.width;
   const logoWidth = logo.width * logoScale;
   const logoHeight = logo.height * logoScale;
-
-  // Calculate position with padding
-  const padding = 20;
-  let x = padding;
-  let y = padding;
-
-  switch (position) {
-    case 'top-right':
-      x = canvas.width - logoWidth - padding;
-      y = padding;
-      break;
-    case 'bottom-left':
-      x = padding;
-      y = canvas.height - logoHeight - padding;
-      break;
-    case 'bottom-right':
-      x = canvas.width - logoWidth - padding;
-      y = canvas.height - logoHeight - padding;
-      break;
-    default: // top-left
-      x = padding;
-      y = padding;
-  }
 
   // Draw logo with slight transparency
   ctx.globalAlpha = 0.8;

@@ -1,26 +1,30 @@
 import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import testImage from "@/assets/watermark-test.jpg";
 
 interface WatermarkPreviewProps {
   logoUrl: string;
-  position: string;
+  x: number;
+  y: number;
   size: number;
-  onPositionChange: (position: string) => void;
+  onPositionChange: (x: number, y: number) => void;
   onSizeChange: (size: number) => void;
 }
 
 export const WatermarkPreview = ({
   logoUrl,
-  position,
+  x,
+  y,
   size,
   onPositionChange,
   onSizeChange,
 }: WatermarkPreviewProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
     if (!canvasRef.current || !logoUrl) return;
@@ -37,6 +41,7 @@ export const WatermarkPreview = ({
       // Set canvas size to match image
       canvas.width = testImg.width;
       canvas.height = testImg.height;
+      setCanvasSize({ width: testImg.width, height: testImg.height });
 
       // Draw test image
       ctx.drawImage(testImg, 0, 0);
@@ -53,36 +58,56 @@ export const WatermarkPreview = ({
         const logoWidth = logo.width * logoScale;
         const logoHeight = logo.height * logoScale;
 
-        // Calculate position
-        const padding = 20;
-        let x = padding;
-        let y = padding;
-
-        switch (position) {
-          case 'top-right':
-            x = canvas.width - logoWidth - padding;
-            y = padding;
-            break;
-          case 'bottom-left':
-            x = padding;
-            y = canvas.height - logoHeight - padding;
-            break;
-          case 'bottom-right':
-            x = canvas.width - logoWidth - padding;
-            y = canvas.height - logoHeight - padding;
-            break;
-          default: // top-left
-            x = padding;
-            y = padding;
-        }
-
         // Draw logo with transparency
         ctx.globalAlpha = 0.8;
         ctx.drawImage(logo, x, y, logoWidth, logoHeight);
         ctx.globalAlpha = 1.0;
       };
     };
-  }, [logoUrl, position, size]);
+  }, [logoUrl, x, y, size]);
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mouseX = (e.clientX - rect.left) * scaleX;
+    const mouseY = (e.clientY - rect.top) * scaleY;
+
+    // Calculate logo dimensions
+    const logoMaxWidth = canvas.width * (size / 100);
+    const logoWidth = logoMaxWidth;
+    const logoHeight = logoMaxWidth; // Approximate, will be adjusted by aspect ratio
+
+    // Check if click is within logo bounds
+    if (mouseX >= x && mouseX <= x + logoWidth && mouseY >= y && mouseY <= y + logoHeight) {
+      setIsDragging(true);
+      setDragOffset({ x: mouseX - x, y: mouseY - y });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDragging || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mouseX = (e.clientX - rect.left) * scaleX;
+    const mouseY = (e.clientY - rect.top) * scaleY;
+
+    // Calculate new position
+    const newX = Math.max(0, Math.min(canvas.width - (canvas.width * size / 100), mouseX - dragOffset.x));
+    const newY = Math.max(0, Math.min(canvas.height - (canvas.height * size / 100), mouseY - dragOffset.y));
+
+    onPositionChange(newX, newY);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
 
   if (!logoUrl) {
     return (
@@ -96,36 +121,19 @@ export const WatermarkPreview = ({
     <div className="space-y-4">
       <div>
         <Label className="mb-2 block">Förhandsvisning</Label>
+        <p className="text-sm text-muted-foreground mb-2">
+          Dra vattenmärket för att placera det där du vill
+        </p>
         <Card className="p-4 bg-secondary">
           <canvas
             ref={canvasRef}
-            className="w-full h-auto rounded-lg"
+            className="w-full h-auto rounded-lg cursor-move"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
           />
         </Card>
-      </div>
-
-      <div>
-        <Label className="mb-2 block">Position</Label>
-        <RadioGroup value={position} onValueChange={onPositionChange}>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="top-left" id="top-left" />
-              <Label htmlFor="top-left" className="cursor-pointer">Övre vänster</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="top-right" id="top-right" />
-              <Label htmlFor="top-right" className="cursor-pointer">Övre höger</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="bottom-left" id="bottom-left" />
-              <Label htmlFor="bottom-left" className="cursor-pointer">Nedre vänster</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="bottom-right" id="bottom-right" />
-              <Label htmlFor="bottom-right" className="cursor-pointer">Nedre höger</Label>
-            </div>
-          </div>
-        </RadioGroup>
       </div>
 
       <div>
