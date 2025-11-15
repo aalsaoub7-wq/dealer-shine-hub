@@ -63,6 +63,7 @@ const CarDetail = () => {
   const [isSavingNotes, setIsSavingNotes] = useState(false);
   const [selectedMainPhotos, setSelectedMainPhotos] = useState<string[]>([]);
   const [selectedDocPhotos, setSelectedDocPhotos] = useState<string[]>([]);
+  const [sharing, setSharing] = useState(false);
   const [applyingWatermark, setApplyingWatermark] = useState(false);
   const [editingPhotos, setEditingPhotos] = useState<Record<string, { timeLeft: number; isEditing: boolean }>>({});
   const [pendingEdits, setPendingEdits] = useState<Record<string, { publicUrl: string; completeAt: Date }>>({});
@@ -200,17 +201,52 @@ const CarDetail = () => {
     }
   };
 
-  const handleSharePhotos = (photoIds: string[]) => {
-    const photoUrls = photos
-      .filter(p => photoIds.includes(p.id))
-      .map(p => p.url)
-      .join('\n');
+  const handleSharePhotos = async (photoIds: string[]) => {
+    if (photoIds.length === 0) return;
     
-    navigator.clipboard.writeText(photoUrls);
-    toast({
-      title: "Länkarna har kopierats!",
-      description: `${photoIds.length} fotolänkar kopierades till urklipp`,
-    });
+    setSharing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Ingen användare inloggad");
+
+      // Generate unique share token
+      const { data: tokenData, error: tokenError } = await supabase.rpc('generate_share_token');
+      if (tokenError) throw tokenError;
+
+      // Create shared collection
+      const { error } = await supabase
+        .from('shared_collections')
+        .insert({
+          user_id: user.id,
+          title: `${car.make} ${car.model} ${car.year}`,
+          photo_ids: photoIds,
+          share_token: tokenData,
+        });
+
+      if (error) throw error;
+
+      // Generate shareable URL
+      const shareUrl = `${window.location.origin}/shared/${tokenData}`;
+      
+      navigator.clipboard.writeText(shareUrl);
+      toast({
+        title: "Delningslänk skapad!",
+        description: "Länken har kopierats till urklipp",
+      });
+
+      // Clear selections
+      setSelectedMainPhotos([]);
+      setSelectedDocPhotos([]);
+    } catch (error: any) {
+      console.error('Error sharing photos:', error);
+      toast({
+        title: "Fel vid delning",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSharing(false);
+    }
   };
 
   const handleSaveNotes = async () => {
@@ -501,6 +537,9 @@ const CarDetail = () => {
   const allSelectedDocAreEdited = selectedDocPhotos.length > 0 && 
     selectedDocPhotos.every(id => photos.find(p => p.id === id)?.is_edited);
 
+  // Combined selected photos for sharing
+  const allSelectedPhotos = [...selectedMainPhotos, ...selectedDocPhotos];
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-card to-background flex items-center justify-center">
@@ -648,6 +687,17 @@ const CarDetail = () => {
 
           <TabsContent value="main" className="space-y-6">
             <div className="flex justify-end gap-2">
+              {allSelectedPhotos.length > 0 && (
+                <Button
+                  onClick={() => handleSharePhotos(allSelectedPhotos)}
+                  variant="outline"
+                  disabled={sharing}
+                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  {sharing ? "Skapar länk..." : `Dela valda (${allSelectedPhotos.length})`}
+                </Button>
+              )}
               {selectedMainPhotos.length > 0 && (
                 <>
                   <Button
@@ -676,14 +726,6 @@ const CarDetail = () => {
                         )
                     }
                   </Button>
-                  <Button
-                    onClick={() => handleSharePhotos(selectedMainPhotos)}
-                    variant="outline"
-                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Dela ({selectedMainPhotos.length})
-                  </Button>
                 </>
               )}
               <Button
@@ -708,6 +750,17 @@ const CarDetail = () => {
 
           <TabsContent value="docs" className="space-y-6">
             <div className="flex justify-end gap-2">
+              {allSelectedPhotos.length > 0 && (
+                <Button
+                  onClick={() => handleSharePhotos(allSelectedPhotos)}
+                  variant="outline"
+                  disabled={sharing}
+                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  {sharing ? "Skapar länk..." : `Dela valda (${allSelectedPhotos.length})`}
+                </Button>
+              )}
               {selectedDocPhotos.length > 0 && (
                 <>
                   <Button
@@ -727,14 +780,6 @@ const CarDetail = () => {
                           : `Lägg till vattenmärke (${selectedDocPhotos.length})`
                         )
                     }
-                  </Button>
-                  <Button
-                    onClick={() => handleSharePhotos(selectedDocPhotos)}
-                    variant="outline"
-                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Dela ({selectedDocPhotos.length})
                   </Button>
                 </>
               )}
