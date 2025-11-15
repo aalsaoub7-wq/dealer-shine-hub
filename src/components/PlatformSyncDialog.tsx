@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { useBlocketSync } from "@/hooks/useBlocketSync";
 import { RefreshCw } from "lucide-react";
 
@@ -44,7 +45,22 @@ interface PlatformSyncDialogProps {
 
 export function PlatformSyncDialog({ open, onOpenChange, carId, car }: PlatformSyncDialogProps) {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const { isLoading, syncToBlocket } = useBlocketSync(carId);
+  const { isLoading, syncToBlocket, status: blocketStatus } = useBlocketSync(carId);
+
+  const getPlatformStatus = (platformId: string) => {
+    if (platformId === "blocket" && blocketStatus) {
+      if (blocketStatus.state === "created" && blocketStatus.last_action_state === "success") {
+        return { variant: "success" as const, text: "Synkad" };
+      }
+      if (blocketStatus.last_action_state === "error") {
+        return { variant: "destructive" as const, text: "Fel" };
+      }
+      if (blocketStatus.last_action_state === "pending") {
+        return { variant: "warning" as const, text: "Pågående" };
+      }
+    }
+    return null;
+  };
 
   const togglePlatform = (platformId: string) => {
     setSelectedPlatforms((prev) =>
@@ -79,26 +95,34 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car }: PlatformS
           </Button>
 
           <div className="space-y-3">
-            {platforms.map((platform) => (
-              <div
-                key={platform.id}
-                className="flex items-center space-x-3 rounded-lg border border-border p-3 hover:bg-accent/50 transition-colors"
-              >
-                <Checkbox
-                  id={platform.id}
-                  checked={selectedPlatforms.includes(platform.id)}
-                  onCheckedChange={() => togglePlatform(platform.id)}
-                />
-                <img
-                  src={platform.logo}
-                  alt={platform.name}
-                  className={`h-8 w-8 object-contain ${platform.id === "blocket" ? "scale-175" : ""}`}
-                />
-                <Label htmlFor={platform.id} className="flex-1 cursor-pointer font-medium">
-                  {platform.name}
-                </Label>
-              </div>
-            ))}
+            {platforms.map((platform) => {
+              const status = getPlatformStatus(platform.id);
+              return (
+                <div
+                  key={platform.id}
+                  className="flex items-center space-x-3 rounded-lg border border-border p-3 hover:bg-accent/50 transition-colors"
+                >
+                  <Checkbox
+                    id={platform.id}
+                    checked={selectedPlatforms.includes(platform.id)}
+                    onCheckedChange={() => togglePlatform(platform.id)}
+                  />
+                  <img
+                    src={platform.logo}
+                    alt={platform.name}
+                    className={`h-8 w-8 object-contain ${platform.id === "blocket" ? "scale-175" : ""}`}
+                  />
+                  <Label htmlFor={platform.id} className="flex-1 cursor-pointer font-medium">
+                    {platform.name}
+                  </Label>
+                  {status && (
+                    <Badge variant={status.variant}>
+                      {status.text}
+                    </Badge>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
