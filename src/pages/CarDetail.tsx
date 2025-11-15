@@ -65,7 +65,7 @@ const CarDetail = () => {
   const [selectedDocPhotos, setSelectedDocPhotos] = useState<string[]>([]);
   const [applyingWatermark, setApplyingWatermark] = useState(false);
   const [editingPhotos, setEditingPhotos] = useState<Record<string, { timeLeft: number; isEditing: boolean }>>({});
-  const [pendingEdits, setPendingEdits] = useState<Record<string, { publicUrl: string }>>({});
+  const [pendingEdits, setPendingEdits] = useState<Record<string, { publicUrl: string; completeAt: Date }>>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -97,6 +97,60 @@ const CarDetail = () => {
 
       if (photosError) throw photosError;
       setPhotos((photosData || []) as Photo[]);
+      
+      // Fetch pending edits for this car's photos
+      const photoIds = (photosData || []).map((p: any) => p.id);
+      if (photoIds.length > 0) {
+        const { data: pendingData } = await supabase
+          .from('pending_photo_edits')
+          .select('*')
+          .in('photo_id', photoIds)
+          .eq('completed', false);
+
+        if (pendingData) {
+          // Setup timers and state for pending edits
+          const newPendingEdits: Record<string, { publicUrl: string; completeAt: Date }> = {};
+          const newEditingState: Record<string, { timeLeft: number; isEditing: boolean }> = {};
+
+          pendingData.forEach((edit: any) => {
+            const completeAt = new Date(edit.complete_at);
+            const now = new Date();
+            const timeLeftSeconds = Math.max(0, Math.floor((completeAt.getTime() - now.getTime()) / 1000));
+
+            newPendingEdits[edit.photo_id] = {
+              publicUrl: edit.edited_url,
+              completeAt: completeAt,
+            };
+
+            newEditingState[edit.photo_id] = {
+              timeLeft: timeLeftSeconds,
+              isEditing: timeLeftSeconds > 0,
+            };
+
+            // Setup timer if still pending
+            if (timeLeftSeconds > 0) {
+              const intervalId = setInterval(() => {
+                setEditingPhotos(prev => {
+                  const current = prev[edit.photo_id];
+                  if (!current || current.timeLeft <= 1) {
+                    clearInterval(intervalId);
+                    // Just refresh data - the cron job will update the database
+                    fetchCarData(true);
+                    return prev;
+                  }
+                  return {
+                    ...prev,
+                    [edit.photo_id]: { ...current, timeLeft: current.timeLeft - 1 }
+                  };
+                });
+              }, 1000);
+            }
+          });
+
+          setPendingEdits(newPendingEdits);
+          setEditingPhotos(newEditingState);
+        }
+      }
       
       // Restore scroll position after a short delay to allow rendering
       if (preserveScroll) {
@@ -179,39 +233,8 @@ const CarDetail = () => {
           const current = prev[photoId];
           if (!current || current.timeLeft <= 1) {
             clearInterval(intervalId);
-            
-            // When timer reaches 0, update the database
-            setPendingEdits(pendingState => {
-              const pendingEdit = pendingState[photoId];
-              if (pendingEdit) {
-                // Update photo record in database
-                supabase
-                  .from('photos')
-                  .update({
-                    url: pendingEdit.publicUrl,
-                    is_edited: true,
-                  })
-                  .eq('id', photoId)
-                  .then(() => {
-                    // Remove from pending edits
-                    setPendingEdits(s => {
-                      const newState = { ...s };
-                      delete newState[photoId];
-                      return newState;
-                    });
-                    
-                    // Refresh data to show the edited image
-                    fetchCarData(true);
-                    
-                    toast({
-                      title: "Bild redigerad",
-                      description: "Den redigerade bilden är nu tillgänglig",
-                    });
-                  });
-              }
-              return pendingState;
-            });
-            
+            // Just refresh data - the cron job will update the database
+            fetchCarData(true);
             return prev;
           }
           return {
@@ -264,10 +287,20 @@ const CarDetail = () => {
             .from('car-photos')
             .getPublicUrl(editedFileName);
 
-          // Store the edited URL in pending edits instead of updating immediately
+          // Calculate completion time (4 minutes from now)
+          const completeAt = new Date(Date.now() + 240000); // 240 seconds = 4 minutes
+
+          // Store the edited URL in database pending_photo_edits
+          await supabase.from('pending_photo_edits').insert({
+            photo_id: photo.id,
+            edited_url: publicUrl,
+            complete_at: completeAt.toISOString(),
+          });
+
+          // Also store in local state for UI
           setPendingEdits(prev => ({
             ...prev,
-            [photo.id]: { publicUrl }
+            [photo.id]: { publicUrl, completeAt }
           }));
 
         } catch (error) {

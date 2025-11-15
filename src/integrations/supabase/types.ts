@@ -204,6 +204,41 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_photo_edits: {
+        Row: {
+          complete_at: string
+          completed: boolean
+          created_at: string
+          edited_url: string
+          id: string
+          photo_id: string
+        }
+        Insert: {
+          complete_at: string
+          completed?: boolean
+          created_at?: string
+          edited_url: string
+          id?: string
+          photo_id: string
+        }
+        Update: {
+          complete_at?: string
+          completed?: boolean
+          created_at?: string
+          edited_url?: string
+          id?: string
+          photo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_photo_edits_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       photos: {
         Row: {
           car_id: string
