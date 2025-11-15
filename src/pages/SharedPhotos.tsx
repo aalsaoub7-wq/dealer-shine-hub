@@ -22,6 +22,10 @@ interface SharedCollection {
   landing_page_title: string;
   landing_page_description: string | null;
   landing_page_footer_text: string | null;
+  landing_page_logo_size: 'small' | 'medium' | 'large';
+  landing_page_logo_position: 'left' | 'center' | 'right';
+  landing_page_header_height: 'small' | 'medium' | 'large';
+  landing_page_header_fit: 'cover' | 'contain' | 'fill';
   photos: Photo[];
 }
 
@@ -52,7 +56,7 @@ const SharedPhotos = () => {
       // Get user's AI settings for landing page design
       const { data: settings } = await supabase
         .from("ai_settings")
-        .select("landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text")
+        .select("landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text, landing_page_logo_size, landing_page_logo_position, landing_page_header_height, landing_page_header_fit")
         .eq("user_id", collectionData.user_id)
         .single();
 
@@ -75,6 +79,10 @@ const SharedPhotos = () => {
         landing_page_title: settings?.landing_page_title || "Mina Bilder",
         landing_page_description: settings?.landing_page_description || null,
         landing_page_footer_text: settings?.landing_page_footer_text || null,
+        landing_page_logo_size: (settings?.landing_page_logo_size as 'small' | 'medium' | 'large') || 'medium',
+        landing_page_logo_position: (settings?.landing_page_logo_position as 'left' | 'center' | 'right') || 'center',
+        landing_page_header_height: (settings?.landing_page_header_height as 'small' | 'medium' | 'large') || 'medium',
+        landing_page_header_fit: (settings?.landing_page_header_fit as 'cover' | 'contain' | 'fill') || 'cover',
         photos: photos || [],
       });
     } catch (error: any) {
@@ -140,6 +148,30 @@ const SharedPhotos = () => {
 
   const backgroundColor = collection.landing_page_background_color;
 
+  const logoSizeClass = {
+    small: 'h-12',
+    medium: 'h-16',
+    large: 'h-24'
+  }[collection.landing_page_logo_size];
+
+  const headerHeightClass = {
+    small: 'h-32',
+    medium: 'h-48',
+    large: 'h-64'
+  }[collection.landing_page_header_height];
+
+  const headerFitClass = {
+    cover: 'object-cover',
+    contain: 'object-contain',
+    fill: 'object-fill'
+  }[collection.landing_page_header_fit];
+
+  const logoAlignClass = {
+    left: 'items-start',
+    center: 'items-center',
+    right: 'items-end'
+  }[collection.landing_page_logo_position];
+
   return (
     <div
       className="min-h-screen p-8"
@@ -152,20 +184,20 @@ const SharedPhotos = () => {
             <img
               src={collection.landing_page_header_image_url}
               alt="Header"
-              className="w-full h-64 object-cover"
+              className={`w-full ${headerHeightClass} ${headerFitClass}`}
             />
           </div>
         )}
         
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col gap-2">
-            {collection.landing_page_logo_url && (
-              <img
-                src={collection.landing_page_logo_url}
-                alt="Logo"
-                className="h-16 w-auto object-contain"
-              />
-            )}
+        <div className={`flex flex-col ${logoAlignClass} gap-4 mb-6`}>
+          {collection.landing_page_logo_url && (
+            <img
+              src={collection.landing_page_logo_url}
+              alt="Logo"
+              className={`${logoSizeClass} w-auto object-contain`}
+            />
+          )}
+          <div className={`flex flex-col ${collection.landing_page_logo_position === 'center' ? 'items-center text-center' : collection.landing_page_logo_position === 'right' ? 'items-end text-right' : 'items-start text-left'} gap-2`}>
             <h1 
               className="text-4xl font-bold"
               style={{ color: collection.landing_page_text_color }}
@@ -174,13 +206,17 @@ const SharedPhotos = () => {
             </h1>
             {collection.landing_page_description && (
               <p 
-                className="text-lg"
+                className="text-lg max-w-2xl"
                 style={{ color: collection.landing_page_text_color, opacity: 0.8 }}
               >
                 {collection.landing_page_description}
               </p>
             )}
           </div>
+        </div>
+
+        <div className="flex justify-between items-center">
+          <div></div>
           <p 
             className="text-lg"
             style={{ color: collection.landing_page_text_color, opacity: 0.7 }}

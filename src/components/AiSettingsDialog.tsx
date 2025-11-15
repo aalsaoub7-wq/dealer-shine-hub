@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Settings, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +32,10 @@ export const AiSettingsDialog = () => {
   const [landingPageTitle, setLandingPageTitle] = useState('Mina Bilder');
   const [landingPageDescription, setLandingPageDescription] = useState('');
   const [landingPageFooterText, setLandingPageFooterText] = useState('');
+  const [landingPageLogoSize, setLandingPageLogoSize] = useState<'small' | 'medium' | 'large'>('medium');
+  const [landingPageLogoPosition, setLandingPageLogoPosition] = useState<'left' | 'center' | 'right'>('center');
+  const [landingPageHeaderHeight, setLandingPageHeaderHeight] = useState<'small' | 'medium' | 'large'>('medium');
+  const [landingPageHeaderFit, setLandingPageHeaderFit] = useState<'cover' | 'contain' | 'fill'>('cover');
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingLandingLogo, setUploadingLandingLogo] = useState(false);
   const [uploadingHeaderImage, setUploadingHeaderImage] = useState(false);
@@ -50,7 +55,7 @@ export const AiSettingsDialog = () => {
 
       const { data, error } = await supabase
         .from('ai_settings')
-        .select('background_prompt, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity, landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text')
+        .select('background_prompt, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity, landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text, landing_page_logo_size, landing_page_logo_position, landing_page_header_height, landing_page_header_fit')
         .eq('user_id', user.id)
         .single();
 
@@ -75,6 +80,10 @@ export const AiSettingsDialog = () => {
         setLandingPageTitle(data.landing_page_title || 'Mina Bilder');
         setLandingPageDescription(data.landing_page_description || '');
         setLandingPageFooterText(data.landing_page_footer_text || '');
+        setLandingPageLogoSize((data.landing_page_logo_size as 'small' | 'medium' | 'large') || 'medium');
+        setLandingPageLogoPosition((data.landing_page_logo_position as 'left' | 'center' | 'right') || 'center');
+        setLandingPageHeaderHeight((data.landing_page_header_height as 'small' | 'medium' | 'large') || 'medium');
+        setLandingPageHeaderFit((data.landing_page_header_fit as 'cover' | 'contain' | 'fill') || 'cover');
       }
     } catch (error: any) {
       console.error('Error loading AI settings:', error);
@@ -563,22 +572,82 @@ export const AiSettingsDialog = () => {
                     </Button>
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="logo-size">Logotyp storlek</Label>
+                  <Select value={landingPageLogoSize} onValueChange={(value: 'small' | 'medium' | 'large') => setLandingPageLogoSize(value)}>
+                    <SelectTrigger id="logo-size">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="small">Liten</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="large">Stor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="logo-position">Logotyp position</Label>
+                  <Select value={landingPageLogoPosition} onValueChange={(value: 'left' | 'center' | 'right') => setLandingPageLogoPosition(value)}>
+                    <SelectTrigger id="logo-position">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="left">Vänster</SelectItem>
+                      <SelectItem value="center">Centrerad</SelectItem>
+                      <SelectItem value="right">Höger</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="header-height">Headerbild höjd</Label>
+                  <Select value={landingPageHeaderHeight} onValueChange={(value: 'small' | 'medium' | 'large') => setLandingPageHeaderHeight(value)}>
+                    <SelectTrigger id="header-height">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="small">Liten (128px)</SelectItem>
+                      <SelectItem value="medium">Medium (192px)</SelectItem>
+                      <SelectItem value="large">Stor (256px)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="header-fit">Headerbild anpassning</Label>
+                  <Select value={landingPageHeaderFit} onValueChange={(value: 'cover' | 'contain' | 'fill') => setLandingPageHeaderFit(value)}>
+                    <SelectTrigger id="header-fit">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cover">Cover (täcker)</SelectItem>
+                      <SelectItem value="contain">Contain (innehåller)</SelectItem>
+                      <SelectItem value="fill">Fill (fyller)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Preview */}
               <div className="space-y-2">
                 <Label>Förhandsvisning</Label>
-                <LandingPagePreview
-                  logoUrl={landingPageLogoUrl}
-                  headerImageUrl={landingPageHeaderImageUrl}
-                  backgroundColor={landingPageBackgroundColor}
-                  textColor={landingPageTextColor}
-                  accentColor={landingPageAccentColor}
-                  title={landingPageTitle}
-                  description={landingPageDescription}
-                  footerText={landingPageFooterText}
-                  layout={landingPageLayout}
-                />
+                  <LandingPagePreview
+                    logoUrl={landingPageLogoUrl}
+                    headerImageUrl={landingPageHeaderImageUrl}
+                    backgroundColor={landingPageBackgroundColor}
+                    textColor={landingPageTextColor}
+                    accentColor={landingPageAccentColor}
+                    title={landingPageTitle}
+                    description={landingPageDescription}
+                    footerText={landingPageFooterText}
+                    layout={landingPageLayout}
+                    logoSize={landingPageLogoSize}
+                    logoPosition={landingPageLogoPosition}
+                    headerHeight={landingPageHeaderHeight}
+                    headerFit={landingPageHeaderFit}
+                  />
               </div>
             </div>
           </TabsContent>
