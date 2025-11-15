@@ -122,7 +122,7 @@ const Dashboard = () => {
             <div className="flex items-center gap-2 md:gap-3">
               <img src={luveroLogo} alt="Luvero Orbit Logo" className="w-8 h-8 md:w-10 md:h-10" />
               <h1 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-                LuFlow AI ©
+                LuFlow ©
               </h1>
             </div>
             <div className="flex items-center gap-1.5 md:gap-2">
@@ -163,11 +163,17 @@ const Dashboard = () => {
         </div>
 
         {loading ? (
-          <div className="text-center py-8 md:py-12 text-muted-foreground animate-fade-in text-sm md:text-base">Laddar bilar...</div>
+          <div className="text-center py-8 md:py-12 text-muted-foreground animate-fade-in text-sm md:text-base">
+            Laddar bilar...
+          </div>
         ) : filteredCars.length === 0 ? (
           <div className="text-center py-8 md:py-12 px-4 animate-scale-in">
             <div>
-              <img src={luveroLogo} alt="Luvero Orbit Logo" className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 opacity-50" />
+              <img
+                src={luveroLogo}
+                alt="Luvero Orbit Logo"
+                className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 opacity-50"
+              />
             </div>
             <h3 className="text-lg md:text-xl font-semibold mb-2">Inga bilar hittades</h3>
             <p className="text-muted-foreground text-sm md:text-base mb-3 md:mb-4">
