@@ -276,7 +276,8 @@ export const AiSettingsDialog = () => {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Settings className="h-4 w-4 mr-2" />
-          Ställ in AI för bakgrund och beskrivning
+          <span className="hidden md:inline">Ställ in AI för bakgrund och beskrivning</span>
+          <span className="md:hidden">Inställningar</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-card border-border">
