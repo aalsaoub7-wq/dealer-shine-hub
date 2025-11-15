@@ -53,14 +53,14 @@ export const AiSettingsDialog = () => {
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (!touchStart) return;
-    
+
     const touchEnd = e.changedTouches[0].clientX;
     const diff = touchStart - touchEnd;
     const minSwipeDistance = 50;
 
     if (Math.abs(diff) > minSwipeDistance) {
       const currentIndex = tabs.indexOf(currentTab);
-      
+
       if (diff > 0 && currentIndex < tabs.length - 1) {
         // Swipe left - next tab
         setCurrentTab(tabs[currentIndex + 1]);
@@ -69,7 +69,7 @@ export const AiSettingsDialog = () => {
         setCurrentTab(tabs[currentIndex - 1]);
       }
     }
-    
+
     setTouchStart(null);
   };
 
@@ -328,137 +328,68 @@ export const AiSettingsDialog = () => {
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
           <div className="mt-4 rounded-xl border border-border bg-muted p-3 shadow-sm md:bg-transparent md:border-0 md:p-0 md:rounded-none">
             <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
-            <TabsTrigger value="background">Bakgrund</TabsTrigger>
-            <TabsTrigger value="descriptions">Beskrivningar</TabsTrigger>
-            <TabsTrigger value="watermark">Vattenmärke</TabsTrigger>
-            <TabsTrigger value="landing">Landningssida</TabsTrigger>
-          </TabsList>
+              <TabsTrigger value="background">Bakgrund</TabsTrigger>
+              <TabsTrigger value="descriptions">Beskrivningar</TabsTrigger>
+              <TabsTrigger value="watermark">Vattenmärke</TabsTrigger>
+              <TabsTrigger value="landing">Landningssida</TabsTrigger>
+            </TabsList>
 
-          <Separator className="my-8 md:hidden" />
+            <Separator className="my-10 md:hidden" />
 
-          <TabsContent 
-            value="background" 
-            className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          >
-            <div className="space-y-2">
-              <Label htmlFor="background-prompt">Instruktioner (prompt) för bakgrunden</Label>
-              <Textarea
-                id="background-prompt"
-                value={backgroundPrompt}
-                onChange={(e) => setBackgroundPrompt(e.target.value)}
-                placeholder="Beskriv hur bakgrunden ska se ut..."
-                className="min-h-[100px]"
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent 
-            value="descriptions" 
-            className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          >
-            <div className="space-y-2">
-              <Label htmlFor="example-descriptions">Exempel Beskrivningar</Label>
-              <Textarea
-                id="example-descriptions"
-                value={exampleDescriptions}
-                onChange={(e) => setExampleDescriptions(e.target.value)}
-                placeholder="Lägg till exempel på beskrivningar..."
-                className="min-h-[100px]"
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent 
-            value="watermark" 
-            className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          >
-            <div className="space-y-4">
-              <div>
-                <Label>Logotyp för vattenmärke</Label>
-                <div className="mt-2 flex flex-col gap-2">
-                  {logoUrl ? (
-                    <div className="relative w-32 h-32 border rounded-lg overflow-hidden bg-muted">
-                      <img src={logoUrl} alt="Logotyp" className="w-full h-full object-contain p-2" />
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        className="absolute top-1 right-1 h-6 w-6"
-                        onClick={handleRemoveLogo}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="file"
-                        id="logo-upload"
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                        className="hidden"
-                      />
-                      <Button
-                        variant="outline"
-                        onClick={() => document.getElementById("logo-upload")?.click()}
-                        disabled={uploadingLogo}
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        {uploadingLogo ? "Laddar upp..." : "Ladda upp logotyp"}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Denna logotyp placeras som vattenmärke på dina bilder
-                </p>
+            <TabsContent
+              value="background"
+              className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              <div className="space-y-2">
+                <Label htmlFor="background-prompt">Instruktioner (prompt) för bakgrunden</Label>
+                <Textarea
+                  id="background-prompt"
+                  value={backgroundPrompt}
+                  onChange={(e) => setBackgroundPrompt(e.target.value)}
+                  placeholder="Beskriv hur bakgrunden ska se ut..."
+                  className="min-h-[100px]"
+                />
               </div>
+            </TabsContent>
 
-              <WatermarkPreview
-                logoUrl={logoUrl}
-                x={watermarkX}
-                y={watermarkY}
-                size={watermarkSize}
-                opacity={watermarkOpacity}
-                onPositionChange={(x, y) => {
-                  setWatermarkX(x);
-                  setWatermarkY(y);
-                }}
-                onSizeChange={setWatermarkSize}
-                onOpacityChange={setWatermarkOpacity}
-              />
-            </div>
-          </TabsContent>
+            <TabsContent
+              value="descriptions"
+              className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              <div className="space-y-2">
+                <Label htmlFor="example-descriptions">Exempel Beskrivningar</Label>
+                <Textarea
+                  id="example-descriptions"
+                  value={exampleDescriptions}
+                  onChange={(e) => setExampleDescriptions(e.target.value)}
+                  placeholder="Lägg till exempel på beskrivningar..."
+                  className="min-h-[100px]"
+                />
+              </div>
+            </TabsContent>
 
-          <TabsContent 
-            value="landing" 
-            className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          >
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Settings */}
+            <TabsContent
+              value="watermark"
+              className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
               <div className="space-y-4">
                 <div>
-                  <Label>Logotyp för landningssida</Label>
+                  <Label>Logotyp för vattenmärke</Label>
                   <div className="mt-2 flex flex-col gap-2">
-                    {landingPageLogoUrl ? (
+                    {logoUrl ? (
                       <div className="relative w-32 h-32 border rounded-lg overflow-hidden bg-muted">
-                        <img
-                          src={landingPageLogoUrl}
-                          alt="Landing logotyp"
-                          className="w-full h-full object-contain p-2"
-                        />
+                        <img src={logoUrl} alt="Logotyp" className="w-full h-full object-contain p-2" />
                         <Button
                           size="icon"
                           variant="destructive"
                           className="absolute top-1 right-1 h-6 w-6"
-                          onClick={() => setLandingPageLogoUrl("")}
+                          onClick={handleRemoveLogo}
                         >
                           <X className="w-4 h-4" />
                         </Button>
@@ -467,269 +398,342 @@ export const AiSettingsDialog = () => {
                       <div className="flex items-center gap-2">
                         <input
                           type="file"
-                          id="landing-logo-upload"
+                          id="logo-upload"
                           accept="image/*"
-                          onChange={handleLandingLogoUpload}
+                          onChange={handleLogoUpload}
                           className="hidden"
                         />
                         <Button
                           variant="outline"
-                          onClick={() => document.getElementById("landing-logo-upload")?.click()}
-                          disabled={uploadingLandingLogo}
+                          onClick={() => document.getElementById("logo-upload")?.click()}
+                          disabled={uploadingLogo}
                         >
                           <Upload className="w-4 h-4 mr-2" />
-                          {uploadingLandingLogo ? "Laddar upp..." : "Ladda upp logotyp"}
+                          {uploadingLogo ? "Laddar upp..." : "Ladda upp logotyp"}
                         </Button>
                       </div>
                     )}
                   </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Denna logotyp placeras som vattenmärke på dina bilder
+                  </p>
                 </div>
 
-                <div>
-                  <Label>Header-bild (valfritt)</Label>
-                  <div className="mt-2 flex flex-col gap-2">
-                    {landingPageHeaderImageUrl ? (
-                      <div className="relative w-full h-32 border rounded-lg overflow-hidden bg-muted">
-                        <img src={landingPageHeaderImageUrl} alt="Header bild" className="w-full h-full object-cover" />
-                        <Button
-                          size="icon"
-                          variant="destructive"
-                          className="absolute top-1 right-1 h-6 w-6"
-                          onClick={() => setLandingPageHeaderImageUrl("")}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="file"
-                          id="header-upload"
-                          accept="image/*"
-                          onChange={handleHeaderImageUpload}
-                          className="hidden"
-                        />
-                        <Button
-                          variant="outline"
-                          onClick={() => document.getElementById("header-upload")?.click()}
-                          disabled={uploadingHeaderImage}
-                        >
-                          <Upload className="w-4 h-4 mr-2" />
-                          {uploadingHeaderImage ? "Laddar upp..." : "Ladda upp header-bild"}
-                        </Button>
-                      </div>
-                    )}
+                <WatermarkPreview
+                  logoUrl={logoUrl}
+                  x={watermarkX}
+                  y={watermarkY}
+                  size={watermarkSize}
+                  opacity={watermarkOpacity}
+                  onPositionChange={(x, y) => {
+                    setWatermarkX(x);
+                    setWatermarkY(y);
+                  }}
+                  onSizeChange={setWatermarkSize}
+                  onOpacityChange={setWatermarkOpacity}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent
+              value="landing"
+              className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Settings */}
+                <div className="space-y-4">
+                  <div>
+                    <Label>Logotyp för landningssida</Label>
+                    <div className="mt-2 flex flex-col gap-2">
+                      {landingPageLogoUrl ? (
+                        <div className="relative w-32 h-32 border rounded-lg overflow-hidden bg-muted">
+                          <img
+                            src={landingPageLogoUrl}
+                            alt="Landing logotyp"
+                            className="w-full h-full object-contain p-2"
+                          />
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            className="absolute top-1 right-1 h-6 w-6"
+                            onClick={() => setLandingPageLogoUrl("")}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="file"
+                            id="landing-logo-upload"
+                            accept="image/*"
+                            onChange={handleLandingLogoUpload}
+                            className="hidden"
+                          />
+                          <Button
+                            variant="outline"
+                            onClick={() => document.getElementById("landing-logo-upload")?.click()}
+                            disabled={uploadingLandingLogo}
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            {uploadingLandingLogo ? "Laddar upp..." : "Ladda upp logotyp"}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="landing-title">Titel</Label>
-                  <Input
-                    id="landing-title"
-                    value={landingPageTitle}
-                    onChange={(e) => setLandingPageTitle(e.target.value)}
-                    placeholder="Mina Bilder"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="landing-description">Beskrivning (valfritt)</Label>
-                  <Textarea
-                    id="landing-description"
-                    value={landingPageDescription}
-                    onChange={(e) => setLandingPageDescription(e.target.value)}
-                    placeholder="En kort beskrivning..."
-                    rows={2}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="landing-footer">Footer text (valfritt)</Label>
-                  <Input
-                    id="landing-footer"
-                    value={landingPageFooterText}
-                    onChange={(e) => setLandingPageFooterText(e.target.value)}
-                    placeholder="© 2024 Mitt Företag"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="bg-color">Bakgrundsfärg</Label>
-                    <div className="flex gap-2 items-center">
-                      <input
-                        type="color"
-                        id="bg-color"
-                        value={landingPageBackgroundColor}
-                        onChange={(e) => setLandingPageBackgroundColor(e.target.value)}
-                        className="w-12 h-10 rounded border cursor-pointer"
-                      />
-                      <Input
-                        type="text"
-                        value={landingPageBackgroundColor}
-                        onChange={(e) => setLandingPageBackgroundColor(e.target.value)}
-                        placeholder="#ffffff"
-                      />
+                  <div>
+                    <Label>Header-bild (valfritt)</Label>
+                    <div className="mt-2 flex flex-col gap-2">
+                      {landingPageHeaderImageUrl ? (
+                        <div className="relative w-full h-32 border rounded-lg overflow-hidden bg-muted">
+                          <img
+                            src={landingPageHeaderImageUrl}
+                            alt="Header bild"
+                            className="w-full h-full object-cover"
+                          />
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            className="absolute top-1 right-1 h-6 w-6"
+                            onClick={() => setLandingPageHeaderImageUrl("")}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="file"
+                            id="header-upload"
+                            accept="image/*"
+                            onChange={handleHeaderImageUpload}
+                            className="hidden"
+                          />
+                          <Button
+                            variant="outline"
+                            onClick={() => document.getElementById("header-upload")?.click()}
+                            disabled={uploadingHeaderImage}
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            {uploadingHeaderImage ? "Laddar upp..." : "Ladda upp header-bild"}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="text-color">Textfärg</Label>
+                    <Label htmlFor="landing-title">Titel</Label>
+                    <Input
+                      id="landing-title"
+                      value={landingPageTitle}
+                      onChange={(e) => setLandingPageTitle(e.target.value)}
+                      placeholder="Mina Bilder"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="landing-description">Beskrivning (valfritt)</Label>
+                    <Textarea
+                      id="landing-description"
+                      value={landingPageDescription}
+                      onChange={(e) => setLandingPageDescription(e.target.value)}
+                      placeholder="En kort beskrivning..."
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="landing-footer">Footer text (valfritt)</Label>
+                    <Input
+                      id="landing-footer"
+                      value={landingPageFooterText}
+                      onChange={(e) => setLandingPageFooterText(e.target.value)}
+                      placeholder="© 2024 Mitt Företag"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="bg-color">Bakgrundsfärg</Label>
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="color"
+                          id="bg-color"
+                          value={landingPageBackgroundColor}
+                          onChange={(e) => setLandingPageBackgroundColor(e.target.value)}
+                          className="w-12 h-10 rounded border cursor-pointer"
+                        />
+                        <Input
+                          type="text"
+                          value={landingPageBackgroundColor}
+                          onChange={(e) => setLandingPageBackgroundColor(e.target.value)}
+                          placeholder="#ffffff"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="text-color">Textfärg</Label>
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="color"
+                          id="text-color"
+                          value={landingPageTextColor}
+                          onChange={(e) => setLandingPageTextColor(e.target.value)}
+                          className="w-12 h-10 rounded border cursor-pointer"
+                        />
+                        <Input
+                          type="text"
+                          value={landingPageTextColor}
+                          onChange={(e) => setLandingPageTextColor(e.target.value)}
+                          placeholder="#000000"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="accent-color">Accentfärg (knappar)</Label>
                     <div className="flex gap-2 items-center">
                       <input
                         type="color"
-                        id="text-color"
-                        value={landingPageTextColor}
-                        onChange={(e) => setLandingPageTextColor(e.target.value)}
+                        id="accent-color"
+                        value={landingPageAccentColor}
+                        onChange={(e) => setLandingPageAccentColor(e.target.value)}
                         className="w-12 h-10 rounded border cursor-pointer"
                       />
                       <Input
                         type="text"
-                        value={landingPageTextColor}
-                        onChange={(e) => setLandingPageTextColor(e.target.value)}
+                        value={landingPageAccentColor}
+                        onChange={(e) => setLandingPageAccentColor(e.target.value)}
                         placeholder="#000000"
                       />
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="accent-color">Accentfärg (knappar)</Label>
-                  <div className="flex gap-2 items-center">
-                    <input
-                      type="color"
-                      id="accent-color"
-                      value={landingPageAccentColor}
-                      onChange={(e) => setLandingPageAccentColor(e.target.value)}
-                      className="w-12 h-10 rounded border cursor-pointer"
-                    />
-                    <Input
-                      type="text"
-                      value={landingPageAccentColor}
-                      onChange={(e) => setLandingPageAccentColor(e.target.value)}
-                      placeholder="#000000"
-                    />
+                  <div className="space-y-2">
+                    <Label>Layout</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <Button
+                        variant={landingPageLayout === "grid" ? "default" : "outline"}
+                        onClick={() => setLandingPageLayout("grid")}
+                        className="w-full"
+                      >
+                        Grid
+                      </Button>
+                      <Button
+                        variant={landingPageLayout === "carousel" ? "default" : "outline"}
+                        onClick={() => setLandingPageLayout("carousel")}
+                        className="w-full"
+                      >
+                        Carousel
+                      </Button>
+                      <Button
+                        variant={landingPageLayout === "masonry" ? "default" : "outline"}
+                        onClick={() => setLandingPageLayout("masonry")}
+                        className="w-full"
+                      >
+                        Masonry
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="logo-size">Logotyp storlek</Label>
+                    <Select
+                      value={landingPageLogoSize}
+                      onValueChange={(value: "small" | "medium" | "large") => setLandingPageLogoSize(value)}
+                    >
+                      <SelectTrigger id="logo-size">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="small">Liten</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="large">Stor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="logo-position">Logotyp position</Label>
+                    <Select
+                      value={landingPageLogoPosition}
+                      onValueChange={(value: "left" | "center" | "right") => setLandingPageLogoPosition(value)}
+                    >
+                      <SelectTrigger id="logo-position">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="left">Vänster</SelectItem>
+                        <SelectItem value="center">Centrerad</SelectItem>
+                        <SelectItem value="right">Höger</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="header-height">Headerbild höjd</Label>
+                    <Select
+                      value={landingPageHeaderHeight}
+                      onValueChange={(value: "small" | "medium" | "large") => setLandingPageHeaderHeight(value)}
+                    >
+                      <SelectTrigger id="header-height">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="small">Liten (128px)</SelectItem>
+                        <SelectItem value="medium">Medium (192px)</SelectItem>
+                        <SelectItem value="large">Stor (256px)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="header-fit">Headerbild anpassning</Label>
+                    <Select
+                      value={landingPageHeaderFit}
+                      onValueChange={(value: "cover" | "contain" | "fill") => setLandingPageHeaderFit(value)}
+                    >
+                      <SelectTrigger id="header-fit">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cover">Cover (täcker)</SelectItem>
+                        <SelectItem value="contain">Contain (innehåller)</SelectItem>
+                        <SelectItem value="fill">Fill (fyller)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
+                {/* Preview */}
                 <div className="space-y-2">
-                  <Label>Layout</Label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <Button
-                      variant={landingPageLayout === "grid" ? "default" : "outline"}
-                      onClick={() => setLandingPageLayout("grid")}
-                      className="w-full"
-                    >
-                      Grid
-                    </Button>
-                    <Button
-                      variant={landingPageLayout === "carousel" ? "default" : "outline"}
-                      onClick={() => setLandingPageLayout("carousel")}
-                      className="w-full"
-                    >
-                      Carousel
-                    </Button>
-                    <Button
-                      variant={landingPageLayout === "masonry" ? "default" : "outline"}
-                      onClick={() => setLandingPageLayout("masonry")}
-                      className="w-full"
-                    >
-                      Masonry
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="logo-size">Logotyp storlek</Label>
-                  <Select
-                    value={landingPageLogoSize}
-                    onValueChange={(value: "small" | "medium" | "large") => setLandingPageLogoSize(value)}
-                  >
-                    <SelectTrigger id="logo-size">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="small">Liten</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="large">Stor</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="logo-position">Logotyp position</Label>
-                  <Select
-                    value={landingPageLogoPosition}
-                    onValueChange={(value: "left" | "center" | "right") => setLandingPageLogoPosition(value)}
-                  >
-                    <SelectTrigger id="logo-position">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="left">Vänster</SelectItem>
-                      <SelectItem value="center">Centrerad</SelectItem>
-                      <SelectItem value="right">Höger</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="header-height">Headerbild höjd</Label>
-                  <Select
-                    value={landingPageHeaderHeight}
-                    onValueChange={(value: "small" | "medium" | "large") => setLandingPageHeaderHeight(value)}
-                  >
-                    <SelectTrigger id="header-height">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="small">Liten (128px)</SelectItem>
-                      <SelectItem value="medium">Medium (192px)</SelectItem>
-                      <SelectItem value="large">Stor (256px)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="header-fit">Headerbild anpassning</Label>
-                  <Select
-                    value={landingPageHeaderFit}
-                    onValueChange={(value: "cover" | "contain" | "fill") => setLandingPageHeaderFit(value)}
-                  >
-                    <SelectTrigger id="header-fit">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cover">Cover (täcker)</SelectItem>
-                      <SelectItem value="contain">Contain (innehåller)</SelectItem>
-                      <SelectItem value="fill">Fill (fyller)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>Förhandsvisning</Label>
+                  <LandingPagePreview
+                    logoUrl={landingPageLogoUrl}
+                    headerImageUrl={landingPageHeaderImageUrl}
+                    backgroundColor={landingPageBackgroundColor}
+                    textColor={landingPageTextColor}
+                    accentColor={landingPageAccentColor}
+                    title={landingPageTitle}
+                    description={landingPageDescription}
+                    footerText={landingPageFooterText}
+                    layout={landingPageLayout}
+                    logoSize={landingPageLogoSize}
+                    logoPosition={landingPageLogoPosition}
+                    headerHeight={landingPageHeaderHeight}
+                    headerFit={landingPageHeaderFit}
+                  />
                 </div>
               </div>
-
-              {/* Preview */}
-              <div className="space-y-2">
-                <Label>Förhandsvisning</Label>
-                <LandingPagePreview
-                  logoUrl={landingPageLogoUrl}
-                  headerImageUrl={landingPageHeaderImageUrl}
-                  backgroundColor={landingPageBackgroundColor}
-                  textColor={landingPageTextColor}
-                  accentColor={landingPageAccentColor}
-                  title={landingPageTitle}
-                  description={landingPageDescription}
-                  footerText={landingPageFooterText}
-                  layout={landingPageLayout}
-                  logoSize={landingPageLogoSize}
-                  logoPosition={landingPageLogoPosition}
-                  headerHeight={landingPageHeaderHeight}
-                  headerFit={landingPageHeaderFit}
-                />
-              </div>
-            </div>
-          </TabsContent>
-        </div>
+            </TabsContent>
+          </div>
         </Tabs>
 
         <div className="flex justify-end gap-2 mt-4">
