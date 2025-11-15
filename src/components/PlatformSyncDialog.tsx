@@ -107,11 +107,21 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car }: PlatformS
                     checked={selectedPlatforms.includes(platform.id)}
                     onCheckedChange={() => togglePlatform(platform.id)}
                   />
-                  <img
-                    src={platform.logo}
-                    alt={platform.name}
-                    className={`h-8 w-8 object-contain ${platform.id === "blocket" ? "scale-175" : ""}`}
-                  />
+{platform.id === "blocket" ? (
+  <div className="h-8 w-8 overflow-hidden rounded">
+    <img
+      src={platform.logo}
+      alt={platform.name}
+      className="h-full w-full object-cover scale-200"
+    />
+  </div>
+) : (
+  <img
+    src={platform.logo}
+    alt={platform.name}
+    className="h-8 w-8 object-contain"
+  />
+)}
                   <Label htmlFor={platform.id} className="flex-1 cursor-pointer font-medium">
                     {platform.name}
                   </Label>
