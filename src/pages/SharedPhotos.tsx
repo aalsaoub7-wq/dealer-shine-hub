@@ -180,17 +180,17 @@ const SharedPhotos = () => {
 
   return (
     <div
-      className="min-h-screen p-8"
+      className="min-h-screen p-4 md:p-8"
       style={{ backgroundColor }}
     >
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8 space-y-4">
+      <div className="max-w-7xl mx-auto mb-6 md:mb-8 space-y-3 md:space-y-4">
         {collection.landing_page_logo_url && (
           <div className={`flex ${logoAlignClass}`}>
             <img
               src={collection.landing_page_logo_url}
               alt="Logo"
-              className={`${logoSizeClass} object-contain`}
+              className={`h-6 md:${logoSizeClass} object-contain`}
             />
           </div>
         )}
@@ -199,12 +199,12 @@ const SharedPhotos = () => {
           <img
             src={collection.landing_page_header_image_url}
             alt="Header"
-            className={`w-full ${headerHeightClass} ${headerFitClass} rounded`}
+            className={`w-full h-12 md:${headerHeightClass} ${headerFitClass} rounded`}
           />
         )}
         
         <h1 
-          className={`text-xl font-bold ${textAlignClass}`}
+          className={`text-lg md:text-xl font-bold ${textAlignClass}`}
           style={{ color: collection.landing_page_text_color }}
         >
           {collection.landing_page_title}
@@ -212,7 +212,7 @@ const SharedPhotos = () => {
         
         {collection.landing_page_description && (
           <p 
-            className={`text-sm ${textAlignClass}`}
+            className={`text-xs md:text-sm ${textAlignClass}`}
             style={{ color: collection.landing_page_text_color, opacity: 0.8 }}
           >
             {collection.landing_page_description}
@@ -223,7 +223,7 @@ const SharedPhotos = () => {
       {/* Photos */}
       <div className="max-w-7xl mx-auto">
         {collection.landing_page_layout === 'grid' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {collection.photos.map((photo, index) => (
               <div
                 key={photo.id}
@@ -239,13 +239,13 @@ const SharedPhotos = () => {
                   size="icon"
                   variant="secondary"
                   onClick={() => handleDownload(photo.url, index)}
-                  className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  className="absolute bottom-2 right-2 md:bottom-4 md:right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   style={{ 
                     backgroundColor: collection.landing_page_accent_color,
                     color: '#ffffff'
                   }}
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-3 h-3 md:w-4 md:h-4" />
                 </Button>
               </div>
             ))}
@@ -253,7 +253,7 @@ const SharedPhotos = () => {
         )}
 
         {collection.landing_page_layout === 'carousel' && (
-          <div className="relative max-w-4xl mx-auto">
+          <div className="relative max-w-4xl mx-auto px-2 md:px-0">
             <div className="aspect-video bg-secondary rounded-lg overflow-hidden shadow-lg">
               <img
                 src={collection.photos[currentImageIndex]?.url}
@@ -261,46 +261,50 @@ const SharedPhotos = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center justify-between mt-4 gap-2">
               <Button
                 onClick={prevImage}
                 variant="outline"
                 size="icon"
+                className="h-8 w-8 md:h-10 md:w-10"
                 disabled={collection.photos.length <= 1}
                 style={{
                   borderColor: collection.landing_page_accent_color,
                   color: collection.landing_page_text_color
                 }}
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
               </Button>
               <p 
-                className="text-lg"
+                className="text-sm md:text-lg"
                 style={{ color: collection.landing_page_text_color }}
               >
                 {currentImageIndex + 1} / {collection.photos.length}
               </p>
               <Button
                 onClick={() => handleDownload(collection.photos[currentImageIndex]?.url, currentImageIndex)}
+                className="text-xs md:text-sm h-8 md:h-10"
                 style={{ 
                   backgroundColor: collection.landing_page_accent_color,
                   color: '#ffffff'
                 }}
               >
-                <Download className="w-4 h-4 mr-2" />
-                Ladda ner
+                <Download className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Ladda ner</span>
+                <span className="sm:hidden">Ladda</span>
               </Button>
               <Button
                 onClick={nextImage}
                 variant="outline"
                 size="icon"
+                className="h-8 w-8 md:h-10 md:w-10"
                 disabled={collection.photos.length <= 1}
                 style={{
                   borderColor: collection.landing_page_accent_color,
                   color: collection.landing_page_text_color
                 }}
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
               </Button>
             </div>
           </div>
@@ -313,13 +317,13 @@ const SharedPhotos = () => {
               1024: 2,
               640: 1,
             }}
-            className="flex -ml-6 w-auto"
-            columnClassName="pl-6 bg-clip-padding"
+            className="flex -ml-4 md:-ml-6 w-auto"
+            columnClassName="pl-4 md:pl-6 bg-clip-padding"
           >
             {collection.photos.map((photo, index) => (
               <div
                 key={photo.id}
-                className="group relative mb-6 bg-secondary rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
+                className="group relative mb-4 md:mb-6 bg-secondary rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <img
                   src={photo.url}
@@ -331,13 +335,13 @@ const SharedPhotos = () => {
                   size="icon"
                   variant="secondary"
                   onClick={() => handleDownload(photo.url, index)}
-                  className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  className="absolute bottom-2 right-2 md:bottom-4 md:right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   style={{ 
                     backgroundColor: collection.landing_page_accent_color,
                     color: '#ffffff'
                   }}
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-3 h-3 md:w-4 md:h-4" />
                 </Button>
               </div>
             ))}
@@ -346,9 +350,9 @@ const SharedPhotos = () => {
 
         {/* Footer */}
         {collection.landing_page_footer_text && (
-          <div className="text-center pt-8">
+          <div className="text-center pt-6 md:pt-8">
             <p 
-              className="text-xs"
+              className="text-xs px-4"
               style={{ color: collection.landing_page_text_color, opacity: 0.6 }}
             >
               {collection.landing_page_footer_text}
