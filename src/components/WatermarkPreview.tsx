@@ -220,16 +220,21 @@ export const WatermarkPreview = ({
     const mouseY = (e.clientY - rect.top) * scaleY;
 
     if (isResizing && logoImgRef.current) {
-      // Calculate new size based on mouse position relative to logo's top-left corner
-      const deltaX = mouseX - localX;
-      const deltaY = mouseY - localY;
-      
-      // Use the larger dimension to maintain aspect ratio
-      const diagonal = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      
-      // Convert diagonal distance to size percentage
-      const newSize = (diagonal / canvas.width) * 100;
-      setLocalSize(Math.max(1, Math.min(200, newSize)));
+      // Resize so that bottom-right corner follows the cursor while keeping aspect ratio
+      const dx = Math.max(1, mouseX - localX);
+      const dy = Math.max(1, mouseY - localY);
+      const ar = logoImgRef.current.height / logoImgRef.current.width;
+
+      let width = dx;
+      let height = width * ar;
+      if (height > dy) {
+        height = dy;
+        width = height / ar;
+      }
+
+      // Map width to percentage of canvas width
+      const newSize = (width / canvas.width) * 100;
+      setLocalSize(Math.max(1, Math.min(400, newSize)));
       return;
     }
 
