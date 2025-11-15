@@ -9,7 +9,7 @@ import { ArrowLeft, Upload, Image as ImageIcon, FileText, Trash2, Save, Settings
 import { useToast } from "@/hooks/use-toast";
 import PhotoUpload from "@/components/PhotoUpload";
 import PhotoGalleryDraggable from "@/components/PhotoGalleryDraggable";
-import { BlocketSyncButton } from "@/components/BlocketSyncButton";
+import { PlatformSyncDialog } from "@/components/PlatformSyncDialog";
 import EditCarDialog from "@/components/EditCarDialog";
 import { applyWatermark } from "@/lib/watermark";
 import {
@@ -68,6 +68,7 @@ const CarDetail = () => {
   const [activeTab, setActiveTab] = useState("main");
   const [editingPhotos, setEditingPhotos] = useState<Record<string, { timeLeft: number; isEditing: boolean }>>({});
   const [pendingEdits, setPendingEdits] = useState<Record<string, { publicUrl: string; completeAt: Date }>>({});
+  const [syncDialogOpen, setSyncDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -564,7 +565,13 @@ const CarDetail = () => {
             Tillbaka
           </Button>
           <div className="flex gap-1.5 md:gap-2 w-full sm:w-auto">
-            <BlocketSyncButton carId={car.id} car={car} variant="outline" />
+            <Button
+              variant="outline"
+              onClick={() => setSyncDialogOpen(true)}
+              className="hover:scale-105 transition-all duration-300 flex-1 sm:flex-none text-xs md:text-sm h-8 md:h-10"
+            >
+              Synka
+            </Button>
             <Button
               variant="destructive"
               onClick={() => setDeleteDialogOpen(true)}
@@ -819,6 +826,15 @@ const CarDetail = () => {
 
       {car && (
         <EditCarDialog open={editDialogOpen} onOpenChange={setEditDialogOpen} car={car} onCarUpdated={() => fetchCarData(true)} />
+      )}
+
+      {car && (
+        <PlatformSyncDialog
+          open={syncDialogOpen}
+          onOpenChange={setSyncDialogOpen}
+          carId={car.id}
+          car={car}
+        />
       )}
     </div>
   );
