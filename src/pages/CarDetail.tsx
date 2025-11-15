@@ -65,6 +65,7 @@ const CarDetail = () => {
   const [selectedDocPhotos, setSelectedDocPhotos] = useState<string[]>([]);
   const [applyingWatermark, setApplyingWatermark] = useState(false);
   const [editingPhotos, setEditingPhotos] = useState<Record<string, { timeLeft: number; isEditing: boolean }>>({});
+  const [pendingEdits, setPendingEdits] = useState<Record<string, { publicUrl: string }>>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -161,12 +162,46 @@ const CarDetail = () => {
     setEditingPhotos(prev => ({ ...prev, ...newEditingState }));
 
     // Start countdown for each photo
+    const intervalIds: Record<string, ReturnType<typeof setInterval>> = {};
     photoIds.forEach(photoId => {
       const intervalId = setInterval(() => {
         setEditingPhotos(prev => {
           const current = prev[photoId];
           if (!current || current.timeLeft <= 1) {
             clearInterval(intervalId);
+            
+            // When timer reaches 0, update the database
+            setPendingEdits(pendingState => {
+              const pendingEdit = pendingState[photoId];
+              if (pendingEdit) {
+                // Update photo record in database
+                supabase
+                  .from('photos')
+                  .update({
+                    url: pendingEdit.publicUrl,
+                    is_edited: true,
+                  })
+                  .eq('id', photoId)
+                  .then(() => {
+                    // Remove from pending edits
+                    setPendingEdits(s => {
+                      const newState = { ...s };
+                      delete newState[photoId];
+                      return newState;
+                    });
+                    
+                    // Refresh data to show the edited image
+                    fetchCarData();
+                    
+                    toast({
+                      title: "Bild redigerad",
+                      description: "Den redigerade bilden är nu tillgänglig",
+                    });
+                  });
+              }
+              return pendingState;
+            });
+            
             return prev;
           }
           return {
@@ -175,6 +210,7 @@ const CarDetail = () => {
           };
         });
       }, 1000);
+      intervalIds[photoId] = intervalId;
     });
 
     // Process photos with API
@@ -218,40 +254,33 @@ const CarDetail = () => {
             .from('car-photos')
             .getPublicUrl(editedFileName);
 
-          // Update photo record
-          await supabase
-            .from('photos')
-            .update({
-              url: publicUrl,
-              is_edited: true,
-            })
-            .eq('id', photo.id);
+          // Store the edited URL in pending edits instead of updating immediately
+          setPendingEdits(prev => ({
+            ...prev,
+            [photo.id]: { publicUrl }
+          }));
 
         } catch (error) {
           console.error(`Error editing photo ${photo.id}:`, error);
+          // Clear the timer if there's an error
+          if (intervalIds[photo.id]) {
+            clearInterval(intervalIds[photo.id]);
+          }
+          setEditingPhotos(prev => {
+            const newState = { ...prev };
+            delete newState[photo.id];
+            return newState;
+          });
         }
       }
-
-      toast({
-        title: "Bilder redigerade",
-        description: `${photosToProcess.length} bilder har redigerats`,
-      });
       
-      // Clear selection and editing state
+      // Clear selection
       if (photoType === 'main') {
         setSelectedMainPhotos([]);
       } else {
         setSelectedDocPhotos([]);
       }
       
-      // Clear editing state after completion
-      setEditingPhotos(prev => {
-        const newState = { ...prev };
-        photoIds.forEach(id => delete newState[id]);
-        return newState;
-      });
-      
-      fetchCarData();
     } catch (error: any) {
       toast({
         title: "Fel vid redigering av bilder",
