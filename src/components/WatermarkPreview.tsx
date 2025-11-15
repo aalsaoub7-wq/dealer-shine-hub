@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import testImage from "@/assets/watermark-test.jpg";
@@ -21,70 +21,112 @@ export const WatermarkPreview = ({
   onSizeChange,
 }: WatermarkPreviewProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const testImgRef = useRef<HTMLImageElement | null>(null);
+  const logoImgRef = useRef<HTMLImageElement | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  
+  // Local state for smooth interaction
+  const [localX, setLocalX] = useState(x);
+  const [localY, setLocalY] = useState(y);
+  const [localSize, setLocalSize] = useState(size);
   const [logoSize, setLogoSize] = useState({ width: 0, height: 0 });
 
+  // Sync local state with props when not interacting
   useEffect(() => {
-    if (!canvasRef.current || !logoUrl) return;
+    if (!isDragging && !isResizing) {
+      setLocalX(x);
+      setLocalY(y);
+      setLocalSize(size);
+    }
+  }, [x, y, size, isDragging, isResizing]);
+
+  // Load images once
+  useEffect(() => {
+    if (!logoUrl) return;
+
+    const testImg = new Image();
+    testImg.crossOrigin = 'anonymous';
+    testImg.src = testImage;
+    testImg.onload = () => {
+      testImgRef.current = testImg;
+      renderCanvas();
+    };
+
+    const logo = new Image();
+    logo.crossOrigin = 'anonymous';
+    logo.src = logoUrl;
+    logo.onload = () => {
+      logoImgRef.current = logo;
+      renderCanvas();
+    };
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [logoUrl]);
+
+  // Render canvas efficiently
+  const renderCanvas = useCallback(() => {
+    if (!canvasRef.current || !testImgRef.current || !logoImgRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const testImg = new Image();
-    testImg.crossOrigin = 'anonymous';
-    testImg.src = testImage;
-
-    testImg.onload = () => {
-      // Set canvas size to 3840x2880
+    // Set canvas size once
+    if (canvas.width !== 3840) {
       canvas.width = 3840;
       canvas.height = 2880;
-      setCanvasSize({ width: 3840, height: 2880 });
+    }
 
-      // Draw test image scaled to fit canvas
-      ctx.drawImage(testImg, 0, 0, 3840, 2880);
+    // Clear and draw test image
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(testImgRef.current, 0, 0, 3840, 2880);
 
-      // Draw watermark
-      const logo = new Image();
-      logo.crossOrigin = 'anonymous';
-      logo.src = logoUrl;
+    // Calculate logo size
+    const logoMaxWidth = canvas.width * (localSize / 100);
+    const logoScale = logoMaxWidth / logoImgRef.current.width;
+    const logoWidth = logoImgRef.current.width * logoScale;
+    const logoHeight = logoImgRef.current.height * logoScale;
+    
+    setLogoSize({ width: logoWidth, height: logoHeight });
 
-      logo.onload = () => {
-        // Calculate logo size
-        const logoMaxWidth = canvas.width * (size / 100);
-        const logoScale = logoMaxWidth / logo.width;
-        const logoWidth = logo.width * logoScale;
-        const logoHeight = logo.height * logoScale;
-        
-        setLogoSize({ width: logoWidth, height: logoHeight });
+    // Draw logo with transparency
+    ctx.globalAlpha = 0.8;
+    ctx.drawImage(logoImgRef.current, localX, localY, logoWidth, logoHeight);
+    ctx.globalAlpha = 1.0;
 
-        // Draw logo with transparency
-        ctx.globalAlpha = 0.8;
-        ctx.drawImage(logo, x, y, logoWidth, logoHeight);
-        ctx.globalAlpha = 1.0;
+    // Draw selection frame if selected
+    if (isSelected) {
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(localX, localY, logoWidth, logoHeight);
+      
+      // Draw resize handle (red circle in bottom-right corner)
+      const handleSize = 20;
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(localX + logoWidth, localY + logoHeight, handleSize, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+  }, [localX, localY, localSize, isSelected]);
 
-        // Draw selection frame if selected
-        if (isSelected) {
-          ctx.strokeStyle = '#ef4444';
-          ctx.lineWidth = 4;
-          ctx.strokeRect(x, y, logoWidth, logoHeight);
-          
-          // Draw resize handle (red circle in bottom-right corner)
-          const handleSize = 20;
-          ctx.fillStyle = '#ef4444';
-          ctx.beginPath();
-          ctx.arc(x + logoWidth, y + logoHeight, handleSize, 0, 2 * Math.PI);
-          ctx.fill();
-        }
-      };
-    };
-  }, [logoUrl, x, y, size, isSelected]);
+  // Trigger render when local state changes
+  useEffect(() => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    animationFrameRef.current = requestAnimationFrame(renderCanvas);
+  }, [renderCanvas]);
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current) return;
     
     const canvas = canvasRef.current;
@@ -95,8 +137,8 @@ export const WatermarkPreview = ({
     const mouseY = (e.clientY - rect.top) * scaleY;
 
     const handleSize = 20;
-    const handleX = x + logoSize.width;
-    const handleY = y + logoSize.height;
+    const handleX = localX + logoSize.width;
+    const handleY = localY + logoSize.height;
     
     // Check if click is on resize handle
     const distanceToHandle = Math.sqrt(
@@ -109,18 +151,18 @@ export const WatermarkPreview = ({
     }
 
     // Check if click is within logo bounds
-    if (mouseX >= x && mouseX <= x + logoSize.width && 
-        mouseY >= y && mouseY <= y + logoSize.height) {
+    if (mouseX >= localX && mouseX <= localX + logoSize.width && 
+        mouseY >= localY && mouseY <= localY + logoSize.height) {
       setIsSelected(true);
       setIsDragging(true);
-      setDragOffset({ x: mouseX - x, y: mouseY - y });
+      setDragOffset({ x: mouseX - localX, y: mouseY - localY });
     } else {
       setIsSelected(false);
     }
-  };
+  }, [localX, localY, logoSize, isSelected]);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current) return;
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current || (!isDragging && !isResizing)) return;
 
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
@@ -131,13 +173,13 @@ export const WatermarkPreview = ({
 
     if (isResizing) {
       // Calculate new size based on distance from logo position
-      const deltaX = mouseX - x;
-      const deltaY = mouseY - y;
+      const deltaX = mouseX - localX;
+      const deltaY = mouseY - localY;
       const diagonal = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
       
       // Convert diagonal to size percentage
       const newSize = (diagonal / canvas.width) * 100;
-      onSizeChange(Math.max(1, Math.min(200, newSize)));
+      setLocalSize(Math.max(1, Math.min(200, newSize)));
       return;
     }
 
@@ -145,14 +187,21 @@ export const WatermarkPreview = ({
       // Allow free positioning anywhere on canvas
       const newX = mouseX - dragOffset.x;
       const newY = mouseY - dragOffset.y;
-      onPositionChange(newX, newY);
+      setLocalX(newX);
+      setLocalY(newY);
     }
-  };
+  }, [isDragging, isResizing, localX, dragOffset]);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
+    if (isDragging) {
+      onPositionChange(localX, localY);
+    }
+    if (isResizing) {
+      onSizeChange(localSize);
+    }
     setIsDragging(false);
     setIsResizing(false);
-  };
+  }, [isDragging, isResizing, localX, localY, localSize, onPositionChange, onSizeChange]);
 
   if (!logoUrl) {
     return (
@@ -172,11 +221,12 @@ export const WatermarkPreview = ({
         <Card className="p-4 bg-secondary">
           <canvas
             ref={canvasRef}
-            className="w-full h-auto cursor-move"
+            className="w-full h-auto cursor-move touch-none"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
+            style={{ imageRendering: 'auto' }}
           />
         </Card>
       </div>
