@@ -10,6 +10,10 @@ interface LandingPagePreviewProps {
   description: string;
   footerText: string;
   layout: 'grid' | 'carousel' | 'masonry';
+  logoSize: 'small' | 'medium' | 'large';
+  logoPosition: 'left' | 'center' | 'right';
+  headerHeight: 'small' | 'medium' | 'large';
+  headerFit: 'cover' | 'contain' | 'fill';
 }
 
 export const LandingPagePreview = ({
@@ -22,7 +26,34 @@ export const LandingPagePreview = ({
   description,
   footerText,
   layout,
+  logoSize,
+  logoPosition,
+  headerHeight,
+  headerFit,
 }: LandingPagePreviewProps) => {
+  const logoSizeClass = {
+    small: 'h-8',
+    medium: 'h-12',
+    large: 'h-16'
+  }[logoSize];
+
+  const logoPositionClass = {
+    left: 'justify-start',
+    center: 'justify-center',
+    right: 'justify-end'
+  }[logoPosition];
+
+  const headerHeightClass = {
+    small: 'h-16',
+    medium: 'h-24',
+    large: 'h-32'
+  }[headerHeight];
+
+  const headerFitClass = {
+    cover: 'object-cover',
+    contain: 'object-contain',
+    fill: 'object-fill'
+  }[headerFit];
   return (
     <Card className="overflow-hidden border-2">
       <div 
@@ -30,30 +61,32 @@ export const LandingPagePreview = ({
         style={{ backgroundColor }}
       >
         {/* Header */}
-        <div className="text-center space-y-2">
+        <div className="space-y-2">
           {logoUrl && (
-            <img 
-              src={logoUrl} 
-              alt="Logo" 
-              className="h-12 mx-auto object-contain"
-            />
+            <div className={`flex ${logoPositionClass}`}>
+              <img 
+                src={logoUrl} 
+                alt="Logo" 
+                className={`${logoSizeClass} object-contain`}
+              />
+            </div>
           )}
           {headerImageUrl && (
             <img 
               src={headerImageUrl} 
               alt="Header" 
-              className="w-full h-24 object-cover rounded"
+              className={`w-full ${headerHeightClass} ${headerFitClass} rounded`}
             />
           )}
           <h1 
-            className="text-xl font-bold"
+            className="text-xl font-bold text-center"
             style={{ color: textColor }}
           >
             {title || 'Mina Bilder'}
           </h1>
           {description && (
             <p 
-              className="text-sm"
+              className="text-sm text-center"
               style={{ color: textColor, opacity: 0.8 }}
             >
               {description}
