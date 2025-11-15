@@ -437,7 +437,7 @@ export const AiSettingsDialog = () => {
 
             <TabsContent
               value="landing"
-              className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+              className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
@@ -713,7 +713,7 @@ export const AiSettingsDialog = () => {
                 </div>
 
                 {/* Preview */}
-                <div className="space-y-2">
+                <div className="space-y-2 sticky top-0 self-start">
                   <Label>Förhandsvisning</Label>
                   <LandingPagePreview
                     logoUrl={landingPageLogoUrl}

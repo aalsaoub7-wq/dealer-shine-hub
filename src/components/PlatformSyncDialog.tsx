@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useBlocketSync } from "@/hooks/useBlocketSync";
 import { RefreshCw } from "lucide-react";
 
@@ -94,19 +95,20 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car }: PlatformS
             Välj alla
           </Button>
 
-          <div className="space-y-3">
-            {platforms.map((platform) => {
-              const status = getPlatformStatus(platform.id);
-              return (
-                <div
-                  key={platform.id}
-                  className="flex items-center space-x-3 rounded-lg border border-border p-3 hover:bg-accent/50 transition-colors"
-                >
-                  <Checkbox
-                    id={platform.id}
-                    checked={selectedPlatforms.includes(platform.id)}
-                    onCheckedChange={() => togglePlatform(platform.id)}
-                  />
+          <ScrollArea className="h-[400px]">
+            <div className="space-y-3 pr-4">
+              {platforms.map((platform) => {
+                const status = getPlatformStatus(platform.id);
+                return (
+                  <div
+                    key={platform.id}
+                    className="flex items-center space-x-3 rounded-lg border border-border p-3 hover:bg-accent/50 transition-colors"
+                  >
+                    <Checkbox
+                      id={platform.id}
+                      checked={selectedPlatforms.includes(platform.id)}
+                      onCheckedChange={() => togglePlatform(platform.id)}
+                    />
 {platform.id === "blocket" ? (
   <div className="h-8 w-8 overflow-hidden rounded">
     <img
@@ -122,18 +124,19 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car }: PlatformS
     className="h-8 w-8 object-contain"
   />
 )}
-                  <Label htmlFor={platform.id} className="flex-1 cursor-pointer font-medium">
-                    {platform.name}
-                  </Label>
-                  {status && (
-                    <Badge variant={status.variant}>
-                      {status.text}
-                    </Badge>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                    <Label htmlFor={platform.id} className="flex-1 cursor-pointer font-medium">
+                      {platform.name}
+                    </Label>
+                    {status && (
+                      <Badge variant={status.variant}>
+                        {status.text}
+                      </Badge>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </ScrollArea>
         </div>
 
         <DialogFooter>
