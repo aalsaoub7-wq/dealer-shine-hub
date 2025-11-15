@@ -280,7 +280,7 @@ export const AiSettingsDialog = () => {
           <span className="md:hidden">Inställningar</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-card border-border">
+      <DialogContent className="max-w-[95vw] md:max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-card border-border p-4 md:p-6">
         <DialogHeader>
           <DialogTitle className="bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
             AI-inställningar
@@ -288,7 +288,7 @@ export const AiSettingsDialog = () => {
         </DialogHeader>
 
         <Tabs defaultValue="background" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
             <TabsTrigger value="background">Bakgrund</TabsTrigger>
             <TabsTrigger value="descriptions">Beskrivningar</TabsTrigger>
             <TabsTrigger value="watermark">Vattenmärke</TabsTrigger>
@@ -488,7 +488,7 @@ export const AiSettingsDialog = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="bg-color">Bakgrundsfärg</Label>
                     <div className="flex gap-2 items-center">
@@ -549,7 +549,7 @@ export const AiSettingsDialog = () => {
 
                 <div className="space-y-2">
                   <Label>Layout</Label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <Button
                       variant={landingPageLayout === 'grid' ? 'default' : 'outline'}
                       onClick={() => setLandingPageLayout('grid')}
