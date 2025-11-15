@@ -334,7 +334,7 @@ export const AiSettingsDialog = () => {
             <TabsTrigger value="landing">Landningssida</TabsTrigger>
           </TabsList>
 
-          <Separator className="my-6 md:hidden" />
+          <Separator className="my-8 md:hidden" />
 
           <TabsContent 
             value="background" 
