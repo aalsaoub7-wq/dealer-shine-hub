@@ -74,7 +74,10 @@ const CarDetail = () => {
     }
   }, [id]);
 
-  const fetchCarData = async () => {
+  const fetchCarData = async (preserveScroll = false) => {
+    // Save current scroll position if requested
+    const scrollY = preserveScroll ? window.scrollY : 0;
+    
     setLoading(true);
     try {
       // Fetch car details
@@ -94,6 +97,13 @@ const CarDetail = () => {
 
       if (photosError) throw photosError;
       setPhotos((photosData || []) as Photo[]);
+      
+      // Restore scroll position after a short delay to allow rendering
+      if (preserveScroll) {
+        setTimeout(() => {
+          window.scrollTo(0, scrollY);
+        }, 0);
+      }
     } catch (error: any) {
       toast({
         title: "Fel vid laddning av bildata",
@@ -191,7 +201,7 @@ const CarDetail = () => {
                     });
                     
                     // Refresh data to show the edited image
-                    fetchCarData();
+                    fetchCarData(true);
                     
                     toast({
                       title: "Bild redigerad",
@@ -368,7 +378,7 @@ const CarDetail = () => {
       } else {
         setSelectedDocPhotos([]);
       }
-      fetchCarData();
+      fetchCarData(true);
     } catch (error: any) {
       toast({
         title: "Fel vid tillägg av vattenmärke",
@@ -572,7 +582,7 @@ const CarDetail = () => {
             </div>
             <PhotoGalleryDraggable 
               photos={mainPhotos} 
-              onUpdate={fetchCarData}
+              onUpdate={() => fetchCarData(true)}
               selectedPhotos={selectedMainPhotos}
               onSelectionChange={setSelectedMainPhotos}
               editingPhotos={editingPhotos}
@@ -615,7 +625,7 @@ const CarDetail = () => {
             </div>
             <PhotoGalleryDraggable 
               photos={docPhotos} 
-              onUpdate={fetchCarData}
+              onUpdate={() => fetchCarData(true)}
               selectedPhotos={selectedDocPhotos}
               onSelectionChange={setSelectedDocPhotos}
               editingPhotos={editingPhotos}
@@ -629,7 +639,7 @@ const CarDetail = () => {
         onOpenChange={setUploadDialogOpen}
         carId={id!}
         photoType={uploadType}
-        onUploadComplete={fetchCarData}
+        onUploadComplete={() => fetchCarData(true)}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -653,7 +663,7 @@ const CarDetail = () => {
       </AlertDialog>
 
       {car && (
-        <EditCarDialog open={editDialogOpen} onOpenChange={setEditDialogOpen} car={car} onCarUpdated={fetchCarData} />
+        <EditCarDialog open={editDialogOpen} onOpenChange={setEditDialogOpen} car={car} onCarUpdated={() => fetchCarData(true)} />
       )}
     </div>
   );
