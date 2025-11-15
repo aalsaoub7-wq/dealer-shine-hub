@@ -23,6 +23,7 @@ export type Database = {
           logo_url: string | null
           updated_at: string
           user_id: string
+          watermark_opacity: number | null
           watermark_size: number | null
           watermark_x: number | null
           watermark_y: number | null
@@ -35,6 +36,7 @@ export type Database = {
           logo_url?: string | null
           updated_at?: string
           user_id: string
+          watermark_opacity?: number | null
           watermark_size?: number | null
           watermark_x?: number | null
           watermark_y?: number | null
@@ -47,6 +49,7 @@ export type Database = {
           logo_url?: string | null
           updated_at?: string
           user_id?: string
+          watermark_opacity?: number | null
           watermark_size?: number | null
           watermark_x?: number | null
           watermark_y?: number | null

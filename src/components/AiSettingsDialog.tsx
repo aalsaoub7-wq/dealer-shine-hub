@@ -19,6 +19,7 @@ export const AiSettingsDialog = () => {
   const [watermarkX, setWatermarkX] = useState(20);
   const [watermarkY, setWatermarkY] = useState(20);
   const [watermarkSize, setWatermarkSize] = useState(15);
+  const [watermarkOpacity, setWatermarkOpacity] = useState(0.8);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -36,7 +37,7 @@ export const AiSettingsDialog = () => {
 
       const { data, error } = await supabase
         .from('ai_settings')
-        .select('background_prompt, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size')
+        .select('background_prompt, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity')
         .eq('user_id', user.id)
         .single();
 
@@ -51,6 +52,7 @@ export const AiSettingsDialog = () => {
         setWatermarkX(data.watermark_x || 20);
         setWatermarkY(data.watermark_y || 20);
         setWatermarkSize(data.watermark_size || 15);
+        setWatermarkOpacity(data.watermark_opacity || 0.8);
       }
     } catch (error: any) {
       console.error('Error loading AI settings:', error);
@@ -123,6 +125,7 @@ export const AiSettingsDialog = () => {
           watermark_x: watermarkX,
           watermark_y: watermarkY,
           watermark_size: watermarkSize,
+          watermark_opacity: watermarkOpacity,
         }, {
           onConflict: 'user_id'
         });
@@ -241,11 +244,13 @@ export const AiSettingsDialog = () => {
                 x={watermarkX}
                 y={watermarkY}
                 size={watermarkSize}
+                opacity={watermarkOpacity}
                 onPositionChange={(x, y) => {
                   setWatermarkX(x);
                   setWatermarkY(y);
                 }}
                 onSizeChange={setWatermarkSize}
+                onOpacityChange={setWatermarkOpacity}
               />
             </div>
           </TabsContent>
