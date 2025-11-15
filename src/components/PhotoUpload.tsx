@@ -101,31 +101,7 @@ const PhotoUpload = ({
 
           if (dbError) throw dbError;
         } else {
-          // For main photos, use API editing
-          const editedBlob = await editPhotoWithAPI(file);
-
-          const editedFileName = `${carId}/edited-${Date.now()}-${Math.random()}.png`;
-          const { error: editedUploadError } = await supabase.storage
-            .from("car-photos")
-            .upload(editedFileName, editedBlob, { contentType: 'image/png' });
-
-          if (editedUploadError) throw editedUploadError;
-
-          const { data: { publicUrl: editedUrl } } = supabase.storage
-            .from("car-photos")
-            .getPublicUrl(editedFileName);
-
-          let finalEditedUrl = editedUrl;
-          try {
-            const head = await fetch(editedUrl, { method: 'HEAD' });
-            if (!head.ok) {
-              const { data: signedEdited } = await supabase.storage
-                .from('car-photos')
-                .createSignedUrl(editedFileName, 60 * 60 * 24 * 365);
-              if (signedEdited?.signedUrl) finalEditedUrl = signedEdited.signedUrl;
-            }
-          } catch {}
-
+          // For main photos, just upload original (no auto-editing)
           const originalFileName = `${carId}/original-${Date.now()}-${Math.random()}.${fileExt}`;
           const { error: originalUploadError } = await supabase.storage
             .from("car-photos")
@@ -139,21 +115,21 @@ const PhotoUpload = ({
 
           let finalOriginalUrl = originalUrl;
           try {
-            const head2 = await fetch(originalUrl, { method: 'HEAD' });
-            if (!head2.ok) {
-              const { data: signedOriginal } = await supabase.storage
+            const head = await fetch(originalUrl, { method: 'HEAD' });
+            if (!head.ok) {
+              const { data: signed } = await supabase.storage
                 .from('car-photos')
                 .createSignedUrl(originalFileName, 60 * 60 * 24 * 365);
-              if (signedOriginal?.signedUrl) finalOriginalUrl = signedOriginal.signedUrl;
+              if (signed?.signedUrl) finalOriginalUrl = signed.signedUrl;
             }
           } catch {}
 
           const { error: dbError } = await supabase.from("photos").insert({
             car_id: carId,
-            url: finalEditedUrl,
+            url: finalOriginalUrl,
             original_url: finalOriginalUrl,
             photo_type: photoType,
-            is_edited: true,
+            is_edited: false,
           });
 
           if (dbError) throw dbError;
