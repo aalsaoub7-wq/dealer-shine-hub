@@ -106,7 +106,15 @@ export function PlatformSyncDialog({
                 <img
                   src={platform.logo}
                   alt={platform.name}
-                  className={platform.id === "blocket" ? "h-16 w-16 object-contain" : "h-8 w-8 object-contain"}
+                  className={
+                    platform.id === "blocket" ? "h-16 w-16 object-contain" :
+                    platform.id === "wayke" ? "h-10 w-10 object-contain" :
+                    platform.id === "bytbil" ? "h-12 w-12 object-contain" :
+                    platform.id === "smart365" ? "h-11 w-11 object-contain" :
+                    platform.id === "website" ? "h-9 w-9 object-contain" :
+                    platform.id === "social" ? "h-10 w-10 object-contain" :
+                    "h-8 w-8 object-contain"
+                  }
                 />
                 <Label
                   htmlFor={platform.id}
