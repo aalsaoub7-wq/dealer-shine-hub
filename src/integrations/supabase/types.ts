@@ -23,8 +23,9 @@ export type Database = {
           logo_url: string | null
           updated_at: string
           user_id: string
-          watermark_position: string | null
           watermark_size: number | null
+          watermark_x: number | null
+          watermark_y: number | null
         }
         Insert: {
           background_prompt?: string
@@ -34,8 +35,9 @@ export type Database = {
           logo_url?: string | null
           updated_at?: string
           user_id: string
-          watermark_position?: string | null
           watermark_size?: number | null
+          watermark_x?: number | null
+          watermark_y?: number | null
         }
         Update: {
           background_prompt?: string
@@ -45,8 +47,9 @@ export type Database = {
           logo_url?: string | null
           updated_at?: string
           user_id?: string
-          watermark_position?: string | null
           watermark_size?: number | null
+          watermark_x?: number | null
+          watermark_y?: number | null
         }
         Relationships: []
       }

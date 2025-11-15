@@ -16,7 +16,8 @@ export const AiSettingsDialog = () => {
   );
   const [exampleDescriptions, setExampleDescriptions] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
-  const [watermarkPosition, setWatermarkPosition] = useState('top-left');
+  const [watermarkX, setWatermarkX] = useState(20);
+  const [watermarkY, setWatermarkY] = useState(20);
   const [watermarkSize, setWatermarkSize] = useState(15);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -35,7 +36,7 @@ export const AiSettingsDialog = () => {
 
       const { data, error } = await supabase
         .from('ai_settings')
-        .select('background_prompt, example_descriptions, logo_url, watermark_position, watermark_size')
+        .select('background_prompt, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size')
         .eq('user_id', user.id)
         .single();
 
@@ -47,7 +48,8 @@ export const AiSettingsDialog = () => {
         setBackgroundPrompt(data.background_prompt);
         setExampleDescriptions(data.example_descriptions || '');
         setLogoUrl(data.logo_url || '');
-        setWatermarkPosition(data.watermark_position || 'top-left');
+        setWatermarkX(data.watermark_x || 20);
+        setWatermarkY(data.watermark_y || 20);
         setWatermarkSize(data.watermark_size || 15);
       }
     } catch (error: any) {
@@ -118,7 +120,8 @@ export const AiSettingsDialog = () => {
           background_prompt: backgroundPrompt,
           example_descriptions: exampleDescriptions,
           logo_url: logoUrl,
-          watermark_position: watermarkPosition,
+          watermark_x: watermarkX,
+          watermark_y: watermarkY,
           watermark_size: watermarkSize,
         }, {
           onConflict: 'user_id'
@@ -235,9 +238,13 @@ export const AiSettingsDialog = () => {
 
               <WatermarkPreview
                 logoUrl={logoUrl}
-                position={watermarkPosition}
+                x={watermarkX}
+                y={watermarkY}
                 size={watermarkSize}
-                onPositionChange={setWatermarkPosition}
+                onPositionChange={(x, y) => {
+                  setWatermarkX(x);
+                  setWatermarkY(y);
+                }}
                 onSizeChange={setWatermarkSize}
               />
             </div>

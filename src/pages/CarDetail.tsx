@@ -270,7 +270,7 @@ const CarDetail = () => {
 
       const { data: settings } = await supabase
         .from("ai_settings")
-        .select("logo_url, watermark_position, watermark_size")
+        .select("logo_url, watermark_x, watermark_y, watermark_size")
         .eq("user_id", user.id)
         .single();
 
@@ -292,7 +292,8 @@ const CarDetail = () => {
           const watermarkedBlob = await applyWatermark(
             photo.url, 
             settings.logo_url, 
-            (settings.watermark_position || 'top-left') as any,
+            settings.watermark_x || 20,
+            settings.watermark_y || 20,
             settings.watermark_size || 15
           );
           
