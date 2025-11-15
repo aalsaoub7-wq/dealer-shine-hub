@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Settings } from "lucide-react";
+import { Settings, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -13,6 +13,8 @@ export const AiSettingsDialog = () => {
     'car on on clean ceramic floor with the colour #c8cfdb, with Plain white walls in the backgrond in the background, evenly lit'
   );
   const [exampleDescriptions, setExampleDescriptions] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -29,7 +31,7 @@ export const AiSettingsDialog = () => {
 
       const { data, error } = await supabase
         .from('ai_settings')
-        .select('*')
+        .select('background_prompt, example_descriptions, logo_url')
         .eq('user_id', user.id)
         .single();
 
@@ -40,6 +42,7 @@ export const AiSettingsDialog = () => {
       if (data) {
         setBackgroundPrompt(data.background_prompt);
         setExampleDescriptions(data.example_descriptions || '');
+        setLogoUrl(data.logo_url || '');
       }
     } catch (error: any) {
       console.error('Error loading AI settings:', error);
@@ -49,6 +52,51 @@ export const AiSettingsDialog = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingLogo(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Inte inloggad');
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-logo-${Date.now()}.${fileExt}`;
+      const filePath = `logos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('car-photos')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('car-photos')
+        .getPublicUrl(filePath);
+
+      setLogoUrl(publicUrl);
+      
+      toast({
+        title: "Logotyp uppladdad",
+        description: "Din logotyp har laddats upp",
+      });
+    } catch (error: any) {
+      console.error('Error uploading logo:', error);
+      toast({
+        title: "Fel vid uppladdning",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoUrl('');
   };
 
   const saveSettings = async () => {
@@ -63,6 +111,7 @@ export const AiSettingsDialog = () => {
           user_id: user.id,
           background_prompt: backgroundPrompt,
           example_descriptions: exampleDescriptions,
+          logo_url: logoUrl,
         }, {
           onConflict: 'user_id'
         });
@@ -94,11 +143,50 @@ export const AiSettingsDialog = () => {
           Ställ in AI för bakgrund och beskrivning
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>AI-inställningar</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="logo">Logotyp för vattenmärke</Label>
+            <div className="flex flex-col gap-2">
+              {logoUrl ? (
+                <div className="relative w-32 h-32 border rounded-lg overflow-hidden bg-muted">
+                  <img src={logoUrl} alt="Logotyp" className="w-full h-full object-contain p-2" />
+                  <Button
+                    size="icon"
+                    variant="destructive"
+                    className="absolute top-1 right-1 h-6 w-6"
+                    onClick={handleRemoveLogo}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    id="logo-upload"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => document.getElementById('logo-upload')?.click()}
+                    disabled={uploadingLogo}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    {uploadingLogo ? "Laddar upp..." : "Ladda upp logotyp"}
+                  </Button>
+                </div>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Denna logotyp placeras som vattenmärke på dina bilder
+            </p>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="background-prompt">
               Instruktioner (prompt) för bakgrunden
