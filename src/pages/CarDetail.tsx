@@ -438,8 +438,68 @@ const CarDetail = () => {
     }
   };
 
+  const handleRemoveWatermark = async (photoIds: string[], photoType: 'main' | 'documentation') => {
+    setApplyingWatermark(true);
+    try {
+      const photosToProcess = photos.filter(p => photoIds.includes(p.id) && p.is_edited && p.original_url);
+      
+      if (photosToProcess.length === 0) {
+        toast({
+          title: "Inga bilder att återställa",
+          description: "De valda bilderna har inget originalfoto att återställa till",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      for (const photo of photosToProcess) {
+        try {
+          // Restore to original URL
+          await supabase
+            .from('photos')
+            .update({
+              url: photo.original_url,
+              is_edited: false,
+            })
+            .eq('id', photo.id);
+
+        } catch (error) {
+          console.error(`Error removing watermark from photo ${photo.id}:`, error);
+        }
+      }
+
+      toast({
+        title: "Vattenmärke borttaget",
+        description: `${photosToProcess.length} bilder har återställts`,
+      });
+      
+      // Clear selection and refresh
+      if (photoType === 'main') {
+        setSelectedMainPhotos([]);
+      } else {
+        setSelectedDocPhotos([]);
+      }
+      fetchCarData(true);
+    } catch (error: any) {
+      toast({
+        title: "Fel vid borttagning av vattenmärke",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setApplyingWatermark(false);
+    }
+  };
+
   const mainPhotos = photos.filter((p) => p.photo_type === "main");
   const docPhotos = photos.filter((p) => p.photo_type === "documentation");
+
+  // Check if all selected photos are edited (have watermarks)
+  const allSelectedMainAreEdited = selectedMainPhotos.length > 0 && 
+    selectedMainPhotos.every(id => photos.find(p => p.id === id)?.is_edited);
+  
+  const allSelectedDocAreEdited = selectedDocPhotos.length > 0 && 
+    selectedDocPhotos.every(id => photos.find(p => p.id === id)?.is_edited);
 
   if (loading) {
     return (
@@ -599,13 +659,22 @@ const CarDetail = () => {
                     Få bilder redigerade ({selectedMainPhotos.length})
                   </Button>
                   <Button
-                    onClick={() => handleApplyWatermark(selectedMainPhotos, 'main')}
+                    onClick={() => allSelectedMainAreEdited 
+                      ? handleRemoveWatermark(selectedMainPhotos, 'main')
+                      : handleApplyWatermark(selectedMainPhotos, 'main')
+                    }
                     variant="outline"
                     disabled={applyingWatermark}
                     className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                   >
                     <Stamp className="w-4 h-4 mr-2" />
-                    {applyingWatermark ? "Lägger till..." : `Lägg till vattenmärke (${selectedMainPhotos.length})`}
+                    {applyingWatermark 
+                      ? (allSelectedMainAreEdited ? "Tar bort..." : "Lägger till...") 
+                      : (allSelectedMainAreEdited 
+                          ? `Ta bort vattenmärke (${selectedMainPhotos.length})` 
+                          : `Lägg till vattenmärke (${selectedMainPhotos.length})`
+                        )
+                    }
                   </Button>
                   <Button
                     onClick={() => handleSharePhotos(selectedMainPhotos)}
@@ -642,13 +711,22 @@ const CarDetail = () => {
               {selectedDocPhotos.length > 0 && (
                 <>
                   <Button
-                    onClick={() => handleApplyWatermark(selectedDocPhotos, 'documentation')}
+                    onClick={() => allSelectedDocAreEdited 
+                      ? handleRemoveWatermark(selectedDocPhotos, 'documentation')
+                      : handleApplyWatermark(selectedDocPhotos, 'documentation')
+                    }
                     variant="outline"
                     disabled={applyingWatermark}
                     className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                   >
                     <Stamp className="w-4 h-4 mr-2" />
-                    {applyingWatermark ? "Lägger till..." : `Lägg till vattenmärke (${selectedDocPhotos.length})`}
+                    {applyingWatermark 
+                      ? (allSelectedDocAreEdited ? "Tar bort..." : "Lägger till...") 
+                      : (allSelectedDocAreEdited 
+                          ? `Ta bort vattenmärke (${selectedDocPhotos.length})` 
+                          : `Lägg till vattenmärke (${selectedDocPhotos.length})`
+                        )
+                    }
                   </Button>
                   <Button
                     onClick={() => handleSharePhotos(selectedDocPhotos)}
