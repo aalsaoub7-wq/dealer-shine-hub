@@ -288,7 +288,7 @@ export const AiSettingsDialog = () => {
         </DialogHeader>
 
         <Tabs defaultValue="background" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
+          <TabsList className="!grid w-full grid-cols-2 md:grid-cols-4 gap-1">
             <TabsTrigger value="background">Bakgrund</TabsTrigger>
             <TabsTrigger value="descriptions">Beskrivningar</TabsTrigger>
             <TabsTrigger value="watermark">Vattenmärke</TabsTrigger>
