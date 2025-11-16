@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles } from "lucide-react";
+import { trackUsage } from "@/lib/usageTracking";
 
 interface CarData {
   id: string;
@@ -133,6 +134,10 @@ const EditCarDialog = ({ open, onOpenChange, car, onCarUpdated }: EditCarDialogP
 
       if (data?.description) {
         setFormData(prev => ({ ...prev, description: data.description }));
+        
+        // Track usage
+        await trackUsage("generate_description");
+        
         toast({
           title: "Beskrivning genererad",
           description: "AI har skapat en beskrivning som du kan redigera",

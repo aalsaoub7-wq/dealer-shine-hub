@@ -23,6 +23,7 @@ import PhotoGalleryDraggable from "@/components/PhotoGalleryDraggable";
 import { PlatformSyncDialog } from "@/components/PlatformSyncDialog";
 import EditCarDialog from "@/components/EditCarDialog";
 import { applyWatermark } from "@/lib/watermark";
+import { trackUsage } from "@/lib/usageTracking";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -364,6 +365,9 @@ const CarDetail = () => {
             edited_url: publicUrl,
             complete_at: completeAt.toISOString(),
           });
+
+          // Track usage for image edit
+          await trackUsage("edit_image");
 
           // Also store in local state for UI
           setPendingEdits((prev) => ({

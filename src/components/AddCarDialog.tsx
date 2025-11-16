@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles } from "lucide-react";
+import { trackUsage } from "@/lib/usageTracking";
 
 interface AddCarDialogProps {
   open: boolean;
@@ -77,6 +78,9 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
 
       if (error) throw error;
 
+      // Track usage
+      await trackUsage("add_car");
+
       toast({ title: "Bil tillagd!" });
       onCarAdded();
       onOpenChange(false);
@@ -129,6 +133,10 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
 
       if (data?.description) {
         setFormData(prev => ({ ...prev, description: data.description }));
+        
+        // Track usage
+        await trackUsage("generate_description");
+        
         toast({
           title: "Beskrivning genererad",
           description: "AI har skapat en beskrivning som du kan redigera",
