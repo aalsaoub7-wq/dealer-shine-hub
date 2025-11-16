@@ -39,12 +39,12 @@ const LicensePlateInput = ({ value, onChange, maxLength = 6 }: LicensePlateInput
         <img src={licensePlate} alt="Registreringsskylt" className="w-full h-auto" />
         <div className="absolute inset-0 flex items-center justify-center">
           <span
-            className="font-extrabold text-black text-2xl sm:text-3xl tracking-wide ml-3 sm:ml-4"
+            className="font-extrabold text-black text-3xl sm:text-4xl md:text-5xl tracking-wide ml-3 sm:ml-4"
             style={{ fontFamily: "monospace" }}
           >
             {formatValue(value)}
             {showCursor && (
-              <span className="inline-block w-0.5 h-6 sm:h-8 bg-black ml-1 align-middle" />
+              <span className="inline-block w-0.5 h-8 sm:h-10 md:h-12 bg-black ml-1 align-middle" />
             )}
           </span>
         </div>
