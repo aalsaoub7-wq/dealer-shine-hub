@@ -39,7 +39,7 @@ const LicensePlateInput = ({ value, onChange, maxLength = 6 }: LicensePlateInput
         <img src={licensePlate} alt="Registreringsskylt" className="w-full h-auto" />
         <div className="absolute inset-0 flex items-center justify-center">
           <span
-            className="font-extrabold text-black text-3xl sm:text-4xl md:text-5xl tracking-wide ml-6 sm:ml-10"
+            className="font-extrabold text-black text-3xl sm:text-4xl md:text-5xl tracking-wide ml-4 sm:ml-7"
             style={{ fontFamily: "monospace" }}
           >
             {formatValue(value)}
