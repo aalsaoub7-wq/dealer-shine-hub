@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Car } from "lucide-react";
+import luveroLogo from "@/assets/luvero-logo.png";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -75,9 +75,7 @@ const Auth = () => {
       <Card className="w-full max-w-md bg-gradient-card border-border/50 shadow-glow">
         <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center">
-            <div className="p-3 bg-gradient-primary rounded-xl">
-              <Car className="w-8 h-8 text-primary-foreground" />
-            </div>
+            <img src={luveroLogo} alt="Luvero Orbit Logo" className="w-16 h-16" />
           </div>
           <CardTitle className="text-2xl font-bold">CarPhoto Pro</CardTitle>
           <CardDescription>
