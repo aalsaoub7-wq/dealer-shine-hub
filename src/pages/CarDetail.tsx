@@ -5,7 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Upload, Image as ImageIcon, FileText, Trash2, Save, Settings, Share2, Stamp, Sparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  Upload,
+  Image as ImageIcon,
+  FileText,
+  Trash2,
+  Save,
+  Settings,
+  Share2,
+  Stamp,
+  Sparkles,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PhotoUpload from "@/components/PhotoUpload";
 import PhotoGalleryDraggable from "@/components/PhotoGalleryDraggable";
@@ -86,7 +97,7 @@ const CarDetail = () => {
         // Only create timer if one doesn't exist for this photo
         if (!intervals.has(photoId)) {
           const intervalId = setInterval(() => {
-            setEditingPhotos(prev => {
+            setEditingPhotos((prev) => {
               const current = prev[photoId];
               if (!current || current.timeLeft <= 1) {
                 clearInterval(intervalId);
@@ -95,7 +106,7 @@ const CarDetail = () => {
               }
               return {
                 ...prev,
-                [photoId]: { ...current, timeLeft: current.timeLeft - 1 }
+                [photoId]: { ...current, timeLeft: current.timeLeft - 1 },
               };
             });
           }, 1000);
@@ -107,12 +118,16 @@ const CarDetail = () => {
     return () => {
       intervals.forEach(clearInterval);
     };
-  }, [Object.keys(editingPhotos).filter(id => editingPhotos[id].isEditing).join(',')]);
+  }, [
+    Object.keys(editingPhotos)
+      .filter((id) => editingPhotos[id].isEditing)
+      .join(","),
+  ]);
 
   const fetchCarData = async (preserveScroll = false) => {
     // Save current scroll position if requested
     const scrollY = preserveScroll ? window.scrollY : 0;
-    
+
     setLoading(true);
     try {
       // Fetch car details
@@ -132,15 +147,15 @@ const CarDetail = () => {
 
       if (photosError) throw photosError;
       setPhotos((photosData || []) as Photo[]);
-      
+
       // Fetch pending edits for this car's photos
       const photoIds = (photosData || []).map((p: any) => p.id);
       if (photoIds.length > 0) {
         const { data: pendingData } = await supabase
-          .from('pending_photo_edits')
-          .select('*')
-          .in('photo_id', photoIds)
-          .eq('completed', false);
+          .from("pending_photo_edits")
+          .select("*")
+          .in("photo_id", photoIds)
+          .eq("completed", false);
 
         if (pendingData && pendingData.length > 0) {
           const newPendingEdits: Record<string, { publicUrl: string; completeAt: Date }> = {};
@@ -169,7 +184,7 @@ const CarDetail = () => {
           setEditingPhotos({});
         }
       }
-      
+
       // Restore scroll position after a short delay to allow rendering
       if (preserveScroll) {
         setTimeout(() => {
@@ -205,31 +220,31 @@ const CarDetail = () => {
 
   const handleSharePhotos = async (photoIds: string[]) => {
     if (photoIds.length === 0) return;
-    
+
     setSharing(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Ingen användare inloggad");
 
       // Generate unique share token
-      const { data: tokenData, error: tokenError } = await supabase.rpc('generate_share_token');
+      const { data: tokenData, error: tokenError } = await supabase.rpc("generate_share_token");
       if (tokenError) throw tokenError;
 
       // Create shared collection
-      const { error } = await supabase
-        .from('shared_collections')
-        .insert({
-          user_id: user.id,
-          title: `${car.make} ${car.model} ${car.year}`,
-          photo_ids: photoIds,
-          share_token: tokenData,
-        });
+      const { error } = await supabase.from("shared_collections").insert({
+        user_id: user.id,
+        title: `${car.make} ${car.model} ${car.year}`,
+        photo_ids: photoIds,
+        share_token: tokenData,
+      });
 
       if (error) throw error;
 
       // Generate shareable URL
       const shareUrl = `${window.location.origin}/shared/${tokenData}`;
-      
+
       navigator.clipboard.writeText(shareUrl);
       toast({
         title: "Delningslänk skapad!",
@@ -240,7 +255,7 @@ const CarDetail = () => {
       setSelectedMainPhotos([]);
       setSelectedDocPhotos([]);
     } catch (error: any) {
-      console.error('Error sharing photos:', error);
+      console.error("Error sharing photos:", error);
       toast({
         title: "Fel vid delning",
         description: error.message,
@@ -270,19 +285,19 @@ const CarDetail = () => {
     }
   };
 
-  const handleEditPhotos = async (photoIds: string[], photoType: 'main' | 'documentation') => {
+  const handleEditPhotos = async (photoIds: string[], photoType: "main" | "documentation") => {
     // Initialize countdown timers for selected photos
     const newEditingState: Record<string, { timeLeft: number; isEditing: boolean }> = {};
-    photoIds.forEach(id => {
+    photoIds.forEach((id) => {
       newEditingState[id] = { timeLeft: 240, isEditing: true }; // 4 minutes = 240 seconds
     });
-    setEditingPhotos(prev => ({ ...prev, ...newEditingState }));
+    setEditingPhotos((prev) => ({ ...prev, ...newEditingState }));
 
     // Start countdown for each photo
     const intervalIds: Record<string, ReturnType<typeof setInterval>> = {};
-    photoIds.forEach(photoId => {
+    photoIds.forEach((photoId) => {
       const intervalId = setInterval(() => {
-        setEditingPhotos(prev => {
+        setEditingPhotos((prev) => {
           const current = prev[photoId];
           if (!current || current.timeLeft <= 1) {
             clearInterval(intervalId);
@@ -292,7 +307,7 @@ const CarDetail = () => {
           }
           return {
             ...prev,
-            [photoId]: { ...current, timeLeft: current.timeLeft - 1 }
+            [photoId]: { ...current, timeLeft: current.timeLeft - 1 },
           };
         });
       }, 1000);
@@ -301,19 +316,19 @@ const CarDetail = () => {
 
     // Process photos with API
     try {
-      const photosToProcess = photos.filter(p => photoIds.includes(p.id));
-      
+      const photosToProcess = photos.filter((p) => photoIds.includes(p.id));
+
       for (const photo of photosToProcess) {
         try {
           // Call edit-photo edge function
           const response = await fetch(photo.url);
           const blob = await response.blob();
-          const file = new File([blob], 'photo.jpg', { type: blob.type });
-          
-          const formData = new FormData();
-          formData.append('image_file', file);
+          const file = new File([blob], "photo.jpg", { type: blob.type });
 
-          const { data, error } = await supabase.functions.invoke('edit-photo', {
+          const formData = new FormData();
+          formData.append("image_file", file);
+
+          const { data, error } = await supabase.functions.invoke("edit-photo", {
             body: formData,
           });
 
@@ -326,57 +341,55 @@ const CarDetail = () => {
           for (let i = 0; i < binaryString.length; i++) {
             bytes[i] = binaryString.charCodeAt(i);
           }
-          const editedBlob = new Blob([bytes], { type: 'image/png' });
+          const editedBlob = new Blob([bytes], { type: "image/png" });
 
           // Upload edited image
           const editedFileName = `${car.id}/edited-${Date.now()}-${Math.random()}.png`;
           const { error: uploadError } = await supabase.storage
-            .from('car-photos')
+            .from("car-photos")
             .upload(editedFileName, editedBlob, { upsert: true });
 
           if (uploadError) throw uploadError;
 
-          const { data: { publicUrl } } = supabase.storage
-            .from('car-photos')
-            .getPublicUrl(editedFileName);
+          const {
+            data: { publicUrl },
+          } = supabase.storage.from("car-photos").getPublicUrl(editedFileName);
 
           // Calculate completion time (4 minutes from now)
           const completeAt = new Date(Date.now() + 240000); // 240 seconds = 4 minutes
 
           // Store the edited URL in database pending_photo_edits
-          await supabase.from('pending_photo_edits').insert({
+          await supabase.from("pending_photo_edits").insert({
             photo_id: photo.id,
             edited_url: publicUrl,
             complete_at: completeAt.toISOString(),
           });
 
           // Also store in local state for UI
-          setPendingEdits(prev => ({
+          setPendingEdits((prev) => ({
             ...prev,
-            [photo.id]: { publicUrl, completeAt }
+            [photo.id]: { publicUrl, completeAt },
           }));
-
         } catch (error) {
           console.error(`Error editing photo ${photo.id}:`, error);
           // Clear the timer if there's an error
           if (intervalIds[photo.id]) {
             clearInterval(intervalIds[photo.id]);
           }
-          setEditingPhotos(prev => {
+          setEditingPhotos((prev) => {
             const newState = { ...prev };
             delete newState[photo.id];
             return newState;
           });
         }
       }
-      
+
       // Clear selection
-      if (photoType === 'main') {
+      if (photoType === "main") {
         setSelectedMainPhotos([]);
       } else {
         setSelectedDocPhotos([]);
       }
-      
     } catch (error: any) {
       toast({
         title: "Fel vid redigering av bilder",
@@ -386,11 +399,13 @@ const CarDetail = () => {
     }
   };
 
-  const handleApplyWatermark = async (photoIds: string[], photoType: 'main' | 'documentation') => {
+  const handleApplyWatermark = async (photoIds: string[], photoType: "main" | "documentation") => {
     setApplyingWatermark(true);
     try {
       // Get user's settings
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Ingen användare inloggad");
 
       const { data: settings } = await supabase
@@ -409,45 +424,44 @@ const CarDetail = () => {
       }
 
       // Process each photo
-      const photosToProcess = photos.filter(p => photoIds.includes(p.id));
-      
+      const photosToProcess = photos.filter((p) => photoIds.includes(p.id));
+
       for (const photo of photosToProcess) {
         try {
           // Apply watermark with user's settings
           const watermarkedBlob = await applyWatermark(
-            photo.url, 
+            photo.url,
             settings.logo_url,
             settings.watermark_x || 20,
             settings.watermark_y || 20,
             settings.watermark_size || 15,
-            settings.watermark_opacity || 0.8
+            settings.watermark_opacity || 0.8,
           );
-          
+
           // Upload the watermarked image
-          const fileExt = 'png';
+          const fileExt = "png";
           const fileName = `watermarked-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
           const filePath = `${car.id}/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
-            .from('car-photos')
+            .from("car-photos")
             .upload(filePath, watermarkedBlob, { upsert: true });
 
           if (uploadError) throw uploadError;
 
-          const { data: { publicUrl } } = supabase.storage
-            .from('car-photos')
-            .getPublicUrl(filePath);
+          const {
+            data: { publicUrl },
+          } = supabase.storage.from("car-photos").getPublicUrl(filePath);
 
           // Update photo record
           await supabase
-            .from('photos')
+            .from("photos")
             .update({
               url: publicUrl,
               original_url: photo.original_url || photo.url,
               is_edited: true,
             })
-            .eq('id', photo.id);
-
+            .eq("id", photo.id);
         } catch (error) {
           console.error(`Error processing photo ${photo.id}:`, error);
         }
@@ -457,9 +471,9 @@ const CarDetail = () => {
         title: "Vattenmärke tillagt",
         description: `${photosToProcess.length} bilder har uppdaterats`,
       });
-      
+
       // Clear selection and refresh
-      if (photoType === 'main') {
+      if (photoType === "main") {
         setSelectedMainPhotos([]);
       } else {
         setSelectedDocPhotos([]);
@@ -476,11 +490,11 @@ const CarDetail = () => {
     }
   };
 
-  const handleRemoveWatermark = async (photoIds: string[], photoType: 'main' | 'documentation') => {
+  const handleRemoveWatermark = async (photoIds: string[], photoType: "main" | "documentation") => {
     setApplyingWatermark(true);
     try {
-      const photosToProcess = photos.filter(p => photoIds.includes(p.id) && p.is_edited && p.original_url);
-      
+      const photosToProcess = photos.filter((p) => photoIds.includes(p.id) && p.is_edited && p.original_url);
+
       if (photosToProcess.length === 0) {
         toast({
           title: "Inga bilder att återställa",
@@ -494,13 +508,12 @@ const CarDetail = () => {
         try {
           // Restore to original URL
           await supabase
-            .from('photos')
+            .from("photos")
             .update({
               url: photo.original_url,
               is_edited: false,
             })
-            .eq('id', photo.id);
-
+            .eq("id", photo.id);
         } catch (error) {
           console.error(`Error removing watermark from photo ${photo.id}:`, error);
         }
@@ -510,9 +523,9 @@ const CarDetail = () => {
         title: "Vattenmärke borttaget",
         description: `${photosToProcess.length} bilder har återställts`,
       });
-      
+
       // Clear selection and refresh
-      if (photoType === 'main') {
+      if (photoType === "main") {
         setSelectedMainPhotos([]);
       } else {
         setSelectedDocPhotos([]);
@@ -533,11 +546,11 @@ const CarDetail = () => {
   const docPhotos = photos.filter((p) => p.photo_type === "documentation");
 
   // Check if all selected photos are edited (have watermarks)
-  const allSelectedMainAreEdited = selectedMainPhotos.length > 0 && 
-    selectedMainPhotos.every(id => photos.find(p => p.id === id)?.is_edited);
-  
-  const allSelectedDocAreEdited = selectedDocPhotos.length > 0 && 
-    selectedDocPhotos.every(id => photos.find(p => p.id === id)?.is_edited);
+  const allSelectedMainAreEdited =
+    selectedMainPhotos.length > 0 && selectedMainPhotos.every((id) => photos.find((p) => p.id === id)?.is_edited);
+
+  const allSelectedDocAreEdited =
+    selectedDocPhotos.length > 0 && selectedDocPhotos.every((id) => photos.find((p) => p.id === id)?.is_edited);
 
   // Combined selected photos for sharing
   const allSelectedPhotos = [...selectedMainPhotos, ...selectedDocPhotos];
@@ -617,7 +630,7 @@ const CarDetail = () => {
               )}
               {car.vin && (
                 <div className="rounded-lg border bg-card p-4 shadow-sm">
-                  <p className="text-sm text-muted-foreground font-medium mb-2">🔢 VIN</p>
+                  <p className="text-sm text-muted-foreground font-medium mb-2">🔢 Reg.nr</p>
                   <p className="text-base">{car.vin}</p>
                 </div>
               )}
@@ -653,7 +666,9 @@ const CarDetail = () => {
               )}
               <div className="sm:col-span-2 lg:col-span-3">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
-                  <p className="text-sm md:text-base text-muted-foreground font-medium">Anteckningar (delat med företaget)</p>
+                  <p className="text-sm md:text-base text-muted-foreground font-medium">
+                    Anteckningar (delat med företaget)
+                  </p>
                   <Button
                     size="sm"
                     onClick={handleSaveNotes}
@@ -710,7 +725,7 @@ const CarDetail = () => {
               {activeTab === "main" && selectedMainPhotos.length > 0 && (
                 <>
                   <Button
-                    onClick={() => handleEditPhotos(selectedMainPhotos, 'main')}
+                    onClick={() => handleEditPhotos(selectedMainPhotos, "main")}
                     variant="outline"
                     className="border-accent text-accent hover:bg-accent hover:text-accent-foreground text-xs md:text-sm h-8 md:h-10"
                   >
@@ -719,43 +734,65 @@ const CarDetail = () => {
                     <span className="sm:hidden">AI ({selectedMainPhotos.length})</span>
                   </Button>
                   <Button
-                    onClick={() => allSelectedMainAreEdited 
-                      ? handleRemoveWatermark(selectedMainPhotos, 'main')
-                      : handleApplyWatermark(selectedMainPhotos, 'main')
+                    onClick={() =>
+                      allSelectedMainAreEdited
+                        ? handleRemoveWatermark(selectedMainPhotos, "main")
+                        : handleApplyWatermark(selectedMainPhotos, "main")
                     }
                     variant="outline"
                     disabled={applyingWatermark}
                     className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-8 md:h-10"
                   >
                     <Stamp className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-                    {applyingWatermark 
-                      ? (allSelectedMainAreEdited ? "Tar bort..." : "Lägger till...") 
-                      : (allSelectedMainAreEdited 
-                          ? <><span className="hidden sm:inline">Ta bort vattenmärke ({selectedMainPhotos.length})</span><span className="sm:hidden">Ta bort ({selectedMainPhotos.length})</span></> 
-                          : <><span className="hidden sm:inline">Lägg till vattenmärke ({selectedMainPhotos.length})</span><span className="sm:hidden">Vattenmärke ({selectedMainPhotos.length})</span></>
-                        )
-                    }
+                    {applyingWatermark ? (
+                      allSelectedMainAreEdited ? (
+                        "Tar bort..."
+                      ) : (
+                        "Lägger till..."
+                      )
+                    ) : allSelectedMainAreEdited ? (
+                      <>
+                        <span className="hidden sm:inline">Ta bort vattenmärke ({selectedMainPhotos.length})</span>
+                        <span className="sm:hidden">Ta bort ({selectedMainPhotos.length})</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="hidden sm:inline">Lägg till vattenmärke ({selectedMainPhotos.length})</span>
+                        <span className="sm:hidden">Vattenmärke ({selectedMainPhotos.length})</span>
+                      </>
+                    )}
                   </Button>
                 </>
               )}
               {activeTab === "docs" && selectedDocPhotos.length > 0 && (
                 <Button
-                  onClick={() => allSelectedDocAreEdited 
-                    ? handleRemoveWatermark(selectedDocPhotos, 'documentation')
-                    : handleApplyWatermark(selectedDocPhotos, 'documentation')
+                  onClick={() =>
+                    allSelectedDocAreEdited
+                      ? handleRemoveWatermark(selectedDocPhotos, "documentation")
+                      : handleApplyWatermark(selectedDocPhotos, "documentation")
                   }
                   variant="outline"
                   disabled={applyingWatermark}
                   className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-8 md:h-10"
                 >
                   <Stamp className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-                  {applyingWatermark 
-                    ? (allSelectedDocAreEdited ? "Tar bort..." : "Lägger till...") 
-                    : (allSelectedDocAreEdited 
-                        ? <><span className="hidden sm:inline">Ta bort vattenmärke ({selectedDocPhotos.length})</span><span className="sm:hidden">Ta bort ({selectedDocPhotos.length})</span></> 
-                        : <><span className="hidden sm:inline">Lägg till vattenmärke ({selectedDocPhotos.length})</span><span className="sm:hidden">Vattenmärke ({selectedDocPhotos.length})</span></>
-                      )
-                  }
+                  {applyingWatermark ? (
+                    allSelectedDocAreEdited ? (
+                      "Tar bort..."
+                    ) : (
+                      "Lägger till..."
+                    )
+                  ) : allSelectedDocAreEdited ? (
+                    <>
+                      <span className="hidden sm:inline">Ta bort vattenmärke ({selectedDocPhotos.length})</span>
+                      <span className="sm:hidden">Ta bort ({selectedDocPhotos.length})</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="hidden sm:inline">Lägg till vattenmärke ({selectedDocPhotos.length})</span>
+                      <span className="sm:hidden">Vattenmärke ({selectedDocPhotos.length})</span>
+                    </>
+                  )}
                 </Button>
               )}
               <Button
@@ -775,8 +812,8 @@ const CarDetail = () => {
           </div>
 
           <TabsContent value="main" className="space-y-4 md:space-y-6">
-            <PhotoGalleryDraggable 
-              photos={mainPhotos} 
+            <PhotoGalleryDraggable
+              photos={mainPhotos}
               onUpdate={() => fetchCarData(true)}
               selectedPhotos={selectedMainPhotos}
               onSelectionChange={setSelectedMainPhotos}
@@ -786,7 +823,7 @@ const CarDetail = () => {
 
           <TabsContent value="docs" className="space-y-4 md:space-y-6">
             <PhotoGalleryDraggable
-              photos={docPhotos} 
+              photos={docPhotos}
               onUpdate={() => fetchCarData(true)}
               selectedPhotos={selectedDocPhotos}
               onSelectionChange={setSelectedDocPhotos}
@@ -825,17 +862,15 @@ const CarDetail = () => {
       </AlertDialog>
 
       {car && (
-        <EditCarDialog open={editDialogOpen} onOpenChange={setEditDialogOpen} car={car} onCarUpdated={() => fetchCarData(true)} />
-      )}
-
-      {car && (
-        <PlatformSyncDialog
-          open={syncDialogOpen}
-          onOpenChange={setSyncDialogOpen}
-          carId={car.id}
+        <EditCarDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
           car={car}
+          onCarUpdated={() => fetchCarData(true)}
         />
       )}
+
+      {car && <PlatformSyncDialog open={syncDialogOpen} onOpenChange={setSyncDialogOpen} carId={car.id} car={car} />}
     </div>
   );
 };
