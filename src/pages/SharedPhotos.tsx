@@ -180,17 +180,17 @@ const SharedPhotos = () => {
 
   return (
     <div
-      className="min-h-screen p-4 md:p-8"
+      className="min-h-screen p-4"
       style={{ backgroundColor }}
     >
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-6 md:mb-8 space-y-3 md:space-y-4">
+      <div className="max-w-7xl mx-auto mb-6 space-y-3">
         {collection.landing_page_logo_url && (
           <div className={`flex ${logoAlignClass}`}>
             <img
               src={collection.landing_page_logo_url}
               alt="Logo"
-              className={`h-6 md:${logoSizeClass} object-contain`}
+              className={`${logoSizeClass} object-contain`}
             />
           </div>
         )}
@@ -199,12 +199,12 @@ const SharedPhotos = () => {
           <img
             src={collection.landing_page_header_image_url}
             alt="Header"
-            className={`w-full h-12 md:${headerHeightClass} ${headerFitClass} rounded`}
+            className={`w-full ${headerHeightClass} ${headerFitClass} rounded`}
           />
         )}
         
         <h1 
-          className={`text-lg md:text-xl font-bold ${textAlignClass}`}
+          className={`text-xl font-bold ${textAlignClass}`}
           style={{ color: collection.landing_page_text_color }}
         >
           {collection.landing_page_title}
@@ -212,7 +212,7 @@ const SharedPhotos = () => {
         
         {collection.landing_page_description && (
           <p 
-            className={`text-xs md:text-sm ${textAlignClass}`}
+            className={`text-sm ${textAlignClass}`}
             style={{ color: collection.landing_page_text_color, opacity: 0.8 }}
           >
             {collection.landing_page_description}
