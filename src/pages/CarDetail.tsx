@@ -586,7 +586,7 @@ const CarDetail = () => {
 
         {/* Car Info Card */}
         <Card className="mb-4 md:mb-8 bg-gradient-card border-border/50 shadow-card hover:shadow-glow transition-all duration-500 animate-scale-in">
-          <CardHeader className="p-4 md:p-6">
+          <CardHeader className="p-4 md:p-6 pb-2 md:pb-3">
             <div className="flex justify-between items-start gap-2">
               <CardTitle className="text-lg md:text-2xl bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
                 {car.year} {car.make} {car.model}
