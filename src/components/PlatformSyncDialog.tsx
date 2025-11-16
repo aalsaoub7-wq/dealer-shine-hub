@@ -112,28 +112,34 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car }: PlatformS
 
           <ScrollArea className="h-[400px]">
             <div className="grid grid-cols-2 gap-3 pr-4">
-              {car?.image_urls?.map((imageUrl: string, index: number) => (
-                <div
-                  key={index}
-                  className={`relative cursor-pointer rounded-lg border-2 transition-all ${
-                    selectedImages.includes(imageUrl)
-                      ? "border-primary shadow-lg"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                  onClick={() => toggleImageSelection(imageUrl)}
-                >
-                  <img
-                    src={imageUrl}
-                    alt={`Bil bild ${index + 1}`}
-                    className="aspect-video w-full rounded-lg object-cover"
-                  />
-                  {selectedImages.includes(imageUrl) && (
-                    <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white">
-                      ✓
-                    </div>
-                  )}
+              {car?.image_urls && car.image_urls.length > 0 ? (
+                car.image_urls.map((imageUrl: string, index: number) => (
+                  <div
+                    key={index}
+                    className={`relative cursor-pointer rounded-lg border-2 transition-all ${
+                      selectedImages.includes(imageUrl)
+                        ? "border-primary shadow-lg"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                    onClick={() => toggleImageSelection(imageUrl)}
+                  >
+                    <img
+                      src={imageUrl}
+                      alt={`Bil bild ${index + 1}`}
+                      className="aspect-video w-full rounded-lg object-cover"
+                    />
+                    {selectedImages.includes(imageUrl) && (
+                      <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white">
+                        ✓
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-2 flex h-[300px] items-center justify-center text-muted-foreground">
+                  Inga bilder tillgängliga
                 </div>
-              ))}
+              )}
             </div>
           </ScrollArea>
 
