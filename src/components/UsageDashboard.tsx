@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { FileText, Image, Car, TrendingUp } from "lucide-react";
 import { PRICES } from "@/lib/usageTracking";
 
@@ -80,49 +79,37 @@ export const UsageDashboard = () => {
         <CardDescription className="text-xs md:text-sm">Översikt över din användning och kostnader</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
           {/* Generated Descriptions */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-primary" />
-                <span className="text-xs md:text-sm font-medium">Beskrivningar</span>
-              </div>
-              <span className="text-xs md:text-sm font-bold">{stats.generated_descriptions_count}</span>
-            </div>
-            <Progress value={Math.min((stats.generated_descriptions_count / 100) * 100, 100)} className="h-2" />
+          <div className="flex flex-col items-center text-center space-y-2 p-4 rounded-lg bg-secondary/30">
+            <FileText className="w-8 h-8 text-primary" />
+            <span className="text-xs md:text-sm font-medium text-muted-foreground">Beskrivningar</span>
+            <span className="text-2xl md:text-3xl font-bold">{stats.generated_descriptions_count}</span>
             <p className="text-xs text-muted-foreground">
-              {stats.generated_descriptions_cost.toFixed(2)} kr (à {PRICES.GENERATE_DESCRIPTION} kr)
+              {stats.generated_descriptions_cost.toFixed(2)} kr<br />
+              <span className="text-[10px]">(à {PRICES.GENERATE_DESCRIPTION} kr)</span>
             </p>
           </div>
 
           {/* Edited Images */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Image className="w-4 h-4 text-primary" />
-                <span className="text-xs md:text-sm font-medium">Redigerade bilder</span>
-              </div>
-              <span className="text-xs md:text-sm font-bold">{stats.edited_images_count}</span>
-            </div>
-            <Progress value={Math.min((stats.edited_images_count / 100) * 100, 100)} className="h-2" />
+          <div className="flex flex-col items-center text-center space-y-2 p-4 rounded-lg bg-secondary/30">
+            <Image className="w-8 h-8 text-primary" />
+            <span className="text-xs md:text-sm font-medium text-muted-foreground">Redigerade bilder</span>
+            <span className="text-2xl md:text-3xl font-bold">{stats.edited_images_count}</span>
             <p className="text-xs text-muted-foreground">
-              {stats.edited_images_cost.toFixed(2)} kr (à {PRICES.EDIT_IMAGE} kr)
+              {stats.edited_images_cost.toFixed(2)} kr<br />
+              <span className="text-[10px]">(à {PRICES.EDIT_IMAGE} kr)</span>
             </p>
           </div>
 
           {/* Added Cars */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Car className="w-4 h-4 text-primary" />
-                <span className="text-xs md:text-sm font-medium">Tillagda bilar</span>
-              </div>
-              <span className="text-xs md:text-sm font-bold">{stats.added_cars_count}</span>
-            </div>
-            <Progress value={Math.min((stats.added_cars_count / 50) * 100, 100)} className="h-2" />
+          <div className="flex flex-col items-center text-center space-y-2 p-4 rounded-lg bg-secondary/30">
+            <Car className="w-8 h-8 text-primary" />
+            <span className="text-xs md:text-sm font-medium text-muted-foreground">Tillagda bilar</span>
+            <span className="text-2xl md:text-3xl font-bold">{stats.added_cars_count}</span>
             <p className="text-xs text-muted-foreground">
-              {stats.added_cars_cost.toFixed(2)} kr (à {PRICES.ADD_CAR} kr)
+              {stats.added_cars_cost.toFixed(2)} kr<br />
+              <span className="text-[10px]">(à {PRICES.ADD_CAR} kr)</span>
             </p>
           </div>
         </div>
