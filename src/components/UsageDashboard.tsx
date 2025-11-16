@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { FileText, Image, Car, TrendingUp } from "lucide-react";
+import { PRICES } from "@/lib/usageTracking";
 
 interface UsageStats {
   generated_descriptions_count: number;
@@ -91,7 +92,7 @@ export const UsageDashboard = () => {
             </div>
             <Progress value={Math.min((stats.generated_descriptions_count / 100) * 100, 100)} className="h-2" />
             <p className="text-xs text-muted-foreground">
-              {stats.generated_descriptions_cost.toFixed(2)} kr
+              {stats.generated_descriptions_cost.toFixed(2)} kr (à {PRICES.GENERATE_DESCRIPTION} kr)
             </p>
           </div>
 
@@ -106,7 +107,7 @@ export const UsageDashboard = () => {
             </div>
             <Progress value={Math.min((stats.edited_images_count / 100) * 100, 100)} className="h-2" />
             <p className="text-xs text-muted-foreground">
-              {stats.edited_images_cost.toFixed(2)} kr
+              {stats.edited_images_cost.toFixed(2)} kr (à {PRICES.EDIT_IMAGE} kr)
             </p>
           </div>
 
@@ -121,7 +122,7 @@ export const UsageDashboard = () => {
             </div>
             <Progress value={Math.min((stats.added_cars_count / 50) * 100, 100)} className="h-2" />
             <p className="text-xs text-muted-foreground">
-              {stats.added_cars_cost.toFixed(2)} kr
+              {stats.added_cars_cost.toFixed(2)} kr (à {PRICES.ADD_CAR} kr)
             </p>
           </div>
         </div>
