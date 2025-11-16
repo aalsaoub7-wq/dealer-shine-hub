@@ -16,6 +16,7 @@ import { useBlocketSync } from "@/hooks/useBlocketSync";
 import { RefreshCw } from "lucide-react";
 
 import blocketLogo from "@/assets/blocket-logo.png";
+import facebookMarketplaceLogo from "@/assets/facebook-marketplace-logo.png";
 import waykeLogo from "@/assets/wayke-logo.png";
 import bytbilLogo from "@/assets/bytbil-logo.png";
 import smart365Logo from "@/assets/smart365-logo.png";
@@ -30,11 +31,11 @@ interface Platform {
 
 const platforms: Platform[] = [
   { id: "blocket", name: "Blocket", logo: blocketLogo },
+  { id: "facebook-marketplace", name: "Facebook Marketplace", logo: facebookMarketplaceLogo },
   { id: "wayke", name: "Wayke", logo: waykeLogo },
   { id: "bytbil", name: "Bytbil", logo: bytbilLogo },
   { id: "smart365", name: "Smart365", logo: smart365Logo },
   { id: "website", name: "Hemsida", logo: websiteLogo },
-  { id: "social", name: "Sociala Medier", logo: socialMediaLogo },
 ];
 
 interface PlatformSyncDialogProps {
@@ -46,6 +47,8 @@ interface PlatformSyncDialogProps {
 
 export function PlatformSyncDialog({ open, onOpenChange, carId, car }: PlatformSyncDialogProps) {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [showSocialMediaPicker, setShowSocialMediaPicker] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const { isLoading, syncToBlocket, status: blocketStatus } = useBlocketSync(carId);
 
   const getPlatformStatus = (platformId: string) => {
@@ -82,6 +85,77 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car }: PlatformS
     onOpenChange(false);
   };
 
+  const toggleImageSelection = (imageUrl: string) => {
+    setSelectedImages((prev) =>
+      prev.includes(imageUrl) ? prev.filter((url) => url !== imageUrl) : [...prev, imageUrl]
+    );
+  };
+
+  const handleSocialMediaShare = () => {
+    // TODO: Implement social media sharing logic
+    console.log("Sharing images to social media:", selectedImages);
+    setShowSocialMediaPicker(false);
+    setSelectedImages([]);
+  };
+
+  if (showSocialMediaPicker) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <img src={socialMediaLogo} alt="Sociala Medier" className="h-6 w-6 object-contain" />
+              Dela till Sociala Medier
+            </DialogTitle>
+            <DialogDescription>Välj vilka bilder du vill dela</DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="h-[400px]">
+            <div className="grid grid-cols-2 gap-3 pr-4">
+              {car?.image_urls?.map((imageUrl: string, index: number) => (
+                <div
+                  key={index}
+                  className={`relative cursor-pointer rounded-lg border-2 transition-all ${
+                    selectedImages.includes(imageUrl)
+                      ? "border-primary shadow-lg"
+                      : "border-border hover:border-primary/50"
+                  }`}
+                  onClick={() => toggleImageSelection(imageUrl)}
+                >
+                  <img
+                    src={imageUrl}
+                    alt={`Bil bild ${index + 1}`}
+                    className="aspect-video w-full rounded-lg object-cover"
+                  />
+                  {selectedImages.includes(imageUrl) && (
+                    <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white">
+                      ✓
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowSocialMediaPicker(false);
+                setSelectedImages([]);
+              }}
+            >
+              Avbryt
+            </Button>
+            <Button onClick={handleSocialMediaShare} disabled={selectedImages.length === 0}>
+              Dela ({selectedImages.length})
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
@@ -91,9 +165,20 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car }: PlatformS
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <Button variant="outline" onClick={selectAll} className="w-full" type="button">
-            Välj alla
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={selectAll} className="flex-1" type="button">
+              Välj alla
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => setShowSocialMediaPicker(true)}
+              className="flex-1"
+              type="button"
+            >
+              <img src={socialMediaLogo} alt="Sociala Medier" className="mr-2 h-4 w-4 object-contain" />
+              Sociala Medier
+            </Button>
+          </div>
 
           <ScrollArea className="h-[400px]">
             <div className="space-y-3 pr-4">
