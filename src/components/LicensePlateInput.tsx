@@ -43,9 +43,7 @@ const LicensePlateInput = ({ value, onChange, maxLength = 6 }: LicensePlateInput
             style={{ fontFamily: "monospace" }}
           >
             {formatValue(value)}
-            {showCursor && (
-              <span className="inline-block w-0.5 h-8 sm:h-10 md:h-12 bg-black ml-1 align-middle" />
-            )}
+            <span className={`inline-block w-0.5 h-8 sm:h-10 md:h-12 bg-black ml-1 align-middle transition-opacity duration-100 ${showCursor ? 'opacity-100' : 'opacity-0'}`} />
           </span>
         </div>
       </div>
