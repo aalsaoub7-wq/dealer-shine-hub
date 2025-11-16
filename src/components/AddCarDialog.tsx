@@ -11,10 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles } from "lucide-react";
+import { Sparkles, FileUp, Edit } from "lucide-react";
 import { trackUsage } from "@/lib/usageTracking";
+import LicensePlateInput from "./LicensePlateInput";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface AddCarDialogProps {
   open: boolean;
@@ -23,8 +24,10 @@ interface AddCarDialogProps {
 }
 
 const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => {
+  const [mode, setMode] = useState<"select" | "import" | "manual">("select");
   const [loading, setLoading] = useState(false);
   const [generatingDescription, setGeneratingDescription] = useState(false);
+  const [registrationNumber, setRegistrationNumber] = useState("");
   const [formData, setFormData] = useState({
     make: "",
     model: "",
@@ -38,9 +41,30 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
     fuel: "",
     gearbox: "",
     description: "",
-    publish_on_blocket: false,
   });
   const { toast } = useToast();
+
+  const handleDialogChange = (open: boolean) => {
+    onOpenChange(open);
+    if (!open) {
+      setMode("select");
+      setRegistrationNumber("");
+      setFormData({
+        make: "",
+        model: "",
+        year: new Date().getFullYear(),
+        vin: "",
+        color: "",
+        mileage: "",
+        notes: "",
+        price: "",
+        registration_number: "",
+        fuel: "",
+        gearbox: "",
+        description: "",
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +96,6 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
         fuel: formData.fuel || null,
         gearbox: formData.gearbox || null,
         description: formData.description || null,
-        publish_on_blocket: formData.publish_on_blocket,
         company_id: userCompany.company_id,
       });
 
@@ -83,22 +106,7 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
 
       toast({ title: "Bil tillagd!" });
       onCarAdded();
-      onOpenChange(false);
-      setFormData({
-        make: "",
-        model: "",
-        year: new Date().getFullYear(),
-        vin: "",
-        color: "",
-        mileage: "",
-        notes: "",
-        price: "",
-        registration_number: "",
-        fuel: "",
-        gearbox: "",
-        description: "",
-        publish_on_blocket: false,
-      });
+      handleDialogChange(false);
     } catch (error: any) {
       toast({
         title: "Fel vid tillägg av bil",
@@ -154,18 +162,136 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
     }
   };
 
+  const handleImport = async () => {
+    if (!registrationNumber || registrationNumber.length < 6) {
+      toast({
+        title: "Ange registreringsnummer",
+        description: "Registreringsnumret måste vara minst 6 tecken",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Användare ej inloggad");
+
+      const { data: userCompany, error: companyError } = await supabase
+        .from("user_companies")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (companyError) throw companyError;
+
+      const { error } = await supabase.from("cars").insert({
+        registration_number: registrationNumber,
+        vin: registrationNumber,
+        make: "Okänd",
+        model: "Okänd",
+        year: new Date().getFullYear(),
+        company_id: userCompany.company_id,
+      });
+
+      if (error) throw error;
+
+      await trackUsage("add_car");
+
+      toast({ title: "Bil importerad!" });
+      onCarAdded();
+      handleDialogChange(false);
+    } catch (error: any) {
+      toast({
+        title: "Fel vid import av bil",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogContent className="bg-gradient-card border-border/50 max-w-2xl shadow-intense animate-scale-in max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-            Lägg till ny bil
+            {mode === "select" && "Lägg till ny bil"}
+            {mode === "import" && "Importera bil"}
+            {mode === "manual" && "Lägg till bil manuellt"}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Ange biluppgifterna nedan. Du kan lägga till foton efter att bilen skapats.
+            {mode === "select" && "Välj hur du vill lägga till bilen"}
+            {mode === "import" && "Ange bilens registreringsnummer"}
+            {mode === "manual" && "Ange biluppgifterna nedan. Du kan lägga till foton efter att bilen skapats."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {mode === "select" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-6">
+            <Card 
+              className="cursor-pointer hover:border-primary hover:shadow-lg transition-all duration-300"
+              onClick={() => setMode("import")}
+            >
+              <CardHeader>
+                <FileUp className="w-12 h-12 mb-2 text-primary" />
+                <CardTitle>Importera bil</CardTitle>
+                <CardDescription>
+                  Lägg till bil genom att ange registreringsnummer
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card 
+              className="cursor-pointer hover:border-primary hover:shadow-lg transition-all duration-300"
+              onClick={() => setMode("manual")}
+            >
+              <CardHeader>
+                <Edit className="w-12 h-12 mb-2 text-primary" />
+                <CardTitle>Lägg till manuellt</CardTitle>
+                <CardDescription>
+                  Fyll i alla biluppgifter manuellt
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        )}
+
+        {mode === "import" && (
+          <div className="space-y-6 py-6">
+            <div className="flex flex-col items-center gap-4">
+              <LicensePlateInput
+                value={registrationNumber}
+                onChange={setRegistrationNumber}
+              />
+              <p className="text-sm text-muted-foreground text-center">
+                Klicka på registreringsskylten för att skriva
+              </p>
+            </div>
+            
+            <div className="flex gap-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setMode("select")}
+                className="flex-1"
+              >
+                Tillbaka
+              </Button>
+              <Button
+                type="button"
+                onClick={handleImport}
+                disabled={loading || registrationNumber.length < 6}
+                className="flex-1"
+              >
+                {loading ? "Importerar..." : "Importera"}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {mode === "manual" && (
+          <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="make">Märke *</Label>
@@ -300,24 +426,14 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
               placeholder="Interna noteringar (syns inte på Blocket)"
             />
           </div>
-          <div className="flex items-center space-x-2 p-4 bg-secondary/50 rounded-lg border border-border">
-            <Switch
-              id="publish_on_blocket"
-              checked={formData.publish_on_blocket}
-              onCheckedChange={(checked) => setFormData({ ...formData, publish_on_blocket: checked })}
-            />
-            <Label htmlFor="publish_on_blocket" className="cursor-pointer">
-              Publicera på Blocket automatiskt
-            </Label>
-          </div>
           <div className="flex justify-end gap-3">
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => setMode("select")}
               className="border-border hover:scale-105 transition-all duration-300"
             >
-              Avbryt
+              Tillbaka
             </Button>
             <Button
               type="submit"
@@ -328,6 +444,7 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
             </Button>
           </div>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   );
