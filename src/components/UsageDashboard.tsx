@@ -73,7 +73,7 @@ export const UsageDashboard = () => {
         <CardDescription className="text-xs md:text-sm">Översikt över din användning och kostnader</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-3 gap-4 md:gap-6">
           {/* Generated Descriptions */}
           <div className="flex flex-col items-center text-center space-y-2 p-4 rounded-lg bg-secondary/30">
             <FileText className="w-8 h-8 text-primary" />
