@@ -604,51 +604,51 @@ const CarDetail = () => {
           <CardContent className="p-4 md:p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               {car.price && (
-                <div>
-                  <p className="text-sm md:text-base text-muted-foreground font-medium">Pris</p>
-                  <p className="font-semibold text-sm md:text-base">{car.price.toLocaleString()} SEK</p>
+                <div className="rounded-lg border bg-card p-4 shadow-sm">
+                  <p className="text-sm text-muted-foreground font-medium mb-2">💰 Pris</p>
+                  <p className="font-semibold text-lg">{car.price.toLocaleString()} SEK</p>
                 </div>
               )}
               {car.registration_number && (
-                <div>
-                  <p className="text-sm md:text-base text-muted-foreground font-medium">Registreringsnummer</p>
-                  <p className="text-sm md:text-base">{car.registration_number}</p>
+                <div className="rounded-lg border bg-card p-4 shadow-sm">
+                  <p className="text-sm text-muted-foreground font-medium mb-2">🚗 Registreringsnummer</p>
+                  <p className="text-base">{car.registration_number}</p>
                 </div>
               )}
               {car.vin && (
-                <div>
-                  <p className="text-sm md:text-base text-muted-foreground font-medium">Reg.nr.</p>
-                  <p className="text-sm md:text-base">{car.vin}</p>
+                <div className="rounded-lg border bg-card p-4 shadow-sm">
+                  <p className="text-sm text-muted-foreground font-medium mb-2">🔢 VIN</p>
+                  <p className="text-base">{car.vin}</p>
                 </div>
               )}
               {car.color && (
-                <div>
-                  <p className="text-sm md:text-base text-muted-foreground font-medium">Färg</p>
-                  <p className="text-sm md:text-base">{car.color}</p>
+                <div className="rounded-lg border bg-card p-4 shadow-sm">
+                  <p className="text-sm text-muted-foreground font-medium mb-2">🎨 Färg</p>
+                  <p className="text-base">{car.color}</p>
                 </div>
               )}
               {car.mileage && (
-                <div>
-                  <p className="text-sm md:text-base text-muted-foreground font-medium">Miltal</p>
-                  <p className="text-sm md:text-base">{car.mileage.toLocaleString()} km</p>
+                <div className="rounded-lg border bg-card p-4 shadow-sm">
+                  <p className="text-sm text-muted-foreground font-medium mb-2">📏 Miltal</p>
+                  <p className="text-base">{car.mileage.toLocaleString()} km</p>
                 </div>
               )}
               {car.fuel && (
-                <div>
-                  <p className="text-sm md:text-base text-muted-foreground font-medium">Bränsle</p>
-                  <p className="text-sm md:text-base">{car.fuel}</p>
+                <div className="rounded-lg border bg-card p-4 shadow-sm">
+                  <p className="text-sm text-muted-foreground font-medium mb-2">⛽ Bränsle</p>
+                  <p className="text-base">{car.fuel}</p>
                 </div>
               )}
               {car.gearbox && (
-                <div>
-                  <p className="text-sm md:text-base text-muted-foreground font-medium">Växellåda</p>
-                  <p className="text-sm md:text-base">{car.gearbox}</p>
+                <div className="rounded-lg border bg-card p-4 shadow-sm">
+                  <p className="text-sm text-muted-foreground font-medium mb-2">⚙️ Växellåda</p>
+                  <p className="text-base">{car.gearbox}</p>
                 </div>
               )}
               {car.description && (
-                <div className="sm:col-span-2 lg:col-span-3">
-                  <p className="text-sm md:text-base text-muted-foreground font-medium">Beskrivning</p>
-                  <p className="whitespace-pre-wrap text-sm md:text-base">{car.description}</p>
+                <div className="sm:col-span-2 lg:col-span-3 rounded-lg border bg-card p-4 shadow-sm">
+                  <p className="text-sm text-muted-foreground font-medium mb-2">📝 Beskrivning</p>
+                  <p className="whitespace-pre-wrap text-base">{car.description}</p>
                 </div>
               )}
               <div className="sm:col-span-2 lg:col-span-3">
