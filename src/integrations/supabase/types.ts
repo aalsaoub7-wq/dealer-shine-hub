@@ -352,6 +352,51 @@ export type Database = {
         }
         Relationships: []
       }
+      usage_stats: {
+        Row: {
+          added_cars_cost: number
+          added_cars_count: number
+          created_at: string
+          edited_images_cost: number
+          edited_images_count: number
+          generated_descriptions_cost: number
+          generated_descriptions_count: number
+          id: string
+          month: string
+          total_cost: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          added_cars_cost?: number
+          added_cars_count?: number
+          created_at?: string
+          edited_images_cost?: number
+          edited_images_count?: number
+          generated_descriptions_cost?: number
+          generated_descriptions_count?: number
+          id?: string
+          month: string
+          total_cost?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          added_cars_cost?: number
+          added_cars_count?: number
+          created_at?: string
+          edited_images_cost?: number
+          edited_images_count?: number
+          generated_descriptions_cost?: number
+          generated_descriptions_count?: number
+          id?: string
+          month?: string
+          total_cost?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_companies: {
         Row: {
           company_id: string

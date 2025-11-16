@@ -1,0 +1,141 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { FileText, Image, Car, TrendingUp } from "lucide-react";
+
+interface UsageStats {
+  generated_descriptions_count: number;
+  edited_images_count: number;
+  added_cars_count: number;
+  generated_descriptions_cost: number;
+  edited_images_cost: number;
+  added_cars_cost: number;
+  total_cost: number;
+}
+
+export const UsageDashboard = () => {
+  const [stats, setStats] = useState<UsageStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchMonthlyStats();
+  }, []);
+
+  const fetchMonthlyStats = async () => {
+    try {
+      const now = new Date();
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        .toISOString()
+        .split("T")[0];
+
+      const { data, error } = await supabase
+        .from("usage_stats")
+        .select("*")
+        .eq("month", firstDayOfMonth)
+        .maybeSingle();
+
+      if (error && error.code !== "PGRST116") throw error;
+
+      setStats(
+        data || {
+          generated_descriptions_count: 0,
+          edited_images_count: 0,
+          added_cars_count: 0,
+          generated_descriptions_cost: 0,
+          edited_images_cost: 0,
+          added_cars_cost: 0,
+          total_cost: 0,
+        }
+      );
+    } catch (error) {
+      console.error("Error fetching usage stats:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card className="mb-4 md:mb-6 animate-fade-in">
+        <CardContent className="py-6">
+          <div className="text-center text-muted-foreground text-sm">Laddar statistik...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!stats) return null;
+
+  const monthName = new Date().toLocaleDateString("sv-SE", { month: "long", year: "numeric" });
+
+  return (
+    <Card className="mb-4 md:mb-6 animate-fade-in border-border/50 bg-card/50 backdrop-blur-sm">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base md:text-lg flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+          Månatlig användning - {monthName}
+        </CardTitle>
+        <CardDescription className="text-xs md:text-sm">Översikt över din användning och kostnader</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+          {/* Generated Descriptions */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-primary" />
+                <span className="text-xs md:text-sm font-medium">Beskrivningar</span>
+              </div>
+              <span className="text-xs md:text-sm font-bold">{stats.generated_descriptions_count}</span>
+            </div>
+            <Progress value={Math.min((stats.generated_descriptions_count / 100) * 100, 100)} className="h-2" />
+            <p className="text-xs text-muted-foreground">
+              {stats.generated_descriptions_cost.toFixed(2)} kr
+            </p>
+          </div>
+
+          {/* Edited Images */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Image className="w-4 h-4 text-primary" />
+                <span className="text-xs md:text-sm font-medium">Redigerade bilder</span>
+              </div>
+              <span className="text-xs md:text-sm font-bold">{stats.edited_images_count}</span>
+            </div>
+            <Progress value={Math.min((stats.edited_images_count / 100) * 100, 100)} className="h-2" />
+            <p className="text-xs text-muted-foreground">
+              {stats.edited_images_cost.toFixed(2)} kr
+            </p>
+          </div>
+
+          {/* Added Cars */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Car className="w-4 h-4 text-primary" />
+                <span className="text-xs md:text-sm font-medium">Tillagda bilar</span>
+              </div>
+              <span className="text-xs md:text-sm font-bold">{stats.added_cars_count}</span>
+            </div>
+            <Progress value={Math.min((stats.added_cars_count / 50) * 100, 100)} className="h-2" />
+            <p className="text-xs text-muted-foreground">
+              {stats.added_cars_cost.toFixed(2)} kr
+            </p>
+          </div>
+        </div>
+
+        {/* Total Cost */}
+        <div className="pt-3 border-t border-border/50">
+          <div className="flex items-center justify-between">
+            <span className="text-sm md:text-base font-semibold">Total kostnad denna månad:</span>
+            <span className="text-lg md:text-xl font-bold text-primary">
+              {stats.total_cost.toFixed(2)} kr
+            </span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
