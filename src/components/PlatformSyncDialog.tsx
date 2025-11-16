@@ -43,9 +43,10 @@ interface PlatformSyncDialogProps {
   onOpenChange: (open: boolean) => void;
   carId: string;
   car: any;
+  photos: Array<{ id: string; url: string; photo_type: string }>;
 }
 
-export function PlatformSyncDialog({ open, onOpenChange, carId, car }: PlatformSyncDialogProps) {
+export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: PlatformSyncDialogProps) {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [showSocialMediaPicker, setShowSocialMediaPicker] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
@@ -112,23 +113,23 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car }: PlatformS
 
           <ScrollArea className="h-[400px]">
             <div className="grid grid-cols-2 gap-3 pr-4">
-              {car?.image_urls && car.image_urls.length > 0 ? (
-                car.image_urls.map((imageUrl: string, index: number) => (
+              {photos && photos.length > 0 ? (
+                photos.map((photo, index) => (
                   <div
-                    key={index}
+                    key={photo.id}
                     className={`relative cursor-pointer rounded-lg border-2 transition-all ${
-                      selectedImages.includes(imageUrl)
+                      selectedImages.includes(photo.url)
                         ? "border-primary shadow-lg"
                         : "border-border hover:border-primary/50"
                     }`}
-                    onClick={() => toggleImageSelection(imageUrl)}
+                    onClick={() => toggleImageSelection(photo.url)}
                   >
                     <img
-                      src={imageUrl}
+                      src={photo.url}
                       alt={`Bil bild ${index + 1}`}
                       className="aspect-video w-full rounded-lg object-cover"
                     />
-                    {selectedImages.includes(imageUrl) && (
+                    {selectedImages.includes(photo.url) && (
                       <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white">
                         ✓
                       </div>
