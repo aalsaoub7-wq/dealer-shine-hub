@@ -25,15 +25,9 @@ export const UsageDashboard = () => {
   const fetchMonthlyStats = async () => {
     try {
       const now = new Date();
-      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-        .toISOString()
-        .split("T")[0];
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
 
-      const { data, error } = await supabase
-        .from("usage_stats")
-        .select("*")
-        .eq("month", firstDayOfMonth)
-        .maybeSingle();
+      const { data, error } = await supabase.from("usage_stats").select("*").eq("month", firstDayOfMonth).maybeSingle();
 
       if (error && error.code !== "PGRST116") throw error;
 
@@ -46,7 +40,7 @@ export const UsageDashboard = () => {
           edited_images_cost: 0,
           added_cars_cost: 0,
           total_cost: 0,
-        }
+        },
       );
     } catch (error) {
       console.error("Error fetching usage stats:", error);
@@ -83,10 +77,11 @@ export const UsageDashboard = () => {
           {/* Generated Descriptions */}
           <div className="flex flex-col items-center text-center space-y-2 p-4 rounded-lg bg-secondary/30">
             <FileText className="w-8 h-8 text-primary" />
-            <span className="text-xs md:text-sm font-medium text-muted-foreground">Beskrivningar</span>
+            <span className="text-xs md:text-sm font-medium text-muted-foreground">AI Beskrivningar</span>
             <span className="text-2xl md:text-3xl font-bold">{stats.generated_descriptions_count}</span>
             <p className="text-xs text-muted-foreground">
-              {stats.generated_descriptions_cost.toFixed(2)} kr<br />
+              {stats.generated_descriptions_cost.toFixed(2)} kr
+              <br />
               <span className="text-[10px]">(à {PRICES.GENERATE_DESCRIPTION} kr)</span>
             </p>
           </div>
@@ -97,7 +92,8 @@ export const UsageDashboard = () => {
             <span className="text-xs md:text-sm font-medium text-muted-foreground">Redigerade bilder</span>
             <span className="text-2xl md:text-3xl font-bold">{stats.edited_images_count}</span>
             <p className="text-xs text-muted-foreground">
-              {stats.edited_images_cost.toFixed(2)} kr<br />
+              {stats.edited_images_cost.toFixed(2)} kr
+              <br />
               <span className="text-[10px]">(à {PRICES.EDIT_IMAGE} kr)</span>
             </p>
           </div>
@@ -105,10 +101,11 @@ export const UsageDashboard = () => {
           {/* Added Cars */}
           <div className="flex flex-col items-center text-center space-y-2 p-4 rounded-lg bg-secondary/30">
             <Car className="w-8 h-8 text-primary" />
-            <span className="text-xs md:text-sm font-medium text-muted-foreground">Tillagda bilar</span>
+            <span className="text-xs md:text-sm font-medium text-muted-foreground">Importerade Bilar</span>
             <span className="text-2xl md:text-3xl font-bold">{stats.added_cars_count}</span>
             <p className="text-xs text-muted-foreground">
-              {stats.added_cars_cost.toFixed(2)} kr<br />
+              {stats.added_cars_cost.toFixed(2)} kr
+              <br />
               <span className="text-[10px]">(à {PRICES.ADD_CAR} kr)</span>
             </p>
           </div>
@@ -118,9 +115,7 @@ export const UsageDashboard = () => {
         <div className="pt-3 border-t border-border/50">
           <div className="flex items-center justify-between">
             <span className="text-sm md:text-base font-semibold">Total kostnad denna månad:</span>
-            <span className="text-lg md:text-xl font-bold text-primary">
-              {stats.total_cost.toFixed(2)} kr
-            </span>
+            <span className="text-lg md:text-xl font-bold text-primary">{stats.total_cost.toFixed(2)} kr</span>
           </div>
         </div>
       </CardContent>
