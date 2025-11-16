@@ -16,6 +16,7 @@ import {
   Share2,
   Stamp,
   Sparkles,
+  ChevronDown,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PhotoUpload from "@/components/PhotoUpload";
@@ -34,6 +35,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface CarData {
   id: string;
@@ -81,6 +87,7 @@ const CarDetail = () => {
   const [editingPhotos, setEditingPhotos] = useState<Record<string, { timeLeft: number; isEditing: boolean }>>({});
   const [pendingEdits, setPendingEdits] = useState<Record<string, { publicUrl: string; completeAt: Date }>>({});
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
+  const [descriptionOpen, setDescriptionOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -663,10 +670,23 @@ const CarDetail = () => {
                 </div>
               )}
               {car.description && (
-                <div className="sm:col-span-2 lg:col-span-3 rounded-lg border bg-card p-4 shadow-sm">
-                  <p className="text-sm text-muted-foreground font-medium mb-2">📝 Beskrivning</p>
-                  <p className="whitespace-pre-wrap text-base">{car.description}</p>
-                </div>
+                <Collapsible
+                  open={descriptionOpen}
+                  onOpenChange={setDescriptionOpen}
+                  className="sm:col-span-2 lg:col-span-3 rounded-lg border bg-card shadow-sm"
+                >
+                  <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-accent/5 transition-colors">
+                    <p className="text-sm text-muted-foreground font-medium">📝 Beskrivning</p>
+                    <ChevronDown
+                      className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${
+                        descriptionOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="px-4 pb-4">
+                    <p className="whitespace-pre-wrap text-base pt-2">{car.description}</p>
+                  </CollapsibleContent>
+                </Collapsible>
               )}
               <div className="sm:col-span-2 lg:col-span-3">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
