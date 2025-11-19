@@ -41,11 +41,25 @@ serve(async (req) => {
     const requestBody = await req.json();
     console.log('Request body:', JSON.stringify(requestBody));
     
-    const { carData } = requestBody;
+    const { carId } = requestBody;
     
-    if (!carData) {
-      throw new Error('carData is missing from request body');
+    if (!carId) {
+      throw new Error('carId is missing from request body');
     }
+
+    // Fetch car data from database
+    const { data: carData, error: carError } = await supabaseAdmin
+      .from('cars')
+      .select('*')
+      .eq('id', carId)
+      .single();
+
+    if (carError || !carData) {
+      console.error('Error fetching car:', carError);
+      throw new Error('Could not fetch car data');
+    }
+
+    console.log('Car data:', JSON.stringify(carData));
 
     // Fetch user's AI settings for example descriptions
     const { data: aiSettings } = await supabaseAdmin
