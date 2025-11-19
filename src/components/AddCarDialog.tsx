@@ -260,10 +260,18 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
         {mode === "import" && (
           <div className="space-y-6 py-6">
             <div className="flex flex-col items-center gap-4">
-              <LicensePlateInput
-                value={registrationNumber}
-                onChange={setRegistrationNumber}
-              />
+                <div className="space-y-2">
+                  <LicensePlateInput
+                    value={registrationNumber}
+                    onChange={(value) => {
+                      setRegistrationNumber(value);
+                      setErrors((prev) => ({ ...prev, registrationNumber: undefined }));
+                    }}
+                  />
+                  {errors.registrationNumber && (
+                    <p className="text-sm text-destructive text-center">{errors.registrationNumber}</p>
+                  )}
+                </div>
               <p className="text-sm text-muted-foreground text-center">
                 Klicka på registreringsskylten för att skriva
               </p>
