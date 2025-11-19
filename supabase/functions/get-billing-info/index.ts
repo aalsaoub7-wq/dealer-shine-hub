@@ -77,6 +77,14 @@ serve(async (req) => {
       .eq("month", month)
       .maybeSingle();
 
+    // Get subscription info
+    const { data: subscription } = await supabaseClient
+      .from("subscriptions")
+      .select("*")
+      .eq("company_id", company.id)
+      .eq("status", "active")
+      .maybeSingle();
+
     // Get invoices from Stripe
     const invoices = await stripe.invoices.list({
       customer: company.stripe_customer_id,
@@ -93,17 +101,22 @@ serve(async (req) => {
       JSON.stringify({
         hasCustomer: true,
         customerId: company.stripe_customer_id,
+        subscription: subscription ? {
+          status: subscription.status,
+          current_period_end: subscription.current_period_end,
+        } : undefined,
         currentUsage: {
-          editedImages: usageStats?.edited_images_count || 0,
-          cost: usageStats?.total_cost || 0,
+          edited_images_count: usageStats?.edited_images_count || 0,
+          edited_images_cost: usageStats?.edited_images_cost || 0,
+          total_cost: usageStats?.total_cost || 0,
         },
         invoices: invoices.data.map((inv: any) => ({
           id: inv.id,
-          amount: inv.amount_due / 100,
+          created: inv.created,
+          amount_paid: inv.amount_paid,
           currency: inv.currency,
           status: inv.status,
-          created: new Date(inv.created * 1000).toISOString(),
-          invoicePdf: inv.invoice_pdf,
+          invoice_pdf: inv.invoice_pdf,
         })),
         portalUrl: portalSession.url,
       }),
