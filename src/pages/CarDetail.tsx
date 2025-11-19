@@ -419,13 +419,12 @@ const CarDetail = () => {
             data: { publicUrl },
           } = supabase.storage.from("car-photos").getPublicUrl(filePath);
 
-          // Update photo record
+          // Update photo record - save original URL if not already saved
           await supabase
             .from("photos")
             .update({
               url: publicUrl,
               original_url: photo.original_url || photo.url,
-              is_edited: true,
             })
             .eq("id", photo.id);
         } catch (error) {
