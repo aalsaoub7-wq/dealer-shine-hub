@@ -250,6 +250,7 @@ export type Database = {
           display_order: number | null
           id: string
           is_edited: boolean | null
+          is_processing: boolean | null
           original_url: string | null
           photo_type: string
           updated_at: string | null
@@ -261,6 +262,7 @@ export type Database = {
           display_order?: number | null
           id?: string
           is_edited?: boolean | null
+          is_processing?: boolean | null
           original_url?: string | null
           photo_type: string
           updated_at?: string | null
@@ -272,6 +274,7 @@ export type Database = {
           display_order?: number | null
           id?: string
           is_edited?: boolean | null
+          is_processing?: boolean | null
           original_url?: string | null
           photo_type?: string
           updated_at?: string | null

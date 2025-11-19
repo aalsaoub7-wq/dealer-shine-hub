@@ -29,6 +29,7 @@ interface Photo {
   id: string;
   url: string;
   is_edited: boolean;
+  is_processing?: boolean;
   original_url: string | null;
   display_order: number;
 }
@@ -38,7 +39,6 @@ interface PhotoGalleryProps {
   onUpdate: () => void;
   selectedPhotos: string[];
   onSelectionChange: (selectedIds: string[]) => void;
-  processingPhotos?: Record<string, boolean>;
 }
 
 interface SortablePhotoCardProps {
@@ -49,7 +49,6 @@ interface SortablePhotoCardProps {
   onDownload: (url: string) => void;
   isSelected: boolean;
   onSelect: (photoId: string, selected: boolean) => void;
-  isProcessing?: boolean;
 }
 
 const SortablePhotoCard = ({
@@ -60,7 +59,6 @@ const SortablePhotoCard = ({
   onDownload,
   isSelected,
   onSelect,
-  isProcessing,
 }: SortablePhotoCardProps) => {
   const {
     attributes,
@@ -86,7 +84,7 @@ const SortablePhotoCard = ({
       {...attributes}
     >
       <div className="relative aspect-video bg-secondary">
-        {isProcessing && (
+        {photo.is_processing && (
           <div className="absolute inset-0 bg-background/90 z-20 flex flex-col items-center justify-center">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
             <p className="text-lg text-foreground font-medium">Bild Behandlas</p>
@@ -161,7 +159,7 @@ const SortablePhotoCard = ({
   );
 };
 
-const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionChange, processingPhotos = {} }: PhotoGalleryProps) => {
+const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionChange }: PhotoGalleryProps) => {
   const { toast } = useToast();
   const [items, setItems] = useState(photos);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
@@ -282,7 +280,6 @@ const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionCh
                     onSelectionChange(selectedPhotos.filter(id => id !== photoId));
                   }
                 }}
-                isProcessing={processingPhotos[photo.id] || false}
               />
             ))}
           </div>
