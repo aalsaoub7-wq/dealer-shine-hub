@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.generate-car-description]
 verify_jwt = true
+
+[functions.translate-text]
+verify_jwt = true
