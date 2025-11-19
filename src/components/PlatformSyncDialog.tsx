@@ -31,7 +31,7 @@ interface Platform {
 }
 
 const platforms: Platform[] = [
-  { id: "blocket", name: "Blocket", logo: blocketLogo },
+  { id: "blocket", name: "Blocket", logo: blocketLogo, comingSoon: true },
   { id: "facebook-marketplace", name: "Facebook Marketplace", logo: facebookMarketplaceLogo, comingSoon: true },
   { id: "wayke", name: "Wayke", logo: waykeLogo, comingSoon: true },
   { id: "bytbil", name: "Bytbil", logo: bytbilLogo, comingSoon: true },
