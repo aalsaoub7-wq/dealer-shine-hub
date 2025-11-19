@@ -1,0 +1,121 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import Stripe from "https://esm.sh/stripe@14.21.0";
+
+const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") as string, {
+  apiVersion: "2023-10-16",
+});
+
+const cryptoProvider = Stripe.createSubtleCryptoProvider();
+
+serve(async (req) => {
+  const signature = req.headers.get("Stripe-Signature");
+
+  if (!signature) {
+    return new Response("No signature", { status: 400 });
+  }
+
+  try {
+    const body = await req.text();
+    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+
+    if (!webhookSecret) {
+      throw new Error("Webhook secret not configured");
+    }
+
+    const event = await stripe.webhooks.constructEventAsync(
+      body,
+      signature,
+      webhookSecret,
+      undefined,
+      cryptoProvider
+    );
+
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    console.log("Webhook event:", event.type);
+
+    switch (event.type) {
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object as Stripe.Invoice;
+        console.log("Payment succeeded for invoice:", invoice.id);
+
+        // Update usage_stats with the invoice ID
+        const { error } = await supabaseClient
+          .from("usage_stats")
+          .update({ stripe_invoice_id: invoice.id })
+          .eq("stripe_invoice_id", null)
+          .is("stripe_invoice_id", null);
+
+        if (error) {
+          console.error("Error updating usage_stats:", error);
+        }
+        break;
+      }
+
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as Stripe.Invoice;
+        console.log("Payment failed for invoice:", invoice.id);
+        // Handle failed payment (e.g., notify user, suspend service)
+        break;
+      }
+
+      case "customer.subscription.updated": {
+        const subscription = event.data.object as Stripe.Subscription;
+        console.log("Subscription updated:", subscription.id);
+
+        // Update subscription in database
+        const { error } = await supabaseClient
+          .from("subscriptions")
+          .update({
+            status: subscription.status,
+            current_period_start: new Date(
+              subscription.current_period_start * 1000
+            ).toISOString(),
+            current_period_end: new Date(
+              subscription.current_period_end * 1000
+            ).toISOString(),
+          })
+          .eq("stripe_subscription_id", subscription.id);
+
+        if (error) {
+          console.error("Error updating subscription:", error);
+        }
+        break;
+      }
+
+      case "customer.subscription.deleted": {
+        const subscription = event.data.object as Stripe.Subscription;
+        console.log("Subscription deleted:", subscription.id);
+
+        // Update subscription status
+        const { error } = await supabaseClient
+          .from("subscriptions")
+          .update({ status: "canceled" })
+          .eq("stripe_subscription_id", subscription.id);
+
+        if (error) {
+          console.error("Error updating subscription:", error);
+        }
+        break;
+      }
+
+      default:
+        console.log(`Unhandled event type: ${event.type}`);
+    }
+
+    return new Response(JSON.stringify({ received: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error: any) {
+    console.error("Webhook error:", error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+});
