@@ -396,8 +396,10 @@ const CarDetail = () => {
       for (const photo of photosToProcess) {
         try {
           // Apply watermark with user's settings
+          // Use original_url if it exists (to replace existing watermark), otherwise use current url
+          const sourceUrl = photo.original_url || photo.url;
           const watermarkedBlob = await applyWatermark(
-            photo.url,
+            sourceUrl,
             settings.logo_url,
             settings.watermark_x || 20,
             settings.watermark_y || 20,
@@ -758,22 +760,24 @@ const CarDetail = () => {
                     <span className="hidden sm:inline">AI redigera ({selectedMainPhotos.length})</span>
                     <span className="sm:hidden">AI ({selectedMainPhotos.length})</span>
                   </Button>
-                  <Button
-                    onClick={() => handleApplyWatermark(selectedMainPhotos, "main")}
-                    variant="outline"
-                    disabled={applyingWatermark}
-                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-8 md:h-10"
-                  >
-                    <Stamp className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-                    {applyingWatermark ? (
-                      "Lägger till..."
-                    ) : (
-                      <>
-                        <span className="hidden sm:inline">Lägg till vattenmärke ({selectedMainPhotos.length})</span>
-                        <span className="sm:hidden">Vattenmärke ({selectedMainPhotos.length})</span>
-                      </>
-                    )}
-                  </Button>
+                  {!allSelectedMainHaveWatermark && (
+                    <Button
+                      onClick={() => handleApplyWatermark(selectedMainPhotos, "main")}
+                      variant="outline"
+                      disabled={applyingWatermark}
+                      className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-8 md:h-10"
+                    >
+                      <Stamp className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                      {applyingWatermark ? (
+                        "Lägger till..."
+                      ) : (
+                        <>
+                          <span className="hidden sm:inline">Lägg till vattenmärke ({selectedMainPhotos.length})</span>
+                          <span className="sm:hidden">Vattenmärke ({selectedMainPhotos.length})</span>
+                        </>
+                      )}
+                    </Button>
+                  )}
                   {allSelectedMainHaveWatermark && (
                     <Button
                       onClick={() => handleRemoveWatermark(selectedMainPhotos, "main")}
@@ -796,22 +800,24 @@ const CarDetail = () => {
               )}
               {activeTab === "docs" && selectedDocPhotos.length > 0 && (
                 <>
-                  <Button
-                    onClick={() => handleApplyWatermark(selectedDocPhotos, "documentation")}
-                    variant="outline"
-                    disabled={applyingWatermark}
-                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-8 md:h-10"
-                  >
-                    <Stamp className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-                    {applyingWatermark ? (
-                      "Lägger till..."
-                    ) : (
-                      <>
-                        <span className="hidden sm:inline">Lägg till vattenmärke ({selectedDocPhotos.length})</span>
-                        <span className="sm:hidden">Vattenmärke ({selectedDocPhotos.length})</span>
-                      </>
-                    )}
-                  </Button>
+                  {!allSelectedDocHaveWatermark && (
+                    <Button
+                      onClick={() => handleApplyWatermark(selectedDocPhotos, "documentation")}
+                      variant="outline"
+                      disabled={applyingWatermark}
+                      className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-8 md:h-10"
+                    >
+                      <Stamp className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                      {applyingWatermark ? (
+                        "Lägger till..."
+                      ) : (
+                        <>
+                          <span className="hidden sm:inline">Lägg till vattenmärke ({selectedDocPhotos.length})</span>
+                          <span className="sm:hidden">Vattenmärke ({selectedDocPhotos.length})</span>
+                        </>
+                      )}
+                    </Button>
+                  )}
                   {allSelectedDocHaveWatermark && (
                     <Button
                       onClick={() => handleRemoveWatermark(selectedDocPhotos, "documentation")}
