@@ -5,10 +5,8 @@ import { FileText, Image, TrendingUp } from "lucide-react";
 import { PRICES } from "@/lib/usageTracking";
 
 interface UsageStats {
-  generated_descriptions_count: number;
-  generated_descriptions_cost: number;
-  cars_with_edited_images_count: number;
-  cars_with_edited_images_cost: number;
+  edited_images_count: number;
+  edited_images_cost: number;
   total_cost: number;
 }
 
@@ -35,10 +33,8 @@ export const UsageDashboard = ({ showTotalCost = false }: UsageDashboardProps) =
 
       setStats(
         data || {
-          generated_descriptions_count: 0,
-          generated_descriptions_cost: 0,
-          cars_with_edited_images_count: 0,
-          cars_with_edited_images_cost: 0,
+          edited_images_count: 0,
+          edited_images_cost: 0,
           total_cost: 0,
         },
       );
@@ -82,29 +78,20 @@ export const UsageDashboard = ({ showTotalCost = false }: UsageDashboardProps) =
         </CardTitle>
         <CardDescription className="text-xs md:text-sm">Översikt över din användning och kostnader</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4 md:gap-6">
-          {/* Generated Descriptions */}
-          <div className="flex flex-col items-center text-center space-y-2 p-4 rounded-lg bg-secondary/30">
-            <FileText className="w-8 h-8 text-primary" />
-            <span className="text-xs md:text-sm font-medium text-muted-foreground">AI Beskrivningar</span>
-            <span className="text-2xl md:text-3xl font-bold">{stats.generated_descriptions_count}</span>
-            <p className="text-xs text-muted-foreground">
-              {stats.generated_descriptions_cost.toFixed(2)} kr
-              <br />
-              <span className="text-[10px]">(à {PRICES.GENERATE_DESCRIPTION} kr)</span>
-            </p>
+      <CardContent>
+        <div className="flex flex-col items-center text-center space-y-3 p-6 rounded-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+          <div className="p-3 rounded-full bg-primary/10">
+            <Image className="w-10 h-10 md:w-12 md:h-12 text-primary" />
           </div>
-
-          {/* Cars with Edited Images */}
-          <div className="flex flex-col items-center text-center space-y-2 p-4 rounded-lg bg-secondary/30">
-            <Image className="w-8 h-8 text-primary" />
-            <span className="text-xs md:text-sm font-medium text-muted-foreground">Bilar med Redigerade Bilder</span>
-            <span className="text-2xl md:text-3xl font-bold">{stats.cars_with_edited_images_count}</span>
-            <p className="text-xs text-muted-foreground">
-              {stats.cars_with_edited_images_cost.toFixed(2)} kr
+          <span className="text-sm md:text-base font-medium text-muted-foreground">Redigerade Bilder</span>
+          <span className="text-4xl md:text-5xl font-bold bg-gradient-to-br from-primary to-primary/60 bg-clip-text text-transparent">
+            {stats.edited_images_count}
+          </span>
+          <div className="pt-2 border-t border-border/50 w-full">
+            <p className="text-xs md:text-sm text-muted-foreground">
+              <span className="text-base md:text-lg font-semibold text-foreground">{stats.edited_images_cost.toFixed(2)} kr</span>
               <br />
-              <span className="text-[10px]">(à {PRICES.CAR_WITH_EDITED_IMAGES} kr)</span>
+              <span className="text-[10px] md:text-xs opacity-70">(à {PRICES.EDITED_IMAGE} kr per bild)</span>
             </p>
           </div>
         </div>

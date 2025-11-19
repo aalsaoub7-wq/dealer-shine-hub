@@ -322,11 +322,9 @@ export type Database = {
       }
       usage_stats: {
         Row: {
-          cars_with_edited_images_cost: number
-          cars_with_edited_images_count: number
           created_at: string
-          generated_descriptions_cost: number
-          generated_descriptions_count: number
+          edited_images_cost: number
+          edited_images_count: number
           id: string
           month: string
           total_cost: number
@@ -334,11 +332,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          cars_with_edited_images_cost?: number
-          cars_with_edited_images_count?: number
           created_at?: string
-          generated_descriptions_cost?: number
-          generated_descriptions_count?: number
+          edited_images_cost?: number
+          edited_images_count?: number
           id?: string
           month: string
           total_cost?: number
@@ -346,11 +342,9 @@ export type Database = {
           user_id: string
         }
         Update: {
-          cars_with_edited_images_cost?: number
-          cars_with_edited_images_count?: number
           created_at?: string
-          generated_descriptions_cost?: number
-          generated_descriptions_count?: number
+          edited_images_cost?: number
+          edited_images_count?: number
           id?: string
           month?: string
           total_cost?: number
