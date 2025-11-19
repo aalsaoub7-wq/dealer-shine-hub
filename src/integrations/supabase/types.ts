@@ -227,18 +227,21 @@ export type Database = {
           created_at: string | null
           id: string
           name: string
+          stripe_customer_id: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
           name: string
+          stripe_customer_id?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
           name?: string
+          stripe_customer_id?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -320,6 +323,50 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          company_id: string
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          status: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string
+          stripe_customer_id?: string
+          stripe_subscription_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       usage_stats: {
         Row: {
           created_at: string
@@ -327,6 +374,7 @@ export type Database = {
           edited_images_count: number
           id: string
           month: string
+          stripe_invoice_id: string | null
           total_cost: number
           updated_at: string
           user_id: string
@@ -337,6 +385,7 @@ export type Database = {
           edited_images_count?: number
           id?: string
           month: string
+          stripe_invoice_id?: string | null
           total_cost?: number
           updated_at?: string
           user_id: string
@@ -347,6 +396,7 @@ export type Database = {
           edited_images_count?: number
           id?: string
           month?: string
+          stripe_invoice_id?: string | null
           total_cost?: number
           updated_at?: string
           user_id?: string

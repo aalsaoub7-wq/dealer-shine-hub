@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { WatermarkPreview } from "./WatermarkPreview";
 import { LandingPagePreview } from "./LandingPagePreview";
 import { Input } from "@/components/ui/input";
+import { PaymentSettings } from "./PaymentSettings";
 
 export const AiSettingsDialog = () => {
   const [open, setOpen] = useState(false);
@@ -786,6 +787,15 @@ export const AiSettingsDialog = () => {
                   />
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent
+              value="payment"
+              className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              <PaymentSettings />
             </TabsContent>
           </div>
         </Tabs>
