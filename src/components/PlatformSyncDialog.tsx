@@ -27,15 +27,16 @@ interface Platform {
   id: string;
   name: string;
   logo: string;
+  comingSoon?: boolean;
 }
 
 const platforms: Platform[] = [
   { id: "blocket", name: "Blocket", logo: blocketLogo },
-  { id: "facebook-marketplace", name: "Facebook Marketplace", logo: facebookMarketplaceLogo },
-  { id: "wayke", name: "Wayke", logo: waykeLogo },
-  { id: "bytbil", name: "Bytbil", logo: bytbilLogo },
-  { id: "smart365", name: "Smart365", logo: smart365Logo },
-  { id: "website", name: "Hemsida", logo: websiteLogo },
+  { id: "facebook-marketplace", name: "Facebook Marketplace", logo: facebookMarketplaceLogo, comingSoon: true },
+  { id: "wayke", name: "Wayke", logo: waykeLogo, comingSoon: true },
+  { id: "bytbil", name: "Bytbil", logo: bytbilLogo, comingSoon: true },
+  { id: "smart365", name: "Smart365", logo: smart365Logo, comingSoon: true },
+  { id: "website", name: "Hemsida", logo: websiteLogo, comingSoon: true },
 ];
 
 interface PlatformSyncDialogProps {
@@ -74,7 +75,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
   };
 
   const selectAll = () => {
-    setSelectedPlatforms(platforms.map((p) => p.id));
+    setSelectedPlatforms(platforms.filter((p) => !p.comingSoon).map((p) => p.id));
   };
 
   const handleSync = async () => {
@@ -194,12 +195,15 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
                 return (
                   <div
                     key={platform.id}
-                    className="flex items-center space-x-3 rounded-lg border border-border p-3 hover:bg-accent/50 transition-colors"
+                    className={`flex items-center space-x-3 rounded-lg border border-border p-3 transition-colors ${
+                      platform.comingSoon ? "opacity-60" : "hover:bg-accent/50"
+                    }`}
                   >
                     <Checkbox
                       id={platform.id}
                       checked={selectedPlatforms.includes(platform.id)}
                       onCheckedChange={() => togglePlatform(platform.id)}
+                      disabled={platform.comingSoon}
                     />
 {platform.id === "blocket" ? (
   <div className="h-8 w-8 overflow-hidden rounded">
@@ -216,14 +220,19 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
     className="h-8 w-8 object-contain"
   />
 )}
-                    <Label htmlFor={platform.id} className="flex-1 cursor-pointer font-medium">
+                    <Label 
+                      htmlFor={platform.id} 
+                      className={`flex-1 ${platform.comingSoon ? "cursor-default" : "cursor-pointer"}`}
+                    >
                       {platform.name}
                     </Label>
-                    {status && (
+                    {platform.comingSoon ? (
+                      <Badge variant="secondary">Kommer snart</Badge>
+                    ) : status ? (
                       <Badge variant={status.variant}>
                         {status.text}
                       </Badge>
-                    )}
+                    ) : null}
                   </div>
                 );
               })}
