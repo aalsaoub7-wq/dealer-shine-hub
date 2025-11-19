@@ -88,10 +88,48 @@ serve(async (req) => {
 
     console.log("Stripe customer created:", customer.id);
 
+    // Create metered subscription for automatic monthly billing
+    const priceId = Deno.env.get("STRIPE_PRICE_ID");
+    if (!priceId) {
+      console.error("STRIPE_PRICE_ID environment variable not set");
+      throw new Error("Stripe Price ID not configured");
+    }
+
+    const subscription = await stripe.subscriptions.create({
+      customer: customer.id,
+      items: [{
+        price: priceId,
+      }],
+      billing_cycle_anchor_config: {
+        month: 'end',
+      },
+      proration_behavior: 'none',
+    });
+
+    console.log("Created Stripe subscription:", subscription.id);
+
+    // Save subscription to database
+    const { error: subError } = await supabaseClient
+      .from("subscriptions")
+      .insert({
+        company_id: company.id,
+        stripe_subscription_id: subscription.id,
+        stripe_customer_id: customer.id,
+        status: subscription.status,
+        current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      });
+
+    if (subError) {
+      console.error("Error saving subscription:", subError);
+      // Don't fail - subscription is created in Stripe
+    }
+
     return new Response(
       JSON.stringify({
         customerId: customer.id,
-        message: "Customer created successfully",
+        subscriptionId: subscription.id,
+        message: "Customer and subscription created successfully",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

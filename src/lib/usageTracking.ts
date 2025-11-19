@@ -56,6 +56,23 @@ export const trackUsage = async (
 
       if (error) console.error("Error inserting usage stats:", error);
     }
+
+    // Report usage to Stripe for metered billing
+    try {
+      const { error: reportError } = await supabase.functions.invoke(
+        "report-usage-to-stripe",
+        {
+          body: { quantity: 1 },
+        }
+      );
+
+      if (reportError) {
+        console.error("Error reporting usage to Stripe:", reportError);
+      }
+    } catch (stripeError) {
+      console.error("Failed to report usage to Stripe:", stripeError);
+      // Don't fail the whole operation if Stripe reporting fails
+    }
   } catch (error) {
     console.error("Error tracking usage:", error);
   }
