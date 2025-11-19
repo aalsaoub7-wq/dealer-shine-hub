@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Settings, Upload, X } from "lucide-react";
+import { Settings, Upload, X, Languages } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { WatermarkPreview } from "./WatermarkPreview";
@@ -42,6 +42,7 @@ export const AiSettingsDialog = () => {
   const [uploadingLandingLogo, setUploadingLandingLogo] = useState(false);
   const [uploadingHeaderImage, setUploadingHeaderImage] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [translating, setTranslating] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const { toast } = useToast();
 
@@ -257,6 +258,45 @@ export const AiSettingsDialog = () => {
     }
   };
 
+  const handleTranslateToEnglish = async () => {
+    if (!backgroundPrompt.trim()) {
+      toast({
+        title: "Ingen text att översätta",
+        description: "Ange en text i bakgrundsfältet först",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setTranslating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("translate-text", {
+        body: { text: backgroundPrompt },
+      });
+
+      if (error) throw error;
+
+      if (data?.translatedText) {
+        setBackgroundPrompt(data.translatedText);
+        toast({
+          title: "Översättning klar",
+          description: "Texten har översatts till engelska",
+        });
+      } else {
+        throw new Error("Ingen översättning mottagen");
+      }
+    } catch (error: any) {
+      console.error("Error translating text:", error);
+      toast({
+        title: "Fel vid översättning",
+        description: error.message || "Kunde inte översätta texten",
+        variant: "destructive",
+      });
+    } finally {
+      setTranslating(false);
+    }
+  };
+
   const saveSettings = async () => {
     setLoading(true);
     try {
@@ -351,6 +391,16 @@ export const AiSettingsDialog = () => {
                   placeholder="Beskriv hur bakgrunden ska se ut..."
                   className="min-h-[100px]"
                 />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTranslateToEnglish}
+                  disabled={translating || !backgroundPrompt.trim()}
+                  className="w-full md:w-auto"
+                >
+                  <Languages className="h-4 w-4 mr-2" />
+                  {translating ? "Översätter..." : "Översätt till engelska"}
+                </Button>
               </div>
             </TabsContent>
 
