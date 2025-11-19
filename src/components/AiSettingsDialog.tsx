@@ -46,7 +46,7 @@ export const AiSettingsDialog = () => {
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const { toast } = useToast();
 
-  const tabs = ["background", "descriptions", "watermark", "landing"];
+  const tabs = ["background", "watermark", "landing", "payment"];
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.touches[0].clientX);
@@ -369,9 +369,9 @@ export const AiSettingsDialog = () => {
           <div className="mt-4 rounded-xl border border-border bg-muted p-3 shadow-sm md:bg-transparent md:border-0 md:p-0 md:rounded-none">
             <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
               <TabsTrigger value="background">Bakgrund</TabsTrigger>
-              <TabsTrigger value="descriptions">Beskrivningar</TabsTrigger>
               <TabsTrigger value="watermark">Vattenmärke</TabsTrigger>
               <TabsTrigger value="landing">Landningssida</TabsTrigger>
+              <TabsTrigger value="payment">Betalning</TabsTrigger>
             </TabsList>
 
             <Separator className="my-10 md:hidden" />
@@ -405,20 +405,24 @@ export const AiSettingsDialog = () => {
             </TabsContent>
 
             <TabsContent
-              value="descriptions"
+              value="payment"
               className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
-              <div className="space-y-2">
-                <Label htmlFor="example-descriptions">Exempel Beskrivningar</Label>
-                <Textarea
-                  id="example-descriptions"
-                  value={exampleDescriptions}
-                  onChange={(e) => setExampleDescriptions(e.target.value)}
-                  placeholder="Lägg till exempel på beskrivningar..."
-                  className="min-h-[100px]"
-                />
+              <div className="space-y-4">
+                <div className="rounded-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 p-6">
+                  <h3 className="text-lg font-semibold mb-4">Prissättning</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between py-2 border-b border-border/50">
+                      <span className="text-sm text-muted-foreground">Redigerad bild</span>
+                      <span className="text-lg font-bold text-primary">4,95 kr</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-4">
+                      Varje bild som redigeras debiteras individuellt. Du kan se din månatliga användning på huvudsidan.
+                    </p>
+                  </div>
+                </div>
               </div>
             </TabsContent>
 

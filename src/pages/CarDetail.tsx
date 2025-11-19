@@ -274,9 +274,9 @@ const CarDetail = () => {
       setSelectedDocPhotos([]);
     }
 
-    // Track usage once per car (only first time)
+    // Track usage for each edited image
     try {
-      await trackUsage("car_with_edited_images", car!.id);
+      await trackUsage("edited_image", car!.id);
     } catch (error) {
       console.error("Error tracking usage:", error);
     }
@@ -458,42 +458,7 @@ const CarDetail = () => {
   };
 
 
-  const handleGenerateDescription = async () => {
-    setGeneratingDescription(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-car-description", {
-        body: { carId: car!.id },
-      });
-
-      if (error) throw error;
-
-      // Update car with generated description
-      const { error: updateError } = await supabase
-        .from("cars")
-        .update({ description: data.description })
-        .eq("id", car!.id);
-
-      if (updateError) throw updateError;
-
-      // Track usage
-      await trackUsage("generate_description");
-
-      toast({
-        title: "Beskrivning genererad!",
-        description: "AI-beskrivningen har skapats",
-      });
-
-      fetchCarData(true);
-    } catch (error: any) {
-      toast({
-        title: "Fel vid generering",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setGeneratingDescription(false);
-    }
-  };
+  // Description generation removed
 
   const allPhotos = photos;
   const mainPhotos = photos.filter((p) => p.photo_type === "main");
@@ -568,54 +533,6 @@ const CarDetail = () => {
                 <div className="rounded-lg border bg-card p-4 shadow-sm">
                   <p className="text-sm text-muted-foreground font-medium mb-2">🚗 Registreringsnummer</p>
                   <p className="text-base">{car.registration_number}</p>
-                </div>
-              )}
-              {car.description && (
-                <div className="rounded-lg border bg-card shadow-sm">
-                  <Collapsible
-                    open={descriptionOpen}
-                    onOpenChange={setDescriptionOpen}
-                  >
-                    <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-accent/5 transition-colors">
-                      <p className="text-sm text-muted-foreground font-medium">📝 Beskrivning</p>
-                      <ChevronDown
-                        className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${
-                          descriptionOpen ? "rotate-180" : ""
-                        }`}
-                      />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="px-4 pb-4">
-                      <p className="whitespace-pre-wrap text-base pt-2">{car.description}</p>
-                    </CollapsibleContent>
-                  </Collapsible>
-                  <div className="px-4 pb-4">
-                    <Button
-                      onClick={handleGenerateDescription}
-                      disabled={generatingDescription}
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                    >
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      {generatingDescription ? "Genererar..." : "Generera ny AI-beskrivning"}
-                    </Button>
-                  </div>
-                </div>
-              )}
-              {!car.description && (
-                <div className="rounded-lg border bg-card shadow-sm p-4">
-                  <p className="text-sm text-muted-foreground font-medium mb-2">📝 Beskrivning</p>
-                  <p className="text-sm text-muted-foreground mb-3">Ingen beskrivning finns ännu</p>
-                  <Button
-                    onClick={handleGenerateDescription}
-                    disabled={generatingDescription}
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                  >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    {generatingDescription ? "Genererar..." : "Generera AI-beskrivning"}
-                  </Button>
                 </div>
               )}
               <div>
