@@ -90,7 +90,32 @@ const CarDetail = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (id) fetchCarData();
+    if (id) {
+      fetchCarData();
+
+      // Set up realtime subscription for photo updates
+      const channel = supabase
+        .channel('photos-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'photos',
+            filter: `car_id=eq.${id}`
+          },
+          (payload) => {
+            console.log('Photo update received:', payload);
+            // Update photos in real-time
+            fetchCarData(true);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, [id]);
 
   const fetchCarData = async (preserveScroll = false) => {
@@ -225,11 +250,32 @@ const CarDetail = () => {
     });
     setProcessingPhotos((prev) => ({ ...prev, ...newProcessingState }));
 
-    // Process photos with API
-    try {
-      const photosToProcess = photos.filter((p) => photoIds.includes(p.id));
+    // Clear selection immediately
+    if (photoType === "main") {
+      setSelectedMainPhotos([]);
+    } else {
+      setSelectedDocPhotos([]);
+    }
 
-      for (const photo of photosToProcess) {
+    // Track usage once per car
+    try {
+      await trackUsage("car_with_edited_images", car!.id);
+    } catch (error) {
+      console.error("Error tracking usage:", error);
+    }
+
+    // Show toast immediately
+    toast({
+      title: "Bearbetar bilder",
+      description: "Dina bilder bearbetas i bakgrunden",
+    });
+
+    // Process photos independently in background
+    const photosToProcess = photos.filter((p) => photoIds.includes(p.id));
+
+    photosToProcess.forEach((photo) => {
+      // Process each photo independently without blocking
+      (async () => {
         try {
           // Call edit-photo edge function
           const response = await fetch(photo.url);
@@ -255,7 +301,7 @@ const CarDetail = () => {
           const editedBlob = new Blob([bytes], { type: "image/png" });
 
           // Upload edited image
-          const editedFileName = `${car.id}/edited-${Date.now()}-${Math.random()}.png`;
+          const editedFileName = `${car!.id}/edited-${Date.now()}-${Math.random()}.png`;
           const { error: uploadError } = await supabase.storage
             .from("car-photos")
             .upload(editedFileName, editedBlob, { upsert: true });
@@ -266,17 +312,17 @@ const CarDetail = () => {
             data: { publicUrl },
           } = supabase.storage.from("car-photos").getPublicUrl(editedFileName);
 
-          // Update photo immediately with edited URL
+          // Update photo - realtime will handle UI update
           await supabase
             .from("photos")
-            .update({ 
+            .update({
               url: publicUrl,
               original_url: photo.url,
-              is_edited: true 
+              is_edited: true,
             })
             .eq("id", photo.id);
 
-          // Mark processing as complete for this photo
+          // Clear processing state for this photo
           setProcessingPhotos((prev) => {
             const newState = { ...prev };
             delete newState[photo.id];
@@ -284,34 +330,20 @@ const CarDetail = () => {
           });
         } catch (error) {
           console.error(`Error editing photo ${photo.id}:`, error);
-          // Clear the processing state if there's an error
+          // Clear processing state on error
           setProcessingPhotos((prev) => {
             const newState = { ...prev };
             delete newState[photo.id];
             return newState;
           });
+          toast({
+            title: "Fel vid redigering",
+            description: `Kunde inte redigera bild: ${error instanceof Error ? error.message : "Okänt fel"}`,
+            variant: "destructive",
+          });
         }
-      }
-
-      // Track usage - per car with edited images
-      await trackUsage("car_with_edited_images", car.id);
-
-      // Refresh car data to show new images
-      await fetchCarData(true);
-
-      // Clear selection
-      if (photoType === "main") {
-        setSelectedMainPhotos([]);
-      } else {
-        setSelectedDocPhotos([]);
-      }
-    } catch (error: any) {
-      toast({
-        title: "Fel vid redigering av bilder",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+      })();
+    });
   };
 
   const handleApplyWatermark = async (photoIds: string[], photoType: "main" | "documentation") => {
