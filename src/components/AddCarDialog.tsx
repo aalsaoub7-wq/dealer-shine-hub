@@ -28,6 +28,7 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
   const [loading, setLoading] = useState(false);
   const [generatingDescription, setGeneratingDescription] = useState(false);
   const [registrationNumber, setRegistrationNumber] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     make: "",
     model: "",
@@ -49,6 +50,7 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
     if (!open) {
       setMode("select");
       setRegistrationNumber("");
+      setErrors({});
       setFormData({
         make: "",
         model: "",
