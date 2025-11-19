@@ -17,6 +17,7 @@ interface CarData {
   make: string;
   model: string;
   year: number;
+  registration_number: string | null;
   vin: string | null;
   color: string | null;
   mileage: number | null;

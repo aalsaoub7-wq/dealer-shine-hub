@@ -22,20 +22,22 @@ interface AddCarDialogProps {
 const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [registrationNumber, setRegistrationNumber] = useState("");
+  const [carName, setCarName] = useState("");
   const { toast } = useToast();
 
   const handleDialogChange = (open: boolean) => {
     onOpenChange(open);
     if (!open) {
       setRegistrationNumber("");
+      setCarName("");
     }
   };
 
   const handleCreate = async () => {
-    if (!registrationNumber.trim()) {
+    if (!registrationNumber.trim() || !carName.trim()) {
       toast({
         title: "Fel",
-        description: "Vänligen ange ett registreringsnummer",
+        description: "Vänligen ange både registreringsnummer och namn",
         variant: "destructive",
       });
       return;
@@ -57,10 +59,10 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
 
       if (companyError) throw companyError;
 
-      // Insert car with only registration number
+      // Insert car with registration number and name
       const { error: insertError } = await supabase.from("cars").insert({
-        make: "Okänd",
-        model: "Okänd",
+        make: carName,
+        model: "",
         year: new Date().getFullYear(),
         registration_number: registrationNumber,
         company_id: userCompany.company_id,
@@ -95,6 +97,17 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
         </DialogHeader>
 
         <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Namn</Label>
+            <input
+              id="name"
+              type="text"
+              value={carName}
+              onChange={(e) => setCarName(e.target.value)}
+              placeholder="T.ex. Volvo V70"
+              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="registration">Registreringsnummer</Label>
             <LicensePlateInput

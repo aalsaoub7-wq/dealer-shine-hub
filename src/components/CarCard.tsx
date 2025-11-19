@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Palette } from "lucide-react";
+
 import licensePlate from "@/assets/license-plate.png";
 
 interface CarCardProps {
@@ -10,8 +10,7 @@ interface CarCardProps {
     make: string;
     model: string;
     year: number;
-    color: string | null;
-    vin: string | null;
+    registration_number: string | null;
     photo_url?: string | null;
   };
   onUpdate: () => void;
@@ -52,7 +51,7 @@ const CarCard = ({ car }: CarCardProps) => {
           {car.make} {car.model}
         </h3>
 
-        {car.vin && (
+        {car.registration_number && (
           <div className="relative mb-2 sm:mb-3 w-32 sm:w-40 md:w-48 group-hover:scale-105 transition-transform duration-300 -ml-2 sm:-ml-3 md:-ml-4">
             <img src={licensePlate} alt="Registreringsskylt" className="w-full h-auto" />
             <div className="absolute inset-0 flex items-center justify-center">
@@ -60,16 +59,9 @@ const CarCard = ({ car }: CarCardProps) => {
                 className="font-extrabold text-black text-xl sm:text-2xl md:text-3xl tracking-wide ml-2 sm:ml-3 md:ml-4"
                 style={{ fontFamily: "monospace" }}
               >
-                {(car.vin.length === 6 ? `${car.vin.slice(0, 3)} ${car.vin.slice(3)}` : car.vin).toUpperCase()}
+                {(car.registration_number.length === 6 ? `${car.registration_number.slice(0, 3)} ${car.registration_number.slice(3)}` : car.registration_number).toUpperCase()}
               </span>
             </div>
-          </div>
-        )}
-
-        {car.color && (
-          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300">
-            <Palette className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform duration-300" />
-            <span>{car.color}</span>
           </div>
         )}
       </CardContent>
