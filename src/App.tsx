@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import CarDetail from "./pages/CarDetail";
 import SharedPhotos from "./pages/SharedPhotos";
 import NotFound from "./pages/NotFound";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -18,9 +19,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/car/:id" element={<CarDetail />} />
+          <Route path="/car/:id" element={<ProtectedRoute><CarDetail /></ProtectedRoute>} />
           <Route path="/shared/:token" element={<SharedPhotos />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
