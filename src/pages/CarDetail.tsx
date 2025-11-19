@@ -459,7 +459,6 @@ const CarDetail = () => {
   const handleRemoveWatermark = async (photoIds: string[], photoType: "main" | "documentation") => {
     setApplyingWatermark(true);
     try {
-      // Only allow removing watermark, not restoring original_url for edited photos
       const photosToProcess = photos.filter((p) => photoIds.includes(p.id) && p.original_url);
 
       if (photosToProcess.length === 0) {
@@ -472,11 +471,12 @@ const CarDetail = () => {
 
       for (const photo of photosToProcess) {
         try {
-          // Only restore to original URL, keep is_edited status
+          // Restore to original URL and clear original_url field
           await supabase
             .from("photos")
             .update({
               url: photo.original_url,
+              original_url: null,
             })
             .eq("id", photo.id);
         } catch (error) {
