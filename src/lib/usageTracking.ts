@@ -1,13 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 
 const PRICES = {
-  ADD_CAR: 19,
-  EDIT_IMAGE: 9,
+  CAR_WITH_EDITED_IMAGES: 99,
   GENERATE_DESCRIPTION: 5,
 };
 
 export const trackUsage = async (
-  type: "add_car" | "edit_image" | "generate_description"
+  type: "car_with_edited_images" | "generate_description",
+  carId?: string
 ) => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -36,12 +36,21 @@ export const trackUsage = async (
       month,
     };
 
-    if (type === "add_car") {
-      updates.added_cars_count = (existingStats?.added_cars_count || 0) + 1;
-      updates.added_cars_cost = (existingStats?.added_cars_cost || 0) + PRICES.ADD_CAR;
-    } else if (type === "edit_image") {
-      updates.edited_images_count = (existingStats?.edited_images_count || 0) + 1;
-      updates.edited_images_cost = (existingStats?.edited_images_cost || 0) + PRICES.EDIT_IMAGE;
+    if (type === "car_with_edited_images") {
+      // Check if this car was already counted this month
+      const { data: existingCars } = await supabase
+        .from("photos")
+        .select("car_id")
+        .eq("car_id", carId)
+        .eq("is_edited", true);
+
+      // Only charge if this is the first edited image for this car this month
+      const isFirstEditForCar = !existingCars || existingCars.length === 0;
+      
+      if (isFirstEditForCar) {
+        updates.cars_with_edited_images_count = (existingStats?.cars_with_edited_images_count || 0) + 1;
+        updates.cars_with_edited_images_cost = (existingStats?.cars_with_edited_images_cost || 0) + PRICES.CAR_WITH_EDITED_IMAGES;
+      }
     } else if (type === "generate_description") {
       updates.generated_descriptions_count = (existingStats?.generated_descriptions_count || 0) + 1;
       updates.generated_descriptions_cost = (existingStats?.generated_descriptions_cost || 0) + PRICES.GENERATE_DESCRIPTION;
@@ -49,9 +58,10 @@ export const trackUsage = async (
 
     // Calculate total cost
     updates.total_cost = 
-      (type === "add_car" ? updates.added_cars_cost : existingStats?.added_cars_cost || 0) +
-      (type === "edit_image" ? updates.edited_images_cost : existingStats?.edited_images_cost || 0) +
-      (type === "generate_description" ? updates.generated_descriptions_cost : existingStats?.generated_descriptions_cost || 0);
+      (existingStats?.cars_with_edited_images_cost || 0) +
+      (type === "car_with_edited_images" && updates.cars_with_edited_images_cost ? updates.cars_with_edited_images_cost : 0) +
+      (existingStats?.generated_descriptions_cost || 0) +
+      (type === "generate_description" && updates.generated_descriptions_cost ? updates.generated_descriptions_cost : 0);
 
     if (existingStats) {
       const { error } = await supabase
