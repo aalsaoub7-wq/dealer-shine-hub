@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Image, Car, TrendingUp } from "lucide-react";
+import { FileText, Image, TrendingUp } from "lucide-react";
 import { PRICES } from "@/lib/usageTracking";
 
 interface UsageStats {
   generated_descriptions_count: number;
-  edited_images_count: number;
-  added_cars_count: number;
   generated_descriptions_cost: number;
-  edited_images_cost: number;
-  added_cars_cost: number;
+  cars_with_edited_images_count: number;
+  cars_with_edited_images_cost: number;
   total_cost: number;
 }
 
@@ -34,11 +32,9 @@ export const UsageDashboard = () => {
       setStats(
         data || {
           generated_descriptions_count: 0,
-          edited_images_count: 0,
-          added_cars_count: 0,
           generated_descriptions_cost: 0,
-          edited_images_cost: 0,
-          added_cars_cost: 0,
+          cars_with_edited_images_count: 0,
+          cars_with_edited_images_cost: 0,
           total_cost: 0,
         },
       );
@@ -73,7 +69,7 @@ export const UsageDashboard = () => {
         <CardDescription className="text-xs md:text-sm">Översikt över din användning och kostnader</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 gap-4 md:gap-6">
           {/* Generated Descriptions */}
           <div className="flex flex-col items-center text-center space-y-2 p-4 rounded-lg bg-secondary/30">
             <FileText className="w-8 h-8 text-primary" />
@@ -86,36 +82,16 @@ export const UsageDashboard = () => {
             </p>
           </div>
 
-          {/* Edited Images */}
+          {/* Cars with Edited Images */}
           <div className="flex flex-col items-center text-center space-y-2 p-4 rounded-lg bg-secondary/30">
             <Image className="w-8 h-8 text-primary" />
-            <span className="text-xs md:text-sm font-medium text-muted-foreground">Redigerade bilder</span>
-            <span className="text-2xl md:text-3xl font-bold">{stats.edited_images_count}</span>
+            <span className="text-xs md:text-sm font-medium text-muted-foreground">Bilar med Redigerade Bilder</span>
+            <span className="text-2xl md:text-3xl font-bold">{stats.cars_with_edited_images_count}</span>
             <p className="text-xs text-muted-foreground">
-              {stats.edited_images_cost.toFixed(2)} kr
+              {stats.cars_with_edited_images_cost.toFixed(2)} kr
               <br />
-              <span className="text-[10px]">(à {PRICES.EDIT_IMAGE} kr)</span>
+              <span className="text-[10px]">(à {PRICES.CAR_WITH_EDITED_IMAGES} kr)</span>
             </p>
-          </div>
-
-          {/* Added Cars */}
-          <div className="flex flex-col items-center text-center space-y-2 p-4 rounded-lg bg-secondary/30">
-            <Car className="w-8 h-8 text-primary" />
-            <span className="text-xs md:text-sm font-medium text-muted-foreground">Importerade Bilar</span>
-            <span className="text-2xl md:text-3xl font-bold">{stats.added_cars_count}</span>
-            <p className="text-xs text-muted-foreground">
-              {stats.added_cars_cost.toFixed(2)} kr
-              <br />
-              <span className="text-[10px]">(à {PRICES.ADD_CAR} kr)</span>
-            </p>
-          </div>
-        </div>
-
-        {/* Total Cost */}
-        <div className="pt-3 border-t border-border/50">
-          <div className="flex items-center justify-between">
-            <span className="text-sm md:text-base font-semibold">Total kostnad denna månad:</span>
-            <span className="text-lg md:text-xl font-bold text-primary">{stats.total_cost.toFixed(2)} kr</span>
           </div>
         </div>
       </CardContent>

@@ -31,7 +31,7 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
     }
   };
 
-  const handleImport = async () => {
+  const handleCreate = async () => {
     if (!registrationNumber.trim()) {
       toast({
         title: "Fel",
@@ -43,19 +43,6 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
 
     setLoading(true);
     try {
-      const response = await fetch(`https://biluppgifter.se/api/v1/vehicles/${registrationNumber}`, {
-        headers: {
-          Accept: "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Kunde inte hämta biluppgifter");
-      }
-
-      const data = await response.json();
-      const vehicleData = data.data;
-
       // Get user's company
       const {
         data: { user },
@@ -70,29 +57,23 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
 
       if (companyError) throw companyError;
 
-      // Insert car with imported data
+      // Insert car with only registration number
       const { error: insertError } = await supabase.from("cars").insert({
-        make: vehicleData.manufacturer || "Okänd",
-        model: vehicleData.model_description || "Okänd",
-        year: vehicleData.model_year || new Date().getFullYear(),
-        vin: vehicleData.vin || null,
-        color: vehicleData.color || null,
-        fuel: vehicleData.fuel || null,
+        make: "Okänd",
+        model: "Okänd",
+        year: new Date().getFullYear(),
         registration_number: registrationNumber,
         company_id: userCompany.company_id,
       });
 
       if (insertError) throw insertError;
 
-      // Track usage
-      await trackUsage("add_car");
-
-      toast({ title: "Bil importerad!" });
+      toast({ title: "Bil skapad!" });
       onCarAdded();
       handleDialogChange(false);
     } catch (error: any) {
       toast({
-        title: "Fel vid import av bil",
+        title: "Fel vid skapande av bil",
         description: error.message,
         variant: "destructive",
       });
@@ -122,8 +103,8 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
             />
           </div>
           <div className="flex gap-2 justify-end">
-            <Button onClick={handleImport} disabled={loading} className="w-full">
-              {loading ? "Importerar..." : "Importera"}
+            <Button onClick={handleCreate} disabled={loading} className="w-full">
+              {loading ? "Skapar..." : "Skapa Bil"}
             </Button>
           </div>
         </div>

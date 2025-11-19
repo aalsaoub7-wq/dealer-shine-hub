@@ -84,53 +84,14 @@ const CarDetail = () => {
   const [sharing, setSharing] = useState(false);
   const [applyingWatermark, setApplyingWatermark] = useState(false);
   const [activeTab, setActiveTab] = useState("main");
-  const [editingPhotos, setEditingPhotos] = useState<Record<string, { timeLeft: number; isEditing: boolean }>>({});
-  const [pendingEdits, setPendingEdits] = useState<Record<string, { publicUrl: string; completeAt: Date }>>({});
+  const [processingPhotos, setProcessingPhotos] = useState<Record<string, boolean>>({});
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (id) {
-      fetchCarData();
-    }
+    if (id) fetchCarData();
   }, [id]);
-
-  // Handle timers for editing photos
-  useEffect(() => {
-    const intervals = new Map<string, NodeJS.Timeout>();
-
-    Object.entries(editingPhotos).forEach(([photoId, state]) => {
-      if (state.isEditing && state.timeLeft > 0) {
-        // Only create timer if one doesn't exist for this photo
-        if (!intervals.has(photoId)) {
-          const intervalId = setInterval(() => {
-            setEditingPhotos((prev) => {
-              const current = prev[photoId];
-              if (!current || current.timeLeft <= 1) {
-                clearInterval(intervalId);
-                fetchCarData(true);
-                return prev;
-              }
-              return {
-                ...prev,
-                [photoId]: { ...current, timeLeft: current.timeLeft - 1 },
-              };
-            });
-          }, 1000);
-          intervals.set(photoId, intervalId);
-        }
-      }
-    });
-
-    return () => {
-      intervals.forEach(clearInterval);
-    };
-  }, [
-    Object.keys(editingPhotos)
-      .filter((id) => editingPhotos[id].isEditing)
-      .join(","),
-  ]);
 
   const fetchCarData = async (preserveScroll = false) => {
     // Save current scroll position if requested
@@ -155,43 +116,6 @@ const CarDetail = () => {
 
       if (photosError) throw photosError;
       setPhotos((photosData || []) as Photo[]);
-
-      // Fetch pending edits for this car's photos
-      const photoIds = (photosData || []).map((p: any) => p.id);
-      if (photoIds.length > 0) {
-        const { data: pendingData } = await supabase
-          .from("pending_photo_edits")
-          .select("*")
-          .in("photo_id", photoIds)
-          .eq("completed", false);
-
-        if (pendingData && pendingData.length > 0) {
-          const newPendingEdits: Record<string, { publicUrl: string; completeAt: Date }> = {};
-          const newEditingState: Record<string, { timeLeft: number; isEditing: boolean }> = {};
-
-          pendingData.forEach((edit: any) => {
-            const completeAt = new Date(edit.complete_at);
-            const now = new Date();
-            const timeLeftSeconds = Math.max(0, Math.floor((completeAt.getTime() - now.getTime()) / 1000));
-
-            newPendingEdits[edit.photo_id] = {
-              publicUrl: edit.edited_url,
-              completeAt: completeAt,
-            };
-
-            newEditingState[edit.photo_id] = {
-              timeLeft: timeLeftSeconds,
-              isEditing: timeLeftSeconds > 0,
-            };
-          });
-
-          setPendingEdits(newPendingEdits);
-          setEditingPhotos(newEditingState);
-        } else {
-          setPendingEdits({});
-          setEditingPhotos({});
-        }
-      }
 
       // Restore scroll position after a short delay to allow rendering
       if (preserveScroll) {
@@ -294,33 +218,12 @@ const CarDetail = () => {
   };
 
   const handleEditPhotos = async (photoIds: string[], photoType: "main" | "documentation") => {
-    // Initialize countdown timers for selected photos
-    const newEditingState: Record<string, { timeLeft: number; isEditing: boolean }> = {};
+    // Mark photos as processing
+    const newProcessingState: Record<string, boolean> = {};
     photoIds.forEach((id) => {
-      newEditingState[id] = { timeLeft: 240, isEditing: true }; // 4 minutes = 240 seconds
+      newProcessingState[id] = true;
     });
-    setEditingPhotos((prev) => ({ ...prev, ...newEditingState }));
-
-    // Start countdown for each photo
-    const intervalIds: Record<string, ReturnType<typeof setInterval>> = {};
-    photoIds.forEach((photoId) => {
-      const intervalId = setInterval(() => {
-        setEditingPhotos((prev) => {
-          const current = prev[photoId];
-          if (!current || current.timeLeft <= 1) {
-            clearInterval(intervalId);
-            // Just refresh data - the cron job will update the database
-            fetchCarData(true);
-            return prev;
-          }
-          return {
-            ...prev,
-            [photoId]: { ...current, timeLeft: current.timeLeft - 1 },
-          };
-        });
-      }, 1000);
-      intervalIds[photoId] = intervalId;
-    });
+    setProcessingPhotos((prev) => ({ ...prev, ...newProcessingState }));
 
     // Process photos with API
     try {
@@ -363,37 +266,38 @@ const CarDetail = () => {
             data: { publicUrl },
           } = supabase.storage.from("car-photos").getPublicUrl(editedFileName);
 
-          // Calculate completion time (4 minutes from now)
-          const completeAt = new Date(Date.now() + 240000); // 240 seconds = 4 minutes
+          // Update photo immediately with edited URL
+          await supabase
+            .from("photos")
+            .update({ 
+              url: publicUrl,
+              original_url: photo.url,
+              is_edited: true 
+            })
+            .eq("id", photo.id);
 
-          // Store the edited URL in database pending_photo_edits
-          await supabase.from("pending_photo_edits").insert({
-            photo_id: photo.id,
-            edited_url: publicUrl,
-            complete_at: completeAt.toISOString(),
+          // Mark processing as complete for this photo
+          setProcessingPhotos((prev) => {
+            const newState = { ...prev };
+            delete newState[photo.id];
+            return newState;
           });
-
-          // Track usage for image edit
-          await trackUsage("edit_image");
-
-          // Also store in local state for UI
-          setPendingEdits((prev) => ({
-            ...prev,
-            [photo.id]: { publicUrl, completeAt },
-          }));
         } catch (error) {
           console.error(`Error editing photo ${photo.id}:`, error);
-          // Clear the timer if there's an error
-          if (intervalIds[photo.id]) {
-            clearInterval(intervalIds[photo.id]);
-          }
-          setEditingPhotos((prev) => {
+          // Clear the processing state if there's an error
+          setProcessingPhotos((prev) => {
             const newState = { ...prev };
             delete newState[photo.id];
             return newState;
           });
         }
       }
+
+      // Track usage - per car with edited images
+      await trackUsage("car_with_edited_images", car.id);
+
+      // Refresh car data to show new images
+      await fetchCarData(true);
 
       // Clear selection
       if (photoType === "main") {
@@ -805,7 +709,7 @@ const CarDetail = () => {
               onUpdate={() => fetchCarData(true)}
               selectedPhotos={selectedMainPhotos}
               onSelectionChange={setSelectedMainPhotos}
-              editingPhotos={editingPhotos}
+              processingPhotos={processingPhotos}
             />
           </TabsContent>
 
@@ -815,7 +719,7 @@ const CarDetail = () => {
               onUpdate={() => fetchCarData(true)}
               selectedPhotos={selectedDocPhotos}
               onSelectionChange={setSelectedDocPhotos}
-              editingPhotos={editingPhotos}
+              processingPhotos={processingPhotos}
             />
           </TabsContent>
         </Tabs>
