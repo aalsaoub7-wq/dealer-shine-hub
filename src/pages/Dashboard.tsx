@@ -111,7 +111,8 @@ const Dashboard = () => {
       car.make.toLowerCase().includes(query) ||
       car.model.toLowerCase().includes(query) ||
       car.year.toString().includes(query) ||
-      (car.vin && car.vin.toLowerCase().includes(query))
+      (car.vin && car.vin.toLowerCase().includes(query)) ||
+      (car.registration_number && car.registration_number.toLowerCase().includes(query))
     );
   });
 
@@ -151,7 +152,7 @@ const Dashboard = () => {
           <div className="relative flex-1 group animate-slide-in-right">
             <Search className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-muted-foreground group-focus-within:text-primary transition-colors duration-300" />
             <Input
-              placeholder="Sök..."
+              placeholder="Sök på märke, modell, reg. nr..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-8 md:pl-10 text-sm md:text-base h-9 md:h-10 bg-secondary border-border focus:border-primary focus:shadow-glow transition-all duration-300"
