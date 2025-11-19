@@ -7,32 +7,62 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import luveroLogo from "@/assets/luvero-logo.png";
+import { z } from "zod";
+
+const authSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .min(1, "E-postadress krävs")
+    .email("Ogiltig e-postadress")
+    .max(255, "E-postadressen får vara max 255 tecken"),
+  password: z
+    .string()
+    .min(6, "Lösenordet måste vara minst 6 tecken")
+    .max(72, "Lösenordet får vara max 72 tecken"),
+});
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
     setLoading(true);
 
     try {
+      // Validate input
+      const validation = authSchema.safeParse({ email, password });
+      if (!validation.success) {
+        const fieldErrors: { email?: string; password?: string } = {};
+        validation.error.errors.forEach((err) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0] as "email" | "password"] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+        setLoading(false);
+        return;
+      }
+
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
+          email: validation.data.email,
+          password: validation.data.password,
         });
         if (error) throw error;
         toast({ title: "Välkommen tillbaka!" });
         navigate("/");
       } else {
         const { error } = await supabase.auth.signUp({
-          email,
-          password,
+          email: validation.data.email,
+          password: validation.data.password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
           },
