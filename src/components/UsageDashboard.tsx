@@ -12,7 +12,11 @@ interface UsageStats {
   total_cost: number;
 }
 
-export const UsageDashboard = () => {
+interface UsageDashboardProps {
+  showTotalCost?: boolean;
+}
+
+export const UsageDashboard = ({ showTotalCost = false }: UsageDashboardProps) => {
   const [stats, setStats] = useState<UsageStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -62,9 +66,16 @@ export const UsageDashboard = () => {
   return (
     <Card className="mb-4 md:mb-6 animate-fade-in border-border/50 bg-card/50 backdrop-blur-sm">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base md:text-lg flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-primary" />
-          Månatlig användning - {monthName}
+        <CardTitle className="text-base md:text-lg flex items-center gap-2 justify-between">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+            Månatlig användning - {monthName}
+          </div>
+          {showTotalCost && (
+            <span className="text-lg md:text-2xl font-bold text-primary">
+              {stats.total_cost.toFixed(2)} kr
+            </span>
+          )}
         </CardTitle>
         <CardDescription className="text-xs md:text-sm">Översikt över din användning och kostnader</CardDescription>
       </CardHeader>

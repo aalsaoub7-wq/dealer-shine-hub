@@ -87,6 +87,7 @@ const CarDetail = () => {
   const [activeTab, setActiveTab] = useState("main");
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
+  const [generatingDescription, setGeneratingDescription] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -245,6 +246,27 @@ const CarDetail = () => {
   const handleEditPhotos = async (photoIds: string[], photoType: "main" | "documentation") => {
     const photos = photoType === "main" ? mainPhotos : docPhotos;
 
+    // Check if we already have 20 edited images
+    const editedCount = allPhotos.filter(p => p.is_edited).length;
+    if (editedCount >= 20) {
+      toast({
+        title: "Max antal redigerade bilder",
+        description: "Du kan max redigera 20 bilder per bil",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if adding these would exceed 20
+    if (editedCount + photoIds.length > 20) {
+      toast({
+        title: "För många bilder",
+        description: `Du kan endast redigera ${20 - editedCount} bilder till`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Clear selection immediately
     if (photoType === "main") {
       setSelectedMainPhotos([]);
@@ -252,7 +274,7 @@ const CarDetail = () => {
       setSelectedDocPhotos([]);
     }
 
-    // Track usage once per car
+    // Track usage once per car (only first time)
     try {
       await trackUsage("car_with_edited_images", car!.id);
     } catch (error) {
@@ -437,12 +459,12 @@ const CarDetail = () => {
   const handleRemoveWatermark = async (photoIds: string[], photoType: "main" | "documentation") => {
     setApplyingWatermark(true);
     try {
-      const photosToProcess = photos.filter((p) => photoIds.includes(p.id) && p.is_edited && p.original_url);
+      // Only allow removing watermark, not restoring original_url for edited photos
+      const photosToProcess = photos.filter((p) => photoIds.includes(p.id) && p.original_url);
 
       if (photosToProcess.length === 0) {
         toast({
-          title: "Inga bilder att återställa",
-          description: "De valda bilderna har inget originalfoto att återställa till",
+          title: "Inga bilder att ta bort vattenmärke från",
           variant: "destructive",
         });
         return;
@@ -450,12 +472,11 @@ const CarDetail = () => {
 
       for (const photo of photosToProcess) {
         try {
-          // Restore to original URL
+          // Only restore to original URL, keep is_edited status
           await supabase
             .from("photos")
             .update({
               url: photo.original_url,
-              is_edited: false,
             })
             .eq("id", photo.id);
         } catch (error) {
@@ -486,15 +507,54 @@ const CarDetail = () => {
     }
   };
 
+  const handleGenerateDescription = async () => {
+    setGeneratingDescription(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-car-description", {
+        body: { carId: car!.id },
+      });
+
+      if (error) throw error;
+
+      // Update car with generated description
+      const { error: updateError } = await supabase
+        .from("cars")
+        .update({ description: data.description })
+        .eq("id", car!.id);
+
+      if (updateError) throw updateError;
+
+      // Track usage
+      await trackUsage("generate_description");
+
+      toast({
+        title: "Beskrivning genererad!",
+        description: "AI-beskrivningen har skapats",
+      });
+
+      fetchCarData(true);
+    } catch (error: any) {
+      toast({
+        title: "Fel vid generering",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingDescription(false);
+    }
+  };
+
+  const allPhotos = photos;
   const mainPhotos = photos.filter((p) => p.photo_type === "main");
   const docPhotos = photos.filter((p) => p.photo_type === "documentation");
+  const editedPhotosCount = photos.filter((p) => p.is_edited).length;
 
-  // Check if all selected photos are edited (have watermarks)
-  const allSelectedMainAreEdited =
-    selectedMainPhotos.length > 0 && selectedMainPhotos.every((id) => photos.find((p) => p.id === id)?.is_edited);
+  // Check if selected photos have watermarks (original_url exists)
+  const allSelectedMainHaveWatermark =
+    selectedMainPhotos.length > 0 && selectedMainPhotos.every((id) => photos.find((p) => p.id === id)?.original_url);
 
-  const allSelectedDocAreEdited =
-    selectedDocPhotos.length > 0 && selectedDocPhotos.every((id) => photos.find((p) => p.id === id)?.is_edited);
+  const allSelectedDocHaveWatermark =
+    selectedDocPhotos.length > 0 && selectedDocPhotos.every((id) => photos.find((p) => p.id === id)?.original_url);
 
   // Combined selected photos for sharing
   const allSelectedPhotos = [...selectedMainPhotos, ...selectedDocPhotos];
@@ -567,23 +627,52 @@ const CarDetail = () => {
                 </div>
               )}
               {car.description && (
-                <Collapsible
-                  open={descriptionOpen}
-                  onOpenChange={setDescriptionOpen}
-                  className="rounded-lg border bg-card shadow-sm"
-                >
-                  <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-accent/5 transition-colors">
-                    <p className="text-sm text-muted-foreground font-medium">📝 Beskrivning</p>
-                    <ChevronDown
-                      className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${
-                        descriptionOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="px-4 pb-4">
-                    <p className="whitespace-pre-wrap text-base pt-2">{car.description}</p>
-                  </CollapsibleContent>
-                </Collapsible>
+                <div className="rounded-lg border bg-card shadow-sm">
+                  <Collapsible
+                    open={descriptionOpen}
+                    onOpenChange={setDescriptionOpen}
+                  >
+                    <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-accent/5 transition-colors">
+                      <p className="text-sm text-muted-foreground font-medium">📝 Beskrivning</p>
+                      <ChevronDown
+                        className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${
+                          descriptionOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-4 pb-4">
+                      <p className="whitespace-pre-wrap text-base pt-2">{car.description}</p>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  <div className="px-4 pb-4">
+                    <Button
+                      onClick={handleGenerateDescription}
+                      disabled={generatingDescription}
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      {generatingDescription ? "Genererar..." : "Generera ny AI-beskrivning"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {!car.description && (
+                <div className="rounded-lg border bg-card shadow-sm p-4">
+                  <p className="text-sm text-muted-foreground font-medium mb-2">📝 Beskrivning</p>
+                  <p className="text-sm text-muted-foreground mb-3">Ingen beskrivning finns ännu</p>
+                  <Button
+                    onClick={handleGenerateDescription}
+                    disabled={generatingDescription}
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    {generatingDescription ? "Genererar..." : "Generera AI-beskrivning"}
+                  </Button>
+                </div>
               )}
               <div>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
@@ -606,6 +695,21 @@ const CarDetail = () => {
                   placeholder="Lägg till anteckningar om bilen här..."
                   className="min-h-[100px] text-sm md:text-base"
                 />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Edited Images Counter */}
+        <Card className="mb-4 bg-gradient-card border-border/50 shadow-card">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                <span className="text-sm font-medium">Redigerade bilder</span>
+              </div>
+              <div className="text-lg font-bold">
+                {editedPhotosCount} / 20
               </div>
             </div>
           </CardContent>
@@ -656,7 +760,7 @@ const CarDetail = () => {
                   </Button>
                   <Button
                     onClick={() =>
-                      allSelectedMainAreEdited
+                      allSelectedMainHaveWatermark
                         ? handleRemoveWatermark(selectedMainPhotos, "main")
                         : handleApplyWatermark(selectedMainPhotos, "main")
                     }
@@ -666,12 +770,12 @@ const CarDetail = () => {
                   >
                     <Stamp className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                     {applyingWatermark ? (
-                      allSelectedMainAreEdited ? (
+                      allSelectedMainHaveWatermark ? (
                         "Tar bort..."
                       ) : (
                         "Lägger till..."
                       )
-                    ) : allSelectedMainAreEdited ? (
+                    ) : allSelectedMainHaveWatermark ? (
                       <>
                         <span className="hidden sm:inline">Ta bort vattenmärke ({selectedMainPhotos.length})</span>
                         <span className="sm:hidden">Ta bort ({selectedMainPhotos.length})</span>
@@ -688,7 +792,7 @@ const CarDetail = () => {
               {activeTab === "docs" && selectedDocPhotos.length > 0 && (
                 <Button
                   onClick={() =>
-                    allSelectedDocAreEdited
+                    allSelectedDocHaveWatermark
                       ? handleRemoveWatermark(selectedDocPhotos, "documentation")
                       : handleApplyWatermark(selectedDocPhotos, "documentation")
                   }
@@ -698,12 +802,12 @@ const CarDetail = () => {
                 >
                   <Stamp className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                   {applyingWatermark ? (
-                    allSelectedDocAreEdited ? (
+                    allSelectedDocHaveWatermark ? (
                       "Tar bort..."
                     ) : (
                       "Lägger till..."
                     )
-                  ) : allSelectedDocAreEdited ? (
+                  ) : allSelectedDocHaveWatermark ? (
                     <>
                       <span className="hidden sm:inline">Ta bort vattenmärke ({selectedDocPhotos.length})</span>
                       <span className="sm:hidden">Ta bort ({selectedDocPhotos.length})</span>
