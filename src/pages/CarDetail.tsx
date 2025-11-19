@@ -626,54 +626,18 @@ const CarDetail = () => {
             </div>
           </CardHeader>
           <CardContent className="p-4 md:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-              {car.price && (
-                <div className="rounded-lg border bg-card p-4 shadow-sm">
-                  <p className="text-sm text-muted-foreground font-medium mb-2">💰 Pris</p>
-                  <p className="font-semibold text-lg">{car.price.toLocaleString()} SEK</p>
-                </div>
-              )}
+            <div className="space-y-4">
               {car.registration_number && (
                 <div className="rounded-lg border bg-card p-4 shadow-sm">
                   <p className="text-sm text-muted-foreground font-medium mb-2">🚗 Registreringsnummer</p>
                   <p className="text-base">{car.registration_number}</p>
                 </div>
               )}
-              {car.vin && (
-                <div className="rounded-lg border bg-card p-4 shadow-sm">
-                  <p className="text-sm text-muted-foreground font-medium mb-2">🔢 Reg.nr</p>
-                  <p className="text-base">{car.vin}</p>
-                </div>
-              )}
-              {car.color && (
-                <div className="rounded-lg border bg-card p-4 shadow-sm">
-                  <p className="text-sm text-muted-foreground font-medium mb-2">🎨 Färg</p>
-                  <p className="text-base">{car.color}</p>
-                </div>
-              )}
-              {car.mileage && (
-                <div className="rounded-lg border bg-card p-4 shadow-sm">
-                  <p className="text-sm text-muted-foreground font-medium mb-2">📏 Miltal</p>
-                  <p className="text-base">{car.mileage.toLocaleString()} km</p>
-                </div>
-              )}
-              {car.fuel && (
-                <div className="rounded-lg border bg-card p-4 shadow-sm">
-                  <p className="text-sm text-muted-foreground font-medium mb-2">⛽ Bränsle</p>
-                  <p className="text-base">{car.fuel}</p>
-                </div>
-              )}
-              {car.gearbox && (
-                <div className="rounded-lg border bg-card p-4 shadow-sm">
-                  <p className="text-sm text-muted-foreground font-medium mb-2">⚙️ Växellåda</p>
-                  <p className="text-base">{car.gearbox}</p>
-                </div>
-              )}
               {car.description && (
                 <Collapsible
                   open={descriptionOpen}
                   onOpenChange={setDescriptionOpen}
-                  className="sm:col-span-2 lg:col-span-3 rounded-lg border bg-card shadow-sm"
+                  className="rounded-lg border bg-card shadow-sm"
                 >
                   <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-accent/5 transition-colors">
                     <p className="text-sm text-muted-foreground font-medium">📝 Beskrivning</p>
@@ -688,7 +652,7 @@ const CarDetail = () => {
                   </CollapsibleContent>
                 </Collapsible>
               )}
-              <div className="sm:col-span-2 lg:col-span-3">
+              <div>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
                   <p className="text-sm md:text-base text-muted-foreground font-medium">
                     Anteckningar (delat med företaget)
