@@ -72,9 +72,12 @@ export const UsageDashboard = ({ showTotalCost = false }: UsageDashboardProps) =
             Månatlig användning - {monthName}
           </div>
           {showTotalCost && (
-            <span className="text-lg md:text-2xl font-bold text-primary">
-              {stats.total_cost.toFixed(2)} kr
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm md:text-base text-muted-foreground">Totalt:</span>
+              <span className="text-lg md:text-2xl font-bold text-primary">
+                {stats.total_cost.toFixed(2)} kr
+              </span>
+            </div>
           )}
         </CardTitle>
         <CardDescription className="text-xs md:text-sm">Översikt över din användning och kostnader</CardDescription>
