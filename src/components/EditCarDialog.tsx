@@ -39,6 +39,7 @@ interface EditCarDialogProps {
 const EditCarDialog = ({ open, onOpenChange, car, onCarUpdated }: EditCarDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
+    name: "",
     registration_number: "",
     description: "",
     notes: "",
@@ -48,6 +49,7 @@ const EditCarDialog = ({ open, onOpenChange, car, onCarUpdated }: EditCarDialogP
   useEffect(() => {
     if (car) {
       setFormData({
+        name: car.make || "",
         registration_number: car.registration_number || "",
         description: car.description || "",
         notes: car.notes || "",
@@ -63,6 +65,7 @@ const EditCarDialog = ({ open, onOpenChange, car, onCarUpdated }: EditCarDialogP
       const { error } = await supabase
         .from("cars")
         .update({
+          make: formData.name || null,
           registration_number: formData.registration_number || null,
           description: formData.description || null,
           notes: formData.notes || null,
@@ -96,6 +99,17 @@ const EditCarDialog = ({ open, onOpenChange, car, onCarUpdated }: EditCarDialogP
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Namn</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              disabled={loading}
+              placeholder="Bilens namn..."
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="registration_number">Registreringsnummer</Label>
             <Input

@@ -145,7 +145,7 @@ const Dashboard = () => {
       {/* Main Content */}
       <main className="container mx-auto px-3 md:px-4 py-4 md:py-8 animate-fade-in">
         {/* Usage Dashboard */}
-        <UsageDashboard />
+        <UsageDashboard showTotalCost={true} />
         
         <div className="flex flex-col md:flex-row gap-2 md:gap-4 mb-4 md:mb-8">
           <div className="relative flex-1 group animate-slide-in-right">
