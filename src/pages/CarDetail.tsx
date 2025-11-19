@@ -63,6 +63,7 @@ interface Photo {
   url: string;
   photo_type: "main" | "documentation";
   is_edited: boolean;
+  is_processing?: boolean;
   original_url: string | null;
   display_order: number;
 }
@@ -84,7 +85,6 @@ const CarDetail = () => {
   const [sharing, setSharing] = useState(false);
   const [applyingWatermark, setApplyingWatermark] = useState(false);
   const [activeTab, setActiveTab] = useState("main");
-  const [processingPhotos, setProcessingPhotos] = useState<Record<string, boolean>>({});
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
   const { toast } = useToast();
@@ -243,12 +243,7 @@ const CarDetail = () => {
   };
 
   const handleEditPhotos = async (photoIds: string[], photoType: "main" | "documentation") => {
-    // Mark photos as processing
-    const newProcessingState: Record<string, boolean> = {};
-    photoIds.forEach((id) => {
-      newProcessingState[id] = true;
-    });
-    setProcessingPhotos((prev) => ({ ...prev, ...newProcessingState }));
+    const photos = photoType === "main" ? mainPhotos : docPhotos;
 
     // Clear selection immediately
     if (photoType === "main") {
@@ -270,9 +265,17 @@ const CarDetail = () => {
       description: "Dina bilder bearbetas i bakgrunden",
     });
 
-    // Process photos independently in background
+    // Mark photos as processing in database
     const photosToProcess = photos.filter((p) => photoIds.includes(p.id));
+    
+    for (const photo of photosToProcess) {
+      await supabase
+        .from("photos")
+        .update({ is_processing: true })
+        .eq("id", photo.id);
+    }
 
+    // Process photos independently in background
     photosToProcess.forEach((photo) => {
       // Process each photo independently without blocking
       (async () => {
@@ -319,23 +322,17 @@ const CarDetail = () => {
               url: publicUrl,
               original_url: photo.url,
               is_edited: true,
+              is_processing: false,
             })
             .eq("id", photo.id);
-
-          // Clear processing state for this photo
-          setProcessingPhotos((prev) => {
-            const newState = { ...prev };
-            delete newState[photo.id];
-            return newState;
-          });
         } catch (error) {
           console.error(`Error editing photo ${photo.id}:`, error);
           // Clear processing state on error
-          setProcessingPhotos((prev) => {
-            const newState = { ...prev };
-            delete newState[photo.id];
-            return newState;
-          });
+          await supabase
+            .from("photos")
+            .update({ is_processing: false })
+            .eq("id", photo.id);
+          
           toast({
             title: "Fel vid redigering",
             description: `Kunde inte redigera bild: ${error instanceof Error ? error.message : "Okänt fel"}`,
@@ -741,7 +738,6 @@ const CarDetail = () => {
               onUpdate={() => fetchCarData(true)}
               selectedPhotos={selectedMainPhotos}
               onSelectionChange={setSelectedMainPhotos}
-              processingPhotos={processingPhotos}
             />
           </TabsContent>
 
@@ -751,7 +747,6 @@ const CarDetail = () => {
               onUpdate={() => fetchCarData(true)}
               selectedPhotos={selectedDocPhotos}
               onSelectionChange={setSelectedDocPhotos}
-              processingPhotos={processingPhotos}
             />
           </TabsContent>
         </Tabs>
