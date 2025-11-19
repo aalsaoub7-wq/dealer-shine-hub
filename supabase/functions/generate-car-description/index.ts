@@ -38,7 +38,14 @@ serve(async (req) => {
 
     console.log('User authenticated:', user.id);
 
-    const { carData } = await req.json();
+    const requestBody = await req.json();
+    console.log('Request body:', JSON.stringify(requestBody));
+    
+    const { carData } = requestBody;
+    
+    if (!carData) {
+      throw new Error('carData is missing from request body');
+    }
 
     // Fetch user's AI settings for example descriptions
     const { data: aiSettings } = await supabaseAdmin
