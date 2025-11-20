@@ -129,8 +129,8 @@ const CarDetail = () => {
       
       if (error) throw error;
       
-      // Check if user has Stripe customer and subscription
-      setHasPaymentMethod(data?.hasCustomer && data?.subscription?.status === 'active');
+      // User has payment method if Stripe says they do
+      setHasPaymentMethod(data?.hasPaymentMethod === true);
     } catch (error) {
       console.error("Error checking payment method:", error);
       setHasPaymentMethod(false);

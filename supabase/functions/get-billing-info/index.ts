@@ -66,7 +66,7 @@ serve(async (req) => {
 
     // Get current month usage
     const now = new Date();
-    const month = new Date(now.getFullYear(), now.getMonth(), 1)
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
       .toISOString()
       .split("T")[0];
 
@@ -74,7 +74,7 @@ serve(async (req) => {
       .from("usage_stats")
       .select("*")
       .eq("user_id", user.id)
-      .eq("month", month)
+      .eq("month", firstDayOfMonth)
       .maybeSingle();
 
     // Get subscription info
@@ -84,6 +84,21 @@ serve(async (req) => {
       .eq("company_id", company.id)
       .eq("status", "active")
       .maybeSingle();
+
+    // Check if user has payment method by getting payment methods from Stripe
+    let hasPaymentMethod = false;
+    if (company.stripe_customer_id) {
+      try {
+        const paymentMethods = await stripe.paymentMethods.list({
+          customer: company.stripe_customer_id,
+          type: 'card',
+          limit: 1,
+        });
+        hasPaymentMethod = paymentMethods.data.length > 0;
+      } catch (error) {
+        console.error("Error checking payment methods:", error);
+      }
+    }
 
     // Get invoices from Stripe
     const invoices = await stripe.invoices.list({
@@ -101,6 +116,7 @@ serve(async (req) => {
       JSON.stringify({
         hasCustomer: true,
         customerId: company.stripe_customer_id,
+        hasPaymentMethod,
         subscription: subscription ? {
           status: subscription.status,
           current_period_end: subscription.current_period_end,
