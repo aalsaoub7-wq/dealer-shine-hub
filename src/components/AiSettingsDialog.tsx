@@ -350,6 +350,19 @@ export const AiSettingsDialog = () => {
     }
   };
 
+  // Expose open function via window for external access
+  useEffect(() => {
+    (window as any).openSettingsDialog = (tab?: string) => {
+      setOpen(true);
+      if (tab) {
+        setTimeout(() => setCurrentTab(tab), 100);
+      }
+    };
+    return () => {
+      delete (window as any).openSettingsDialog;
+    };
+  }, []);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
