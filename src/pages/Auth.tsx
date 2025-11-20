@@ -19,14 +19,16 @@ const authSchema = z.object({
     .string()
     .min(6, "Lösenordet måste vara minst 6 tecken")
     .max(72, "Lösenordet får vara max 72 tecken"),
+  inviteCode: z.string().optional(),
 });
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; inviteCode?: string }>({});
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -47,12 +49,12 @@ const Auth = () => {
 
     try {
       // Validate input
-      const validation = authSchema.safeParse({ email, password });
+      const validation = authSchema.safeParse({ email, password, inviteCode });
       if (!validation.success) {
-        const fieldErrors: { email?: string; password?: string } = {};
+        const fieldErrors: { email?: string; password?: string; inviteCode?: string } = {};
         validation.error.errors.forEach((err) => {
           if (err.path[0]) {
-            fieldErrors[err.path[0] as "email" | "password"] = err.message;
+            fieldErrors[err.path[0] as "email" | "password" | "inviteCode"] = err.message;
           }
         });
         setErrors(fieldErrors);
@@ -69,14 +71,97 @@ const Auth = () => {
         toast({ title: "Välkommen tillbaka!" });
         navigate("/");
       } else {
-        const { error } = await supabase.auth.signUp({
+        // If invite code provided, validate it first
+        if (inviteCode) {
+          const { data: codeData, error: codeError } = await supabase
+            .from("invite_codes")
+            .select("id, company_id, used_by")
+            .eq("code", inviteCode.toUpperCase())
+            .is("used_by", null)
+            .gt("expires_at", new Date().toISOString())
+            .single();
+
+          if (codeError || !codeData) {
+            toast({
+              title: "Ogiltig kod",
+              description: "Inbjudningskoden är ogiltig eller har redan använts.",
+              variant: "destructive",
+            });
+            setLoading(false);
+            return;
+          }
+        }
+
+        const { data: authData, error } = await supabase.auth.signUp({
           email: validation.data.email,
           password: validation.data.password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              invite_code: inviteCode ? inviteCode.toUpperCase() : null,
+            },
           },
         });
+        
         if (error) throw error;
+
+        // Handle invite code after signup
+        if (inviteCode && authData.user) {
+          const { data: codeData } = await supabase
+            .from("invite_codes")
+            .select("company_id")
+            .eq("code", inviteCode.toUpperCase())
+            .single();
+
+          if (codeData) {
+            // Delete auto-created company and user_companies entry
+            const { data: userCompanies } = await supabase
+              .from("user_companies")
+              .select("company_id")
+              .eq("user_id", authData.user.id)
+              .single();
+
+            if (userCompanies) {
+              await supabase
+                .from("companies")
+                .delete()
+                .eq("id", userCompanies.company_id);
+            }
+
+            // Link user to the invite code's company
+            await supabase
+              .from("user_companies")
+              .upsert({
+                user_id: authData.user.id,
+                company_id: codeData.company_id,
+              });
+
+            // Delete auto-created admin role
+            await supabase
+              .from("user_roles")
+              .delete()
+              .eq("user_id", authData.user.id);
+
+            // Assign employee role
+            await supabase
+              .from("user_roles")
+              .insert({
+                user_id: authData.user.id,
+                company_id: codeData.company_id,
+                role: "employee",
+              });
+
+            // Mark code as used
+            await supabase
+              .from("invite_codes")
+              .update({
+                used_by: authData.user.id,
+                used_at: new Date().toISOString(),
+              })
+              .eq("code", inviteCode.toUpperCase());
+          }
+        }
+
         toast({ title: "Konto skapat! Vänligen logga in." });
         setIsLogin(true);
       }
@@ -139,6 +224,28 @@ const Auth = () => {
                 <p className="text-sm text-destructive">{errors.password}</p>
               )}
             </div>
+            {!isLogin && (
+              <div className="space-y-2">
+                <label htmlFor="inviteCode" className="text-sm font-medium">
+                  Inbjudningskod (valfritt)
+                </label>
+                <Input
+                  id="inviteCode"
+                  type="text"
+                  placeholder="Ange kod från din arbetsgivare"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                  disabled={loading}
+                  className={errors.inviteCode ? "border-destructive" : ""}
+                />
+                {errors.inviteCode && (
+                  <p className="text-sm text-destructive">{errors.inviteCode}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Lämna tomt för att skapa ett nytt företag
+                </p>
+              </div>
+            )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Laddar..." : isLogin ? "Logga in" : "Skapa konto"}
             </Button>

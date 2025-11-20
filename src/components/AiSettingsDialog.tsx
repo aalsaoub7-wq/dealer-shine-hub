@@ -13,6 +13,7 @@ import { WatermarkPreview } from "./WatermarkPreview";
 import { LandingPagePreview } from "./LandingPagePreview";
 import { Input } from "@/components/ui/input";
 import { PaymentSettings } from "./PaymentSettings";
+import { TeamManagement } from "./TeamManagement";
 
 export const AiSettingsDialog = () => {
   const [open, setOpen] = useState(false);
@@ -47,7 +48,7 @@ export const AiSettingsDialog = () => {
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const { toast } = useToast();
 
-  const tabs = ["background", "watermark", "landing", "payment"];
+  const tabs = ["background", "watermark", "landing", "payment", "team"];
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.touches[0].clientX);
@@ -381,11 +382,12 @@ export const AiSettingsDialog = () => {
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
           <div className="mt-4 rounded-xl border border-border bg-muted p-3 shadow-sm md:bg-transparent md:border-0 md:p-0 md:rounded-none">
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-1">
               <TabsTrigger value="background">Bakgrund</TabsTrigger>
               <TabsTrigger value="watermark">Vattenmärke</TabsTrigger>
               <TabsTrigger value="landing">Landningssida</TabsTrigger>
               <TabsTrigger value="payment">Betalning</TabsTrigger>
+              <TabsTrigger value="team">Team</TabsTrigger>
             </TabsList>
 
             <Separator className="my-10 md:hidden" />
@@ -809,6 +811,15 @@ export const AiSettingsDialog = () => {
               onTouchEnd={handleTouchEnd}
             >
               <PaymentSettings />
+            </TabsContent>
+
+            <TabsContent
+              value="team"
+              className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              <TeamManagement />
             </TabsContent>
           </div>
         </Tabs>
