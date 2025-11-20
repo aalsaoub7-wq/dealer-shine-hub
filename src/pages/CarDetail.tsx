@@ -190,12 +190,16 @@ const CarDetail = () => {
       const { data: tokenData, error: tokenError } = await supabase.rpc("generate_share_token");
       if (tokenError) throw tokenError;
 
-      // Create shared collection
+      // Create shared collection with 30-day expiration
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+      
       const { error } = await supabase.from("shared_collections").insert({
         user_id: user.id,
         title: `${car.make} ${car.model} ${car.year}`,
         photo_ids: photoIds,
         share_token: tokenData,
+        expires_at: expiresAt.toISOString(),
       });
 
       if (error) throw error;
