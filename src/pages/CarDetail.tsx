@@ -297,7 +297,13 @@ const CarDetail = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate("/?tab=payment")}
+            onClick={() => {
+              navigate("/");
+              setTimeout(() => {
+                const paymentTab = document.querySelector('[data-tab="payment"]') as HTMLElement;
+                if (paymentTab) paymentTab.click();
+              }, 100);
+            }}
           >
             Gå till Inställningar
           </Button>
