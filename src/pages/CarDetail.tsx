@@ -106,7 +106,6 @@ const CarDetail = () => {
             filter: `car_id=eq.${id}`
           },
           (payload) => {
-            console.log('Photo update received:', payload);
             // Update photos in real-time
             fetchCarData(true);
           }
@@ -187,14 +186,11 @@ const CarDetail = () => {
       if (!user) throw new Error("Ingen användare inloggad");
 
       // Get user's landing page settings
-      const { data: settings, error: settingsError } = await supabase
+      const { data: settings } = await supabase
         .from("ai_settings")
         .select("landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text, landing_page_logo_size, landing_page_logo_position, landing_page_header_height, landing_page_header_fit")
         .eq("user_id", user.id)
         .maybeSingle();
-
-      console.log("Landing page settings:", settings);
-      console.log("Settings error:", settingsError);
 
       // Generate unique share token
       const { data: tokenData, error: tokenError } = await supabase.rpc("generate_share_token");

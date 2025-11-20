@@ -72,7 +72,6 @@ export function subscribeToBlocketStatus(
         filter: `car_id=eq.${carId}`,
       },
       (payload) => {
-        console.log("[Blocket] Status changed:", payload);
         callback(payload.new);
       }
     )

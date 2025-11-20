@@ -473,7 +473,87 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_photos: {
+        Row: {
+          id: string | null
+          url: string | null
+        }
+        Insert: {
+          id?: string | null
+          url?: string | null
+        }
+        Update: {
+          id?: string | null
+          url?: string | null
+        }
+        Relationships: []
+      }
+      public_shared_collections: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string | null
+          landing_page_accent_color: string | null
+          landing_page_background_color: string | null
+          landing_page_description: string | null
+          landing_page_footer_text: string | null
+          landing_page_header_fit: string | null
+          landing_page_header_height: string | null
+          landing_page_header_image_url: string | null
+          landing_page_layout: string | null
+          landing_page_logo_position: string | null
+          landing_page_logo_size: string | null
+          landing_page_logo_url: string | null
+          landing_page_text_color: string | null
+          landing_page_title: string | null
+          photo_ids: string[] | null
+          share_token: string | null
+          title: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          landing_page_accent_color?: string | null
+          landing_page_background_color?: string | null
+          landing_page_description?: string | null
+          landing_page_footer_text?: string | null
+          landing_page_header_fit?: string | null
+          landing_page_header_height?: string | null
+          landing_page_header_image_url?: string | null
+          landing_page_layout?: string | null
+          landing_page_logo_position?: string | null
+          landing_page_logo_size?: string | null
+          landing_page_logo_url?: string | null
+          landing_page_text_color?: string | null
+          landing_page_title?: string | null
+          photo_ids?: string[] | null
+          share_token?: string | null
+          title?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          landing_page_accent_color?: string | null
+          landing_page_background_color?: string | null
+          landing_page_description?: string | null
+          landing_page_footer_text?: string | null
+          landing_page_header_fit?: string | null
+          landing_page_header_height?: string | null
+          landing_page_header_image_url?: string | null
+          landing_page_layout?: string | null
+          landing_page_logo_position?: string | null
+          landing_page_logo_size?: string | null
+          landing_page_logo_url?: string | null
+          landing_page_text_color?: string | null
+          landing_page_title?: string | null
+          photo_ids?: string[] | null
+          share_token?: string | null
+          title?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_share_token: { Args: never; Returns: string }
