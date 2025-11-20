@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Copy, RefreshCw, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import type { Database } from "@/integrations/supabase/types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +17,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
+type TeamMember = {
+  user_id: string;
+  role: Database['public']['Enums']['app_role'];
+  created_at: string;
+  profiles: {
+    email: string;
+  } | null;
+};
 
 export const TeamManagement = () => {
   const { toast } = useToast();
@@ -65,7 +75,7 @@ export const TeamManagement = () => {
     enabled: userRole === "admin",
   });
 
-  const { data: teamMembers } = useQuery({
+  const { data: teamMembers } = useQuery<TeamMember[]>({
     queryKey: ["teamMembers"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -81,12 +91,32 @@ export const TeamManagement = () => {
 
       const { data, error } = await supabase
         .from("user_roles")
-        .select("user_id, role, created_at")
+        .select(`
+          user_id,
+          role,
+          created_at
+        `)
         .eq("company_id", userCompanies.company_id)
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      return data;
+      
+      // Fetch profiles separately
+      if (!data || data.length === 0) return [];
+      
+      const userIds = data.map(member => member.user_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, email")
+        .in("id", userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Merge profiles with user_roles data
+      return data.map(member => ({
+        ...member,
+        profiles: profilesData?.find(p => p.id === member.user_id) || null
+      }));
     },
     enabled: userRole === "admin",
   });
@@ -220,7 +250,7 @@ export const TeamManagement = () => {
                 {teamMembers.map((member) => (
                   <div key={member.user_id} className="flex justify-between items-center p-3 border rounded-lg">
                     <div>
-                      <p className="font-medium text-sm">{member.user_id}</p>
+                      <p className="font-medium text-sm">{member.profiles?.email || member.user_id}</p>
                       <p className="text-xs text-muted-foreground">
                         Gick med: {new Date(member.created_at).toLocaleDateString('sv-SE')}
                       </p>
