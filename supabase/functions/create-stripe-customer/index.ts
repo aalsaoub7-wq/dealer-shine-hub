@@ -94,9 +94,6 @@ serve(async (req) => {
       items: [{
         price: "price_1SVYkmRrATtOsqxEkpteepcs",
       }],
-      billing_cycle_anchor_config: {
-        month: 'end',
-      },
       proration_behavior: 'none',
     });
 
