@@ -97,41 +97,14 @@ const Auth = () => {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             is_employee_signup: !!inviteCode,
+            invite_code: inviteCode || null,
           },
         },
       });
         
         if (error) throw error;
 
-        // Handle invite code after signup - link user to company
-        if (inviteCode && authData.user) {
-          const { data: companyData } = await supabase
-            .from("companies")
-            .select("id")
-            .eq("employee_invite_code", inviteCode.toUpperCase())
-            .single();
-
-          if (companyData) {
-            // Link user to the company with the invite code
-            // Note: Trigger won't create a company because is_employee_signup is true
-            await supabase
-              .from("user_companies")
-              .insert({
-                user_id: authData.user.id,
-                company_id: companyData.id,
-              });
-
-            // Assign employee role
-            await supabase
-              .from("user_roles")
-              .insert({
-                user_id: authData.user.id,
-                company_id: companyData.id,
-                role: "employee",
-              });
-          }
-        }
-
+        // Trigger handles linking user to company automatically
         toast({ title: "Konto skapat! Vänligen logga in." });
         setIsLogin(true);
       }
