@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { editCarSchema, type EditCarFormData } from "@/lib/validation";
 
 interface CarData {
   id: string;
@@ -44,6 +45,7 @@ const EditCarDialog = ({ open, onOpenChange, car, onCarUpdated }: EditCarDialogP
     description: "",
     notes: "",
   });
+  const [errors, setErrors] = useState<Partial<Record<keyof EditCarFormData, string>>>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -59,6 +61,26 @@ const EditCarDialog = ({ open, onOpenChange, car, onCarUpdated }: EditCarDialogP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate input
+    const validation = editCarSchema.safeParse(formData);
+
+    if (!validation.success) {
+      const fieldErrors: Partial<Record<keyof EditCarFormData, string>> = {};
+      validation.error.errors.forEach((error) => {
+        const field = error.path[0] as keyof EditCarFormData;
+        fieldErrors[field] = error.message;
+      });
+      setErrors(fieldErrors);
+      toast({
+        title: "Valideringsfel",
+        description: "Vänligen kontrollera alla fält",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setErrors({});
     setLoading(true);
 
     try {

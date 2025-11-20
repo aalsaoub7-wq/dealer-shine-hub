@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Upload, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { validateImageFile } from "@/lib/validation";
 
 interface PhotoUploadProps {
   open: boolean;
@@ -32,7 +33,30 @@ const PhotoUpload = ({
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setSelectedFiles(Array.from(e.target.files));
+      const files = Array.from(e.target.files);
+      
+      // Validate each file
+      const invalidFiles: string[] = [];
+      const validFiles: File[] = [];
+
+      files.forEach((file) => {
+        const validation = validateImageFile(file);
+        if (validation.valid) {
+          validFiles.push(file);
+        } else {
+          invalidFiles.push(`${file.name}: ${validation.error}`);
+        }
+      });
+
+      if (invalidFiles.length > 0) {
+        toast({
+          title: "Vissa filer kunde inte laddas upp",
+          description: invalidFiles.join("\n"),
+          variant: "destructive",
+        });
+      }
+
+      setSelectedFiles(validFiles);
     }
   };
 
@@ -168,7 +192,7 @@ const PhotoUpload = ({
             <input
               type="file"
               multiple
-              accept="image/*"
+              accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
               capture="environment"
               onChange={handleFileSelect}
               className="hidden"
@@ -178,7 +202,7 @@ const PhotoUpload = ({
               htmlFor="file-upload"
               className="cursor-pointer text-primary hover:text-primary/80 transition-colors"
             >
-              Välj filer
+              Välj filer (max 10MB per fil)
             </label>
             {selectedFiles.length > 0 && (
               <p className="mt-2 text-sm text-muted-foreground">
