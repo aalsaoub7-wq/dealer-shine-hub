@@ -66,9 +66,9 @@ serve(async (req) => {
 
     // Get current month usage for all company users
     const now = new Date();
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-      .toISOString()
-      .split("T")[0];
+    const year = now.getFullYear();
+    const monthNumber = now.getMonth(); // 0-11
+    const firstDayOfMonth = `${year}-${String(monthNumber + 1).padStart(2, '0')}-01`;
 
     // Get all users in the company
     const { data: companyUsers } = await supabaseClient
