@@ -9,6 +9,7 @@ import { PaymentSettingsSkeleton } from "./PaymentSettingsSkeleton";
 interface BillingInfo {
   hasCustomer: boolean;
   customerId?: string;
+  hasPaymentMethod?: boolean;
   subscription?: {
     status: string;
     current_period_end?: string;
@@ -150,18 +151,18 @@ export const PaymentSettings = () => {
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className={`w-3 h-3 rounded-full ${
-                billingInfo.subscription?.status === 'active' 
+                billingInfo.hasPaymentMethod
                   ? 'bg-green-500' 
                   : 'bg-red-500'
               }`} />
               <div className="flex-1">
                 <p className="text-sm font-medium">
-                  {billingInfo.subscription?.status === 'active' 
+                  {billingInfo.hasPaymentMethod
                     ? 'Betalmetod tillagd' 
                     : 'Ingen betalmetod'}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {billingInfo.subscription?.status === 'active'
+                  {billingInfo.hasPaymentMethod
                     ? 'Du kan redigera bilder'
                     : 'Lägg till betalmetod via Stripe-portalen för att redigera bilder'}
                 </p>
