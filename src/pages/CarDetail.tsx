@@ -186,11 +186,18 @@ const CarDetail = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Ingen användare inloggad");
 
+      // Get user's landing page settings
+      const { data: settings } = await supabase
+        .from("ai_settings")
+        .select("landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text, landing_page_logo_size, landing_page_logo_position, landing_page_header_height, landing_page_header_fit")
+        .eq("user_id", user.id)
+        .single();
+
       // Generate unique share token
       const { data: tokenData, error: tokenError } = await supabase.rpc("generate_share_token");
       if (tokenError) throw tokenError;
 
-      // Create shared collection with 30-day expiration
+      // Create shared collection with 30-day expiration and landing page settings
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 30);
       
@@ -200,6 +207,19 @@ const CarDetail = () => {
         photo_ids: photoIds,
         share_token: tokenData,
         expires_at: expiresAt.toISOString(),
+        landing_page_logo_url: settings?.landing_page_logo_url,
+        landing_page_background_color: settings?.landing_page_background_color || "#ffffff",
+        landing_page_layout: settings?.landing_page_layout || "grid",
+        landing_page_header_image_url: settings?.landing_page_header_image_url,
+        landing_page_text_color: settings?.landing_page_text_color || "#000000",
+        landing_page_accent_color: settings?.landing_page_accent_color || "#000000",
+        landing_page_title: settings?.landing_page_title || "Mina Bilder",
+        landing_page_description: settings?.landing_page_description,
+        landing_page_footer_text: settings?.landing_page_footer_text,
+        landing_page_logo_size: settings?.landing_page_logo_size || "medium",
+        landing_page_logo_position: settings?.landing_page_logo_position || "center",
+        landing_page_header_height: settings?.landing_page_header_height || "medium",
+        landing_page_header_fit: settings?.landing_page_header_fit || "cover",
       });
 
       if (error) throw error;

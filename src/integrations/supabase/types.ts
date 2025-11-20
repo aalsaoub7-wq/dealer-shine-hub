@@ -298,6 +298,19 @@ export type Database = {
           created_at: string
           expires_at: string | null
           id: string
+          landing_page_accent_color: string | null
+          landing_page_background_color: string | null
+          landing_page_description: string | null
+          landing_page_footer_text: string | null
+          landing_page_header_fit: string | null
+          landing_page_header_height: string | null
+          landing_page_header_image_url: string | null
+          landing_page_layout: string | null
+          landing_page_logo_position: string | null
+          landing_page_logo_size: string | null
+          landing_page_logo_url: string | null
+          landing_page_text_color: string | null
+          landing_page_title: string | null
           photo_ids: string[]
           share_token: string
           title: string | null
@@ -307,6 +320,19 @@ export type Database = {
           created_at?: string
           expires_at?: string | null
           id?: string
+          landing_page_accent_color?: string | null
+          landing_page_background_color?: string | null
+          landing_page_description?: string | null
+          landing_page_footer_text?: string | null
+          landing_page_header_fit?: string | null
+          landing_page_header_height?: string | null
+          landing_page_header_image_url?: string | null
+          landing_page_layout?: string | null
+          landing_page_logo_position?: string | null
+          landing_page_logo_size?: string | null
+          landing_page_logo_url?: string | null
+          landing_page_text_color?: string | null
+          landing_page_title?: string | null
           photo_ids?: string[]
           share_token: string
           title?: string | null
@@ -316,6 +342,19 @@ export type Database = {
           created_at?: string
           expires_at?: string | null
           id?: string
+          landing_page_accent_color?: string | null
+          landing_page_background_color?: string | null
+          landing_page_description?: string | null
+          landing_page_footer_text?: string | null
+          landing_page_header_fit?: string | null
+          landing_page_header_height?: string | null
+          landing_page_header_image_url?: string | null
+          landing_page_layout?: string | null
+          landing_page_logo_position?: string | null
+          landing_page_logo_size?: string | null
+          landing_page_logo_url?: string | null
+          landing_page_text_color?: string | null
+          landing_page_title?: string | null
           photo_ids?: string[]
           share_token?: string
           title?: string | null
