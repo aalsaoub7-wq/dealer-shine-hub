@@ -89,16 +89,10 @@ serve(async (req) => {
     console.log("Stripe customer created:", customer.id);
 
     // Create metered subscription for automatic monthly billing
-    const priceId = Deno.env.get("STRIPE_PRICE_ID");
-    if (!priceId) {
-      console.error("STRIPE_PRICE_ID environment variable not set");
-      throw new Error("Stripe Price ID not configured");
-    }
-
     const subscription = await stripe.subscriptions.create({
       customer: customer.id,
       items: [{
-        price: priceId,
+        price: "price_1SVYWPRrATtOsqxEKYlXvN37",
       }],
       billing_cycle_anchor_config: {
         month: 'end',
