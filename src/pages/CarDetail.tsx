@@ -25,6 +25,7 @@ import { PlatformSyncDialog } from "@/components/PlatformSyncDialog";
 import EditCarDialog from "@/components/EditCarDialog";
 import { applyWatermark } from "@/lib/watermark";
 import { trackUsage } from "@/lib/usageTracking";
+import { CarDetailSkeleton } from "@/components/CarDetailSkeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -470,11 +471,7 @@ const CarDetail = () => {
   const allSelectedPhotos = [...selectedMainPhotos, ...selectedDocPhotos];
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-card to-background flex items-center justify-center">
-        <p className="text-muted-foreground">Laddar...</p>
-      </div>
-    );
+    return <CarDetailSkeleton />;
   }
 
   if (!car) return null;

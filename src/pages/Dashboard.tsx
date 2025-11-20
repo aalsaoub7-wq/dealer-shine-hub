@@ -11,6 +11,7 @@ import AddCarDialog from "@/components/AddCarDialog";
 import { AiSettingsDialog } from "@/components/AiSettingsDialog";
 import { UsageDashboard } from "@/components/UsageDashboard";
 import { useToast } from "@/hooks/use-toast";
+import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 
 interface CarData {
   id: string;
@@ -115,6 +116,10 @@ const Dashboard = () => {
       (car.registration_number && car.registration_number.toLowerCase().includes(query))
     );
   });
+
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
