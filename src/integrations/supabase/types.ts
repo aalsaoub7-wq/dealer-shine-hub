@@ -225,6 +225,7 @@ export type Database = {
       companies: {
         Row: {
           created_at: string | null
+          employee_invite_code: string | null
           id: string
           name: string
           stripe_customer_id: string | null
@@ -232,6 +233,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          employee_invite_code?: string | null
           id?: string
           name: string
           stripe_customer_id?: string | null
@@ -239,53 +241,13 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          employee_invite_code?: string | null
           id?: string
           name?: string
           stripe_customer_id?: string | null
           updated_at?: string | null
         }
         Relationships: []
-      }
-      invite_codes: {
-        Row: {
-          code: string
-          company_id: string
-          created_at: string | null
-          created_by: string
-          expires_at: string | null
-          id: string
-          used_at: string | null
-          used_by: string | null
-        }
-        Insert: {
-          code: string
-          company_id: string
-          created_at?: string | null
-          created_by: string
-          expires_at?: string | null
-          id?: string
-          used_at?: string | null
-          used_by?: string | null
-        }
-        Update: {
-          code?: string
-          company_id?: string
-          created_at?: string | null
-          created_by?: string
-          expires_at?: string | null
-          id?: string
-          used_at?: string | null
-          used_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "invite_codes_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       photos: {
         Row: {

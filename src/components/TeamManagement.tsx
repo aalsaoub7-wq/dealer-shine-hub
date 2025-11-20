@@ -4,23 +4,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Copy, Plus, Check, X } from "lucide-react";
-import { format } from "date-fns";
-import { sv } from "date-fns/locale";
-
-interface InviteCode {
-  id: string;
-  code: string;
-  created_at: string;
-  used_at: string | null;
-  used_by: string | null;
-  expires_at: string;
-}
+import { Copy, RefreshCw, Check } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const TeamManagement = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
 
   const { data: userRole } = useQuery({
     queryKey: ["userRole"],
@@ -38,8 +38,8 @@ export const TeamManagement = () => {
     },
   });
 
-  const { data: inviteCodes, isLoading } = useQuery({
-    queryKey: ["inviteCodes"],
+  const { data: companyData, isLoading } = useQuery({
+    queryKey: ["companyInviteCode"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
@@ -53,18 +53,18 @@ export const TeamManagement = () => {
       if (!userCompanies) throw new Error("No company found");
 
       const { data, error } = await supabase
-        .from("invite_codes")
-        .select("*")
-        .eq("company_id", userCompanies.company_id)
-        .order("created_at", { ascending: false });
+        .from("companies")
+        .select("id, employee_invite_code")
+        .eq("id", userCompanies.company_id)
+        .single();
 
       if (error) throw error;
-      return data as InviteCode[];
+      return data;
     },
     enabled: userRole === "admin",
   });
 
-  const generateCode = useMutation({
+  const regenerateCode = useMutation({
     mutationFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
@@ -77,30 +77,28 @@ export const TeamManagement = () => {
 
       if (!userCompanies) throw new Error("No company found");
 
-      const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+      const newCode = Math.random().toString(36).substring(2, 10).toUpperCase();
 
       const { error } = await supabase
-        .from("invite_codes")
-        .insert({
-          code,
-          company_id: userCompanies.company_id,
-          created_by: user.id,
-        });
+        .from("companies")
+        .update({ employee_invite_code: newCode })
+        .eq("id", userCompanies.company_id);
 
       if (error) throw error;
-      return code;
+      return newCode;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["inviteCodes"] });
+      queryClient.invalidateQueries({ queryKey: ["companyInviteCode"] });
+      setShowRegenerateDialog(false);
       toast({
-        title: "Inbjudningskod skapad",
-        description: "Den nya koden är nu tillgänglig.",
+        title: "Kod uppdaterad",
+        description: "En ny inbjudningskod har skapats.",
       });
     },
     onError: () => {
       toast({
         title: "Fel",
-        description: "Kunde inte skapa inbjudningskod.",
+        description: "Kunde inte uppdatera inbjudningskod.",
         variant: "destructive",
       });
     },
@@ -108,8 +106,8 @@ export const TeamManagement = () => {
 
   const copyToClipboard = (code: string) => {
     navigator.clipboard.writeText(code);
-    setCopiedCode(code);
-    setTimeout(() => setCopiedCode(null), 2000);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
     toast({
       title: "Kopierad",
       description: "Inbjudningskoden har kopierats.",
@@ -130,82 +128,76 @@ export const TeamManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Inbjudningskoder</CardTitle>
-          <CardDescription>
-            Skapa engångskoder för att bjuda in anställda till ditt företag.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Button
-            onClick={() => generateCode.mutate()}
-            disabled={generateCode.isPending}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Skapa ny kod
-          </Button>
-
-          {isLoading ? (
-            <p className="text-sm text-muted-foreground">Laddar...</p>
-          ) : (
-            <div className="space-y-2">
-              {inviteCodes?.map((invite) => (
-                <div
-                  key={invite.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
+    <>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Inbjudningskod</CardTitle>
+            <CardDescription>
+              Dela denna permanenta kod med anställda för att ge dem åtkomst till ditt företag.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {isLoading ? (
+              <p className="text-sm text-muted-foreground">Laddar...</p>
+            ) : (
+              <>
+                <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <code className="text-lg font-mono font-bold">
-                        {invite.code}
-                      </code>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToClipboard(invite.code)}
-                      >
-                        {copiedCode === invite.code ? (
-                          <Check className="w-4 h-4" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </Button>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Skapad: {format(new Date(invite.created_at), "d MMM yyyy", { locale: sv })}
+                    <code className="text-2xl font-mono font-bold">
+                      {companyData?.employee_invite_code}
+                    </code>
+                    <p className="text-xs text-muted-foreground">
+                      Permanent inbjudningskod för ditt företag
                     </p>
-                    {invite.used_at && (
-                      <p className="text-sm text-muted-foreground">
-                        Använd: {format(new Date(invite.used_at), "d MMM yyyy", { locale: sv })}
-                      </p>
-                    )}
                   </div>
-                  <div>
-                    {invite.used_at ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-muted text-muted-foreground">
-                        <X className="w-3 h-3" />
-                        Använd
-                      </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard(companyData?.employee_invite_code || "")}
+                  >
+                    {copiedCode ? (
+                      <Check className="w-4 h-4" />
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-primary/10 text-primary">
-                        <Check className="w-3 h-3" />
-                        Tillgänglig
-                      </span>
+                      <Copy className="w-4 h-4" />
                     )}
-                  </div>
+                  </Button>
                 </div>
-              ))}
-              {inviteCodes?.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  Inga inbjudningskoder skapade ännu.
+                <Button
+                  variant="outline"
+                  onClick={() => setShowRegenerateDialog(true)}
+                  disabled={regenerateCode.isPending}
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Generera ny kod
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Om du genererar en ny kod kommer den gamla koden att sluta fungera för nya registreringar. 
+                  Befintliga anställda påverkas inte.
                 </p>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <AlertDialog open={showRegenerateDialog} onOpenChange={setShowRegenerateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Generera ny inbjudningskod?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Detta kommer att skapa en ny permanent kod. Den gamla koden kommer att sluta fungera 
+              för nya registreringar, men befintliga anställda påverkas inte.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction onClick={() => regenerateCode.mutate()}>
+              Generera ny kod
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };

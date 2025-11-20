@@ -73,18 +73,16 @@ const Auth = () => {
       } else {
         // If invite code provided, validate it first
         if (inviteCode) {
-          const { data: codeData, error: codeError } = await supabase
-            .from("invite_codes")
-            .select("id, company_id, used_by")
-            .eq("code", inviteCode.toUpperCase())
-            .is("used_by", null)
-            .gt("expires_at", new Date().toISOString())
+          const { data: companyData, error: companyError } = await supabase
+            .from("companies")
+            .select("id, employee_invite_code")
+            .eq("employee_invite_code", inviteCode.toUpperCase())
             .single();
 
-          if (codeError || !codeData) {
+          if (companyError || !companyData) {
             toast({
               title: "Ogiltig kod",
-              description: "Inbjudningskoden är ogiltig eller har redan använts.",
+              description: "Inbjudningskoden är ogiltig.",
               variant: "destructive",
             });
             setLoading(false);
@@ -97,9 +95,6 @@ const Auth = () => {
           password: validation.data.password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              invite_code: inviteCode ? inviteCode.toUpperCase() : null,
-            },
           },
         });
         
@@ -107,13 +102,13 @@ const Auth = () => {
 
         // Handle invite code after signup
         if (inviteCode && authData.user) {
-          const { data: codeData } = await supabase
-            .from("invite_codes")
-            .select("company_id")
-            .eq("code", inviteCode.toUpperCase())
+          const { data: companyData } = await supabase
+            .from("companies")
+            .select("id")
+            .eq("employee_invite_code", inviteCode.toUpperCase())
             .single();
 
-          if (codeData) {
+          if (companyData) {
             // Delete auto-created company and user_companies entry
             const { data: userCompanies } = await supabase
               .from("user_companies")
@@ -128,12 +123,12 @@ const Auth = () => {
                 .eq("id", userCompanies.company_id);
             }
 
-            // Link user to the invite code's company
+            // Link user to the company with the invite code
             await supabase
               .from("user_companies")
               .upsert({
                 user_id: authData.user.id,
-                company_id: codeData.company_id,
+                company_id: companyData.id,
               });
 
             // Delete auto-created admin role
@@ -147,18 +142,9 @@ const Auth = () => {
               .from("user_roles")
               .insert({
                 user_id: authData.user.id,
-                company_id: codeData.company_id,
+                company_id: companyData.id,
                 role: "employee",
               });
-
-            // Mark code as used
-            await supabase
-              .from("invite_codes")
-              .update({
-                used_by: authData.user.id,
-                used_at: new Date().toISOString(),
-              })
-              .eq("code", inviteCode.toUpperCase());
           }
         }
 
