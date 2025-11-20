@@ -395,8 +395,8 @@ const CarDetail = () => {
       for (const photo of photosToProcess) {
         try {
           // Apply watermark with user's settings
-          // Use original_url if it exists (to replace existing watermark), otherwise use current url
-          const sourceUrl = photo.original_url || photo.url;
+          // Always use current url which contains the edited image from API
+          const sourceUrl = photo.url;
           const watermarkedBlob = await applyWatermark(
             sourceUrl,
             settings.logo_url,
