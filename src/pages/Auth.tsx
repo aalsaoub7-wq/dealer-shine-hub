@@ -90,13 +90,16 @@ const Auth = () => {
           }
         }
 
-        const { data: authData, error } = await supabase.auth.signUp({
-          email: validation.data.email,
-          password: validation.data.password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
+      const { data: authData, error } = await supabase.auth.signUp({
+        email: validation.data.email,
+        password: validation.data.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            is_employee_signup: !!inviteCode,
           },
-        });
+        },
+      });
         
         if (error) throw error;
 
