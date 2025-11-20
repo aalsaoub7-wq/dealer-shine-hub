@@ -288,14 +288,53 @@ const CarDetail = () => {
   };
 
   const handleEditPhotos = async (photoIds: string[], photoType: "main" | "documentation") => {
-    // Check if user has payment method
     if (!hasPaymentMethod) {
+      const openPortal = async () => {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) {
+            toast({
+              title: "Inte inloggad",
+              description: "Du måste vara inloggad för att hantera betalmetoder",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          const { data, error } = await supabase.functions.invoke('customer-portal', {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          });
+
+          if (error) throw error;
+          if (data?.url) {
+            window.open(data.url, '_blank');
+          }
+        } catch (error) {
+          console.error('Error opening customer portal:', error);
+          toast({
+            title: "Ett fel uppstod",
+            description: "Kunde inte öppna betalportalen. Försök igen.",
+            variant: "destructive",
+          });
+        }
+      };
+
       toast({
         title: "Betalmetod krävs",
-        description: "Du måste lägga till en betalmetod i inställningar innan du kan redigera bilder",
+        description: "Du måste lägga till en betalmetod innan du kan redigera bilder.",
         variant: "destructive",
+        action: (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={openPortal}
+          >
+            Lägg till betalmetod
+          </Button>
+        ),
       });
-      navigate("/");
       return;
     }
 
@@ -627,8 +666,7 @@ const CarDetail = () => {
                   <Button
                     onClick={() => handleEditPhotos(selectedMainPhotos, "main")}
                     variant="outline"
-                    disabled={!hasPaymentMethod || checkingPayment}
-                    className="border-accent text-accent hover:bg-accent hover:text-accent-foreground text-xs md:text-sm h-8 md:h-10 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="border-accent text-accent hover:bg-accent hover:text-accent-foreground text-xs md:text-sm h-8 md:h-10"
                   >
                     <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                     <span className="hidden sm:inline">AI redigera ({selectedMainPhotos.length})</span>
@@ -653,34 +691,22 @@ const CarDetail = () => {
                 </>
               )}
               {activeTab === "docs" && selectedDocPhotos.length > 0 && (
-                <>
-                  <Button
-                    onClick={() => handleEditPhotos(selectedDocPhotos, "documentation")}
-                    variant="outline"
-                    disabled={!hasPaymentMethod || checkingPayment}
-                    className="border-accent text-accent hover:bg-accent hover:text-accent-foreground text-xs md:text-sm h-8 md:h-10 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-                    <span className="hidden sm:inline">AI redigera ({selectedDocPhotos.length})</span>
-                    <span className="sm:hidden">AI ({selectedDocPhotos.length})</span>
-                  </Button>
-                  <Button
-                    onClick={() => handleApplyWatermark(selectedDocPhotos, "documentation")}
-                    variant="outline"
-                    disabled={applyingWatermark}
-                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-8 md:h-10"
-                  >
-                    <Stamp className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-                    {applyingWatermark ? (
-                      "Lägger till..."
-                    ) : (
-                      <>
-                        <span className="hidden sm:inline">Lägg till vattenmärke ({selectedDocPhotos.length})</span>
-                        <span className="sm:hidden">Vattenmärke ({selectedDocPhotos.length})</span>
-                      </>
-                    )}
-                  </Button>
-                </>
+                <Button
+                  onClick={() => handleApplyWatermark(selectedDocPhotos, "documentation")}
+                  variant="outline"
+                  disabled={applyingWatermark}
+                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-8 md:h-10"
+                >
+                  <Stamp className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                  {applyingWatermark ? (
+                    "Lägger till..."
+                  ) : (
+                    <>
+                      <span className="hidden sm:inline">Lägg till vattenmärke ({selectedDocPhotos.length})</span>
+                      <span className="sm:hidden">Vattenmärke ({selectedDocPhotos.length})</span>
+                    </>
+                  )}
+                </Button>
               )}
               <Button
                 onClick={() => {
