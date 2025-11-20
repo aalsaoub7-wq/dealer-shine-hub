@@ -28,6 +28,7 @@ export const PaymentSettings = () => {
   const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [creatingCustomer, setCreatingCustomer] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false);
   const { toast } = useToast();
 
   const fetchBillingInfo = async () => {
@@ -76,6 +77,30 @@ export const PaymentSettings = () => {
       });
     } finally {
       setCreatingCustomer(false);
+    }
+  };
+
+  const openCustomerPortal = async () => {
+    try {
+      setOpeningPortal(true);
+      const { data, error } = await supabase.functions.invoke(
+        "customer-portal"
+      );
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (error: any) {
+      console.error("Error opening customer portal:", error);
+      toast({
+        title: "Fel",
+        description: "Kunde inte öppna Stripe-portal",
+        variant: "destructive",
+      });
+    } finally {
+      setOpeningPortal(false);
     }
   };
 
@@ -156,9 +181,13 @@ export const PaymentSettings = () => {
         <Card>
           <CardContent className="pt-6">
             <Button
-              onClick={() => window.open(billingInfo.portalUrl, "_blank")}
+              onClick={openCustomerPortal}
+              disabled={openingPortal}
               className="w-full"
             >
+              {openingPortal && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               Öppna Stripe-portal
               <ExternalLink className="ml-2 h-4 w-4" />
             </Button>
