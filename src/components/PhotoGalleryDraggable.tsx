@@ -110,6 +110,8 @@ const SortablePhotoCard = ({
           src={photo.url}
           alt="Bilfoto"
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 cursor-pointer"
+          loading="lazy"
+          decoding="async"
           onClick={() => onImageClick(photo.url)}
           onError={(e) => {
             const el = e.currentTarget as HTMLImageElement;
