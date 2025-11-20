@@ -289,38 +289,6 @@ const CarDetail = () => {
 
   const handleEditPhotos = async (photoIds: string[], photoType: "main" | "documentation") => {
     if (!hasPaymentMethod) {
-      const openPortal = async () => {
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (!session) {
-            toast({
-              title: "Inte inloggad",
-              description: "Du måste vara inloggad för att hantera betalmetoder",
-              variant: "destructive",
-            });
-            return;
-          }
-
-          const { data, error } = await supabase.functions.invoke('customer-portal', {
-            headers: {
-              Authorization: `Bearer ${session.access_token}`,
-            },
-          });
-
-          if (error) throw error;
-          if (data?.url) {
-            window.open(data.url, '_blank');
-          }
-        } catch (error) {
-          console.error('Error opening customer portal:', error);
-          toast({
-            title: "Ett fel uppstod",
-            description: "Kunde inte öppna betalportalen. Försök igen.",
-            variant: "destructive",
-          });
-        }
-      };
-
       toast({
         title: "Betalmetod krävs",
         description: "Du måste lägga till en betalmetod innan du kan redigera bilder.",
@@ -329,9 +297,9 @@ const CarDetail = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={openPortal}
+            onClick={() => navigate("/?tab=payment")}
           >
-            Lägg till betalmetod
+            Gå till Inställningar
           </Button>
         ),
       });
