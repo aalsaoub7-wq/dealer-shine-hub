@@ -17,6 +17,7 @@ export type Database = {
       ai_settings: {
         Row: {
           background_prompt: string
+          company_id: string
           created_at: string
           example_descriptions: string | null
           id: string
@@ -43,6 +44,7 @@ export type Database = {
         }
         Insert: {
           background_prompt?: string
+          company_id: string
           created_at?: string
           example_descriptions?: string | null
           id?: string
@@ -69,6 +71,7 @@ export type Database = {
         }
         Update: {
           background_prompt?: string
+          company_id?: string
           created_at?: string
           example_descriptions?: string | null
           id?: string
@@ -93,7 +96,15 @@ export type Database = {
           watermark_x?: number | null
           watermark_y?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ai_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       blocket_ad_sync: {
         Row: {
