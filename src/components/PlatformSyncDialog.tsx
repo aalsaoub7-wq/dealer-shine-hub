@@ -95,7 +95,6 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
 
   const handleSocialMediaShare = () => {
     // TODO: Implement social media sharing logic
-    console.log("Sharing images to social media:", selectedImages);
     setShowSocialMediaPicker(false);
     setSelectedImages([]);
   };
