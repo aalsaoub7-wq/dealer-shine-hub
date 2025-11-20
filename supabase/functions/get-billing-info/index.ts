@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") as string, {
-  apiVersion: "2023-10-16",
+  apiVersion: "2025-08-27.basil",
 });
 
 const corsHeaders = {
@@ -85,18 +85,36 @@ serve(async (req) => {
       .eq("status", "active")
       .maybeSingle();
 
-    // Check if user has payment method by getting payment methods from Stripe
+    // Check if user has payment method by retrieving customer from Stripe
     let hasPaymentMethod = false;
     if (company.stripe_customer_id) {
       try {
-        const paymentMethods = await stripe.paymentMethods.list({
-          customer: company.stripe_customer_id,
-          type: 'card',
-          limit: 1,
+        console.log(`[BILLING-INFO] Checking payment method for customer: ${company.stripe_customer_id}`);
+        
+        // Retrieve full customer object from Stripe
+        const customer = await stripe.customers.retrieve(company.stripe_customer_id) as any;
+        
+        console.log(`[BILLING-INFO] Customer retrieved:`, {
+          id: customer.id,
+          email: customer.email,
+          default_source: customer.default_source,
+          invoice_settings_default_payment_method: customer.invoice_settings?.default_payment_method,
         });
-        hasPaymentMethod = paymentMethods.data.length > 0;
+        
+        // Check multiple sources for payment method
+        hasPaymentMethod = !!(
+          customer.invoice_settings?.default_payment_method ||
+          customer.default_source ||
+          (subscription && subscription.default_payment_method)
+        );
+        
+        console.log(`[BILLING-INFO] Payment method status: ${hasPaymentMethod}`);
+        
+        if (subscription) {
+          console.log(`[BILLING-INFO] Subscription default_payment_method: ${subscription.default_payment_method}`);
+        }
       } catch (error) {
-        console.error("Error checking payment methods:", error);
+        console.error("[BILLING-INFO] Error checking payment methods:", error);
       }
     }
 
