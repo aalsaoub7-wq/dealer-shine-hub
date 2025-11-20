@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Copy, RefreshCw, Check } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,6 +58,32 @@ export const TeamManagement = () => {
         .select("id, employee_invite_code")
         .eq("id", userCompanies.company_id)
         .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: userRole === "admin",
+  });
+
+  const { data: teamMembers } = useQuery({
+    queryKey: ["teamMembers"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data: userCompanies } = await supabase
+        .from("user_companies")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!userCompanies) throw new Error("No company found");
+
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("user_id, role, created_at")
+        .eq("company_id", userCompanies.company_id)
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
       return data;
@@ -176,6 +203,36 @@ export const TeamManagement = () => {
                   Befintliga anställda påverkas inte.
                 </p>
               </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Teammedlemmar</CardTitle>
+            <CardDescription>
+              Alla användare som har åtkomst till ditt företag
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {teamMembers && teamMembers.length > 0 ? (
+              <div className="space-y-2">
+                {teamMembers.map((member) => (
+                  <div key={member.user_id} className="flex justify-between items-center p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium text-sm">{member.user_id}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Gick med: {new Date(member.created_at).toLocaleDateString('sv-SE')}
+                      </p>
+                    </div>
+                    <Badge variant={member.role === 'admin' ? 'default' : 'secondary'}>
+                      {member.role === 'admin' ? 'Admin' : 'Anställd'}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Inga teammedlemmar än.</p>
             )}
           </CardContent>
         </Card>
