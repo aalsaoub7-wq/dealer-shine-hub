@@ -64,18 +64,35 @@ serve(async (req) => {
       );
     }
 
-    // Get current month usage
+    // Get current month usage for all company users
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
       .toISOString()
       .split("T")[0];
 
+    // Get all users in the company
+    const { data: companyUsers } = await supabaseClient
+      .from("user_companies")
+      .select("user_id")
+      .eq("company_id", company.id);
+
+    const userIds = companyUsers?.map((uc) => uc.user_id) || [];
+
+    // Get usage stats for all company users
     const { data: usageStats } = await supabaseClient
       .from("usage_stats")
       .select("*")
-      .eq("user_id", user.id)
-      .eq("month", firstDayOfMonth)
-      .maybeSingle();
+      .in("user_id", userIds)
+      .eq("month", firstDayOfMonth);
+
+    // Calculate total company usage
+    const totalUsage = (usageStats || []).reduce(
+      (acc, stat) => ({
+        editedImages: acc.editedImages + stat.edited_images_count,
+        cost: acc.cost + stat.edited_images_cost,
+      }),
+      { editedImages: 0, cost: 0 }
+    );
 
     // Get subscription info
     const { data: subscription } = await supabaseClient
@@ -139,10 +156,7 @@ serve(async (req) => {
           status: subscription.status,
           current_period_end: subscription.current_period_end,
         } : undefined,
-        currentUsage: {
-          editedImages: usageStats?.edited_images_count || 0,
-          cost: usageStats?.edited_images_cost || 0,
-        },
+        currentUsage: totalUsage,
         invoices: invoices.data.map((inv: any) => ({
           id: inv.id,
           created: inv.created,

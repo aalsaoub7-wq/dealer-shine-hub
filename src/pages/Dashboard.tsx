@@ -9,7 +9,6 @@ import luveroLogo from "@/assets/luvero-logo.png";
 import CarCard from "@/components/CarCard";
 import AddCarDialog from "@/components/AddCarDialog";
 import { AiSettingsDialog } from "@/components/AiSettingsDialog";
-import { UsageDashboard } from "@/components/UsageDashboard";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 
@@ -150,9 +149,6 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-3 md:px-4 py-4 md:py-8 animate-fade-in">
-        {/* Usage Dashboard */}
-        <UsageDashboard />
-        
         <div className="flex flex-col md:flex-row gap-2 md:gap-4 mb-4 md:mb-8">
           <div className="relative flex-1 group animate-slide-in-right">
             <Search className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-muted-foreground group-focus-within:text-primary transition-colors duration-300" />
