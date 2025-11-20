@@ -34,17 +34,39 @@ export const PaymentSettings = () => {
   const [loading, setLoading] = useState(true);
   const [creatingCustomer, setCreatingCustomer] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
+  const [currentUsage, setCurrentUsage] = useState({ editedImages: 0, cost: 0 });
   const { toast } = useToast();
 
   const fetchBillingInfo = async () => {
     try {
       setLoading(true);
+      
+      // Fetch billing info from edge function
       const { data, error } = await supabase.functions.invoke(
         "get-billing-info"
       );
 
       if (error) throw error;
       setBillingInfo(data);
+      
+      // Fetch usage stats directly from database (same as UsageDashboard)
+      const now = new Date();
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        .toISOString()
+        .split("T")[0];
+
+      const { data: usageData, error: usageError } = await supabase
+        .from("usage_stats")
+        .select("*")
+        .eq("month", firstDayOfMonth)
+        .maybeSingle();
+
+      if (usageError && usageError.code !== "PGRST116") throw usageError;
+
+      setCurrentUsage({
+        editedImages: usageData?.edited_images_count || 0,
+        cost: usageData?.edited_images_cost || 0,
+      });
     } catch (error: any) {
       console.error("Error fetching billing info:", error);
       toast({
@@ -195,13 +217,13 @@ export const PaymentSettings = () => {
                 Redigerade bilder
               </span>
               <span className="text-sm font-semibold">
-                {billingInfo.currentUsage?.editedImages || 0} st
+                {currentUsage.editedImages} st
               </span>
             </div>
             <div className="flex justify-between items-center pt-2 border-t">
               <span className="text-sm font-medium">Totalt att betala</span>
               <span className="text-lg font-bold">
-                {(billingInfo.currentUsage?.cost || 0).toFixed(2)} kr
+                {currentUsage.cost.toFixed(2)} kr
               </span>
             </div>
           </CardContent>
