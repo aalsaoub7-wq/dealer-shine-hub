@@ -18,7 +18,20 @@ serve(async (req) => {
   }
 
   try {
+    // Create client with service role key to bypass RLS and access all company data
     const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+
+    // Still get authenticated user from the request
+    const authClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
       {
@@ -30,7 +43,7 @@ serve(async (req) => {
 
     const {
       data: { user },
-    } = await supabaseClient.auth.getUser();
+    } = await authClient.auth.getUser();
 
     if (!user) {
       throw new Error("No user found");
