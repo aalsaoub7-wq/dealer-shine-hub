@@ -54,6 +54,13 @@ export const LandingPagePreview = ({
     contain: 'object-contain',
     fill: 'object-fill'
   }[headerFit];
+
+  const textAlignClass = {
+    left: 'text-left',
+    center: 'text-center',
+    right: 'text-right'
+  }[logoPosition];
+
   return (
     <Card className="overflow-hidden border-muted">
       <div
@@ -79,14 +86,14 @@ export const LandingPagePreview = ({
             />
           )}
           <h1 
-            className="text-xl font-bold text-center"
+            className={`text-xl font-bold ${textAlignClass}`}
             style={{ color: textColor }}
           >
             {title || 'Mina Bilder'}
           </h1>
           {description && (
             <p 
-              className="text-sm text-center"
+              className={`text-sm ${textAlignClass}`}
               style={{ color: textColor, opacity: 0.8 }}
             >
               {description}
