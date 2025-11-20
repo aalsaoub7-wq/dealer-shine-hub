@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Masonry from "react-masonry-css";
+import ImageLightbox from "@/components/ImageLightbox";
 
 interface Photo {
   id: string;
@@ -34,6 +35,8 @@ const SharedPhotos = () => {
   const [collection, setCollection] = useState<SharedCollection | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -47,11 +50,26 @@ const SharedPhotos = () => {
       // Get shared collection
       const { data: collectionData, error: collectionError } = await supabase
         .from("shared_collections")
-        .select("title, photo_ids, user_id")
+        .select("title, photo_ids, user_id, expires_at")
         .eq("share_token", token)
         .single();
 
       if (collectionError) throw collectionError;
+
+      // Check if collection has expired
+      if (collectionData.expires_at) {
+        const expiresAt = new Date(collectionData.expires_at);
+        if (expiresAt < new Date()) {
+          toast({
+            title: "Länken har gått ut",
+            description: "Denna samling är inte längre tillgänglig",
+            variant: "destructive",
+          });
+          setCollection(null);
+          setLoading(false);
+          return;
+        }
+      }
 
       // Get user's AI settings for landing page design
       const { data: settings } = await supabase
@@ -128,6 +146,11 @@ const SharedPhotos = () => {
     if (collection) {
       setCurrentImageIndex((prev) => (prev - 1 + collection.photos.length) % collection.photos.length);
     }
+  };
+
+  const handleOpenLightbox = (url: string) => {
+    setSelectedImageUrl(url);
+    setIsLightboxOpen(true);
   };
 
   if (loading) {
@@ -235,18 +258,30 @@ const SharedPhotos = () => {
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  onClick={() => handleDownload(photo.url, index)}
-                  className="absolute bottom-2 right-2 md:bottom-4 md:right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{ 
-                    backgroundColor: collection.landing_page_accent_color,
-                    color: '#ffffff'
-                  }}
-                >
-                  <Download className="w-3 h-3 md:w-4 md:h-4" />
-                </Button>
+                <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    onClick={() => handleOpenLightbox(photo.url)}
+                    style={{ 
+                      backgroundColor: collection.landing_page_accent_color,
+                      color: '#ffffff'
+                    }}
+                  >
+                    <Maximize2 className="w-3 h-3 md:w-4 md:h-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    onClick={() => handleDownload(photo.url, index)}
+                    style={{ 
+                      backgroundColor: collection.landing_page_accent_color,
+                      color: '#ffffff'
+                    }}
+                  >
+                    <Download className="w-3 h-3 md:w-4 md:h-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -281,18 +316,31 @@ const SharedPhotos = () => {
               >
                 {currentImageIndex + 1} / {collection.photos.length}
               </p>
-              <Button
-                onClick={() => handleDownload(collection.photos[currentImageIndex]?.url, currentImageIndex)}
-                className="text-xs md:text-sm h-8 md:h-10"
-                style={{ 
-                  backgroundColor: collection.landing_page_accent_color,
-                  color: '#ffffff'
-                }}
-              >
-                <Download className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
-                <span className="hidden sm:inline">Ladda ner</span>
-                <span className="sm:hidden">Ladda</span>
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleOpenLightbox(collection.photos[currentImageIndex]?.url)}
+                  className="text-xs md:text-sm h-8 md:h-10"
+                  style={{ 
+                    backgroundColor: collection.landing_page_accent_color,
+                    color: '#ffffff'
+                  }}
+                >
+                  <Maximize2 className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                  <span className="hidden sm:inline">Förstora</span>
+                </Button>
+                <Button
+                  onClick={() => handleDownload(collection.photos[currentImageIndex]?.url, currentImageIndex)}
+                  className="text-xs md:text-sm h-8 md:h-10"
+                  style={{ 
+                    backgroundColor: collection.landing_page_accent_color,
+                    color: '#ffffff'
+                  }}
+                >
+                  <Download className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                  <span className="hidden sm:inline">Ladda ner</span>
+                  <span className="sm:hidden">Ladda</span>
+                </Button>
+              </div>
               <Button
                 onClick={nextImage}
                 variant="outline"
@@ -331,18 +379,30 @@ const SharedPhotos = () => {
                   className="w-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  onClick={() => handleDownload(photo.url, index)}
-                  className="absolute bottom-2 right-2 md:bottom-4 md:right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{ 
-                    backgroundColor: collection.landing_page_accent_color,
-                    color: '#ffffff'
-                  }}
-                >
-                  <Download className="w-3 h-3 md:w-4 md:h-4" />
-                </Button>
+                <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    onClick={() => handleOpenLightbox(photo.url)}
+                    style={{ 
+                      backgroundColor: collection.landing_page_accent_color,
+                      color: '#ffffff'
+                    }}
+                  >
+                    <Maximize2 className="w-3 h-3 md:w-4 md:h-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    onClick={() => handleDownload(photo.url, index)}
+                    style={{ 
+                      backgroundColor: collection.landing_page_accent_color,
+                      color: '#ffffff'
+                    }}
+                  >
+                    <Download className="w-3 h-3 md:w-4 md:h-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </Masonry>
@@ -360,6 +420,13 @@ const SharedPhotos = () => {
           </div>
         )}
       </div>
+
+      {/* Image Lightbox */}
+      <ImageLightbox
+        imageUrl={selectedImageUrl}
+        isOpen={isLightboxOpen}
+        onClose={() => setIsLightboxOpen(false)}
+      />
     </div>
   );
 };
