@@ -300,9 +300,10 @@ const CarDetail = () => {
             onClick={() => {
               navigate("/");
               setTimeout(() => {
-                const paymentTab = document.querySelector('[data-tab="payment"]') as HTMLElement;
-                if (paymentTab) paymentTab.click();
-              }, 100);
+                if ((window as any).openSettingsDialog) {
+                  (window as any).openSettingsDialog("payment");
+                }
+              }, 300);
             }}
           >
             Gå till Inställningar
