@@ -332,13 +332,6 @@ const CarDetail = () => {
       setSelectedDocPhotos([]);
     }
 
-    // Track usage for each edited image
-    try {
-      await trackUsage("edited_image", car!.id);
-    } catch (error) {
-      console.error("Error tracking usage:", error);
-    }
-
     // Show toast immediately
     toast({
       title: "Bearbetar bilder",
@@ -405,6 +398,13 @@ const CarDetail = () => {
               is_processing: false,
             })
             .eq("id", photo.id);
+
+          // Track usage for this edited image
+          try {
+            await trackUsage("edited_image", car!.id);
+          } catch (error) {
+            console.error("Error tracking usage:", error);
+          }
         } catch (error) {
           console.error(`Error editing photo ${photo.id}:`, error);
           // Clear processing state on error
