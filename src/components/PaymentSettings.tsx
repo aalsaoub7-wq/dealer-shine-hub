@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { Loader2, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "./ui/card";
+import { PaymentSettingsSkeleton } from "./PaymentSettingsSkeleton";
 
 interface BillingInfo {
   hasCustomer: boolean;
@@ -83,11 +84,7 @@ export const PaymentSettings = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin" />
-      </div>
-    );
+    return <PaymentSettingsSkeleton />;
   }
 
   if (!billingInfo?.hasCustomer) {
