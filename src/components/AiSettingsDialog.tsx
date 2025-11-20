@@ -425,7 +425,7 @@ export const AiSettingsDialog = () => {
               <TabsTrigger value="watermark">Vattenmärke</TabsTrigger>
               <TabsTrigger value="landing">Landningssida</TabsTrigger>
               {userRole === "admin" && <TabsTrigger value="payment">Betalning</TabsTrigger>}
-              {userRole === "admin" && <TabsTrigger value="team">Team</TabsTrigger>}
+              {userRole === "admin" && <TabsTrigger value="team">Anställda</TabsTrigger>}
             </TabsList>
 
             <Separator className="my-10 md:hidden" />
