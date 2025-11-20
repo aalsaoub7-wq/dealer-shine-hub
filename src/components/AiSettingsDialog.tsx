@@ -108,12 +108,21 @@ export const AiSettingsDialog = () => {
       } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Get user's company_id
+      const { data: companyData } = await supabase
+        .from("user_companies")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!companyData) return;
+
       const { data, error } = await supabase
         .from("ai_settings")
         .select(
           "background_prompt, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity, landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text, landing_page_logo_size, landing_page_logo_position, landing_page_header_height, landing_page_header_fit",
         )
-        .eq("user_id", user.id)
+        .eq("company_id", companyData.company_id)
         .single();
 
       if (error && error.code !== "PGRST116") {
@@ -326,9 +335,19 @@ export const AiSettingsDialog = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Inte inloggad");
 
+      // Get user's company_id
+      const { data: companyData } = await supabase
+        .from("user_companies")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!companyData) throw new Error("Kunde inte hitta företag");
+
       const { error } = await supabase.from("ai_settings").upsert(
         {
           user_id: user.id,
+          company_id: companyData.company_id,
           background_prompt: backgroundPrompt,
           example_descriptions: exampleDescriptions,
           logo_url: logoUrl,
@@ -347,7 +366,7 @@ export const AiSettingsDialog = () => {
           landing_page_footer_text: landingPageFooterText,
         },
         {
-          onConflict: "user_id",
+          onConflict: "company_id",
         },
       );
 

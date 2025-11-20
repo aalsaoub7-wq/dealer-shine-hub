@@ -206,11 +206,20 @@ const CarDetail = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Ingen användare inloggad");
 
-      // Get user's landing page settings
+      // Get user's company_id
+      const { data: companyData } = await supabase
+        .from("user_companies")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!companyData) throw new Error("Kunde inte hitta företag");
+
+      // Get company's landing page settings
       const { data: settings } = await supabase
         .from("ai_settings")
         .select("landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text, landing_page_logo_size, landing_page_logo_position, landing_page_header_height, landing_page_header_fit")
-        .eq("user_id", user.id)
+        .eq("company_id", companyData.company_id)
         .maybeSingle();
 
       // Generate unique share token
@@ -417,16 +426,25 @@ const CarDetail = () => {
   const handleApplyWatermark = async (photoIds: string[], photoType: "main" | "documentation") => {
     setApplyingWatermark(true);
     try {
-      // Get user's settings
+      // Get user's company_id
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Ingen användare inloggad");
 
+      const { data: companyData } = await supabase
+        .from("user_companies")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!companyData) throw new Error("Kunde inte hitta företag");
+
+      // Get company's settings
       const { data: settings } = await supabase
         .from("ai_settings")
         .select("logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity")
-        .eq("user_id", user.id)
+        .eq("company_id", companyData.company_id)
         .single();
 
       if (!settings?.logo_url) {
