@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { trackUsage } from "@/lib/usageTracking";
 import LicensePlateInput from "./LicensePlateInput";
+import { addCarSchema, type AddCarFormData } from "@/lib/validation";
+import { Input } from "@/components/ui/input";
 
 interface AddCarDialogProps {
   open: boolean;
@@ -23,6 +25,7 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
   const [loading, setLoading] = useState(false);
   const [registrationNumber, setRegistrationNumber] = useState("");
   const [carName, setCarName] = useState("");
+  const [errors, setErrors] = useState<Partial<Record<keyof AddCarFormData, string>>>({});
   const { toast } = useToast();
 
   const handleDialogChange = (open: boolean) => {
@@ -30,19 +33,33 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
     if (!open) {
       setRegistrationNumber("");
       setCarName("");
+      setErrors({});
     }
   };
 
   const handleCreate = async () => {
-    if (!registrationNumber.trim() || !carName.trim()) {
+    // Validate input
+    const validation = addCarSchema.safeParse({
+      name: carName,
+      registration_number: registrationNumber,
+    });
+
+    if (!validation.success) {
+      const fieldErrors: Partial<Record<keyof AddCarFormData, string>> = {};
+      validation.error.errors.forEach((error) => {
+        const field = error.path[0] as keyof AddCarFormData;
+        fieldErrors[field] = error.message;
+      });
+      setErrors(fieldErrors);
       toast({
-        title: "Fel",
-        description: "Vänligen ange både registreringsnummer och namn",
+        title: "Valideringsfel",
+        description: "Vänligen kontrollera alla fält",
         variant: "destructive",
       });
       return;
     }
 
+    setErrors({});
     setLoading(true);
     try {
       // Get user's company
@@ -98,22 +115,34 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Namn</Label>
-            <input
+            <Label htmlFor="name">Namn *</Label>
+            <Input
               id="name"
               type="text"
               value={carName}
-              onChange={(e) => setCarName(e.target.value)}
+              onChange={(e) => {
+                setCarName(e.target.value);
+                setErrors((prev) => ({ ...prev, name: undefined }));
+              }}
               placeholder="T.ex. Volvo V70"
-              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className={errors.name ? "border-destructive" : ""}
             />
+            {errors.name && (
+              <p className="text-sm text-destructive">{errors.name}</p>
+            )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="registration">Registreringsnummer</Label>
+            <Label htmlFor="registration">Registreringsnummer *</Label>
             <LicensePlateInput
               value={registrationNumber}
-              onChange={setRegistrationNumber}
+              onChange={(value) => {
+                setRegistrationNumber(value);
+                setErrors((prev) => ({ ...prev, registration_number: undefined }));
+              }}
             />
+            {errors.registration_number && (
+              <p className="text-sm text-destructive">{errors.registration_number}</p>
+            )}
           </div>
           <div className="flex gap-2 justify-end">
             <Button onClick={handleCreate} disabled={loading} className="w-full">
