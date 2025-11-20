@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
 import { Loader2, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent } from "./ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { PaymentSettingsSkeleton } from "./PaymentSettingsSkeleton";
 
 interface BillingInfo {
@@ -37,6 +38,22 @@ export const PaymentSettings = () => {
   const [currentUsage, setCurrentUsage] = useState({ editedImages: 0, cost: 0 });
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+
+  const { data: userRole } = useQuery({
+    queryKey: ["userRole"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
+
+      return data?.role;
+    },
+  });
 
   const fetchBillingInfo = async () => {
     try {
@@ -162,6 +179,19 @@ export const PaymentSettings = () => {
       }
     };
   }, []);
+
+  if (userRole !== "admin") {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Åtkomst nekad</CardTitle>
+          <CardDescription>
+            Endast administratörer kan hantera betalningsinställningar.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   if (loading) {
     return <PaymentSettingsSkeleton />;
