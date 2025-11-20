@@ -2,10 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
-import { Loader2, ExternalLink } from "lucide-react";
+import { Loader2, ExternalLink, Image, TrendingUp, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { PaymentSettingsSkeleton } from "./PaymentSettingsSkeleton";
+import { PRICES } from "@/lib/usageTracking";
 
 interface BillingInfo {
   hasCustomer: boolean;
@@ -35,7 +36,13 @@ export const PaymentSettings = () => {
   const [loading, setLoading] = useState(true);
   const [creatingCustomer, setCreatingCustomer] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
-  const [currentUsage, setCurrentUsage] = useState({ editedImages: 0, cost: 0 });
+  const [userUsageStats, setUserUsageStats] = useState<Array<{
+    userId: string;
+    email: string;
+    editedImages: number;
+    cost: number;
+  }>>([]);
+  const [totalUsage, setTotalUsage] = useState({ editedImages: 0, cost: 0 });
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
@@ -67,24 +74,68 @@ export const PaymentSettings = () => {
       if (error) throw error;
       setBillingInfo(data);
       
-      // Fetch usage stats directly from database (same as UsageDashboard)
+      // Fetch per-user usage stats for the company
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Get user's company
+      const { data: userCompany } = await supabase
+        .from("user_companies")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!userCompany) throw new Error("No company found");
+
+      // Get all users in the company
+      const { data: companyUsers } = await supabase
+        .from("user_companies")
+        .select("user_id, profiles(email)")
+        .eq("company_id", userCompany.company_id);
+
+      if (!companyUsers) throw new Error("No company users found");
+
+      // Get current month
       const now = new Date();
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
         .toISOString()
         .split("T")[0];
 
+      const userIds = companyUsers.map((uc) => uc.user_id);
+
+      // Fetch usage stats for all company users
       const { data: usageData, error: usageError } = await supabase
         .from("usage_stats")
         .select("*")
-        .eq("month", firstDayOfMonth)
-        .maybeSingle();
+        .in("user_id", userIds)
+        .eq("month", firstDayOfMonth);
 
       if (usageError && usageError.code !== "PGRST116") throw usageError;
 
-      setCurrentUsage({
-        editedImages: usageData?.edited_images_count || 0,
-        cost: usageData?.edited_images_cost || 0,
+      // Map usage stats to users with emails
+      const statsWithEmails = companyUsers.map((cu) => {
+        const profile = Array.isArray(cu.profiles) ? cu.profiles[0] : cu.profiles;
+        const userStats = usageData?.find((stat) => stat.user_id === cu.user_id);
+        
+        return {
+          userId: cu.user_id,
+          email: profile?.email || "Okänd användare",
+          editedImages: userStats?.edited_images_count || 0,
+          cost: userStats?.edited_images_cost || 0,
+        };
       });
+
+      // Calculate total
+      const total = statsWithEmails.reduce(
+        (acc, stat) => ({
+          editedImages: acc.editedImages + stat.editedImages,
+          cost: acc.cost + stat.cost,
+        }),
+        { editedImages: 0, cost: 0 }
+      );
+
+      setUserUsageStats(statsWithEmails);
+      setTotalUsage(total);
     } catch (error: any) {
       console.error("Error fetching billing info:", error);
       toast({
@@ -252,41 +303,70 @@ export const PaymentSettings = () => {
         </Card>
       </div>
 
-      {/* Pricing */}
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium">Prissättning</h3>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-center">
-              <span className="text-sm">Redigerad bild</span>
-              <span className="text-sm font-semibold">4,95 kr</span>
+      {/* Usage Dashboard */}
+      <Card className="animate-fade-in border-border/50 bg-card/50 backdrop-blur-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base md:text-lg flex items-center gap-2 justify-between">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+              Månatlig användning - {new Date().toLocaleDateString("sv-SE", { month: "long", year: "numeric" })}
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Current Usage */}
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium">Aktuell användning denna månad</h3>
-        <Card>
-          <CardContent className="pt-6 space-y-3">
-            <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <span className="text-sm md:text-base text-muted-foreground">Totalt:</span>
+              <span className="text-lg md:text-2xl font-bold text-primary">
+                {totalUsage.cost.toFixed(2)} kr
+              </span>
+            </div>
+          </CardTitle>
+          <CardDescription className="text-xs md:text-sm">
+            Översikt över företagets användning och kostnader per användare
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {userUsageStats.map((userStat) => (
+            <div
+              key={userStat.userId}
+              className="flex flex-col gap-3 p-4 rounded-lg bg-gradient-to-br from-primary/5 via-transparent to-transparent border border-primary/10"
+            >
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-full bg-primary/10">
+                  <User className="w-4 h-4 text-primary" />
+                </div>
+                <span className="text-sm font-medium">{userStat.email}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Image className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Redigerade bilder:</span>
+                </div>
+                <span className="text-lg font-bold text-foreground">{userStat.editedImages}</span>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t border-border/30">
+                <span className="text-sm font-medium text-muted-foreground">Kostnad:</span>
+                <span className="text-base font-semibold text-foreground">
+                  {userStat.cost.toFixed(2)} kr
+                </span>
+              </div>
+            </div>
+          ))}
+          {userUsageStats.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              Ingen användning denna månad
+            </div>
+          )}
+          <div className="flex justify-between items-center pt-4 border-t-2 border-primary/20">
+            <span className="text-base font-semibold">TOTAL</span>
+            <div className="flex flex-col items-end gap-1">
               <span className="text-sm text-muted-foreground">
-                Redigerade bilder
+                {totalUsage.editedImages} bilder
               </span>
-              <span className="text-sm font-semibold">
-                {currentUsage.editedImages} st
-              </span>
-            </div>
-            <div className="flex justify-between items-center pt-2 border-t">
-              <span className="text-sm font-medium">Totalt att betala</span>
-              <span className="text-lg font-bold">
-                {currentUsage.cost.toFixed(2)} kr
+              <span className="text-xl font-bold text-primary">
+                {totalUsage.cost.toFixed(2)} kr
               </span>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Manage Billing */}
       <div className="space-y-2">
