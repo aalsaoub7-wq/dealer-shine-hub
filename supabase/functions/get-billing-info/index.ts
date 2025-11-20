@@ -107,7 +107,7 @@ serve(async (req) => {
         } : undefined,
         currentUsage: {
           editedImages: usageStats?.edited_images_count || 0,
-          cost: usageStats?.total_cost || 0,
+          cost: usageStats?.edited_images_cost || 0,
         },
         invoices: invoices.data.map((inv: any) => ({
           id: inv.id,

@@ -89,11 +89,14 @@ const CarDetail = () => {
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [generatingDescription, setGeneratingDescription] = useState(false);
+  const [hasPaymentMethod, setHasPaymentMethod] = useState(false);
+  const [checkingPayment, setCheckingPayment] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     if (id) {
       fetchCarData();
+      checkPaymentMethod();
 
       // Set up realtime subscription for photo updates
       const channel = supabase
@@ -118,6 +121,23 @@ const CarDetail = () => {
       };
     }
   }, [id]);
+
+  const checkPaymentMethod = async () => {
+    try {
+      setCheckingPayment(true);
+      const { data, error } = await supabase.functions.invoke("get-billing-info");
+      
+      if (error) throw error;
+      
+      // Check if user has Stripe customer and subscription
+      setHasPaymentMethod(data?.hasCustomer && data?.subscription?.status === 'active');
+    } catch (error) {
+      console.error("Error checking payment method:", error);
+      setHasPaymentMethod(false);
+    } finally {
+      setCheckingPayment(false);
+    }
+  };
 
   const fetchCarData = async (preserveScroll = false) => {
     // Save current scroll position if requested
@@ -268,6 +288,17 @@ const CarDetail = () => {
   };
 
   const handleEditPhotos = async (photoIds: string[], photoType: "main" | "documentation") => {
+    // Check if user has payment method
+    if (!hasPaymentMethod) {
+      toast({
+        title: "Betalmetod krävs",
+        description: "Du måste lägga till en betalmetod i inställningar innan du kan redigera bilder",
+        variant: "destructive",
+      });
+      navigate("/");
+      return;
+    }
+
     const photos = photoType === "main" ? mainPhotos : docPhotos;
 
     // Clear selection immediately
@@ -596,7 +627,8 @@ const CarDetail = () => {
                   <Button
                     onClick={() => handleEditPhotos(selectedMainPhotos, "main")}
                     variant="outline"
-                    className="border-accent text-accent hover:bg-accent hover:text-accent-foreground text-xs md:text-sm h-8 md:h-10"
+                    disabled={!hasPaymentMethod || checkingPayment}
+                    className="border-accent text-accent hover:bg-accent hover:text-accent-foreground text-xs md:text-sm h-8 md:h-10 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                     <span className="hidden sm:inline">AI redigera ({selectedMainPhotos.length})</span>
