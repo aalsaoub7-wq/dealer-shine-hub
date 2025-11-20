@@ -73,69 +73,21 @@ export const PaymentSettings = () => {
 
       if (error) throw error;
       setBillingInfo(data);
-      
-      // Fetch per-user usage stats for the company
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
 
-      // Get user's company
-      const { data: userCompany } = await supabase
-        .from("user_companies")
-        .select("company_id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!userCompany) throw new Error("No company found");
-
-      // Get all users in the company
-      const { data: companyUsers } = await supabase
-        .from("user_companies")
-        .select("user_id, profiles(email)")
-        .eq("company_id", userCompany.company_id);
-
-      if (!companyUsers) throw new Error("No company users found");
-
-      // Get current month
-      const now = new Date();
-      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-        .toISOString()
-        .split("T")[0];
-
-      const userIds = companyUsers.map((uc) => uc.user_id);
-
-      // Fetch usage stats for all company users
-      const { data: usageData, error: usageError } = await supabase
-        .from("usage_stats")
-        .select("*")
-        .in("user_id", userIds)
-        .eq("month", firstDayOfMonth);
-
-      if (usageError && usageError.code !== "PGRST116") throw usageError;
-
-      // Map usage stats to users with emails
-      const statsWithEmails = companyUsers.map((cu) => {
-        const profile = Array.isArray(cu.profiles) ? cu.profiles[0] : cu.profiles;
-        const userStats = usageData?.find((stat) => stat.user_id === cu.user_id);
+      // Use user usage stats from edge function
+      if (data.userUsageStats) {
+        setUserUsageStats(data.userUsageStats);
         
-        return {
-          userId: cu.user_id,
-          email: profile?.email || "Okänd användare",
-          editedImages: userStats?.edited_images_count || 0,
-          cost: userStats?.edited_images_cost || 0,
-        };
-      });
-
-      // Calculate total
-      const total = statsWithEmails.reduce(
-        (acc, stat) => ({
-          editedImages: acc.editedImages + stat.editedImages,
-          cost: acc.cost + stat.cost,
-        }),
-        { editedImages: 0, cost: 0 }
-      );
-
-      setUserUsageStats(statsWithEmails);
-      setTotalUsage(total);
+        // Calculate totals
+        const total = data.userUsageStats.reduce(
+          (acc: any, stat: any) => ({
+            editedImages: acc.editedImages + stat.editedImages,
+            cost: acc.cost + stat.cost,
+          }),
+          { editedImages: 0, cost: 0 }
+        );
+        setTotalUsage(total);
+      }
     } catch (error: any) {
       console.error("Error fetching billing info:", error);
       toast({

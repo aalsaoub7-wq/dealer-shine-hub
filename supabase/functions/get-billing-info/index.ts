@@ -85,6 +85,25 @@ serve(async (req) => {
       .in("user_id", userIds)
       .eq("month", firstDayOfMonth);
 
+    // Get profiles for all company users
+    const { data: profiles } = await supabaseClient
+      .from("profiles")
+      .select("id, email")
+      .in("id", userIds);
+
+    // Create per-user breakdown
+    const userUsageStats = (companyUsers || []).map((uc) => {
+      const profile = profiles?.find((p) => p.id === uc.user_id);
+      const stats = usageStats?.find((s) => s.user_id === uc.user_id);
+      
+      return {
+        userId: uc.user_id,
+        email: profile?.email || "Okänd användare",
+        editedImages: stats?.edited_images_count || 0,
+        cost: stats?.edited_images_cost || 0,
+      };
+    });
+
     // Calculate total company usage
     const totalUsage = (usageStats || []).reduce(
       (acc, stat) => ({
@@ -157,6 +176,7 @@ serve(async (req) => {
           current_period_end: subscription.current_period_end,
         } : undefined,
         currentUsage: totalUsage,
+        userUsageStats: userUsageStats,
         invoices: invoices.data.map((inv: any) => ({
           id: inv.id,
           created: inv.created,
