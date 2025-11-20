@@ -36,6 +36,12 @@ serve(async (req) => {
       throw new Error("No user found");
     }
 
+    // Create admin client for updating companies table
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
     // Get user's company
     const { data: userCompany } = await supabaseClient
       .from("user_companies")
@@ -75,8 +81,8 @@ serve(async (req) => {
       },
     });
 
-    // Update company with Stripe customer ID
-    const { error: updateError } = await supabaseClient
+    // Update company with Stripe customer ID using admin client
+    const { error: updateError } = await supabaseAdmin
       .from("companies")
       .update({ stripe_customer_id: customer.id })
       .eq("id", company.id);
@@ -99,8 +105,8 @@ serve(async (req) => {
 
     console.log("Created Stripe subscription:", subscription.id);
 
-    // Save subscription to database
-    const { error: subError } = await supabaseClient
+    // Save subscription to database using admin client
+    const { error: subError } = await supabaseAdmin
       .from("subscriptions")
       .insert({
         company_id: company.id,
