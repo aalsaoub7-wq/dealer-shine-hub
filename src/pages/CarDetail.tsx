@@ -289,7 +289,7 @@ const CarDetail = () => {
 
   const handleEditPhotos = async (photoIds: string[], photoType: "main" | "documentation") => {
     if (!hasPaymentMethod) {
-      toast({
+      const { dismiss } = toast({
         title: "Betalmetod krävs",
         description: "Du måste lägga till en betalmetod innan du kan redigera bilder.",
         variant: "destructive",
@@ -298,6 +298,7 @@ const CarDetail = () => {
             variant="outline"
             size="sm"
             onClick={() => {
+              dismiss();
               navigate("/");
               setTimeout(() => {
                 if ((window as any).openSettingsDialog) {
