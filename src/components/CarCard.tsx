@@ -33,6 +33,8 @@ const CarCard = ({ car }: CarCardProps) => {
             src={car.photo_url}
             alt={`${car.make} ${car.model}`}
             className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+            decoding="async"
           />
           {/* ÅRTALET PÅ BILDEN NERE HÖGER */}
           <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3">

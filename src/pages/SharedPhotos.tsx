@@ -207,6 +207,8 @@ const SharedPhotos = () => {
               src={collection.landing_page_logo_url}
               alt="Logo"
               className={`${logoSizeClass} object-contain`}
+              loading="eager"
+              decoding="async"
             />
           </div>
         )}
@@ -216,6 +218,8 @@ const SharedPhotos = () => {
             src={collection.landing_page_header_image_url}
             alt="Header"
             className={`w-full ${headerHeightClass} ${headerFitClass} rounded`}
+            loading="eager"
+            decoding="async"
           />
         )}
         
@@ -249,6 +253,8 @@ const SharedPhotos = () => {
                   src={photo.url}
                   alt={`Foto ${index + 1}`}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
                 <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -287,6 +293,8 @@ const SharedPhotos = () => {
                 src={collection.photos[currentImageIndex]?.url}
                 alt={`Foto ${currentImageIndex + 1}`}
                 className="w-full h-full object-cover"
+                loading="eager"
+                decoding="async"
               />
             </div>
             <div className="flex items-center justify-between mt-4 gap-2">
@@ -370,6 +378,8 @@ const SharedPhotos = () => {
                   src={photo.url}
                   alt={`Foto ${index + 1}`}
                   className="w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
                 <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">

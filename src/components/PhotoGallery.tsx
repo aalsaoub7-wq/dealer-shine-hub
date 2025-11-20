@@ -56,6 +56,8 @@ const PhotoGallery = ({ photos, onUpdate }: PhotoGalleryProps) => {
               src={photo.url}
               alt="Bilfoto"
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+              loading="lazy"
+              decoding="async"
               onError={(e) => {
                 const el = e.currentTarget as HTMLImageElement;
                 // Try original_url fallback first
