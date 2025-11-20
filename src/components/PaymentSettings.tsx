@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
 import { Loader2, ExternalLink } from "lucide-react";
@@ -35,6 +35,7 @@ export const PaymentSettings = () => {
   const [creatingCustomer, setCreatingCustomer] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
   const [currentUsage, setCurrentUsage] = useState({ editedImages: 0, cost: 0 });
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
   const fetchBillingInfo = async () => {
@@ -118,6 +119,26 @@ export const PaymentSettings = () => {
 
       if (data?.url) {
         window.open(data.url, "_blank");
+        
+        // Start polling every 30 seconds to check for payment method updates
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+        }
+        
+        console.log("[PAYMENT-SETTINGS] Starting polling for payment method updates");
+        pollingIntervalRef.current = setInterval(() => {
+          console.log("[PAYMENT-SETTINGS] Polling for billing info update");
+          fetchBillingInfo();
+        }, 30000); // 30 seconds
+        
+        // Stop polling after 10 minutes (20 polls)
+        setTimeout(() => {
+          if (pollingIntervalRef.current) {
+            console.log("[PAYMENT-SETTINGS] Stopping polling after timeout");
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+        }, 600000); // 10 minutes
       }
     } catch (error: any) {
       console.error("Error opening customer portal:", error);
@@ -133,6 +154,13 @@ export const PaymentSettings = () => {
 
   useEffect(() => {
     fetchBillingInfo();
+    
+    // Cleanup polling on unmount
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
   }, []);
 
   if (loading) {
