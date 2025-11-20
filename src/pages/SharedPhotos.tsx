@@ -47,10 +47,10 @@ const SharedPhotos = () => {
 
   const loadSharedCollection = async () => {
     try {
-      // Get shared collection
+      // Get shared collection with all settings
       const { data: collectionData, error: collectionError } = await supabase
         .from("shared_collections")
-        .select("title, photo_ids, user_id, expires_at")
+        .select("*")
         .eq("share_token", token)
         .single();
 
@@ -71,13 +71,6 @@ const SharedPhotos = () => {
         }
       }
 
-      // Get user's AI settings for landing page design
-      const { data: settings } = await supabase
-        .from("ai_settings")
-        .select("landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text, landing_page_logo_size, landing_page_logo_position, landing_page_header_height, landing_page_header_fit")
-        .eq("user_id", collectionData.user_id)
-        .single();
-
       // Get photos
       const { data: photos, error: photosError } = await supabase
         .from("photos")
@@ -88,19 +81,19 @@ const SharedPhotos = () => {
 
       setCollection({
         title: collectionData.title,
-        landing_page_logo_url: settings?.landing_page_logo_url || null,
-        landing_page_background_color: settings?.landing_page_background_color || "#ffffff",
-        landing_page_layout: (settings?.landing_page_layout as 'grid' | 'carousel' | 'masonry') || "grid",
-        landing_page_header_image_url: settings?.landing_page_header_image_url || null,
-        landing_page_text_color: settings?.landing_page_text_color || "#000000",
-        landing_page_accent_color: settings?.landing_page_accent_color || "#000000",
-        landing_page_title: settings?.landing_page_title || "Mina Bilder",
-        landing_page_description: settings?.landing_page_description || null,
-        landing_page_footer_text: settings?.landing_page_footer_text || null,
-        landing_page_logo_size: (settings?.landing_page_logo_size as 'small' | 'medium' | 'large') || 'medium',
-        landing_page_logo_position: (settings?.landing_page_logo_position as 'left' | 'center' | 'right') || 'center',
-        landing_page_header_height: (settings?.landing_page_header_height as 'small' | 'medium' | 'large') || 'medium',
-        landing_page_header_fit: (settings?.landing_page_header_fit as 'cover' | 'contain' | 'fill') || 'cover',
+        landing_page_logo_url: collectionData.landing_page_logo_url || null,
+        landing_page_background_color: collectionData.landing_page_background_color || "#ffffff",
+        landing_page_layout: (collectionData.landing_page_layout as 'grid' | 'carousel' | 'masonry') || "grid",
+        landing_page_header_image_url: collectionData.landing_page_header_image_url || null,
+        landing_page_text_color: collectionData.landing_page_text_color || "#000000",
+        landing_page_accent_color: collectionData.landing_page_accent_color || "#000000",
+        landing_page_title: collectionData.landing_page_title || "Mina Bilder",
+        landing_page_description: collectionData.landing_page_description || null,
+        landing_page_footer_text: collectionData.landing_page_footer_text || null,
+        landing_page_logo_size: (collectionData.landing_page_logo_size as 'small' | 'medium' | 'large') || 'medium',
+        landing_page_logo_position: (collectionData.landing_page_logo_position as 'left' | 'center' | 'right') || 'center',
+        landing_page_header_height: (collectionData.landing_page_header_height as 'small' | 'medium' | 'large') || 'medium',
+        landing_page_header_fit: (collectionData.landing_page_header_fit as 'cover' | 'contain' | 'fill') || 'cover',
         photos: photos || [],
       });
     } catch (error: any) {
