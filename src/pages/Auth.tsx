@@ -103,7 +103,7 @@ const Auth = () => {
         
         if (error) throw error;
 
-        // Handle invite code after signup
+        // Handle invite code after signup - link user to company
         if (inviteCode && authData.user) {
           const { data: companyData } = await supabase
             .from("companies")
@@ -112,33 +112,14 @@ const Auth = () => {
             .single();
 
           if (companyData) {
-            // Delete auto-created company and user_companies entry
-            const { data: userCompanies } = await supabase
-              .from("user_companies")
-              .select("company_id")
-              .eq("user_id", authData.user.id)
-              .single();
-
-            if (userCompanies) {
-              await supabase
-                .from("companies")
-                .delete()
-                .eq("id", userCompanies.company_id);
-            }
-
             // Link user to the company with the invite code
+            // Note: Trigger won't create a company because is_employee_signup is true
             await supabase
               .from("user_companies")
-              .upsert({
+              .insert({
                 user_id: authData.user.id,
                 company_id: companyData.id,
               });
-
-            // Delete auto-created admin role
-            await supabase
-              .from("user_roles")
-              .delete()
-              .eq("user_id", authData.user.id);
 
             // Assign employee role
             await supabase
