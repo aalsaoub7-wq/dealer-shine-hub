@@ -13,9 +13,9 @@ export const trackUsage = async (
     if (!user) return;
 
     const now = new Date();
-    const month = new Date(now.getFullYear(), now.getMonth(), 1)
-      .toISOString()
-      .split("T")[0];
+    const year = now.getFullYear();
+    const monthNumber = now.getMonth(); // 0-11
+    const month = `${year}-${String(monthNumber + 1).padStart(2, '0')}-01`;
 
     // Get or create usage stats for current month
     const { data: existingStats, error: fetchError } = await supabase
