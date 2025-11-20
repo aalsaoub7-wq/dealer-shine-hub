@@ -246,27 +246,6 @@ const CarDetail = () => {
   const handleEditPhotos = async (photoIds: string[], photoType: "main" | "documentation") => {
     const photos = photoType === "main" ? mainPhotos : docPhotos;
 
-    // Check if we already have 20 edited images
-    const editedCount = allPhotos.filter(p => p.is_edited).length;
-    if (editedCount >= 20) {
-      toast({
-        title: "Max antal redigerade bilder",
-        description: "Du kan max redigera 20 bilder per bil",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Check if adding these would exceed 20
-    if (editedCount + photoIds.length > 20) {
-      toast({
-        title: "För många bilder",
-        description: `Du kan endast redigera ${20 - editedCount} bilder till`,
-        variant: "destructive",
-      });
-      return;
-    }
-
     // Clear selection immediately
     if (photoType === "main") {
       setSelectedMainPhotos([]);
@@ -463,7 +442,6 @@ const CarDetail = () => {
   const allPhotos = photos;
   const mainPhotos = photos.filter((p) => p.photo_type === "main");
   const docPhotos = photos.filter((p) => p.photo_type === "documentation");
-  const editedPhotosCount = photos.filter((p) => p.is_edited).length;
 
   // Combined selected photos for sharing
   const allSelectedPhotos = [...selectedMainPhotos, ...selectedDocPhotos];
@@ -556,21 +534,6 @@ const CarDetail = () => {
                   placeholder="Lägg till anteckningar om bilen här..."
                   className="min-h-[100px] text-sm md:text-base"
                 />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Edited Images Counter */}
-        <Card className="mb-4 bg-gradient-card border-border/50 shadow-card">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" />
-                <span className="text-sm font-medium">Redigerade bilder</span>
-              </div>
-              <div className="text-lg font-bold">
-                {editedPhotosCount} / 20
               </div>
             </div>
           </CardContent>
