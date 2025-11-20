@@ -92,7 +92,7 @@ serve(async (req) => {
     const subscription = await stripe.subscriptions.create({
       customer: customer.id,
       items: [{
-        price: "price_1SVYWPRrATtOsqxEKYlXvN37",
+        price: "price_1SVYkmRrATtOsqxEkpteepcs",
       }],
       billing_cycle_anchor_config: {
         month: 'end',
