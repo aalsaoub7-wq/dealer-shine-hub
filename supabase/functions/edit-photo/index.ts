@@ -30,18 +30,27 @@ serve(async (req) => {
 
     const { data: { user } } = await supabase.auth.getUser();
     
-    let backgroundPrompt = 'car on on clean ceramic floor with the colour #c8cfdb, with Plain white walls in the backgrond in the background, evenly lit';
+    let backgroundPrompt = 'car on clean ceramic floor with the colour #c8cfdb, with plain white walls in the background, evenly lit';
     
     if (user) {
-      const { data: aiSettings } = await supabase
-        .from('ai_settings')
-        .select('background_prompt')
+      // Get user's company to fetch company-wide AI settings
+      const { data: userCompany } = await supabase
+        .from('user_companies')
+        .select('company_id')
         .eq('user_id', user.id)
         .single();
       
-      if (aiSettings?.background_prompt) {
-        backgroundPrompt = aiSettings.background_prompt;
-        console.log('Using custom background prompt from user settings');
+      if (userCompany) {
+        const { data: aiSettings } = await supabase
+          .from('ai_settings')
+          .select('background_prompt')
+          .eq('company_id', userCompany.company_id)
+          .single();
+        
+        if (aiSettings?.background_prompt) {
+          backgroundPrompt = aiSettings.background_prompt;
+          console.log('Using custom background prompt from company settings');
+        }
       }
     }
 
@@ -69,7 +78,6 @@ serve(async (req) => {
       headers: {
         'Accept': 'image/png, application/json',
         'x-api-key': PHOTOROOM_API_KEY,
-        'pr-ai-background-model-version': 'background-studio-beta-2025-03-17',
       },
       body: photoroomFormData,
     });
