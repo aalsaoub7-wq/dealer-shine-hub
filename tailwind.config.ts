@@ -99,13 +99,15 @@ export default {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-10px)" },
         },
-        "typewriter": {
-          "0%": { width: "0" },
-          "100%": { width: "100%" }
-        },
-        "underline-draw": {
-          "0%": { width: "0" },
-          "100%": { width: "100%" }
+        "stroke-draw": {
+          "0%": { 
+            strokeDashoffset: "1500",
+            opacity: "1"
+          },
+          "100%": { 
+            strokeDashoffset: "0",
+            opacity: "1"
+          }
         },
       },
       animation: {
@@ -117,8 +119,7 @@ export default {
         "slide-in-right": "slide-in-right 0.4s ease-out",
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
         "float": "float 3s ease-in-out infinite",
-        "typewriter": "typewriter 2.5s steps(40) 0s 1 normal both",
-        "underline-draw": "underline-draw 1s ease-out 2.5s 1 normal both",
+        "stroke-draw": "stroke-draw 3s ease-out forwards",
       },
     },
   },

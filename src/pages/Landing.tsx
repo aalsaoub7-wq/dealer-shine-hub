@@ -6,6 +6,7 @@ import { Sparkles, Link2, Shield, Globe, Users, DollarSign, Upload, Wand2, Downl
 import { useState, useEffect } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
+import { HandwrittenText } from "@/components/HandwrittenText";
 const Landing = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -113,17 +114,14 @@ const Landing = () => {
                 <span className="text-sm font-medium text-foreground">Nu med AI-driven bakgrundsredigering</span>
               </div>
 
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight">
-                <span className="bg-gradient-primary bg-clip-text text-transparent">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl leading-tight">
+                <span className="bg-gradient-primary bg-clip-text text-transparent font-extrabold">
                   Professionella
                 </span>
                 <br />
-                <span className="inline-block overflow-hidden whitespace-nowrap animate-typewriter font-handwritten text-6xl md:text-7xl lg:text-8xl text-foreground">
-                  bilfoton på <span className="relative inline-block">
-                    sekunder
-                    <span className="absolute bottom-2 left-0 h-1 bg-primary animate-underline-draw"></span>
-                  </span>
-                </span>
+                <div className="mt-2">
+                  <HandwrittenText />
+                </div>
               </h1>
 
               <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
