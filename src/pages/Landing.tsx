@@ -93,7 +93,7 @@ const Landing = () => {
                 Logga in
               </Button>
               <Button onClick={() => navigate("/auth")} className="shadow-glow">
-                Prova gratis i 14 dagar
+                Prova gratis i 21 dagar
               </Button>
             </nav>
 
@@ -124,7 +124,7 @@ const Landing = () => {
                 Logga in
               </Button>
               <Button className="w-full" onClick={() => navigate("/auth")}>
-                Prova gratis i 14 dagar
+                Prova gratis i 21 dagar
               </Button>
             </div>
           </div>
@@ -164,7 +164,7 @@ const Landing = () => {
                   className="text-lg px-8 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105"
                   onClick={() => navigate("/auth")}
                 >
-                  Prova gratis i 14 dagar
+                  Prova gratis i 21 dagar
                 </Button>
                 <Button 
                   size="lg" 
@@ -510,7 +510,7 @@ const Landing = () => {
                 className="text-lg px-12 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105"
                 onClick={() => navigate("/auth")}
               >
-                Prova gratis i 14 dagar
+                Prova gratis i 21 dagar
               </Button>
             </div>
           </div>
