@@ -109,6 +109,20 @@ export default {
             opacity: "1"
           }
         },
+        "handwritten-letter": {
+          "0%": {
+            opacity: "0",
+            transform: "translateY(8px) rotate(-2deg)"
+          },
+          "60%": {
+            opacity: "0.8",
+            transform: "translateY(-2px) rotate(1deg)"
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translateY(0) rotate(0deg)"
+          }
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -120,6 +134,7 @@ export default {
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
         "float": "float 3s ease-in-out infinite",
         "stroke-draw": "stroke-draw 3s ease-out forwards",
+        "handwritten-letter": "handwritten-letter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
       },
     },
   },
