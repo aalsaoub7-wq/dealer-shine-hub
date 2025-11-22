@@ -62,7 +62,10 @@ const Landing = () => {
               <button onClick={() => scrollToSection('how-it-works')} className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
                 Så fungerar det
               </button>
-              <Button variant="ghost" onClick={() => navigate("/auth")}>
+              <Button 
+                onClick={() => navigate("/auth")}
+                className="bg-black text-white hover:bg-black hover:text-white hover:scale-100"
+              >
                 Logga in
               </Button>
               <Button onClick={() => navigate("/auth")} className="shadow-glow">
@@ -89,7 +92,10 @@ const Landing = () => {
               <button onClick={() => scrollToSection('how-it-works')} className="block w-full text-left px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-muted rounded-md transition-colors">
                 Så fungerar det
               </button>
-              <Button variant="ghost" className="w-full" onClick={() => navigate("/auth")}>
+              <Button 
+                className="w-full bg-black text-white hover:bg-black hover:text-white hover:scale-100" 
+                onClick={() => navigate("/auth")}
+              >
                 Logga in
               </Button>
               <Button className="w-full" onClick={() => navigate("/auth")}>
