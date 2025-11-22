@@ -14,7 +14,8 @@ import {
   Check,
   ChevronDown,
   Menu,
-  X
+  X,
+  Package
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import {
@@ -154,7 +155,7 @@ const Landing = () => {
               </h1>
 
               <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
-                LuFlow automatiserar bildredigering för återförsäljare. Ladda upp, tryck på en knapp, och få studio-kvalitet direkt.
+                Gratis lagerhantering och dokumentation för bilhandlare. AI-redigera dina bilder för bara 4,95 kr/bild – betala endast för det du använder.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
@@ -293,7 +294,21 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">AI Bakgrundsredigering</h3>
               <p className="text-muted-foreground">
-                Automatisk studiobakgrund på alla bilder med ett knapptryck
+                Automatisk studiobakgrund på alla bilder med ett knapptryck. Betala endast 4,95 kr per redigerad bild.
+              </p>
+            </div>
+
+            {/* Feature - FREE Lagerhantering */}
+            <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/30 mb-4">
+                <span className="text-xs font-bold text-primary">GRATIS</span>
+              </div>
+              <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 mb-2">
+                <Package className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-3">Lagerhantering & Dokumentation</h3>
+              <p className="text-muted-foreground">
+                Helt gratis lager- och dokumenthantering. Fungerar standalone eller integreras med ditt befintliga system.
               </p>
             </div>
 
@@ -378,16 +393,16 @@ const Landing = () => {
                       4,95 kr
                     </span>
                   </div>
-                  <p className="text-muted-foreground text-lg">per redigerad bild</p>
+                  <p className="text-muted-foreground text-lg">per AI-redigerad bild – lagerhantering & dokumentation gratis</p>
                 </div>
 
                 <div className="space-y-3 text-left py-6">
                   {[
-                    'Ingen månadskostnad',
-                    'Ingen uppsägningstid',
-                    'Obegränsat antal bilar',
-                    'Obegränsat antal användare',
-                    'Alla funktioner inkluderade'
+                    'Gratis lagerhantering',
+                    'Gratis dokumentation av bilar',
+                    'Betala bara för AI-redigering (4,95 kr/bild)',
+                    'Obegränsat antal bilar och användare',
+                    'Integration med befintliga system'
                   ].map((feature, i) => (
                     <div key={i} className="flex items-center gap-3">
                       <Check className="h-5 w-5 text-primary flex-shrink-0" />
@@ -477,6 +492,15 @@ const Landing = () => {
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
                 Absolut! Du kan bjuda in obegränsat antal teammedlemmar att arbeta tillsammans. Alla delar samma bildbibliotek och inställningar.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-7" className="bg-card border border-border rounded-lg px-6">
+              <AccordionTrigger className="text-left font-semibold hover:no-underline">
+                Vad är gratis och vad kostar pengar?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                Lagerhantering och dokumentation av bilar är helt gratis utan begränsningar. Du betalar endast när du använder AI-redigeringsfunktionen – 4,95 kr per bild. Har du redan ett lagersystem kan LuFlow integreras med det, annars använder du vår inbyggda lagerhantering helt kostnadsfritt.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
