@@ -178,7 +178,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-foreground">Ladda upp bilder</h3>
               <p className="text-muted-foreground">
-                Dra och släpp bilder från din telefon eller dator
+                Ladda upp bilder från din telefon eller dator
               </p>
             </div>
 
@@ -210,7 +210,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-foreground">Ladda ner & publicera</h3>
               <p className="text-muted-foreground">
-                Dela direkt till Blocket, Facebook Marketplace eller din hemsida
+                Dela direkt till Blocket, Facebook Marketplace, din hemsida.         
               </p>
             </div>
           </div>
