@@ -6,6 +6,7 @@ import { Sparkles, Link2, Shield, Globe, Users, DollarSign, Upload, Wand2, Downl
 import { useState, useEffect } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
+import { TypewriterText } from "@/components/TypewriterText";
 const Landing = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -118,7 +119,9 @@ const Landing = () => {
                   Professionella
                 </span>
                 <br />
-                <span className="text-foreground">bilfoton på sekunder</span>
+                <span className="text-foreground">
+                  <TypewriterText text="bilfoton på sekunder" delay={80} />
+                </span>
               </h1>
 
               <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
