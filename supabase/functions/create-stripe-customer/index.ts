@@ -94,6 +94,17 @@ serve(async (req) => {
 
     console.log("Stripe customer created:", customer.id);
 
+    // Get company's trial_end_date for Stripe trial
+    const { data: companyData } = await supabaseAdmin
+      .from("companies")
+      .select("trial_end_date")
+      .eq("id", company.id)
+      .single();
+
+    const trialEnd = companyData?.trial_end_date 
+      ? Math.floor(new Date(companyData.trial_end_date).getTime() / 1000)
+      : undefined;
+
     // Create subscription with both monthly fee and metered billing
     // IMPORTANT: Replace MONTHLY_FEE_PRICE_ID with actual Stripe Price ID for 239 SEK/month
     const subscription = await stripe.subscriptions.create({
@@ -108,6 +119,7 @@ serve(async (req) => {
           price: "price_1SVYkmRrATtOsqxEkpteepcs",
         }
       ],
+      trial_end: trialEnd, // 21-day trial period
       proration_behavior: 'none',
     });
 
