@@ -207,7 +207,7 @@ export const BeforeAfterSlider = () => {
 
         {/* Handle Circle */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white shadow-2xl flex items-center justify-center hover:scale-110 transition-transform duration-200">
-          <ArrowLeftRight className="w-5 h-5 text-foreground" />
+          <ArrowLeftRight className="w-5 h-5 text-black" />
         </div>
       </div>
     </div>
