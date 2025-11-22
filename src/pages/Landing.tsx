@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import luveroLogo from "@/assets/luvero-logo.png";
+import adstuffLogo from "@/assets/adstuff-logo.png";
 import { 
   Sparkles, 
   Link2, 
@@ -350,6 +351,178 @@ const Landing = () => {
               <p className="text-muted-foreground">
                 Betala endast för det du använder - 4,95 kr per bild
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Comparison Section */}
+      <section className="py-20 md:py-32 scroll-animate">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              <span className="bg-gradient-primary bg-clip-text text-transparent">
+                Varför välja Luvero?
+              </span>
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              Se hur vi jämför med Adstuff
+            </p>
+          </div>
+
+          <div className="max-w-5xl mx-auto">
+            <div className="backdrop-blur-xl bg-background/30 rounded-3xl border border-border/50 overflow-hidden shadow-elegant">
+              {/* Table Header */}
+              <div className="grid grid-cols-3 gap-4 p-6 md:p-8 border-b border-border/50">
+                <div className="text-left">
+                  <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                    Funktion
+                  </p>
+                </div>
+                <div className="flex flex-col items-center justify-center">
+                  <img 
+                    src={luveroLogo} 
+                    alt="Luvero" 
+                    className="h-8 md:h-12 w-auto object-contain mb-2"
+                  />
+                </div>
+                <div className="flex flex-col items-center justify-center">
+                  <img 
+                    src={adstuffLogo} 
+                    alt="Adstuff" 
+                    className="h-8 md:h-12 w-auto object-contain mb-2"
+                  />
+                </div>
+              </div>
+
+              {/* Table Rows */}
+              <div className="divide-y divide-border/30">
+                {/* Row 1: Lagerhantering */}
+                <div className="grid grid-cols-3 gap-4 p-4 md:p-6 hover:bg-accent/5 transition-colors">
+                  <div className="flex items-center">
+                    <p className="text-sm md:text-base font-medium">Lagerhantering och dokumentation</p>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <div className="text-center">
+                      <Check className="w-5 h-5 text-green-500 mx-auto mb-1" />
+                      <p className="text-sm md:text-base font-bold text-green-600">Gratis</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <div className="text-center">
+                      <X className="w-5 h-5 text-red-500 mx-auto mb-1" />
+                      <p className="text-sm md:text-base text-muted-foreground">599kr/månad</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 2: Extra användare */}
+                <div className="grid grid-cols-3 gap-4 p-4 md:p-6 hover:bg-accent/5 transition-colors">
+                  <div className="flex items-center">
+                    <p className="text-sm md:text-base font-medium">Kostnad för extra användare</p>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <div className="text-center">
+                      <Check className="w-5 h-5 text-green-500 mx-auto mb-1" />
+                      <p className="text-sm md:text-base font-bold text-green-600">Gratis</p>
+                      <p className="text-xs text-muted-foreground">Oändligt många</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <div className="text-center">
+                      <X className="w-5 h-5 text-red-500 mx-auto mb-1" />
+                      <p className="text-sm md:text-base text-muted-foreground">299kr/månad</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 3: Fotoredigering pris */}
+                <div className="grid grid-cols-3 gap-4 p-4 md:p-6 hover:bg-accent/5 transition-colors">
+                  <div className="flex items-center">
+                    <p className="text-sm md:text-base font-medium">Fotoredigering</p>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <div className="text-center">
+                      <Check className="w-5 h-5 text-green-500 mx-auto mb-1" />
+                      <p className="text-sm md:text-base font-bold text-green-600">4,95kr/bild</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <div className="text-center">
+                      <X className="w-5 h-5 text-red-500 mx-auto mb-1" />
+                      <p className="text-sm md:text-base text-muted-foreground">18,74kr/bild</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 4: Tid för fotoredigering */}
+                <div className="grid grid-cols-3 gap-4 p-4 md:p-6 hover:bg-accent/5 transition-colors">
+                  <div className="flex items-center">
+                    <p className="text-sm md:text-base font-medium">Tid för fotoredigering</p>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <div className="text-center">
+                      <Check className="w-5 h-5 text-green-500 mx-auto mb-1" />
+                      <p className="text-sm md:text-base font-bold text-green-600">10-15 sekunder</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <div className="text-center">
+                      <X className="w-5 h-5 text-red-500 mx-auto mb-1" />
+                      <p className="text-sm md:text-base text-muted-foreground">2-12+ timmar</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 5: Kontroll av bakgrunden */}
+                <div className="grid grid-cols-3 gap-4 p-4 md:p-6 hover:bg-accent/5 transition-colors">
+                  <div className="flex items-center">
+                    <p className="text-sm md:text-base font-medium">Kontroll av bakgrunden</p>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <div className="text-center">
+                      <Check className="w-5 h-5 text-green-500 mx-auto mb-1" />
+                      <p className="text-xs md:text-sm font-bold text-green-600">Du skriver själv och får det omedelbart</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <div className="text-center">
+                      <X className="w-5 h-5 text-red-500 mx-auto mb-1" />
+                      <p className="text-xs md:text-sm text-muted-foreground">Osmidig process, 2-12+ timmar</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 6: Samspel med annan lagerhantering */}
+                <div className="grid grid-cols-3 gap-4 p-4 md:p-6 hover:bg-accent/5 transition-colors">
+                  <div className="flex items-center">
+                    <p className="text-sm md:text-base font-medium">Samspel med annan lagerhanteringsprogram</p>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <div className="text-center">
+                      <Check className="w-5 h-5 text-green-500 mx-auto mb-1" />
+                      <p className="text-xs md:text-sm font-bold text-green-600">Fixas vid behov (T.ex. Smart365)</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <div className="text-center">
+                      <X className="w-5 h-5 text-red-500 mx-auto mb-1" />
+                      <p className="text-xs md:text-sm text-muted-foreground">Ej möjlig</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA after comparison */}
+            <div className="text-center mt-12">
+              <Button 
+                size="lg"
+                className="text-lg py-6 px-12 shadow-glow hover:shadow-glow-lg transition-all duration-300"
+                onClick={() => navigate("/auth")}
+              >
+                Prova gratis i 21 dagar
+              </Button>
             </div>
           </div>
         </div>
