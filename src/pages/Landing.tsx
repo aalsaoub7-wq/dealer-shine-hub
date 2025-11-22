@@ -281,7 +281,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">Delningsbara Landningssidor</h3>
               <p className="text-muted-foreground">
-                Skapa unika länkar för varje bil att dela med kunder
+                Skapa unika länkar för varje bil att dela med kunder med bilder på bilar och dokument      
               </p>
             </div>
 
