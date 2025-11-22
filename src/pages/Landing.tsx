@@ -62,15 +62,17 @@ const Landing = () => {
               <button onClick={() => scrollToSection('how-it-works')} className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
                 Så fungerar det
               </button>
-              <Button 
-                onClick={() => navigate("/auth")}
-                className="bg-black text-white hover:bg-black hover:text-white hover:scale-100"
-              >
-                Logga in
-              </Button>
-              <Button onClick={() => navigate("/auth")} className="shadow-glow">
-                Prova gratis i 21 dagar
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button 
+                  onClick={() => navigate("/auth")}
+                  className="bg-black text-white hover:bg-black hover:text-white hover:scale-100"
+                >
+                  Logga in
+                </Button>
+                <Button onClick={() => navigate("/auth")} className="shadow-glow">
+                  Prova gratis i 21 dagar
+                </Button>
+              </div>
             </nav>
 
             {/* Mobile Menu Button */}
