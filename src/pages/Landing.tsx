@@ -210,7 +210,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-foreground">Ladda ner och synka    </h3>
               <p className="text-muted-foreground">
-                Dela direkt till Blocket, Facebook Marketplace, din hemsida.         
+                Dela direkt till dina andra verktyg som Blocket och din lagerhantering.                         
               </p>
             </div>
           </div>
