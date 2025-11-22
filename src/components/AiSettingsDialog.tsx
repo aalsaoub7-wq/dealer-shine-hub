@@ -464,20 +464,7 @@ export const AiSettingsDialog = () => {
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
-              <div className="space-y-4">
-                <div className="rounded-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 p-6">
-                  <h3 className="text-lg font-semibold mb-4">Prissättning</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between py-2 border-b border-border/50">
-                      <span className="text-sm text-muted-foreground">Redigerad bild</span>
-                      <span className="text-lg font-bold text-primary">4,95 kr</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-4">
-                      Varje bild som redigeras debiteras individuellt. Du kan se din månatliga användning på huvudsidan.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <PaymentSettings />
             </TabsContent>
 
             <TabsContent
