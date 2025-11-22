@@ -122,12 +122,12 @@ const Landing = () => {
                 <span className="text-sm font-medium text-foreground">Nu med AI-driven bakgrundsredigering</span>
               </div>
 
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight min-h-[10rem] md:min-h-[12rem] lg:min-h-[14rem]">
                 <span className="bg-gradient-primary bg-clip-text text-transparent">
                   Professionella
                 </span>
                 <br />
-                <span className="text-foreground">
+                <span className="text-foreground inline-block">
                   <TypewriterText text="bilfoton på sekunder" delay={80} />
                 </span>
               </h1>
