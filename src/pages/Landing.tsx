@@ -248,7 +248,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">Lagerhantering & Dokumentation</h3>
               <p className="text-muted-foreground">
-                Helt gratis lager- och dokumenthantering. Använd som din huvudsakliga lagerhantering eller som komplement till ditt befintliga system (t.ex. Smart365, Bytbil). Perfekt för att hantera bilder och dokumentation med smidig integration.
+                Helt gratis lager- och dokumenthantering. Använd som din huvudsakliga lagerhantering eller som komplement till ditt befintliga system. Perfekt för att hantera bilder och dokumentation med smidig integration.
               </p>
             </div>
 
