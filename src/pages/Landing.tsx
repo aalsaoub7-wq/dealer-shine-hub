@@ -401,7 +401,7 @@ const Landing = () => {
                   className="w-full text-lg py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300"
                   onClick={() => navigate("/auth")}
                 >
-                  Börja idag
+                  Prova gratis i 21 dagar
                 </Button>
 
                 <p className="text-sm text-muted-foreground italic">
