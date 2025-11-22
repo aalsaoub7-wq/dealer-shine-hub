@@ -662,7 +662,7 @@ const Landing = () => {
                 Vad är gratis och vad kostar pengar?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Appen kostar 239 kr/månad och inkluderar fullständig lagerhantering och dokumentation utan begränsningar. Du kan använda Luvero som din huvudsakliga lagerhantering eller som ett komplement till ditt befintliga system (t.ex. Smart365, Bytbil). När du använder AI-redigeringsfunktionen tillkommer 4,95 kr per bild utöver månadsavgiften. Integrationer med befintliga system kan ordnas vid behov.
+                Appen kostar 239 kr/månad och inkluderar fullständig lagerhantering och dokumentation utan begränsningar. Du kan använda Luvero som din huvudsakliga lagerhantering eller som ett komplement till ditt befintliga system (t.ex. Smart365, Bytbil) vid behov. När du använder AI-redigeringsfunktionen tillkommer 4,95 kr per bild utöver månadsavgiften. Integrationer med befintliga system kan ordnas vid behov.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
