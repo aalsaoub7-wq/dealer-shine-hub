@@ -110,16 +110,16 @@ const Landing = () => {
       {/* Hero Section */}
       <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
         {/* Grainy noise gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-black via-red-900/90 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-br from-red-950 via-red-900 to-black" />
         <div 
-          className="absolute inset-0 opacity-70 mix-blend-overlay"
+          className="absolute inset-0 opacity-60"
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.3' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
             backgroundRepeat: 'repeat',
-            backgroundSize: '400px 400px'
+            backgroundSize: '180px 180px'
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-red-950/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/60" />
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
