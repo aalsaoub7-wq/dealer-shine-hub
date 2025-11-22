@@ -72,9 +72,9 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => scrollToSection('hero')}>
-              <img src={luveroLogo} alt="LuFlow" className="h-10 w-10" />
+              <img src={luveroLogo} alt="Luvero" className="h-10 w-10" />
               <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                LuFlow ©
+                Luvero ©
               </span>
             </div>
 
@@ -191,21 +191,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Social Proof Bar */}
-      <section className="py-12 bg-muted/30 border-y border-border/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-muted-foreground text-sm font-medium mb-8">
-            Används av återförsäljare för Volvo, Mercedes, BMW, och fler
-          </p>
-          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 opacity-50">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-12 w-24 bg-muted rounded flex items-center justify-center text-xs font-bold text-muted-foreground">
-                LOGO {i}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* How It Works */}
       <section id="how-it-works" className="py-20 md:py-32 scroll-animate">
@@ -436,7 +421,7 @@ const Landing = () => {
               Vanliga frågor
             </h2>
             <p className="text-xl text-muted-foreground">
-              Allt du behöver veta om LuFlow
+              Allt du behöver veta om Luvero
             </p>
           </div>
 
@@ -500,7 +485,7 @@ const Landing = () => {
                 Vad är gratis och vad kostar pengar?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Lagerhantering och dokumentation av bilar är helt gratis utan begränsningar. Du betalar endast när du använder AI-redigeringsfunktionen – 4,95 kr per bild. Har du redan ett lagersystem kan LuFlow integreras med det, annars använder du vår inbyggda lagerhantering helt kostnadsfritt.
+                Lagerhantering och dokumentation av bilar är helt gratis utan begränsningar. Du betalar endast när du använder AI-redigeringsfunktionen – 4,95 kr per bild. Har du redan ett lagersystem kan Luvero integreras med det, annars använder du vår inbyggda lagerhantering helt kostnadsfritt.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -539,9 +524,9 @@ const Landing = () => {
             {/* Column 1 - Brand */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <img src={luveroLogo} alt="LuFlow" className="h-8 w-8" />
+                <img src={luveroLogo} alt="Luvero" className="h-8 w-8" />
                 <span className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
-                  LuFlow ©
+                  Luvero ©
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -592,7 +577,7 @@ const Landing = () => {
           </div>
 
           <div className="pt-8 border-t border-border/50 text-center text-sm text-muted-foreground">
-            <p>© 2024 LuFlow. Alla rättigheter förbehållna.</p>
+            <p>© 2024 Luvero. Alla rättigheter förbehållna.</p>
           </div>
         </div>
       </footer>
