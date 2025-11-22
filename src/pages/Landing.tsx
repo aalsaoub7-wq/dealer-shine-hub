@@ -142,7 +142,7 @@ const Landing = () => {
             </div>
 
             {/* Right Column - Before/After Demo */}
-            <div className="relative hidden lg:block animate-fade-in">
+            <div className="relative animate-fade-in">
               <BeforeAfterSlider />
             </div>
           </div>
