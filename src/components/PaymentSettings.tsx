@@ -275,10 +275,17 @@ export const PaymentSettings = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Monthly Fee */}
+          <div className="flex items-center justify-between p-4 rounded-lg bg-primary/5 border border-primary/20">
+            <span className="font-medium">Månadsavgift</span>
+            <span className="text-xl font-bold text-primary">{PRICES.MONTHLY_FEE} kr</span>
+          </div>
+
+          {/* Per-user breakdown */}
           {userUsageStats.map((userStat) => (
             <div
               key={userStat.userId}
-              className="flex flex-col gap-3 p-4 rounded-lg bg-gradient-to-br from-primary/5 via-transparent to-transparent border border-primary/10"
+              className="flex flex-col gap-3 p-4 rounded-lg bg-gradient-to-br from-muted/50 via-transparent to-transparent border border-border/30"
             >
               <div className="flex items-center gap-2">
                 <div className="p-2 rounded-full bg-primary/10">
@@ -294,7 +301,7 @@ export const PaymentSettings = () => {
                 <span className="text-lg font-bold text-foreground">{userStat.editedImages}</span>
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border/30">
-                <span className="text-sm font-medium text-muted-foreground">Kostnad:</span>
+                <span className="text-sm font-medium text-muted-foreground">Kostnad (bilder):</span>
                 <span className="text-base font-semibold text-foreground">
                   {userStat.cost.toFixed(2)} kr
                 </span>
@@ -303,19 +310,25 @@ export const PaymentSettings = () => {
           ))}
           {userUsageStats.length === 0 && (
             <div className="text-center py-8 text-muted-foreground text-sm">
-              Ingen användning denna månad
+              Ingen bildanvändning denna månad
             </div>
           )}
-          <div className="flex justify-between items-center pt-4 border-t-2 border-primary/20">
-            <span className="text-base font-semibold">TOTAL</span>
-            <div className="flex flex-col items-end gap-1">
-              <span className="text-sm text-muted-foreground">
-                {totalUsage.editedImages} bilder
-              </span>
-              <span className="text-xl font-bold text-primary">
-                {totalUsage.cost.toFixed(2)} kr
-              </span>
+
+          {/* Usage-based cost summary */}
+          <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+            <div>
+              <span className="font-medium">Redigerade bilder (totalt)</span>
+              <p className="text-xs text-muted-foreground">{totalUsage.editedImages} × {PRICES.EDITED_IMAGE} kr</p>
             </div>
+            <span className="text-xl font-bold">{totalUsage.cost.toFixed(2)} kr</span>
+          </div>
+
+          {/* Total monthly cost */}
+          <div className="flex justify-between items-center pt-4 border-t-2 border-primary/20">
+            <span className="text-lg font-semibold">TOTAL MÅNADSKOSTNAD</span>
+            <span className="text-2xl font-bold text-primary">
+              {(PRICES.MONTHLY_FEE + totalUsage.cost).toFixed(2)} kr
+            </span>
           </div>
         </CardContent>
       </Card>

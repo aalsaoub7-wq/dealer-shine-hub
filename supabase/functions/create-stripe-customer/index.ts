@@ -94,12 +94,20 @@ serve(async (req) => {
 
     console.log("Stripe customer created:", customer.id);
 
-    // Create metered subscription for automatic monthly billing
+    // Create subscription with both monthly fee and metered billing
+    // IMPORTANT: Replace MONTHLY_FEE_PRICE_ID with actual Stripe Price ID for 239 SEK/month
     const subscription = await stripe.subscriptions.create({
       customer: customer.id,
-      items: [{
-        price: "price_1SVYkmRrATtOsqxEkpteepcs",
-      }],
+      items: [
+        {
+          // Monthly fixed fee: 239 SEK/month
+          price: "MONTHLY_FEE_PRICE_ID", // TODO: Replace with actual Stripe Price ID
+        },
+        {
+          // Metered billing: 4.95 SEK per edited image
+          price: "price_1SVYkmRrATtOsqxEkpteepcs",
+        }
+      ],
       proration_behavior: 'none',
     });
 

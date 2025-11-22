@@ -117,7 +117,7 @@ serve(async (req) => {
       };
     });
 
-    // Calculate total company usage
+    // Calculate total company usage (excluding monthly fee here - added in frontend)
     const totalUsage = (usageStats || []).reduce(
       (acc, stat) => ({
         editedImages: acc.editedImages + stat.edited_images_count,
@@ -125,6 +125,8 @@ serve(async (req) => {
       }),
       { editedImages: 0, cost: 0 }
     );
+    
+    // Note: Monthly fee (239 kr) is added in the frontend PaymentSettings component
 
     // Get subscription info
     const { data: subscription } = await supabaseClient

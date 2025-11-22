@@ -156,7 +156,7 @@ const Landing = () => {
               </h1>
 
               <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
-                Gratis lagerhantering och dokumentation för bilhandlare. AI-redigera dina bilder för bara 4,95 kr/bild – betala endast för det du använder.
+                Fungerar både som självständig lagerhantering eller som komplement till ditt befintliga system. Hantera bilder och dokumentation enkelt med smidig integration där du behöver.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
@@ -294,7 +294,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">Lagerhantering & Dokumentation</h3>
               <p className="text-muted-foreground">
-                Helt gratis lager- och dokumenthantering. Fungerar standalone eller integreras med ditt befintliga system.
+                Helt gratis lager- och dokumenthantering. Använd som din huvudsakliga lagerhantering eller som komplement till ditt befintliga system (t.ex. Smart365, Bytbil). Perfekt för att hantera bilder och dokumentation med smidig integration.
               </p>
             </div>
 
@@ -349,7 +349,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">Transparent Prissättning</h3>
               <p className="text-muted-foreground">
-                Betala endast för det du använder - 4,95 kr per bild
+                239 kr/månad + 4,95 kr per AI-redigerad bild. Förutsägbar månadskostnad med flexibel användning. Lagerhantering och dokumentation ingår i månadsavgiften.
               </p>
             </div>
           </div>
@@ -415,7 +415,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Check className="w-5 h-5 text-emerald-500" />
-                    <p className="text-sm font-bold text-emerald-600">Gratis</p>
+                    <p className="text-sm font-bold text-emerald-600">Ingår (239kr/mån)</p>
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <X className="w-5 h-5 text-destructive" />
@@ -426,7 +426,7 @@ const Landing = () => {
                   <div className="text-xs font-medium">Lagerhantering</div>
                   <div className="flex flex-col items-center gap-1">
                     <Check className="w-4 h-4 text-emerald-500" />
-                    <span className="text-xs font-bold text-emerald-600">Gratis</span>
+                    <span className="text-xs font-bold text-emerald-600">Ingår</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
@@ -467,7 +467,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Check className="w-5 h-5 text-emerald-500" />
-                    <p className="text-sm font-bold text-emerald-600">4,95kr</p>
+                    <p className="text-sm font-bold text-emerald-600">239kr/mån + 4,95kr/bild</p>
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <X className="w-5 h-5 text-destructive" />
@@ -478,7 +478,7 @@ const Landing = () => {
                   <div className="text-xs font-medium">Pris/bild</div>
                   <div className="flex flex-col items-center gap-1">
                     <Check className="w-4 h-4 text-emerald-500" />
-                    <span className="text-xs font-bold text-emerald-600">4,95kr</span>
+                    <span className="text-xs font-bold text-emerald-600">239kr/mån + 4,95kr</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
@@ -598,12 +598,20 @@ const Landing = () => {
               
               <div className="relative text-center space-y-6">
                 <div>
-                  <div className="flex items-baseline justify-center gap-2 mb-2">
-                    <span className="text-6xl font-extrabold bg-gradient-primary bg-clip-text text-transparent">
-                      4,95 kr
-                    </span>
+                  <div className="flex flex-col items-center justify-center gap-2 mb-4">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-5xl md:text-6xl font-extrabold bg-gradient-primary bg-clip-text text-transparent">
+                        239 kr
+                      </span>
+                      <span className="text-xl md:text-2xl text-muted-foreground">/månad</span>
+                    </div>
+                    <p className="text-lg md:text-xl text-muted-foreground">
+                      + 4,95 kr per AI-redigerad bild
+                    </p>
                   </div>
-                  <p className="text-muted-foreground text-lg">per AI-redigerad bild – lagerhantering & dokumentation gratis</p>
+                  <p className="text-muted-foreground text-sm md:text-base italic">
+                    Lagerhantering & dokumentation ingår i månadsavgiften
+                  </p>
                 </div>
 
                 <div className="space-y-3 text-left py-6">
@@ -710,7 +718,7 @@ const Landing = () => {
                 Vad är gratis och vad kostar pengar?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Lagerhantering och dokumentation av bilar är helt gratis utan begränsningar. Du betalar endast när du använder AI-redigeringsfunktionen – 4,95 kr per bild. Har du redan ett lagersystem kan Luvero integreras med det, annars använder du vår inbyggda lagerhantering helt kostnadsfritt.
+                Appen kostar 239 kr/månad och inkluderar fullständig lagerhantering och dokumentation utan begränsningar. Du kan använda Luvero som din huvudsakliga lagerhantering eller som ett komplement till ditt befintliga system (t.ex. Smart365, Bytbil). När du använder AI-redigeringsfunktionen tillkommer 4,95 kr per bild utöver månadsavgiften. Integrationer med befintliga system kan ordnas vid behov.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
