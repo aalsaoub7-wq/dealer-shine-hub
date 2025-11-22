@@ -310,7 +310,7 @@ const CarDetail = () => {
         title: "Betalmetod krävs",
         description: trialInfo?.isInTrial 
           ? "Du måste lägga till en betalmetod innan du kan redigera bilder."
-          : "Din free trial har löpt ut. Lägg till en betalmetod för att fortsätta redigera bilder.",
+          : "Din testperiod har löpt ut. Lägg till en betalmetod för att fortsätta redigera bilder.",
         variant: "destructive",
         action: (
           <Button

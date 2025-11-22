@@ -221,7 +221,7 @@ export const PaymentSettings = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-blue-600" />
-              Free Trial Aktiv
+              Testperiod Aktiv
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -230,11 +230,11 @@ export const PaymentSettings = () => {
                 Du har <strong>{billingInfo.trial.daysLeft} dagar</strong> kvar av din gratisperiod
               </p>
               <p className="text-xs text-muted-foreground">
-                Trial löper ut: {new Date(billingInfo.trial.endDate).toLocaleDateString('sv-SE')}
+                Testperiod löper ut: {new Date(billingInfo.trial.endDate).toLocaleDateString('sv-SE')}
               </p>
               {!billingInfo.hasPaymentMethod && (
                 <p className="text-xs text-amber-600 mt-2">
-                  Lägg till en betalmetod innan din trial löper ut för att fortsätta använda AI-redigering
+                  Lägg till en betalmetod innan din testperiod löper ut för att fortsätta använda AI-redigering
                 </p>
               )}
             </div>
@@ -247,12 +247,12 @@ export const PaymentSettings = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-700">
               <AlertCircle className="h-5 w-5" />
-              Trial Löpt Ut
+              Testperiod Löpt Ut
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-red-600">
-              Din free trial har löpt ut. Lägg till en betalmetod för att fortsätta använda AI-redigering.
+              Din testperiod har löpt ut. Lägg till en betalmetod för att fortsätta använda AI-redigering.
             </p>
           </CardContent>
         </Card>

@@ -186,12 +186,11 @@ const Dashboard = () => {
       <main className="container mx-auto px-3 md:px-4 py-4 md:py-8 animate-fade-in">
         {/* Trial Status Banner */}
         {trialInfo?.isInTrial && (
-          <div className="mb-6 p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg">
+          <div className="mb-6 p-4 bg-gradient-to-r from-red-600 to-black text-white rounded-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Sparkles className="h-6 w-6" />
                 <div>
-                  <p className="font-semibold">Free Trial - {trialInfo.daysLeft} dagar kvar</p>
+                  <p className="font-semibold">Testperiod - {trialInfo.daysLeft} dagar kvar</p>
                   <p className="text-sm opacity-90">
                     Testa alla funktioner gratis till {new Date(trialInfo.endDate).toLocaleDateString('sv-SE')}
                   </p>
