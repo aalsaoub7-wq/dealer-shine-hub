@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
-import { Loader2, ExternalLink, Image, TrendingUp, User } from "lucide-react";
+import { Loader2, ExternalLink, Image, TrendingUp, User, Sparkles, AlertCircle, CheckCircle2, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { PaymentSettingsSkeleton } from "./PaymentSettingsSkeleton";
@@ -11,6 +11,11 @@ interface BillingInfo {
   hasCustomer: boolean;
   customerId?: string;
   hasPaymentMethod?: boolean;
+  trial?: {
+    isInTrial: boolean;
+    daysLeft: number;
+    endDate: string;
+  };
   subscription?: {
     status: string;
     current_period_end?: string;
@@ -210,8 +215,74 @@ export const PaymentSettings = () => {
       </div>;
   }
   return <div className="space-y-6">
+      {/* Trial Status */}
+      {billingInfo?.trial?.isInTrial && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-blue-600" />
+              Free Trial Aktiv
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Du har <strong>{billingInfo.trial.daysLeft} dagar</strong> kvar av din gratisperiod
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Trial löper ut: {new Date(billingInfo.trial.endDate).toLocaleDateString('sv-SE')}
+              </p>
+              {!billingInfo.hasPaymentMethod && (
+                <p className="text-xs text-amber-600 mt-2">
+                  Lägg till en betalmetod innan din trial löper ut för att fortsätta använda AI-redigering
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {!billingInfo?.trial?.isInTrial && billingInfo?.trial?.daysLeft === 0 && !billingInfo?.hasPaymentMethod && (
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-700">
+              <AlertCircle className="h-5 w-5" />
+              Trial Löpt Ut
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-red-600">
+              Din free trial har löpt ut. Lägg till en betalmetod för att fortsätta använda AI-redigering.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Payment Method Status */}
-      <div className="space-y-2">
+      <Card className={billingInfo?.hasPaymentMethod ? "border-green-200 bg-green-50" : "border-amber-200 bg-amber-50"}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className={`h-5 w-5 ${billingInfo?.hasPaymentMethod ? "text-green-600" : "text-amber-600"}`} />
+            Betalmetodstatus
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {billingInfo?.hasPaymentMethod ? (
+            <div className="flex items-center gap-2 text-green-700">
+              <CheckCircle2 className="h-5 w-5" />
+              <span>Betalmetod tillagd</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-amber-700">
+              <AlertCircle className="h-5 w-5" />
+              <span>Ingen betalmetod tillagd</span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Payment Method Status - OLD SECTION REMOVED */}
+      <div className="space-y-2 hidden">
         <h3 className="text-sm font-medium">Betalmetodstatus</h3>
         <Card>
           <CardContent className="pt-6">

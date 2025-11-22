@@ -49,10 +49,10 @@ serve(async (req) => {
       throw new Error("No user found");
     }
 
-    // Get user's company
+    // Get user's company with trial_end_date
     const { data: userCompany } = await supabaseClient
       .from("user_companies")
-      .select("company_id, companies(id, name, stripe_customer_id)")
+      .select("company_id, companies(id, name, stripe_customer_id, trial_end_date)")
       .eq("user_id", user.id)
       .single();
 
@@ -64,11 +64,26 @@ serve(async (req) => {
       ? userCompany.companies[0]
       : userCompany.companies;
 
+    // Calculate trial status
+    const now = new Date();
+    const trialEndDate = company.trial_end_date 
+      ? new Date(company.trial_end_date) 
+      : null;
+    const isInTrial = trialEndDate ? now < trialEndDate : false;
+    const daysLeftInTrial = trialEndDate 
+      ? Math.max(0, Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+      : 0;
+
     if (!company.stripe_customer_id) {
       return new Response(
         JSON.stringify({
           hasCustomer: false,
-          message: "No Stripe customer found",
+          hasPaymentMethod: false,
+          trial: {
+            isInTrial,
+            daysLeft: daysLeftInTrial,
+            endDate: trialEndDate?.toISOString(),
+          }
         }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -78,9 +93,9 @@ serve(async (req) => {
     }
 
     // Get current month usage for all company users
-    const now = new Date();
-    const year = now.getFullYear();
-    const monthNumber = now.getMonth(); // 0-11
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const monthNumber = currentDate.getMonth(); // 0-11
     const firstDayOfMonth = `${year}-${String(monthNumber + 1).padStart(2, '0')}-01`;
 
     // Get all users in the company
@@ -201,6 +216,11 @@ serve(async (req) => {
           invoicePdf: inv.invoice_pdf,
         })),
         portalUrl: portalSession.url,
+        trial: {
+          isInTrial,
+          daysLeft: daysLeftInTrial,
+          endDate: trialEndDate?.toISOString(),
+        }
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

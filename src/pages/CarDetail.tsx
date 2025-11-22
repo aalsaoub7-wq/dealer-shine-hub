@@ -91,6 +91,11 @@ const CarDetail = () => {
   const [generatingDescription, setGeneratingDescription] = useState(false);
   const [hasPaymentMethod, setHasPaymentMethod] = useState(false);
   const [checkingPayment, setCheckingPayment] = useState(true);
+  const [trialInfo, setTrialInfo] = useState<{
+    isInTrial: boolean;
+    daysLeft: number;
+    endDate: string;
+  } | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -129,11 +134,14 @@ const CarDetail = () => {
       
       if (error) throw error;
       
-      // User has payment method if Stripe says they do
-      setHasPaymentMethod(data?.hasPaymentMethod === true);
+      // User can edit if they're in trial OR have payment method
+      const canEdit = data?.trial?.isInTrial || data?.hasPaymentMethod || false;
+      setHasPaymentMethod(canEdit);
+      setTrialInfo(data?.trial || null);
     } catch (error) {
       console.error("Error checking payment method:", error);
       setHasPaymentMethod(false);
+      setTrialInfo(null);
     } finally {
       setCheckingPayment(false);
     }
@@ -300,7 +308,9 @@ const CarDetail = () => {
     if (!hasPaymentMethod) {
       const { dismiss } = toast({
         title: "Betalmetod krävs",
-        description: "Du måste lägga till en betalmetod innan du kan redigera bilder.",
+        description: trialInfo?.isInTrial 
+          ? "Du måste lägga till en betalmetod innan du kan redigera bilder."
+          : "Din free trial har löpt ut. Lägg till en betalmetod för att fortsätta redigera bilder.",
         variant: "destructive",
         action: (
           <Button
@@ -308,7 +318,7 @@ const CarDetail = () => {
             size="sm"
             onClick={() => {
               dismiss();
-              navigate("/");
+              navigate("/dashboard");
               setTimeout(() => {
                 if ((window as any).openSettingsDialog) {
                   (window as any).openSettingsDialog("payment");
@@ -316,7 +326,7 @@ const CarDetail = () => {
               }, 300);
             }}
           >
-            Gå till Inställningar
+            Lägg till betalmetod
           </Button>
         ),
       });
