@@ -69,9 +69,9 @@ const Landing = () => {
                 >
                   Logga in
                 </Button>
-                <Button onClick={() => navigate("/auth")} className="shadow-glow">
-                  Prova gratis i 21 dagar
-                </Button>
+              <Button onClick={() => navigate("/auth?mode=signup")} className="shadow-glow">
+                Prova gratis i 21 dagar
+              </Button>
               </div>
             </nav>
 
@@ -100,7 +100,7 @@ const Landing = () => {
               >
                 Logga in
               </Button>
-              <Button className="w-full" onClick={() => navigate("/auth")}>
+              <Button className="w-full" onClick={() => navigate("/auth?mode=signup")}>
                 Prova gratis i 21 dagar
               </Button>
             </div>
@@ -137,7 +137,7 @@ const Landing = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="text-lg px-8 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => navigate("/auth")}>
+                <Button size="lg" className="text-lg px-8 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => navigate("/auth?mode=signup")}>
                   Prova gratis i 21 dagar
                 </Button>
                 <Button size="lg" variant="outline" className="text-lg px-8 py-6 hover:bg-muted transition-all duration-300" onClick={() => scrollToSection('how-it-works')}>
@@ -539,7 +539,7 @@ const Landing = () => {
 
             {/* CTA after comparison */}
             <div className="text-center mt-12">
-              <Button size="lg" className="text-lg py-6 px-12 shadow-glow hover:shadow-glow-lg transition-all duration-300" onClick={() => navigate("/auth")}>
+              <Button size="lg" className="text-lg py-6 px-12 shadow-glow hover:shadow-glow-lg transition-all duration-300" onClick={() => navigate("/auth?mode=signup")}>
                 Prova gratis i 21 dagar
               </Button>
             </div>
@@ -588,7 +588,7 @@ const Landing = () => {
                     </div>)}
                 </div>
 
-                <Button size="lg" className="w-full text-lg py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300" onClick={() => navigate("/auth")}>
+                <Button size="lg" className="w-full text-lg py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300" onClick={() => navigate("/auth?mode=signup")}>
                   Prova gratis i 21 dagar
                 </Button>
 
@@ -693,7 +693,7 @@ const Landing = () => {
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                 Börja gratis idag. Inget kreditkort krävs.
               </p>
-              <Button size="lg" className="text-lg px-12 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => navigate("/auth")}>
+              <Button size="lg" className="text-lg px-12 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => navigate("/auth?mode=signup")}>
                 Prova gratis i 21 dagar
               </Button>
             </div>
