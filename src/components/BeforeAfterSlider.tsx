@@ -39,8 +39,8 @@ export const BeforeAfterSlider = () => {
     let position = sliderPosition;
 
     const animate = () => {
-      position += direction * 0.3;
-      if (position >= 70 || position <= 30) {
+      position += direction * 0.15;
+      if (position >= 100 || position <= 0) {
         direction *= -1;
       }
       setSliderPosition(Math.max(0, Math.min(100, position)));
