@@ -208,7 +208,7 @@ const Landing = () => {
                   <Download className="h-8 w-8 text-primary" />
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-foreground">Ladda ner & publicera</h3>
+              <h3 className="text-xl font-bold text-foreground">Ladda ner och synka    </h3>
               <p className="text-muted-foreground">
                 Dela direkt till Blocket, Facebook Marketplace, din hemsida.         
               </p>
