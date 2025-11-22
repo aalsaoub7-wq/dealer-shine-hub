@@ -2,36 +2,14 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import luveroLogo from "@/assets/luvero-logo.png";
 import adstuffLogo from "@/assets/adstuff-logo.png";
-import { 
-  Sparkles, 
-  Link2, 
-  Shield, 
-  Globe, 
-  Users, 
-  DollarSign,
-  Upload,
-  Wand2,
-  Download,
-  Check,
-  ChevronDown,
-  Menu,
-  X,
-  Package
-} from "lucide-react";
+import { Sparkles, Link2, Shield, Globe, Users, DollarSign, Upload, Wand2, Download, Check, ChevronDown, Menu, X, Package } from "lucide-react";
 import { useState, useEffect } from "react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
-
 const Landing = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -39,37 +17,30 @@ const Landing = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('animate-fade-in');
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-    
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-fade-in');
+        }
+      });
+    }, {
+      threshold: 0.1
+    });
     document.querySelectorAll('.scroll-animate').forEach(el => {
       observer.observe(el);
     });
-
     return () => observer.disconnect();
   }, []);
-
   const scrollToSection = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById(id)?.scrollIntoView({
+      behavior: 'smooth'
+    });
     setMobileMenuOpen(false);
   };
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Sticky Navigation Header */}
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-lg' : 'bg-transparent'
-      }`}>
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-lg' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => scrollToSection('hero')}>
@@ -99,18 +70,14 @@ const Landing = () => {
             </nav>
 
             {/* Mobile Menu Button */}
-            <button 
-              className="md:hidden p-2"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
+            <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-background/95 backdrop-blur-xl border-t border-border/50">
+        {mobileMenuOpen && <div className="md:hidden bg-background/95 backdrop-blur-xl border-t border-border/50">
             <div className="px-4 py-4 space-y-3">
               <button onClick={() => scrollToSection('features')} className="block w-full text-left px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-muted rounded-md transition-colors">
                 Funktioner
@@ -128,8 +95,7 @@ const Landing = () => {
                 Prova gratis i 21 dagar
               </Button>
             </div>
-          </div>
-        )}
+          </div>}
       </header>
 
       {/* Hero Section */}
@@ -160,19 +126,10 @@ const Landing = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  size="lg" 
-                  className="text-lg px-8 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105"
-                  onClick={() => navigate("/auth")}
-                >
+                <Button size="lg" className="text-lg px-8 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => navigate("/auth")}>
                   Prova gratis i 21 dagar
                 </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline"
-                  className="text-lg px-8 py-6 hover:bg-muted transition-all duration-300"
-                  onClick={() => scrollToSection('how-it-works')}
-                >
+                <Button size="lg" variant="outline" className="text-lg px-8 py-6 hover:bg-muted transition-all duration-300" onClick={() => scrollToSection('how-it-works')}>
                   Se hur det fungerar
                   <ChevronDown className="ml-2 h-5 w-5" />
                 </Button>
@@ -370,25 +327,19 @@ const Landing = () => {
           <div className="max-w-5xl mx-auto">
             <div className="backdrop-blur-xl bg-background/30 rounded-3xl border border-border/50 overflow-hidden shadow-elegant">
               {/* Table Header */}
-              <div className="hidden md:grid gap-6 p-8 border-b border-border/50" style={{ gridTemplateColumns: '45% 27.5% 27.5%' }}>
+              <div className="hidden md:grid gap-6 p-8 border-b border-border/50" style={{
+              gridTemplateColumns: '45% 27.5% 27.5%'
+            }}>
                 <div className="flex items-center justify-start">
                   <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     Funktion
                   </p>
                 </div>
                 <div className="flex flex-col items-center justify-center gap-2">
-                  <img 
-                    src={luveroLogo} 
-                    alt="Luvero" 
-                    className="h-12 w-auto object-contain"
-                  />
+                  <img src={luveroLogo} alt="Luvero" className="h-12 w-auto object-contain" />
                 </div>
                 <div className="flex flex-col items-center justify-center gap-2">
-                  <img 
-                    src={adstuffLogo} 
-                    alt="Adstuff" 
-                    className="h-12 w-auto object-contain"
-                  />
+                  <img src={adstuffLogo} alt="Adstuff" className="h-12 w-auto object-contain" />
                 </div>
               </div>
 
@@ -406,7 +357,9 @@ const Landing = () => {
               {/* Table Rows */}
               <div className="divide-y divide-border/30">
                 {/* Row 1: Lagerhantering */}
-                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{ gridTemplateColumns: '45% 27.5% 27.5%' }}>
+                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{
+                gridTemplateColumns: '45% 27.5% 27.5%'
+              }}>
                   <div className="flex items-center">
                     <p className="text-base font-medium text-foreground">Lagerhantering och dokumentation</p>
                   </div>
@@ -432,7 +385,9 @@ const Landing = () => {
                 </div>
 
                 {/* Row 2: Extra användare */}
-                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{ gridTemplateColumns: '45% 27.5% 27.5%' }}>
+                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{
+                gridTemplateColumns: '45% 27.5% 27.5%'
+              }}>
                   <div className="flex items-center">
                     <p className="text-base font-medium text-foreground">Kostnad för extra användare</p>
                   </div>
@@ -458,13 +413,15 @@ const Landing = () => {
                 </div>
 
                 {/* Row 3: Fotoredigering pris */}
-                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{ gridTemplateColumns: '45% 27.5% 27.5%' }}>
+                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{
+                gridTemplateColumns: '45% 27.5% 27.5%'
+              }}>
                   <div className="flex items-center">
                     <p className="text-base font-medium text-foreground">Fotoredigering (pris per bild)</p>
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Check className="w-5 h-5 text-emerald-500" />
-                    <p className="text-sm font-bold text-emerald-600">239kr/mån + 4,95kr/bild</p>
+                    <p className="text-sm font-bold text-emerald-600">4,95kr</p>
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <X className="w-5 h-5 text-destructive" />
@@ -484,7 +441,9 @@ const Landing = () => {
                 </div>
 
                 {/* Row 4: Tid för fotoredigering */}
-                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{ gridTemplateColumns: '45% 27.5% 27.5%' }}>
+                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{
+                gridTemplateColumns: '45% 27.5% 27.5%'
+              }}>
                   <div className="flex items-center">
                     <p className="text-base font-medium text-foreground">Tid för fotoredigering</p>
                   </div>
@@ -510,7 +469,9 @@ const Landing = () => {
                 </div>
 
                 {/* Row 5: Kontroll av bakgrunden */}
-                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{ gridTemplateColumns: '45% 27.5% 27.5%' }}>
+                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{
+                gridTemplateColumns: '45% 27.5% 27.5%'
+              }}>
                   <div className="flex items-center">
                     <p className="text-base font-medium text-foreground">Kontroll av bakgrunden</p>
                   </div>
@@ -536,7 +497,9 @@ const Landing = () => {
                 </div>
 
                 {/* Row 6: Samspel med annan lagerhantering */}
-                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{ gridTemplateColumns: '45% 27.5% 27.5%' }}>
+                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{
+                gridTemplateColumns: '45% 27.5% 27.5%'
+              }}>
                   <div className="flex items-center">
                     <p className="text-base font-medium text-foreground">Integration med lagersystem</p>
                   </div>
@@ -565,11 +528,7 @@ const Landing = () => {
 
             {/* CTA after comparison */}
             <div className="text-center mt-12">
-              <Button 
-                size="lg"
-                className="text-lg py-6 px-12 shadow-glow hover:shadow-glow-lg transition-all duration-300"
-                onClick={() => navigate("/auth")}
-              >
+              <Button size="lg" className="text-lg py-6 px-12 shadow-glow hover:shadow-glow-lg transition-all duration-300" onClick={() => navigate("/auth")}>
                 Prova gratis i 21 dagar
               </Button>
             </div>
@@ -612,25 +571,13 @@ const Landing = () => {
                 </div>
 
                 <div className="space-y-3 text-left py-6">
-                  {[
-                    'Gratis lagerhantering',
-                    'Gratis dokumentation av bilar',
-                    'Betala bara för AI-redigering (4,95 kr/bild)',
-                    'Obegränsat antal bilar och användare',
-                    'Integration med befintliga system'
-                  ].map((feature, i) => (
-                    <div key={i} className="flex items-center gap-3">
+                  {['Gratis lagerhantering', 'Gratis dokumentation av bilar', 'Betala bara för AI-redigering (4,95 kr/bild)', 'Obegränsat antal bilar och användare', 'Integration med befintliga system'].map((feature, i) => <div key={i} className="flex items-center gap-3">
                       <Check className="h-5 w-5 text-primary flex-shrink-0" />
                       <span className="text-foreground font-medium">{feature}</span>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
 
-                <Button 
-                  size="lg" 
-                  className="w-full text-lg py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300"
-                  onClick={() => navigate("/auth")}
-                >
+                <Button size="lg" className="w-full text-lg py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300" onClick={() => navigate("/auth")}>
                   Prova gratis i 21 dagar
                 </Button>
 
@@ -735,11 +682,7 @@ const Landing = () => {
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                 Börja gratis idag. Inget kreditkort krävs.
               </p>
-              <Button 
-                size="lg" 
-                className="text-lg px-12 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105"
-                onClick={() => navigate("/auth")}
-              >
+              <Button size="lg" className="text-lg px-12 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => navigate("/auth")}>
                 Prova gratis i 21 dagar
               </Button>
             </div>
@@ -811,8 +754,6 @@ const Landing = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Landing;
