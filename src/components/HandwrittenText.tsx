@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 
 export const HandwrittenText = () => {
+  const text = "bilfoton på sekunder";
   const [animationComplete, setAnimationComplete] = useState(false);
 
   useEffect(() => {
+    // Calculate total animation time: characters * delay + animation duration + underline
+    const totalTime = text.length * 100 + 200 + 1000;
     const timer = setTimeout(() => {
       setAnimationComplete(true);
-    }, 4000); // Animation completes after 4s (3s text + 1s underline)
+    }, totalTime);
 
     return () => clearTimeout(timer);
   }, []);
@@ -28,28 +31,46 @@ export const HandwrittenText = () => {
                 font-size: 80px;
                 font-weight: 700;
               }
+              @keyframes stroke-draw-letter {
+                0% { 
+                  stroke-dashoffset: 50;
+                  opacity: 0;
+                }
+                100% { 
+                  stroke-dashoffset: 0;
+                  opacity: 1;
+                }
+              }
             `}
           </style>
         </defs>
         
-        {/* Main text with stroke animation */}
+        {/* Main text with individual letter animations */}
         <text
           x="10"
           y="70"
           className="handwritten-text"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          fill={animationComplete ? "currentColor" : "none"}
-          strokeDasharray="1500"
-          strokeDashoffset="0"
           strokeLinecap="round"
           strokeLinejoin="round"
           style={{
-            animation: "stroke-draw 3s ease-out forwards",
             color: "hsl(var(--foreground))"
           }}
         >
-          bilfoton på sekunder
+          {text.split('').map((char, index) => (
+            <tspan
+              key={index}
+              stroke="currentColor"
+              strokeWidth="2.5"
+              fill={animationComplete ? "currentColor" : "none"}
+              strokeDasharray="50"
+              strokeDashoffset="50"
+              style={{
+                animation: `stroke-draw-letter 0.2s ease-out ${index * 0.1}s forwards`
+              }}
+            >
+              {char}
+            </tspan>
+          ))}
         </text>
 
         {/* Hand-drawn underline under "sekunder" */}
@@ -60,9 +81,9 @@ export const HandwrittenText = () => {
           fill="none"
           strokeLinecap="round"
           strokeDasharray="250"
-          strokeDashoffset="0"
+          strokeDashoffset="250"
           style={{
-            animation: "stroke-draw 1s ease-out 3s forwards"
+            animation: `stroke-draw-letter 1s ease-out ${text.length * 0.1}s forwards`
           }}
         />
       </svg>
