@@ -286,10 +286,7 @@ const Landing = () => {
 
             {/* Feature - FREE Lagerhantering */}
             <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/30 mb-4">
-                <span className="text-xs font-bold text-primary">GRATIS</span>
-              </div>
-              <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 mb-2">
+              <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 mb-4">
                 <Package className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">Lagerhantering & Dokumentation</h3>
