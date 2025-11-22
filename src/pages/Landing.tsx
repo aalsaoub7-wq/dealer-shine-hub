@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import luveroLogo from "@/assets/luvero-logo.png";
 import adstuffLogo from "@/assets/adstuff-logo.png";
-import { Sparkles, Link2, Shield, Globe, Users, DollarSign, Upload, Wand2, Download, Check, ChevronDown, Menu, X, Package } from "lucide-react";
+import { Brain, Link2, Shield, Globe, Users, DollarSign, Upload, Wand2, Download, Check, ChevronDown, Menu, X, Package } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
@@ -118,7 +118,7 @@ const Landing = () => {
             {/* Left Column */}
             <div className="space-y-8 animate-fade-in">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-                <Sparkles className="h-4 w-4 text-primary" />
+                <Brain className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium text-foreground">Nu med AI-driven bakgrundsredigering</span>
               </div>
 
@@ -244,7 +244,7 @@ const Landing = () => {
             {/* Feature 1 */}
             <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
               <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 mb-4">
-                <Sparkles className="h-8 w-8 text-primary" />
+                <Brain className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">AI Bakgrundsredigering</h3>
               <p className="text-muted-foreground">
