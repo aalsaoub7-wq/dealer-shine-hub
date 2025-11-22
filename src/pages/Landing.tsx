@@ -110,7 +110,7 @@ const Landing = () => {
       {/* Hero Section */}
       <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
         {/* Grainy noise gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-red-950 via-red-900 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-br from-red-950/70 via-red-900/50 to-black" />
         <div 
           className="absolute inset-0 opacity-60"
           style={{
@@ -119,7 +119,7 @@ const Landing = () => {
             backgroundSize: '180px 180px'
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/60" />
+        <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-transparent to-black/80" />
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
