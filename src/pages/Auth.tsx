@@ -36,7 +36,7 @@ const Auth = () => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/");
+        navigate("/dashboard");
       }
     };
     checkAuth();
@@ -69,7 +69,7 @@ const Auth = () => {
         });
         if (error) throw error;
         toast({ title: "Välkommen tillbaka!" });
-        navigate("/");
+        navigate("/dashboard");
       } else {
         // If invite code provided, validate it first
         if (inviteCode) {
@@ -94,7 +94,7 @@ const Auth = () => {
         email: validation.data.email,
         password: validation.data.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             is_employee_signup: !!inviteCode,
             invite_code: inviteCode || null,
