@@ -432,7 +432,7 @@ const Landing = () => {
                   <div className="text-xs font-medium">Pris/bild</div>
                   <div className="flex flex-col items-center gap-1">
                     <Check className="w-4 h-4 text-emerald-500" />
-                    <span className="text-xs font-bold text-emerald-600">239kr/mån + 4,95kr</span>
+                    <span className="text-xs font-bold text-emerald-600">4,95kr</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
