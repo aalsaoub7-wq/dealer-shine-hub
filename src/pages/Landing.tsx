@@ -168,7 +168,7 @@ const Landing = () => {
 
             {/* Step 1 */}
             <div className="relative text-center space-y-4 p-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/50 text-primary-foreground text-2xl font-bold shadow-lg shadow-primary/20">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary text-primary-foreground text-2xl font-bold shadow-lg shadow-primary/20">
                 1
               </div>
               <div className="flex justify-center">
@@ -184,7 +184,7 @@ const Landing = () => {
 
             {/* Step 2 */}
             <div className="relative text-center space-y-4 p-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-accent to-accent/50 text-accent-foreground text-2xl font-bold shadow-lg shadow-accent/20">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-accent to-accent text-accent-foreground text-2xl font-bold shadow-lg shadow-accent/20">
                 2
               </div>
               <div className="flex justify-center">
@@ -200,7 +200,7 @@ const Landing = () => {
 
             {/* Step 3 */}
             <div className="relative text-center space-y-4 p-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/50 text-primary-foreground text-2xl font-bold shadow-lg shadow-primary/20">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary text-primary-foreground text-2xl font-bold shadow-lg shadow-primary/20">
                 3
               </div>
               <div className="flex justify-center">
