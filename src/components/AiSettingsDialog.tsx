@@ -459,15 +459,6 @@ export const AiSettingsDialog = () => {
             </TabsContent>
 
             <TabsContent
-              value="payment"
-              className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-            >
-              <PaymentSettings />
-            </TabsContent>
-
-            <TabsContent
               value="watermark"
               className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
               onTouchStart={handleTouchStart}
