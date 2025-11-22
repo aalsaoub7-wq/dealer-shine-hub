@@ -23,6 +23,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -181,14 +182,9 @@ const Landing = () => {
               </div>
             </div>
 
-            {/* Right Column - Visual Element */}
-            <div className="relative lg:block animate-fade-in">
-              <div className="relative aspect-square bg-gradient-to-br from-primary/20 to-accent/20 rounded-3xl p-8 backdrop-blur-sm border border-border/50 shadow-2xl">
-                <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent rounded-3xl" />
-                <div className="relative h-full flex items-center justify-center">
-                  <img src={luveroLogo} alt="LuFlow" className="w-48 h-48 animate-float opacity-90" />
-                </div>
-              </div>
+            {/* Right Column - Before/After Demo */}
+            <div className="relative hidden lg:block animate-fade-in">
+              <BeforeAfterSlider />
             </div>
           </div>
         </div>
