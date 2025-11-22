@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export const PRICES = {
+  MONTHLY_FEE: 239,
   EDITED_IMAGE: 4.95,
 };
 
