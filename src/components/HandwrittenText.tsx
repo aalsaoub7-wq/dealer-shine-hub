@@ -6,7 +6,7 @@ export const HandwrittenText = () => {
 
   useEffect(() => {
     // Calculate total animation time: characters * delay + animation duration + underline
-    const totalTime = text.length * 100 + 200 + 1000;
+    const totalTime = text.length * 60 + 400 + 800;
     const timer = setTimeout(() => {
       setAnimationComplete(true);
     }, totalTime);
@@ -31,59 +31,50 @@ export const HandwrittenText = () => {
                 font-size: 80px;
                 font-weight: 700;
               }
-              @keyframes stroke-draw-letter {
-                0% { 
-                  stroke-dashoffset: 50;
-                  opacity: 0;
-                }
-                100% { 
-                  stroke-dashoffset: 0;
-                  opacity: 1;
-                }
-              }
             `}
           </style>
         </defs>
         
-        {/* Main text with individual letter animations */}
+        {/* Main text with individual letter fade-in animations */}
         <text
           x="10"
           y="70"
           className="handwritten-text"
-          strokeLinecap="round"
-          strokeLinejoin="round"
           style={{
             color: "hsl(var(--foreground))"
           }}
         >
-          {text.split('').map((char, index) => (
-            <tspan
-              key={index}
-              stroke="currentColor"
-              strokeWidth="2.5"
-              fill={animationComplete ? "currentColor" : "none"}
-              strokeDasharray="50"
-              strokeDashoffset="50"
-              style={{
-                animation: `stroke-draw-letter 0.2s ease-out ${index * 0.1}s forwards`
-              }}
-            >
-              {char}
-            </tspan>
-          ))}
+          {text.split('').map((char, index) => {
+            // Add slight random variation to timing for organic feel
+            const baseDelay = index * 0.06;
+            const randomOffset = Math.random() * 0.02 - 0.01; // -0.01 to +0.01
+            const delay = baseDelay + randomOffset;
+            
+            return (
+              <tspan
+                key={index}
+                fill="currentColor"
+                style={{
+                  opacity: 0,
+                  animation: `handwritten-letter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) ${delay}s forwards`
+                }}
+              >
+                {char}
+              </tspan>
+            );
+          })}
         </text>
 
-        {/* Hand-drawn underline under "sekunder" */}
+        {/* Hand-drawn underline under "sekunder" with fade-in */}
         <path
           d="M 480 85 Q 500 88 520 84 T 560 87 T 600 83 T 640 86 T 680 82 L 720 84"
           stroke="hsl(var(--primary))"
           strokeWidth="4"
           fill="none"
           strokeLinecap="round"
-          strokeDasharray="250"
-          strokeDashoffset="250"
           style={{
-            animation: `stroke-draw-letter 1s ease-out ${text.length * 0.1}s forwards`
+            opacity: 0,
+            animation: `handwritten-letter 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) ${text.length * 0.06}s forwards`
           }}
         />
       </svg>
