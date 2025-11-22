@@ -373,142 +373,194 @@ const Landing = () => {
           <div className="max-w-5xl mx-auto">
             <div className="backdrop-blur-xl bg-background/30 rounded-3xl border border-border/50 overflow-hidden shadow-elegant">
               {/* Table Header */}
-              <div className="grid grid-cols-3 gap-4 p-6 md:p-8 border-b border-border/50">
-                <div className="text-left">
-                  <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+              <div className="hidden md:grid gap-6 p-8 border-b border-border/50" style={{ gridTemplateColumns: '45% 27.5% 27.5%' }}>
+                <div className="flex items-center justify-start">
+                  <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     Funktion
                   </p>
                 </div>
-                <div className="flex flex-col items-center justify-center">
+                <div className="flex flex-col items-center justify-center gap-2">
                   <img 
                     src={luveroLogo} 
                     alt="Luvero" 
-                    className="h-8 md:h-12 w-auto object-contain mb-2"
+                    className="h-12 w-auto object-contain"
                   />
                 </div>
-                <div className="flex flex-col items-center justify-center">
+                <div className="flex flex-col items-center justify-center gap-2">
                   <img 
                     src={adstuffLogo} 
                     alt="Adstuff" 
-                    className="h-8 md:h-12 w-auto object-contain mb-2"
+                    className="h-12 w-auto object-contain"
                   />
+                </div>
+              </div>
+
+              {/* Mobile Header */}
+              <div className="md:hidden grid grid-cols-3 gap-3 p-4 border-b border-border/50">
+                <div className="text-xs font-semibold text-muted-foreground uppercase">Funktion</div>
+                <div className="flex flex-col items-center gap-1">
+                  <img src={luveroLogo} alt="Luvero" className="h-6 object-contain" />
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  <img src={adstuffLogo} alt="Adstuff" className="h-6 object-contain" />
                 </div>
               </div>
 
               {/* Table Rows */}
               <div className="divide-y divide-border/30">
                 {/* Row 1: Lagerhantering */}
-                <div className="grid grid-cols-3 gap-4 p-4 md:p-6 hover:bg-accent/5 transition-colors">
+                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{ gridTemplateColumns: '45% 27.5% 27.5%' }}>
                   <div className="flex items-center">
-                    <p className="text-sm md:text-base font-medium">Lagerhantering och dokumentation</p>
+                    <p className="text-base font-medium text-foreground">Lagerhantering och dokumentation</p>
                   </div>
-                  <div className="flex items-center justify-center">
-                    <div className="text-center">
-                      <Check className="w-5 h-5 text-green-500 mx-auto mb-1" />
-                      <p className="text-sm md:text-base font-bold text-green-600">Gratis</p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Check className="w-5 h-5 text-emerald-500" />
+                    <p className="text-sm font-bold text-emerald-600">Gratis</p>
                   </div>
-                  <div className="flex items-center justify-center">
-                    <div className="text-center">
-                      <X className="w-5 h-5 text-red-500 mx-auto mb-1" />
-                      <p className="text-sm md:text-base text-muted-foreground">599kr/månad</p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <X className="w-5 h-5 text-destructive" />
+                    <p className="text-sm text-muted-foreground">599kr/månad</p>
+                  </div>
+                </div>
+                <div className="md:hidden grid grid-cols-3 gap-3 p-4">
+                  <div className="text-xs font-medium">Lagerhantering</div>
+                  <div className="flex flex-col items-center gap-1">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span className="text-xs font-bold text-emerald-600">Gratis</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <X className="w-4 h-4 text-destructive" />
+                    <span className="text-xs">599kr/mån</span>
                   </div>
                 </div>
 
                 {/* Row 2: Extra användare */}
-                <div className="grid grid-cols-3 gap-4 p-4 md:p-6 hover:bg-accent/5 transition-colors">
+                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{ gridTemplateColumns: '45% 27.5% 27.5%' }}>
                   <div className="flex items-center">
-                    <p className="text-sm md:text-base font-medium">Kostnad för extra användare</p>
+                    <p className="text-base font-medium text-foreground">Kostnad för extra användare</p>
                   </div>
-                  <div className="flex items-center justify-center">
-                    <div className="text-center">
-                      <Check className="w-5 h-5 text-green-500 mx-auto mb-1" />
-                      <p className="text-sm md:text-base font-bold text-green-600">Gratis</p>
-                      <p className="text-xs text-muted-foreground">Oändligt många</p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Check className="w-5 h-5 text-emerald-500" />
+                    <p className="text-sm font-bold text-emerald-600 text-center">Oändligt många gratis</p>
                   </div>
-                  <div className="flex items-center justify-center">
-                    <div className="text-center">
-                      <X className="w-5 h-5 text-red-500 mx-auto mb-1" />
-                      <p className="text-sm md:text-base text-muted-foreground">299kr/månad</p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <X className="w-5 h-5 text-destructive" />
+                    <p className="text-sm text-muted-foreground">299kr/månad</p>
+                  </div>
+                </div>
+                <div className="md:hidden grid grid-cols-3 gap-3 p-4">
+                  <div className="text-xs font-medium">Extra användare</div>
+                  <div className="flex flex-col items-center gap-1">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span className="text-xs font-bold text-emerald-600 text-center">Gratis</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <X className="w-4 h-4 text-destructive" />
+                    <span className="text-xs">299kr/mån</span>
                   </div>
                 </div>
 
                 {/* Row 3: Fotoredigering pris */}
-                <div className="grid grid-cols-3 gap-4 p-4 md:p-6 hover:bg-accent/5 transition-colors">
+                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{ gridTemplateColumns: '45% 27.5% 27.5%' }}>
                   <div className="flex items-center">
-                    <p className="text-sm md:text-base font-medium">Fotoredigering</p>
+                    <p className="text-base font-medium text-foreground">Fotoredigering (pris per bild)</p>
                   </div>
-                  <div className="flex items-center justify-center">
-                    <div className="text-center">
-                      <Check className="w-5 h-5 text-green-500 mx-auto mb-1" />
-                      <p className="text-sm md:text-base font-bold text-green-600">4,95kr/bild</p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Check className="w-5 h-5 text-emerald-500" />
+                    <p className="text-sm font-bold text-emerald-600">4,95kr</p>
                   </div>
-                  <div className="flex items-center justify-center">
-                    <div className="text-center">
-                      <X className="w-5 h-5 text-red-500 mx-auto mb-1" />
-                      <p className="text-sm md:text-base text-muted-foreground">18,74kr/bild</p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <X className="w-5 h-5 text-destructive" />
+                    <p className="text-sm text-muted-foreground">18,74kr</p>
+                  </div>
+                </div>
+                <div className="md:hidden grid grid-cols-3 gap-3 p-4">
+                  <div className="text-xs font-medium">Pris/bild</div>
+                  <div className="flex flex-col items-center gap-1">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span className="text-xs font-bold text-emerald-600">4,95kr</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <X className="w-4 h-4 text-destructive" />
+                    <span className="text-xs">18,74kr</span>
                   </div>
                 </div>
 
                 {/* Row 4: Tid för fotoredigering */}
-                <div className="grid grid-cols-3 gap-4 p-4 md:p-6 hover:bg-accent/5 transition-colors">
+                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{ gridTemplateColumns: '45% 27.5% 27.5%' }}>
                   <div className="flex items-center">
-                    <p className="text-sm md:text-base font-medium">Tid för fotoredigering</p>
+                    <p className="text-base font-medium text-foreground">Tid för fotoredigering</p>
                   </div>
-                  <div className="flex items-center justify-center">
-                    <div className="text-center">
-                      <Check className="w-5 h-5 text-green-500 mx-auto mb-1" />
-                      <p className="text-sm md:text-base font-bold text-green-600">10-15 sekunder</p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Check className="w-5 h-5 text-emerald-500" />
+                    <p className="text-sm font-bold text-emerald-600">10-15 sekunder</p>
                   </div>
-                  <div className="flex items-center justify-center">
-                    <div className="text-center">
-                      <X className="w-5 h-5 text-red-500 mx-auto mb-1" />
-                      <p className="text-sm md:text-base text-muted-foreground">2-12+ timmar</p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <X className="w-5 h-5 text-destructive" />
+                    <p className="text-sm text-muted-foreground">2-12+ timmar</p>
+                  </div>
+                </div>
+                <div className="md:hidden grid grid-cols-3 gap-3 p-4">
+                  <div className="text-xs font-medium">Tid</div>
+                  <div className="flex flex-col items-center gap-1">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span className="text-xs font-bold text-emerald-600">10-15 sek</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <X className="w-4 h-4 text-destructive" />
+                    <span className="text-xs">2-12+ tim</span>
                   </div>
                 </div>
 
                 {/* Row 5: Kontroll av bakgrunden */}
-                <div className="grid grid-cols-3 gap-4 p-4 md:p-6 hover:bg-accent/5 transition-colors">
+                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{ gridTemplateColumns: '45% 27.5% 27.5%' }}>
                   <div className="flex items-center">
-                    <p className="text-sm md:text-base font-medium">Kontroll av bakgrunden</p>
+                    <p className="text-base font-medium text-foreground">Kontroll av bakgrunden</p>
                   </div>
-                  <div className="flex items-center justify-center">
-                    <div className="text-center">
-                      <Check className="w-5 h-5 text-green-500 mx-auto mb-1" />
-                      <p className="text-xs md:text-sm font-bold text-green-600">Du skriver själv och får det omedelbart</p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Check className="w-5 h-5 text-emerald-500" />
+                    <p className="text-sm font-bold text-emerald-600 text-center">Omedelbar anpassning</p>
                   </div>
-                  <div className="flex items-center justify-center">
-                    <div className="text-center">
-                      <X className="w-5 h-5 text-red-500 mx-auto mb-1" />
-                      <p className="text-xs md:text-sm text-muted-foreground">Osmidig process, 2-12+ timmar</p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <X className="w-5 h-5 text-destructive" />
+                    <p className="text-sm text-muted-foreground text-center">2-12+ timmar väntetid</p>
+                  </div>
+                </div>
+                <div className="md:hidden grid grid-cols-3 gap-3 p-4">
+                  <div className="text-xs font-medium">Bakgrund</div>
+                  <div className="flex flex-col items-center gap-1">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span className="text-xs font-bold text-emerald-600 text-center">Omedelbar</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <X className="w-4 h-4 text-destructive" />
+                    <span className="text-xs text-center">2-12+ tim</span>
                   </div>
                 </div>
 
                 {/* Row 6: Samspel med annan lagerhantering */}
-                <div className="grid grid-cols-3 gap-4 p-4 md:p-6 hover:bg-accent/5 transition-colors">
+                <div className="hidden md:grid gap-6 p-6 hover:bg-accent/5 transition-colors items-center" style={{ gridTemplateColumns: '45% 27.5% 27.5%' }}>
                   <div className="flex items-center">
-                    <p className="text-sm md:text-base font-medium">Samspel med annan lagerhanteringsprogram</p>
+                    <p className="text-base font-medium text-foreground">Integration med lagersystem</p>
                   </div>
-                  <div className="flex items-center justify-center">
-                    <div className="text-center">
-                      <Check className="w-5 h-5 text-green-500 mx-auto mb-1" />
-                      <p className="text-xs md:text-sm font-bold text-green-600">Fixas vid behov (T.ex. Smart365)</p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Check className="w-5 h-5 text-emerald-500" />
+                    <p className="text-sm font-bold text-emerald-600 text-center">Fixas vid behov</p>
                   </div>
-                  <div className="flex items-center justify-center">
-                    <div className="text-center">
-                      <X className="w-5 h-5 text-red-500 mx-auto mb-1" />
-                      <p className="text-xs md:text-sm text-muted-foreground">Ej möjlig</p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <X className="w-5 h-5 text-destructive" />
+                    <p className="text-sm text-muted-foreground text-center">Ej möjlig</p>
+                  </div>
+                </div>
+                <div className="md:hidden grid grid-cols-3 gap-3 p-4">
+                  <div className="text-xs font-medium">Integration</div>
+                  <div className="flex flex-col items-center gap-1">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span className="text-xs font-bold text-emerald-600 text-center">Ja</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <X className="w-4 h-4 text-destructive" />
+                    <span className="text-xs text-center">Nej</span>
                   </div>
                 </div>
               </div>
