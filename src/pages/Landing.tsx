@@ -168,14 +168,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Section Divider */}
-      <div className="relative h-24 bg-gradient-to-b from-transparent via-primary/5 to-transparent">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-full max-w-7xl mx-auto px-4">
-            <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-          </div>
-        </div>
-      </div>
 
       {/* How It Works */}
       <section id="how-it-works" className="py-20 md:py-32 scroll-animate">
@@ -243,15 +235,6 @@ const Landing = () => {
           </div>
         </div>
       </section>
-
-      {/* Section Divider */}
-      <div className="relative h-24 bg-gradient-to-b from-transparent via-primary/5 to-transparent">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-full max-w-7xl mx-auto px-4">
-            <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-          </div>
-        </div>
-      </div>
 
       {/* Features Grid */}
       <section id="features" className="py-20 md:py-32 bg-muted/30 scroll-animate">
@@ -345,15 +328,6 @@ const Landing = () => {
           </div>
         </div>
       </section>
-
-      {/* Section Divider */}
-      <div className="relative h-24 bg-gradient-to-b from-muted/30 via-primary/5 to-transparent">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-full max-w-7xl mx-auto px-4">
-            <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-          </div>
-        </div>
-      </div>
 
       {/* Comparison Section */}
       <section className="py-20 md:py-32 scroll-animate">
@@ -581,15 +555,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Section Divider */}
-      <div className="relative h-24 bg-gradient-to-b from-transparent via-primary/5 to-transparent">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-full max-w-7xl mx-auto px-4">
-            <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-          </div>
-        </div>
-      </div>
-
       {/* Pricing Section */}
       <section id="pricing" className="py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -643,15 +608,6 @@ const Landing = () => {
           </div>
         </div>
       </section>
-
-      {/* Section Divider */}
-      <div className="relative h-24 bg-gradient-to-b from-transparent via-primary/5 to-muted/30">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-full max-w-7xl mx-auto px-4">
-            <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-          </div>
-        </div>
-      </div>
 
       {/* FAQ Section */}
       <section className="py-20 md:py-32 bg-muted/30 scroll-animate">
