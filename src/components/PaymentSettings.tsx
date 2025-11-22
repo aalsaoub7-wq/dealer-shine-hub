@@ -258,17 +258,9 @@ export const PaymentSettings = () => {
       {/* Usage Dashboard */}
       <Card className="animate-fade-in border-border/50 bg-card/50 backdrop-blur-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base md:text-lg flex items-center gap-2 justify-between">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-primary" />
-              Månatlig användning - {new Date().toLocaleDateString("sv-SE", { month: "long", year: "numeric" })}
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm md:text-base text-muted-foreground">Totalt:</span>
-              <span className="text-lg md:text-2xl font-bold text-primary">
-                {totalUsage.cost.toFixed(2)} kr
-              </span>
-            </div>
+          <CardTitle className="text-base md:text-lg flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+            Månatlig användning - {new Date().toLocaleDateString("sv-SE", { month: "long", year: "numeric" })}
           </CardTitle>
           <CardDescription className="text-xs md:text-sm">
             Översikt över företagets användning och kostnader per användare
