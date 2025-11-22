@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { PaymentSettingsSkeleton } from "./PaymentSettingsSkeleton";
 import { PRICES } from "@/lib/usageTracking";
-
 interface BillingInfo {
   hasCustomer: boolean;
   customerId?: string;
@@ -30,7 +29,6 @@ interface BillingInfo {
   }>;
   portalUrl?: string;
 }
-
 export const PaymentSettings = () => {
   const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,50 +40,55 @@ export const PaymentSettings = () => {
     editedImages: number;
     cost: number;
   }>>([]);
-  const [totalUsage, setTotalUsage] = useState({ editedImages: 0, cost: 0 });
+  const [totalUsage, setTotalUsage] = useState({
+    editedImages: 0,
+    cost: 0
+  });
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const { toast } = useToast();
-
-  const { data: userRole } = useQuery({
+  const {
+    toast
+  } = useToast();
+  const {
+    data: userRole
+  } = useQuery({
     queryKey: ["userRole"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
-
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .single();
-
+      const {
+        data
+      } = await supabase.from("user_roles").select("role").eq("user_id", user.id).single();
       return data?.role;
-    },
+    }
   });
-
   const fetchBillingInfo = async () => {
     try {
       setLoading(true);
-      
-      // Fetch billing info from edge function
-      const { data, error } = await supabase.functions.invoke(
-        "get-billing-info"
-      );
 
+      // Fetch billing info from edge function
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke("get-billing-info");
       if (error) throw error;
       setBillingInfo(data);
 
       // Use user usage stats from edge function
       if (data.userUsageStats) {
         setUserUsageStats(data.userUsageStats);
-        
+
         // Calculate totals
-        const total = data.userUsageStats.reduce(
-          (acc: any, stat: any) => ({
-            editedImages: acc.editedImages + stat.editedImages,
-            cost: acc.cost + stat.cost,
-          }),
-          { editedImages: 0, cost: 0 }
-        );
+        const total = data.userUsageStats.reduce((acc: any, stat: any) => ({
+          editedImages: acc.editedImages + stat.editedImages,
+          cost: acc.cost + stat.cost
+        }), {
+          editedImages: 0,
+          cost: 0
+        });
         setTotalUsage(total);
       }
     } catch (error: any) {
@@ -93,25 +96,23 @@ export const PaymentSettings = () => {
       toast({
         title: "Fel",
         description: "Kunde inte hämta faktureringsinformation",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const createStripeCustomer = async () => {
     try {
       setCreatingCustomer(true);
-      const { data, error } = await supabase.functions.invoke(
-        "create-stripe-customer"
-      );
-
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke("create-stripe-customer");
       if (error) throw error;
-
       toast({
         title: "Framgång",
-        description: "Stripe-kund skapad",
+        description: "Stripe-kund skapad"
       });
 
       // Refresh billing info
@@ -121,36 +122,33 @@ export const PaymentSettings = () => {
       toast({
         title: "Fel",
         description: "Kunde inte skapa Stripe-kund",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setCreatingCustomer(false);
     }
   };
-
   const openCustomerPortal = async () => {
     try {
       setOpeningPortal(true);
-      const { data, error } = await supabase.functions.invoke(
-        "customer-portal"
-      );
-
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke("customer-portal");
       if (error) throw error;
-
       if (data?.url) {
         window.open(data.url, "_blank");
-        
+
         // Start polling every 30 seconds to check for payment method updates
         if (pollingIntervalRef.current) {
           clearInterval(pollingIntervalRef.current);
         }
-        
         console.log("[PAYMENT-SETTINGS] Starting polling for payment method updates");
         pollingIntervalRef.current = setInterval(() => {
           console.log("[PAYMENT-SETTINGS] Polling for billing info update");
           fetchBillingInfo();
         }, 30000); // 30 seconds
-        
+
         // Stop polling after 10 minutes (20 polls)
         setTimeout(() => {
           if (pollingIntervalRef.current) {
@@ -165,16 +163,15 @@ export const PaymentSettings = () => {
       toast({
         title: "Fel",
         description: "Kunde inte öppna Stripe-portal",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setOpeningPortal(false);
     }
   };
-
   useEffect(() => {
     fetchBillingInfo();
-    
+
     // Cleanup polling on unmount
     return () => {
       if (pollingIntervalRef.current) {
@@ -182,72 +179,50 @@ export const PaymentSettings = () => {
       }
     };
   }, []);
-
   if (userRole !== "admin") {
-    return (
-      <Card>
+    return <Card>
         <CardHeader>
           <CardTitle>Åtkomst nekad</CardTitle>
           <CardDescription>
             Endast administratörer kan hantera betalningsinställningar.
           </CardDescription>
         </CardHeader>
-      </Card>
-    );
+      </Card>;
   }
-
   if (loading) {
     return <PaymentSettingsSkeleton />;
   }
-
   if (!billingInfo?.hasCustomer) {
-    return (
-      <div className="space-y-4">
+    return <div className="space-y-4">
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-4 text-center">
               <p className="text-sm text-muted-foreground">
                 Stripe-betalning är inte aktiverad ännu
               </p>
-              <Button
-                onClick={createStripeCustomer}
-                disabled={creatingCustomer}
-              >
-                {creatingCustomer && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
+              <Button onClick={createStripeCustomer} disabled={creatingCustomer}>
+                {creatingCustomer && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Aktivera Stripe-betalning
               </Button>
             </div>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Payment Method Status */}
       <div className="space-y-2">
         <h3 className="text-sm font-medium">Betalmetodstatus</h3>
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className={`w-3 h-3 rounded-full ${
-                billingInfo.hasPaymentMethod
-                  ? 'bg-green-500' 
-                  : 'bg-red-500'
-              }`} />
+              <div className={`w-3 h-3 rounded-full ${billingInfo.hasPaymentMethod ? 'bg-green-500' : 'bg-red-500'}`} />
               <div className="flex-1">
                 <p className="text-sm font-medium">
-                  {billingInfo.hasPaymentMethod
-                    ? 'Betalmetod tillagd' 
-                    : 'Ingen betalmetod'}
+                  {billingInfo.hasPaymentMethod ? 'Betalmetod tillagd' : 'Ingen betalmetod'}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {billingInfo.hasPaymentMethod
-                    ? 'Du kan redigera bilder'
-                    : 'Lägg till betalmetod via Stripe-portalen för att redigera bilder'}
+                  {billingInfo.hasPaymentMethod ? 'Du kan redigera bilder' : 'Lägg till betalmetod via Stripe-portalen för att redigera bilder'}
                 </p>
               </div>
             </div>
@@ -260,7 +235,10 @@ export const PaymentSettings = () => {
         <CardHeader className="pb-3">
           <CardTitle className="text-base md:text-lg flex items-center gap-2">
             <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-primary" />
-            Månatlig användning - {new Date().toLocaleDateString("sv-SE", { month: "long", year: "numeric" })}
+            Månatlig användning - {new Date().toLocaleDateString("sv-SE", {
+            month: "long",
+            year: "numeric"
+          })}
           </CardTitle>
           <CardDescription className="text-xs md:text-sm">
             Översikt över företagets användning och kostnader per användare
@@ -274,11 +252,7 @@ export const PaymentSettings = () => {
           </div>
 
           {/* Per-user breakdown */}
-          {userUsageStats.map((userStat) => (
-            <div
-              key={userStat.userId}
-              className="flex flex-col gap-3 p-4 rounded-lg bg-gradient-to-br from-muted/50 via-transparent to-transparent border border-border/30"
-            >
+          {userUsageStats.map(userStat => <div key={userStat.userId} className="flex flex-col gap-3 p-4 rounded-lg bg-gradient-to-br from-muted/50 via-transparent to-transparent border border-border/30">
               <div className="flex items-center gap-2">
                 <div className="p-2 rounded-full bg-primary/10">
                   <User className="w-4 h-4 text-primary" />
@@ -298,13 +272,10 @@ export const PaymentSettings = () => {
                   {userStat.cost.toFixed(2)} kr
                 </span>
               </div>
-            </div>
-          ))}
-          {userUsageStats.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground text-sm">
+            </div>)}
+          {userUsageStats.length === 0 && <div className="text-center py-8 text-muted-foreground text-sm">
               Ingen bildanvändning denna månad
-            </div>
-          )}
+            </div>}
 
           {/* Usage-based cost summary */}
           <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
@@ -317,7 +288,7 @@ export const PaymentSettings = () => {
 
           {/* Total monthly cost */}
           <div className="flex justify-between items-center pt-4 border-t-2 border-primary/20">
-            <span className="text-lg font-semibold">TOTAL MÅNADSKOSTNAD</span>
+            <span className="text-lg font-semibold">Total kostnad denna månad:     </span>
             <span className="text-2xl font-bold text-primary">
               {(PRICES.MONTHLY_FEE + totalUsage.cost).toFixed(2)} kr
             </span>
@@ -330,14 +301,8 @@ export const PaymentSettings = () => {
         <h3 className="text-sm font-medium">Hantera betalning</h3>
         <Card>
           <CardContent className="pt-6">
-            <Button
-              onClick={openCustomerPortal}
-              disabled={openingPortal}
-              className="w-full"
-            >
-              {openingPortal && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+            <Button onClick={openCustomerPortal} disabled={openingPortal} className="w-full">
+              {openingPortal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Öppna Stripe-portal
               <ExternalLink className="ml-2 h-4 w-4" />
             </Button>
@@ -350,24 +315,19 @@ export const PaymentSettings = () => {
       </div>
 
       {/* Invoice History */}
-      {billingInfo.invoices && billingInfo.invoices.length > 0 && (
-        <div className="space-y-2">
+      {billingInfo.invoices && billingInfo.invoices.length > 0 && <div className="space-y-2">
           <h3 className="text-sm font-medium">Fakturahistorik</h3>
           <Card>
             <CardContent className="pt-6">
               <div className="space-y-3">
-                {billingInfo.invoices.map((invoice) => (
-                  <div
-                    key={invoice.id}
-                    className="flex justify-between items-center py-2 border-b last:border-0"
-                  >
+                {billingInfo.invoices.map(invoice => <div key={invoice.id} className="flex justify-between items-center py-2 border-b last:border-0">
                     <div className="space-y-1">
                       <p className="text-sm font-medium">
                         {new Date(invoice.created).toLocaleDateString("sv-SE", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric"
+                  })}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Status:{" "}
@@ -379,25 +339,14 @@ export const PaymentSettings = () => {
                         {invoice.amount.toFixed(2)}{" "}
                         {invoice.currency.toUpperCase()}
                       </span>
-                      {invoice.invoicePdf && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            window.open(invoice.invoicePdf!, "_blank")
-                          }
-                        >
+                      {invoice.invoicePdf && <Button variant="outline" size="sm" onClick={() => window.open(invoice.invoicePdf!, "_blank")}>
                           <ExternalLink className="h-3 w-3" />
-                        </Button>
-                      )}
+                        </Button>}
                     </div>
-                  </div>
-                ))}
+                  </div>)}
               </div>
             </CardContent>
           </Card>
-        </div>
-      )}
-    </div>
-  );
+        </div>}
+    </div>;
 };
