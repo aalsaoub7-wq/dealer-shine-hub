@@ -397,7 +397,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <X className="w-5 h-5 text-destructive" />
-                    <p className="text-sm text-muted-foreground">299kr/månad</p>
+                    <p className="text-sm text-muted-foreground">299kr/användare/månad</p>
                   </div>
                 </div>
                 <div className="md:hidden grid grid-cols-3 gap-3 p-4">
