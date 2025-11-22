@@ -347,10 +347,10 @@ const Landing = () => {
                   </p>
                 </div>
                 <div className="flex flex-col items-center justify-center gap-2">
-                  <img src={luveroLogo} alt="Luvero" className="h-12 w-auto object-contain" />
+                  <img src={luveroLogo} alt="Luvero" className="h-20 w-auto object-contain" />
                 </div>
                 <div className="flex flex-col items-center justify-center gap-2">
-                  <img src={adstuffLogo} alt="Adstuff" className="h-12 w-auto object-contain" />
+                  <img src={adstuffLogo} alt="Adstuff" className="h-20 w-auto object-contain" />
                 </div>
               </div>
 
@@ -358,10 +358,10 @@ const Landing = () => {
               <div className="md:hidden grid grid-cols-3 gap-3 p-4 border-b border-border/50">
                 <div className="text-xs font-semibold text-muted-foreground uppercase">Funktion</div>
                 <div className="flex flex-col items-center gap-1">
-                  <img src={luveroLogo} alt="Luvero" className="h-6 object-contain" />
+                  <img src={luveroLogo} alt="Luvero" className="h-10 object-contain" />
                 </div>
                 <div className="flex flex-col items-center gap-1">
-                  <img src={adstuffLogo} alt="Adstuff" className="h-6 object-contain" />
+                  <img src={adstuffLogo} alt="Adstuff" className="h-10 object-contain" />
                 </div>
               </div>
 
