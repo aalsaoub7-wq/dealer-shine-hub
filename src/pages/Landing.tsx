@@ -118,7 +118,12 @@ const Landing = () => {
                   Professionella
                 </span>
                 <br />
-                <span className="text-foreground">bilfoton på sekunder</span>
+                <span className="inline-block overflow-hidden whitespace-nowrap animate-typewriter font-handwritten text-6xl md:text-7xl lg:text-8xl text-foreground">
+                  bilfoton på <span className="relative inline-block">
+                    sekunder
+                    <span className="absolute bottom-2 left-0 h-1 bg-primary animate-underline-draw"></span>
+                  </span>
+                </span>
               </h1>
 
               <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
