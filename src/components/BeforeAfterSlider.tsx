@@ -8,10 +8,30 @@ export const BeforeAfterSlider = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isAnimating, setIsAnimating] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
+  const boundsRef = useRef<DOMRect | null>(null);
   const animationRef = useRef<number>(0);
+  const rafRef = useRef<number>(0);
   const inactivityTimerRef = useRef<NodeJS.Timeout>();
 
-  // Automatic animation
+  // Cache container bounds
+  useEffect(() => {
+    const updateBounds = () => {
+      if (containerRef.current) {
+        boundsRef.current = containerRef.current.getBoundingClientRect();
+      }
+    };
+    
+    updateBounds();
+    window.addEventListener('resize', updateBounds);
+    window.addEventListener('scroll', updateBounds);
+    
+    return () => {
+      window.removeEventListener('resize', updateBounds);
+      window.removeEventListener('scroll', updateBounds);
+    };
+  }, []);
+
+  // Automatic smooth animation with RAF
   useEffect(() => {
     if (!isAnimating) return;
 
@@ -46,19 +66,30 @@ export const BeforeAfterSlider = () => {
     }, 3000);
   };
 
+  // Optimized move handler with RAF throttling
   const handleMove = (clientX: number) => {
-    if (!isDragging) return;
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
+    if (!isDragging || !boundsRef.current) return;
 
-    const x = clientX - rect.left;
-    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    setSliderPosition(percentage);
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+    }
+
+    rafRef.current = requestAnimationFrame(() => {
+      if (!boundsRef.current) return;
+      
+      const x = clientX - boundsRef.current.left;
+      const percentage = Math.max(0, Math.min(100, (x / boundsRef.current.width) * 100));
+      setSliderPosition(percentage);
+    });
   };
 
   const handleMouseDown = () => {
     setIsDragging(true);
     setIsAnimating(false);
+    // Update bounds right before dragging starts
+    if (containerRef.current) {
+      boundsRef.current = containerRef.current.getBoundingClientRect();
+    }
   };
 
   const handleMouseUp = () => {
@@ -66,13 +97,13 @@ export const BeforeAfterSlider = () => {
     resetInactivityTimer();
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    handleMove(e.clientX);
-  };
-
   const handleTouchStart = () => {
     setIsDragging(true);
     setIsAnimating(false);
+    // Update bounds right before dragging starts
+    if (containerRef.current) {
+      boundsRef.current = containerRef.current.getBoundingClientRect();
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -86,6 +117,7 @@ export const BeforeAfterSlider = () => {
     resetInactivityTimer();
   };
 
+  // Global mouse events for smooth dragging
   useEffect(() => {
     const handleGlobalMouseUp = () => {
       if (isDragging) {
@@ -99,8 +131,10 @@ export const BeforeAfterSlider = () => {
       }
     };
 
-    window.addEventListener('mouseup', handleGlobalMouseUp);
-    window.addEventListener('mousemove', handleGlobalMouseMove);
+    if (isDragging) {
+      window.addEventListener('mouseup', handleGlobalMouseUp);
+      window.addEventListener('mousemove', handleGlobalMouseMove, { passive: true });
+    }
 
     return () => {
       window.removeEventListener('mouseup', handleGlobalMouseUp);
@@ -108,11 +142,19 @@ export const BeforeAfterSlider = () => {
     };
   }, [isDragging]);
 
+  // Cleanup RAF on unmount
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div
       ref={containerRef}
       className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border border-border/50 select-none"
-      onMouseMove={handleMouseMove}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
@@ -132,9 +174,10 @@ export const BeforeAfterSlider = () => {
 
       {/* After Image (Clipped) */}
       <div
-        className="absolute inset-0 transition-all duration-100"
+        className="absolute inset-0"
         style={{
           clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`,
+          willChange: 'clip-path',
         }}
       >
         <img
@@ -152,7 +195,10 @@ export const BeforeAfterSlider = () => {
       {/* Slider Handle */}
       <div
         className="absolute top-0 bottom-0 w-1 cursor-ew-resize"
-        style={{ left: `${sliderPosition}%` }}
+        style={{ 
+          left: `${sliderPosition}%`,
+          willChange: 'transform',
+        }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
       >
