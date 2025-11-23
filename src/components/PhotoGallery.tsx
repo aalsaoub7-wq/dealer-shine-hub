@@ -72,7 +72,7 @@ const PhotoGallery = ({ photos, onUpdate }: PhotoGalleryProps) => {
             />
             <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-20 transition-opacity duration-500" />
             {photo.is_edited && (
-              <Badge className="absolute top-2 left-2 bg-gradient-primary shadow-glow animate-scale-in">
+              <Badge className="absolute top-2 left-2 bg-green-500/50 backdrop-blur-sm border border-green-500/30 text-white shadow-lg animate-scale-in">
                 <Check className="w-3 h-3 mr-1" />
                 Redigerad
               </Badge>
