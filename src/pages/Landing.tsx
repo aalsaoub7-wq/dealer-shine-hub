@@ -63,10 +63,7 @@ const Landing = () => {
                 Så fungerar det
               </button>
               <div className="flex items-center gap-3">
-                <Button 
-                  onClick={() => navigate("/auth")}
-                  className="bg-black text-white hover:bg-black hover:text-white hover:scale-100"
-                >
+                <Button onClick={() => navigate("/auth")} className="bg-black text-white hover:bg-black hover:text-white hover:scale-100">
                   Logga in
                 </Button>
               <Button onClick={() => navigate("/auth?mode=signup")} className="shadow-glow">
@@ -94,10 +91,7 @@ const Landing = () => {
               <button onClick={() => scrollToSection('how-it-works')} className="block w-full text-left px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-muted rounded-md transition-colors">
                 Så fungerar det
               </button>
-              <Button 
-                className="w-full bg-black text-white hover:bg-black hover:text-white hover:scale-100" 
-                onClick={() => navigate("/auth")}
-              >
+              <Button className="w-full bg-black text-white hover:bg-black hover:text-white hover:scale-100" onClick={() => navigate("/auth")}>
                 Logga in
               </Button>
               <Button className="w-full" onClick={() => navigate("/auth?mode=signup")}>
@@ -259,15 +253,7 @@ const Landing = () => {
             </div>
 
             {/* Feature 2 */}
-            <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
-              <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 mb-4">
-                <Link2 className="h-8 w-8 text-accent" />
-              </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">Blocket & Marketplace Integration</h3>
-              <p className="text-muted-foreground">
-                Synka direkt med Blocket och Facebook Marketplace
-              </p>
-            </div>
+            
 
             {/* Feature 3 */}
             <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
