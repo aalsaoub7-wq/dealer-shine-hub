@@ -268,7 +268,7 @@ export const PaymentSettings = () => {
         </CardHeader>
         <CardContent>
           {billingInfo?.hasPaymentMethod ? (
-            <div className="flex items-center gap-2 text-primary">
+            <div className="flex items-center gap-2 text-green-500">
               <CheckCircle2 className="h-5 w-5" />
               <span>Betalmetod tillagd</span>
             </div>
