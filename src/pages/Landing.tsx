@@ -41,7 +41,7 @@ const Landing = () => {
   };
   return <div className="min-h-screen bg-background">
       {/* Sticky Navigation Header */}
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-lg' : 'bg-transparent'}`}>
+      <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => scrollToSection('hero')}>
@@ -108,7 +108,7 @@ const Landing = () => {
       </header>
 
       {/* Hero Section */}
-      <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+      <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-4">
         {/* Grainy noise gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-red-950/70 via-red-900/50 to-black" />
         <div 
