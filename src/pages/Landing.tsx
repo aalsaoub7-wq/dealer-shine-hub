@@ -168,6 +168,8 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Gradient transition */}
+      <div className="h-32 bg-gradient-to-b from-black via-background to-background"></div>
 
       {/* How It Works */}
       <section id="how-it-works" className="py-20 md:py-32 scroll-animate">
@@ -235,6 +237,9 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
+      {/* Gradient transition */}
+      <div className="h-32 bg-gradient-to-b from-background to-muted/30"></div>
 
       {/* Features Grid */}
       <section id="features" className="py-20 md:py-32 bg-muted/30 scroll-animate">
@@ -328,6 +333,9 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
+      {/* Gradient transition */}
+      <div className="h-32 bg-gradient-to-b from-muted/30 to-background"></div>
 
       {/* Comparison Section */}
       <section className="py-20 md:py-32 scroll-animate">
@@ -554,6 +562,9 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
+      {/* Gradient transition */}
+      <div className="h-32 bg-gradient-to-b from-background via-red-950/10 to-background"></div>
 
       {/* Pricing Section */}
       <section id="pricing" className="py-20 md:py-32 scroll-animate">
