@@ -600,7 +600,7 @@ const Landing = () => {
                 Hur lång tid tar det att redigera en bild?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Vår AI redigerar bilder på 5-10 sekunder. Du kan ladda upp flera bilder samtidigt och få alla klara inom några minuter.
+                Vår AI redigerar bilder på 20-30 sekunder. Du kan ladda upp flera bilder samtidigt och få alla klara inom några minuter.
               </AccordionContent>
             </AccordionItem>
 
@@ -645,7 +645,7 @@ const Landing = () => {
                 Kan flera personer i mitt team använda samma konto?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Absolut! Du kan bjuda in obegränsat antal teammedlemmar. Alla delar samma bildbibliotek och inställningar. Varje extra användare kostar 299 kr/månad.
+                Absolut! Du kan bjuda in obegränsat antal teammedlemmar helt gratis. Alla delar samma bildbibliotek och inställningar.
               </AccordionContent>
             </AccordionItem>
 
