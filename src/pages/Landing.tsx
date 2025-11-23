@@ -39,7 +39,7 @@ const Landing = () => {
     });
     setMobileMenuOpen(false);
   };
-  return <div className="min-h-screen bg-gradient-to-br from-gray-900 via-red-900/30 to-gray-800">
+  return <div className="min-h-screen bg-gradient-to-br from-black via-red-950/40 to-black">
       {/* Sticky Navigation Header */}
       <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
