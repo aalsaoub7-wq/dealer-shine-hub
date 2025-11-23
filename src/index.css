@@ -54,6 +54,13 @@ All colors MUST be HSL.
     /* Smooth transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* Safe area insets - ENDAST aktivt på enheter med notch (iPhone X+) */
+    /* På desktop/webb blir dessa värden 0, så ingen påverkan där */
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
   }
 
   .dark {
@@ -94,5 +101,25 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    /* Applicera safe areas ENDAST på body när värdena finns */
+    /* På webb/desktop blir padding: 0, så ingen effekt */
+    padding-top: var(--safe-area-inset-top);
+    padding-bottom: var(--safe-area-inset-bottom);
+  }
+}
+
+/* Native-only layout optimizations */
+.native-layout {
+  min-height: 100vh;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Förbättra touch targets ENDAST i native */
+@supports (-webkit-touch-callout: none) {
+  /* Detta aktiveras ENDAST på iOS (native) */
+  .native-layout button,
+  .native-layout a {
+    min-height: 44px; /* iOS HIG standard */
+    min-width: 44px;
   }
 }
