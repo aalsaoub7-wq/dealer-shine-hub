@@ -563,7 +563,7 @@ const Landing = () => {
                 </div>
 
                 <div className="space-y-3 text-left py-6">
-                  {['Betala bara för AI-redigering (4,95 kr/bild)', 'Obegränsat antal bilar och användare', 'Integration med befintliga system'].map((feature, i) => <div key={i} className="flex items-center gap-3">
+                  {['Överlägsna bilder till dina annonser', 'Obegränsat antal bilar och användare', 'Integration med befintliga system'].map((feature, i) => <div key={i} className="flex items-center gap-3">
                       <Check className="h-5 w-5 text-primary flex-shrink-0" />
                       <span className="text-foreground font-medium">{feature}</span>
                     </div>)}
