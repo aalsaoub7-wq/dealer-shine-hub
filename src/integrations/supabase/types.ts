@@ -241,6 +241,8 @@ export type Database = {
           name: string
           stripe_customer_id: string | null
           trial_end_date: string | null
+          trial_images_remaining: number | null
+          trial_images_used: number | null
           updated_at: string | null
         }
         Insert: {
@@ -250,6 +252,8 @@ export type Database = {
           name: string
           stripe_customer_id?: string | null
           trial_end_date?: string | null
+          trial_images_remaining?: number | null
+          trial_images_used?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -259,6 +263,8 @@ export type Database = {
           name?: string
           stripe_customer_id?: string | null
           trial_end_date?: string | null
+          trial_images_remaining?: number | null
+          trial_images_used?: number | null
           updated_at?: string | null
         }
         Relationships: []

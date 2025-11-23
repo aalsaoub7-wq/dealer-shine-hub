@@ -13,10 +13,53 @@ export const trackUsage = async (
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    // Get user's company to check trial status
+    const { data: userCompany } = await supabase
+      .from("user_companies")
+      .select("company_id, companies(id, trial_end_date, trial_images_remaining, trial_images_used, stripe_customer_id)")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!userCompany?.companies) {
+      console.error("No company found for user");
+      return;
+    }
+
+    const company = Array.isArray(userCompany.companies)
+      ? userCompany.companies[0]
+      : userCompany.companies;
+
+    // Check if user is in trial
     const now = new Date();
+    const trialEndDate = company.trial_end_date ? new Date(company.trial_end_date) : null;
+    const isInTrial = trialEndDate ? now < trialEndDate : false;
+
+    // If in trial, decrement trial images
+    if (isInTrial) {
+      console.log(`[USAGE] User in trial, decrementing trial images`);
+      
+      // Update trial image counters
+      const { error: trialError } = await supabase
+        .from("companies")
+        .update({
+          trial_images_used: (company.trial_images_used || 0) + 1,
+          trial_images_remaining: Math.max(0, (company.trial_images_remaining || 0) - 1),
+        })
+        .eq("id", company.id);
+
+      if (trialError) {
+        console.error("Error updating trial image counters:", trialError);
+      }
+
+      // Do NOT report to Stripe or track usage stats during trial
+      console.log(`[USAGE] Trial image used. Remaining: ${(company.trial_images_remaining || 0) - 1}`);
+      return;
+    }
+
+    // Not in trial - proceed with normal billing
+    const monthDate = now.getMonth(); // 0-11
     const year = now.getFullYear();
-    const monthNumber = now.getMonth(); // 0-11
-    const month = `${year}-${String(monthNumber + 1).padStart(2, '0')}-01`;
+    const month = `${year}-${String(monthDate + 1).padStart(2, '0')}-01`;
 
     // Get or create usage stats for current month
     const { data: existingStats, error: fetchError } = await supabase
@@ -58,7 +101,7 @@ export const trackUsage = async (
       if (error) console.error("Error inserting usage stats:", error);
     }
 
-    // Report usage to Stripe for metered billing
+    // Report usage to Stripe for metered billing (only for paid users)
     try {
       const { error: reportError } = await supabase.functions.invoke(
         "report-usage-to-stripe",

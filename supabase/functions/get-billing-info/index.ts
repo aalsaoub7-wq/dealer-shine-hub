@@ -49,10 +49,10 @@ serve(async (req) => {
       throw new Error("No user found");
     }
 
-    // Get user's company with trial_end_date
+    // Get user's company with trial_end_date and trial image limits
     const { data: userCompany } = await supabaseClient
       .from("user_companies")
-      .select("company_id, companies(id, name, stripe_customer_id, trial_end_date)")
+      .select("company_id, companies(id, name, stripe_customer_id, trial_end_date, trial_images_remaining, trial_images_used)")
       .eq("user_id", user.id)
       .single();
 
@@ -83,6 +83,8 @@ serve(async (req) => {
             isInTrial,
             daysLeft: daysLeftInTrial,
             endDate: trialEndDate?.toISOString(),
+            imagesRemaining: company.trial_images_remaining || 0,
+            imagesUsed: company.trial_images_used || 0,
           }
         }),
         {
@@ -220,6 +222,8 @@ serve(async (req) => {
           isInTrial,
           daysLeft: daysLeftInTrial,
           endDate: trialEndDate?.toISOString(),
+          imagesRemaining: company.trial_images_remaining || 0,
+          imagesUsed: company.trial_images_used || 0,
         }
       }),
       {

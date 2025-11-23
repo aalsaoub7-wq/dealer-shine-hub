@@ -108,6 +108,35 @@ const Auth = () => {
         
         if (error) throw error;
 
+        // If admin signup (no invite code), trigger auto Stripe customer creation
+        if (!inviteCode && authData.user) {
+          try {
+            // Get the user's newly created company_id
+            const { data: userCompany } = await supabase
+              .from("user_companies")
+              .select("company_id")
+              .eq("user_id", authData.user.id)
+              .single();
+
+            if (userCompany) {
+              // Trigger auto Stripe customer creation in background
+              supabase.functions.invoke("trigger-auto-stripe-customer", {
+                body: {
+                  company_id: userCompany.company_id,
+                  user_id: authData.user.id,
+                },
+              }).then(() => {
+                console.log("Stripe customer creation triggered");
+              }).catch((err) => {
+                console.error("Error triggering Stripe customer creation:", err);
+              });
+            }
+          } catch (err) {
+            console.error("Error in auto Stripe customer creation:", err);
+            // Don't fail the signup if this fails
+          }
+        }
+
         // Trigger handles linking user to company automatically
         toast({ title: "Konto skapat! Vänligen logga in." });
         setIsLogin(true);

@@ -36,6 +36,8 @@ const Dashboard = () => {
     daysLeft: number;
     endDate: string;
     hasPaymentMethod: boolean;
+    imagesRemaining: number;
+    imagesUsed: number;
   } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const navigate = useNavigate();
@@ -82,6 +84,8 @@ const Dashboard = () => {
           daysLeft: data.trial.daysLeft,
           endDate: data.trial.endDate,
           hasPaymentMethod: data.hasPaymentMethod || false,
+          imagesRemaining: data.trial.imagesRemaining || 0,
+          imagesUsed: data.trial.imagesUsed || 0,
         });
       }
     } catch (error) {
@@ -187,19 +191,21 @@ const Dashboard = () => {
         {/* Trial Status Banner */}
         {trialInfo?.isInTrial && (
           <div className="mb-6 p-4 bg-gradient-to-r from-red-600 to-black text-white rounded-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div>
-                  <p className="font-semibold">Testperiod - {trialInfo.daysLeft} dagar kvar</p>
-                  <p className="text-sm opacity-90">
-                    Testa alla funktioner gratis till {new Date(trialInfo.endDate).toLocaleDateString('sv-SE')}
-                  </p>
-                </div>
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+              <div>
+                <p className="font-semibold">Testperiod - {trialInfo.daysLeft} dagar kvar</p>
+                <p className="text-sm opacity-90">
+                  Testa alla funktioner gratis till {new Date(trialInfo.endDate).toLocaleDateString('sv-SE')}
+                </p>
+                <p className="text-sm opacity-90 mt-1">
+                  {trialInfo.imagesRemaining} av 150 gratis bilder kvar
+                </p>
               </div>
               {!trialInfo.hasPaymentMethod && (
                 <Button 
                   variant="secondary"
                   onClick={() => openSettingsDialog("payment")}
+                  className="whitespace-nowrap"
                 >
                   Lägg till betalmetod
                 </Button>
