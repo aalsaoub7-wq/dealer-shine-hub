@@ -217,23 +217,23 @@ export const PaymentSettings = () => {
   return <div className="space-y-6">
       {/* Trial Status */}
       {billingInfo?.trial?.isInTrial && (
-        <Card className="border-blue-200 bg-blue-50">
+        <Card className="border-primary/20 bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-blue-600" />
+              <Sparkles className="h-5 w-5 text-primary" />
               Testperiod Aktiv
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-foreground">
                 Du har <strong>{billingInfo.trial.daysLeft} dagar</strong> kvar av din gratisperiod
               </p>
               <p className="text-xs text-muted-foreground">
                 Testperiod löper ut: {new Date(billingInfo.trial.endDate).toLocaleDateString('sv-SE')}
               </p>
               {!billingInfo.hasPaymentMethod && (
-                <p className="text-xs text-amber-600 mt-2">
+                <p className="text-xs text-amber-400 mt-2">
                   Lägg till en betalmetod innan din testperiod löper ut för att fortsätta använda AI-redigering
                 </p>
               )}
@@ -243,15 +243,15 @@ export const PaymentSettings = () => {
       )}
 
       {!billingInfo?.trial?.isInTrial && billingInfo?.trial?.daysLeft === 0 && !billingInfo?.hasPaymentMethod && (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-destructive/20 bg-card">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-700">
+            <CardTitle className="flex items-center gap-2 text-destructive">
               <AlertCircle className="h-5 w-5" />
               Testperiod Löpt Ut
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-red-600">
+            <p className="text-sm text-destructive">
               Din testperiod har löpt ut. Lägg till en betalmetod för att fortsätta använda AI-redigering.
             </p>
           </CardContent>
@@ -259,21 +259,21 @@ export const PaymentSettings = () => {
       )}
 
       {/* Payment Method Status */}
-      <Card className={billingInfo?.hasPaymentMethod ? "border-green-200 bg-green-50" : "border-amber-200 bg-amber-50"}>
+      <Card className={billingInfo?.hasPaymentMethod ? "border-primary/20 bg-card" : "border-amber-500/20 bg-card"}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CreditCard className={`h-5 w-5 ${billingInfo?.hasPaymentMethod ? "text-green-600" : "text-amber-600"}`} />
+            <CreditCard className={`h-5 w-5 ${billingInfo?.hasPaymentMethod ? "text-primary" : "text-amber-400"}`} />
             Betalmetodstatus
           </CardTitle>
         </CardHeader>
         <CardContent>
           {billingInfo?.hasPaymentMethod ? (
-            <div className="flex items-center gap-2 text-green-700">
+            <div className="flex items-center gap-2 text-primary">
               <CheckCircle2 className="h-5 w-5" />
               <span>Betalmetod tillagd</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-amber-700">
+            <div className="flex items-center gap-2 text-amber-400">
               <AlertCircle className="h-5 w-5" />
               <span>Ingen betalmetod tillagd</span>
             </div>
