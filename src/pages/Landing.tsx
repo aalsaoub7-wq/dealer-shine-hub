@@ -633,10 +633,10 @@ const Landing = () => {
 
             <AccordionItem value="item-5" className="bg-card border border-border rounded-lg px-6">
               <AccordionTrigger className="text-left font-semibold hover:no-underline">
-                Har ni integration med Blocket?
+                Hur fungerar den kostnadsfria testperioden?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Ja! Vi har direkt integration med Blocket och Facebook Marketplace så du kan synka dina bilar automatiskt.
+                Du får prova alla funktioner gratis i 21 dagar. Ingen bindningstid och inget kreditkort krävs. Efter testperioden betalar du 239 kr/månad + 4,95 kr per redigerad bild.
               </AccordionContent>
             </AccordionItem>
 
@@ -645,7 +645,7 @@ const Landing = () => {
                 Kan flera personer i mitt team använda samma konto?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Absolut! Du kan bjuda in obegränsat antal teammedlemmar att arbeta tillsammans. Alla delar samma bildbibliotek och inställningar.
+                Absolut! Du kan bjuda in obegränsat antal teammedlemmar. Alla delar samma bildbibliotek och inställningar. Varje extra användare kostar 299 kr/månad.
               </AccordionContent>
             </AccordionItem>
 
