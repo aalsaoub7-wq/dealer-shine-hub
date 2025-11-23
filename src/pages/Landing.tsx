@@ -39,7 +39,7 @@ const Landing = () => {
     });
     setMobileMenuOpen(false);
   };
-  return <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-gradient-to-br from-black via-red-950/20 to-black">
       {/* Sticky Navigation Header */}
       <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -109,18 +109,6 @@ const Landing = () => {
 
       {/* Hero Section */}
       <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-4">
-        {/* Grainy noise gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-red-950/70 via-red-900/50 to-black" />
-        <div 
-          className="absolute inset-0 opacity-60"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-            backgroundRepeat: 'repeat',
-            backgroundSize: '180px 180px'
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-transparent to-black/80" />
-        
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Column */}
@@ -167,9 +155,6 @@ const Landing = () => {
           </div>
         </div>
       </section>
-
-      {/* Gradient transition */}
-      <div className="h-32 bg-gradient-to-b from-black via-background to-background"></div>
 
       {/* How It Works */}
       <section id="how-it-works" className="py-20 md:py-32 scroll-animate">
@@ -238,11 +223,8 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Gradient transition */}
-      <div className="h-32 bg-gradient-to-b from-background to-muted/30"></div>
-
       {/* Features Grid */}
-      <section id="features" className="py-20 md:py-32 bg-muted/30 scroll-animate">
+      <section id="features" className="py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
@@ -333,9 +315,6 @@ const Landing = () => {
           </div>
         </div>
       </section>
-
-      {/* Gradient transition */}
-      <div className="h-32 bg-gradient-to-b from-muted/30 to-background"></div>
 
       {/* Comparison Section */}
       <section className="py-20 md:py-32 scroll-animate">
@@ -563,9 +542,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Gradient transition */}
-      <div className="h-32 bg-gradient-to-b from-background via-red-950/10 to-background"></div>
-
       {/* Pricing Section */}
       <section id="pricing" className="py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -621,7 +597,7 @@ const Landing = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 md:py-32 bg-muted/30 scroll-animate">
+      <section className="py-20 md:py-32 scroll-animate">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
@@ -721,7 +697,7 @@ const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-muted/50 border-t border-border/50 py-12">
+      <footer className="border-t border-border/50 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             {/* Column 1 - Brand */}
