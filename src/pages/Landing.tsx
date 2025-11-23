@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import luveroLogo from "@/assets/luvero-logo-new.png";
 import adstuffLogo from "@/assets/adstuff-logo.png";
-import { Brain, Link2, Shield, Globe, Users, DollarSign, Upload, Wand2, Download, Check, ChevronDown, Menu, X, Package } from "lucide-react";
+import { Brain, Link2, Shield, Globe, Users, DollarSign, Upload, Wand2, Download, Check, ChevronDown, Menu, X, Package, Phone, Mail } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
@@ -721,13 +721,22 @@ const Landing = () => {
               </ul>
             </div>
 
-            {/* Column 3 - Company */}
+            {/* Column 3 - Contact */}
             <div>
-              <h3 className="font-semibold text-foreground mb-3">Företag</h3>
+              <h3 className="font-semibold text-foreground mb-3">Kontakt</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">Om oss</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Kontakt</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Support</a></li>
+                <li>
+                  <a href="tel:0762123786" className="hover:text-foreground transition-colors flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    076-212 37 86
+                  </a>
+                </li>
+                <li>
+                  <a href="mailto:admin@luvero.se" className="hover:text-foreground transition-colors flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    admin@luvero.se
+                  </a>
+                </li>
               </ul>
             </div>
 
