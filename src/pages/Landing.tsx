@@ -154,8 +154,10 @@ const Landing = () => {
       <section id="how-it-works" className="py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Så här fungerar det
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              <span className="bg-gradient-primary bg-clip-text text-transparent">
+                Så här fungerar det
+              </span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Från uppladdning till publicering på 3 enkla steg
@@ -221,8 +223,10 @@ const Landing = () => {
       <section id="features" className="py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Allt du behöver för professionella bilfoton
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              <span className="bg-gradient-primary bg-clip-text text-transparent">
+                Allt du behöver för professionella bilfoton
+              </span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Kraftfulla funktioner som hjälper dig sälja bilar snabbare
@@ -532,8 +536,10 @@ const Landing = () => {
       <section id="pricing" className="py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Enkel prissättning
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              <span className="bg-gradient-primary bg-clip-text text-transparent">
+                Enkel prissättning
+              </span>
             </h2>
             <p className="text-xl text-muted-foreground">
               Betala endast för det du använder. Inga dolda kostnader.
@@ -588,8 +594,10 @@ const Landing = () => {
       <section className="py-20 md:py-32 scroll-animate">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Vanliga frågor
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              <span className="bg-gradient-primary bg-clip-text text-transparent">
+                Vanliga frågor
+              </span>
             </h2>
             <p className="text-xl text-muted-foreground">
               Allt du behöver veta om Luvero
@@ -670,8 +678,10 @@ const Landing = () => {
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-3xl" />
             
             <div className="relative space-y-6">
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground">
-                Redo att förbättra dina bilfoton?
+              <h2 className="text-4xl md:text-5xl font-bold">
+                <span className="bg-gradient-primary bg-clip-text text-transparent">
+                  Redo att förbättra dina bilfoton?
+                </span>
               </h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                 Börja gratis idag. Inget kreditkort krävs.
