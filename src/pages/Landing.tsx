@@ -751,7 +751,7 @@ const Landing = () => {
           </div>
 
           <div className="pt-8 border-t border-border/50 text-center text-sm text-muted-foreground">
-            <p>© 2024 Luvero. Alla rättigheter förbehållna.</p>
+            <p>© 2025 Luvero. Alla rättigheter förbehållna.</p>
           </div>
         </div>
       </footer>
