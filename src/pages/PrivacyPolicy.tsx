@@ -1,18 +1,11 @@
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-12 max-w-4xl">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/")}
-          className="mb-8"
-        >
+        <Button variant="ghost" onClick={() => navigate("/")} className="mb-8">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Tillbaka
         </Button>
@@ -36,8 +29,7 @@ const PrivacyPolicy = () => {
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold text-foreground">2. Personuppgiftsansvarig</h2>
             <p className="text-muted-foreground">
-              Luvero är personuppgiftsansvarig för behandlingen av dina personuppgifter. 
-              För frågor om denna policy, kontakta oss på: support@luvero.se
+              Luvero är personuppgiftsansvarig för behandlingen av dina personuppgifter. För frågor om denna policy, kontakta oss på: admin@luvero.se
             </p>
           </section>
 
@@ -185,7 +177,7 @@ const PrivacyPolicy = () => {
               För frågor om denna integritetspolicy eller hur vi hanterar dina personuppgifter, kontakta oss:
             </p>
             <ul className="list-none space-y-2 text-muted-foreground">
-              <li><strong>E-post:</strong> support@luvero.se</li>
+              <li><strong>E-post:</strong>E-post: admin@luvero.se</li>
               <li><strong>Webbplats:</strong> www.luvero.se</li>
             </ul>
           </section>
@@ -197,15 +189,13 @@ const PrivacyPolicy = () => {
               lämna in ett klagomål till Integritetsskyddsmyndigheten (IMY):
             </p>
             <ul className="list-none space-y-2 text-muted-foreground">
-              <li><strong>Webbplats:</strong> www.imy.se</li>
-              <li><strong>E-post:</strong> imy@imy.se</li>
-              <li><strong>Telefon:</strong> 08-657 61 00</li>
+              <li><strong>Webbplats:</strong>Webbplats: www.luvero.se</li>
+              <li><strong>E-post:</strong> admin@luvero.se</li>
+              <li><strong>Telefon:</strong>Telefon: 076-212 37 86</li>
             </ul>
           </section>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default PrivacyPolicy;
