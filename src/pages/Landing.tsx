@@ -562,8 +562,8 @@ const Landing = () => {
                   </p>
                 </div>
 
-                <div className="space-y-3 text-left py-6">
-                  {['Överlägsna bilder till dina annonser', 'Obegränsat antal bilar och användare', 'Integration med befintliga system'].map((feature, i) => <div key={i} className="flex items-center gap-3">
+                <div className="space-y-3 text-center py-6">
+                  {['Överlägsna bilder till dina annonser', 'Obegränsat antal bilar och användare', 'Integration med befintliga system'].map((feature, i) => <div key={i} className="flex items-center justify-center gap-3">
                       <Check className="h-5 w-5 text-primary flex-shrink-0" />
                       <span className="text-foreground font-medium">{feature}</span>
                     </div>)}
