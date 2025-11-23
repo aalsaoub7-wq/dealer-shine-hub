@@ -36,15 +36,6 @@ const CarCard = ({ car }: CarCardProps) => {
             loading="lazy"
             decoding="async"
           />
-          {/* ÅRTALET PÅ BILDEN NERE HÖGER */}
-          <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3">
-            <Badge
-              variant="secondary"
-              className="bg-secondary/70 group-hover:bg-primary/80 transition-colors duration-300 text-xs md:text-sm"
-            >
-              {car.year}
-            </Badge>
-          </div>
         </div>
       )}
 
