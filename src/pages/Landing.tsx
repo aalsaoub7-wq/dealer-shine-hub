@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import luveroLogo from "@/assets/luvero-logo.png";
+import luveroLogo from "@/assets/luvero-logo-new.png";
 import adstuffLogo from "@/assets/adstuff-logo.png";
 import { Brain, Link2, Shield, Globe, Users, DollarSign, Upload, Wand2, Download, Check, ChevronDown, Menu, X, Package } from "lucide-react";
 import { useState, useEffect } from "react";
