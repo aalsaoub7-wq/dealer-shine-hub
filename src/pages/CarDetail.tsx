@@ -616,7 +616,7 @@ const CarDetail = () => {
                     size="sm"
                     onClick={handleSaveNotes}
                     disabled={isSavingNotes}
-                    className="bg-gradient-primary hover:opacity-90 text-xs md:text-sm h-8 md:h-9"
+                    className="bg-gradient-button hover:bg-gradient-hover text-xs md:text-sm h-8 md:h-9"
                   >
                     <Save className="w-3 h-3 mr-1" />
                     Spara
@@ -717,7 +717,7 @@ const CarDetail = () => {
                   setUploadType(activeTab === "main" ? "main" : "documentation");
                   setUploadDialogOpen(true);
                 }}
-                className="bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300 text-xs md:text-sm h-8 md:h-10"
+                className="bg-gradient-button hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300 text-xs md:text-sm h-8 md:h-10"
               >
                 <Upload className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                 <span className="hidden sm:inline">
