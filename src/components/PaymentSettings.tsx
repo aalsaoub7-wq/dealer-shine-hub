@@ -316,10 +316,22 @@ export const PaymentSettings = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Trial info notice */}
+          {billingInfo?.trial?.isInTrial && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <Sparkles className="h-4 w-4 text-blue-400" />
+              <p className="text-sm text-blue-400">
+                Under testperioden debiteras inga kostnader
+              </p>
+            </div>
+          )}
+
           {/* Monthly Fee */}
           <div className="flex items-center justify-between p-4 rounded-lg bg-primary/5 border border-primary/20">
             <span className="font-medium">Månadsavgift</span>
-            <span className="text-xl font-bold text-primary">{PRICES.MONTHLY_FEE} kr</span>
+            <span className="text-xl font-bold text-primary">
+              {billingInfo?.trial?.isInTrial ? '0' : PRICES.MONTHLY_FEE} kr
+            </span>
           </div>
 
           {/* Per-user breakdown */}
@@ -340,7 +352,7 @@ export const PaymentSettings = () => {
               <div className="flex items-center justify-between pt-2 border-t border-border/30">
                 <span className="text-sm font-medium text-muted-foreground">Kostnad (bilder):</span>
                 <span className="text-base font-semibold text-foreground">
-                  {userStat.cost.toFixed(2)} kr
+                  {billingInfo?.trial?.isInTrial ? '0.00' : userStat.cost.toFixed(2)} kr
                 </span>
               </div>
             </div>)}
@@ -354,14 +366,16 @@ export const PaymentSettings = () => {
               <span className="font-medium">Redigerade bilder (totalt)</span>
               <p className="text-xs text-muted-foreground">{totalUsage.editedImages} × {PRICES.EDITED_IMAGE} kr</p>
             </div>
-            <span className="text-xl font-bold">{totalUsage.cost.toFixed(2)} kr</span>
+            <span className="text-xl font-bold">
+              {billingInfo?.trial?.isInTrial ? '0.00' : totalUsage.cost.toFixed(2)} kr
+            </span>
           </div>
 
           {/* Total monthly cost */}
           <div className="flex justify-between items-center pt-4 border-t-2 border-primary/20">
-            <span className="text-lg font-semibold">Total kostnad denna månad:     </span>
+            <span className="text-lg font-semibold">Total kostnad denna månad:</span>
             <span className="text-2xl font-bold text-primary">
-              {(PRICES.MONTHLY_FEE + totalUsage.cost).toFixed(2)} kr
+              {billingInfo?.trial?.isInTrial ? '0' : (PRICES.MONTHLY_FEE + totalUsage.cost).toFixed(2)} kr
             </span>
           </div>
         </CardContent>
