@@ -576,7 +576,7 @@ const Landing = () => {
                 </Button>
 
                 <p className="text-sm text-muted-foreground italic">
-                  Traditionell bildredigering: 50-100 kr/bild
+                  Inget kort behövs för testperioden       
                 </p>
               </div>
             </div>
