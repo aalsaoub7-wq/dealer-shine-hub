@@ -636,7 +636,7 @@ const Landing = () => {
                 Hur fungerar den kostnadsfria testperioden?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Du får prova alla funktioner gratis i 21 dagar. Ingen bindningstid och inget kreditkort krävs. Efter testperioden betalar du 239 kr/månad + 4,95 kr per redigerad bild.
+                Du får prova alla funktioner gratis i 21 dagar eller tills du når 150 redigerade bilder (det som inträffar först). Ingen bindningstid och inget kreditkort krävs. Efter testperioden betalar du 239 kr/månad + 4,95 kr per redigerad bild.
               </AccordionContent>
             </AccordionItem>
 
