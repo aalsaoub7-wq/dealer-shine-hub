@@ -735,8 +735,8 @@ const Landing = () => {
             <div>
               <h3 className="font-semibold text-foreground mb-3">Juridiskt</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">Integritetspolicy</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Användarvillkor</a></li>
+                <li><a href="/integritetspolicy" className="hover:text-foreground transition-colors">Integritetspolicy</a></li>
+                <li><a href="/användarvillkor" className="hover:text-foreground transition-colors">Användarvillkor</a></li>
               </ul>
             </div>
           </div>
