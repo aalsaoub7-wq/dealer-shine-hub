@@ -220,7 +220,7 @@ const Dashboard = () => {
           </div>
           <Button
             onClick={() => setIsAddDialogOpen(true)}
-            className="w-full md:w-auto bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300 animate-scale-in h-9 md:h-10 text-sm md:text-base"
+            className="w-full md:w-auto bg-gradient-button hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300 animate-scale-in h-9 md:h-10 text-sm md:text-base"
           >
             <Plus className="w-4 h-4 md:w-5 md:h-5 mr-1.5 md:mr-2" />
             <span className="hidden xs:inline">Lägg till bil</span>
@@ -248,7 +248,7 @@ const Dashboard = () => {
             {!searchQuery && (
               <Button
                 onClick={() => setIsAddDialogOpen(true)}
-                className="bg-gradient-primary hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300 h-9 md:h-10 text-sm md:text-base"
+                className="bg-gradient-button hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300 h-9 md:h-10 text-sm md:text-base"
               >
                 <Plus className="w-4 h-4 md:w-5 md:h-5 mr-1.5 md:mr-2" />
                 Lägg till din första bil
