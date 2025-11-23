@@ -9,6 +9,8 @@ import Auth from "./pages/Auth";
 import CarDetail from "./pages/CarDetail";
 import SharedPhotos from "./pages/SharedPhotos";
 import NotFound from "./pages/NotFound";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
@@ -27,6 +29,8 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/car/:id" element={<ProtectedRoute><CarDetail /></ProtectedRoute>} />
             <Route path="/shared/:token" element={<SharedPhotos />} />
+            <Route path="/integritetspolicy" element={<PrivacyPolicy />} />
+            <Route path="/användarvillkor" element={<TermsOfService />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
