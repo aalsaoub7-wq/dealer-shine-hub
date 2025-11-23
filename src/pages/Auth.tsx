@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import luveroLogo from "@/assets/luvero-logo.png";
 import { z } from "zod";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const authSchema = z.object({
   email: z
@@ -186,6 +188,15 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {!isLogin && (
+            <Alert className="mb-4 border-primary/20 bg-primary/5">
+              <AlertCircle className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-sm text-foreground ml-2">
+                <strong>OBS!</strong> Om du har fått en kod av din admin, skapa ett konto med E-postadress och kod istället för Google
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <Button
             type="button"
             variant="outline"
