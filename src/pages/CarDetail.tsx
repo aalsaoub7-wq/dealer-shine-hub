@@ -95,6 +95,8 @@ const CarDetail = () => {
     isInTrial: boolean;
     daysLeft: number;
     endDate: string;
+    imagesRemaining: number;
+    imagesUsed: number;
   } | null>(null);
   const { toast } = useToast();
 
@@ -305,6 +307,34 @@ const CarDetail = () => {
   };
 
   const handleEditPhotos = async (photoIds: string[], photoType: "main" | "documentation") => {
+    // Check trial image limit first
+    if (trialInfo?.isInTrial && (trialInfo?.imagesRemaining || 0) <= 0 && !hasPaymentMethod) {
+      const { dismiss } = toast({
+        title: "Bildgräns nådd",
+        description: "Du har använt alla 150 gratis bilder i din testperiod. Lägg till en betalmetod för att fortsätta redigera bilder.",
+        variant: "destructive",
+        action: (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              dismiss();
+              navigate("/dashboard");
+              setTimeout(() => {
+                if ((window as any).openSettingsDialog) {
+                  (window as any).openSettingsDialog("payment");
+                }
+              }, 300);
+            }}
+          >
+            Uppgradera nu
+          </Button>
+        ),
+      });
+      return;
+    }
+
+    // Check payment method requirement
     if (!hasPaymentMethod) {
       const { dismiss } = toast({
         title: "Betalmetod krävs",
@@ -331,6 +361,14 @@ const CarDetail = () => {
         ),
       });
       return;
+    }
+
+    // Show warning if close to limit
+    if (trialInfo?.isInTrial && (trialInfo?.imagesRemaining || 0) <= 10 && (trialInfo?.imagesRemaining || 0) > 0) {
+      toast({
+        title: "Få bilder kvar",
+        description: `Du har ${trialInfo.imagesRemaining} gratis bilder kvar i din testperiod.`,
+      });
     }
 
     const photos = photoType === "main" ? mainPhotos : docPhotos;
