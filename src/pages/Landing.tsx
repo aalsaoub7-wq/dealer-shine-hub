@@ -562,7 +562,12 @@ const Landing = () => {
                   </p>
                 </div>
 
-                
+                <div className="space-y-3 text-left py-6">
+                  {['Betala bara för AI-redigering (4,95 kr/bild)', 'Obegränsat antal bilar och användare', 'Integration med befintliga system'].map((feature, i) => <div key={i} className="flex items-center gap-3">
+                      <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                      <span className="text-foreground font-medium">{feature}</span>
+                    </div>)}
+                </div>
 
                 <Button size="lg" className="w-full text-lg py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300" onClick={() => navigate("/auth?mode=signup")}>
                   Prova gratis i 21 dagar
