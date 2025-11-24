@@ -8,10 +8,10 @@
  */
 export function getOptimizedImageUrl(
   url: string,
-  options?: { width?: number; height?: number; quality?: number }
+  options?: { width?: number; height?: number; quality?: number; resize?: 'cover' | 'contain' | 'fill' }
 ): string {
   // Default options
-  const { width = 800, quality = 75 } = options || {};
+  const { width = 800, height, quality = 75, resize = 'cover' } = options || {};
   
   // Only optimize Supabase Storage URLs
   if (!url || !url.includes('supabase.co/storage/v1/object/public/')) {
@@ -24,5 +24,10 @@ export function getOptimizedImageUrl(
     '/storage/v1/render/image/public/'
   );
   
-  return `${optimizedUrl}?width=${width}&quality=${quality}`;
+  let params = `width=${width}&quality=${quality}&resize=${resize}`;
+  if (height) {
+    params += `&height=${height}`;
+  }
+  
+  return `${optimizedUrl}?${params}`;
 }

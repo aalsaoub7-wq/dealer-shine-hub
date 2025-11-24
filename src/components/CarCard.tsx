@@ -31,7 +31,7 @@ const CarCard = ({ car }: CarCardProps) => {
       {car.photo_url && (
         <div className="relative w-full h-32 sm:h-40 md:h-48 overflow-hidden">
           <img
-            src={getOptimizedImageUrl(car.photo_url, { width: 400, quality: 70 })}
+            src={getOptimizedImageUrl(car.photo_url, { width: 400, height: 225, quality: 70 })}
             alt={`${car.make} ${car.model}`}
             className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
             loading="lazy"

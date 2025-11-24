@@ -251,7 +251,7 @@ const SharedPhotos = () => {
                 className="group relative aspect-video bg-secondary rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <img
-                  src={getOptimizedImageUrl(photo.url, { width: 800, quality: 80 })}
+                  src={getOptimizedImageUrl(photo.url, { width: 800, height: 450, quality: 80 })}
                   alt={`Foto ${index + 1}`}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   loading="lazy"
@@ -291,7 +291,7 @@ const SharedPhotos = () => {
           <div className="relative max-w-4xl mx-auto px-2 md:px-0">
             <div className="aspect-video bg-secondary rounded-lg overflow-hidden shadow-lg">
               <img
-                src={getOptimizedImageUrl(collection.photos[currentImageIndex]?.url, { width: 1200, quality: 85 })}
+                src={getOptimizedImageUrl(collection.photos[currentImageIndex]?.url, { width: 1200, height: 675, quality: 85 })}
                 alt={`Foto ${currentImageIndex + 1}`}
                 className="w-full h-full object-cover"
                 loading="eager"
