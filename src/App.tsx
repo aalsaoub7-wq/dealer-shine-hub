@@ -17,15 +17,33 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { NativeRouter } from "./components/NativeRouter";
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { isNativeApp } from '@/lib/utils';
+import { hideSplashScreen, setupAppListeners, removeAppListeners } from '@/lib/nativeCapabilities';
+import { Keyboard } from '@capacitor/keyboard';
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Sätt status bar styling ENDAST i native
+  // Native app initialization
   useEffect(() => {
     if (isNativeApp()) {
+      // Status bar styling
       StatusBar.setStyle({ style: Style.Dark });
       StatusBar.setBackgroundColor({ color: '#0a0a0f' });
+
+      // Hide splash screen after app is ready
+      setTimeout(() => {
+        hideSplashScreen();
+      }, 500);
+
+      // Setup app listeners for back button and deep links
+      setupAppListeners();
+
+      // Keyboard configuration
+      Keyboard.setAccessoryBarVisible({ isVisible: true });
+
+      return () => {
+        removeAppListeners();
+      };
     }
   }, []);
 

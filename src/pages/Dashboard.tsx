@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -11,6 +11,9 @@ import AddCarDialog from "@/components/AddCarDialog";
 import { AiSettingsDialog } from "@/components/AiSettingsDialog";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardSkeleton } from "@/components/DashboardSkeleton";
+import { useHaptics } from "@/hooks/useHaptics";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { isNativeApp } from "@/lib/utils";
 
 interface CarData {
   id: string;
@@ -42,6 +45,9 @@ const Dashboard = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { lightImpact } = useHaptics();
+  const { isOnline } = useNetworkStatus();
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     // Check auth and set up listener
@@ -102,6 +108,16 @@ const Dashboard = () => {
     }, 100);
   };
 
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    lightImpact();
+    try {
+      await Promise.all([fetchCars(), checkTrialStatus()]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [lightImpact]);
+
   const fetchCars = async () => {
     setLoading(true);
     try {
@@ -160,7 +176,27 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
+    <div 
+      className="min-h-screen bg-gradient-to-br from-background via-card to-background"
+      style={isNativeApp() ? {
+        touchAction: 'pan-y',
+        overscrollBehavior: 'contain',
+      } : undefined}
+    >
+      {/* Offline indicator (Native only) */}
+      {isNativeApp() && !isOnline && (
+        <div className="bg-destructive text-destructive-foreground px-4 py-2 text-center text-sm">
+          Ingen internetanslutning
+        </div>
+      )}
+
+      {/* Refreshing indicator */}
+      {refreshing && (
+        <div className="fixed top-0 left-0 right-0 bg-primary/10 text-center py-2 z-50">
+          <p className="text-sm">Uppdaterar...</p>
+        </div>
+      )}
+
       {/* Header */}
       <header className="border-b border-border/50 bg-card/50 backdrop-blur-lg sticky top-0 z-10 shadow-card animate-fade-in">
         <div className="container mx-auto px-3 md:px-4 py-3 md:py-4">

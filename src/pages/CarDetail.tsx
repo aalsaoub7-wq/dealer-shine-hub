@@ -27,6 +27,8 @@ import EditCarDialog from "@/components/EditCarDialog";
 import { applyWatermark } from "@/lib/watermark";
 import { trackUsage } from "@/lib/usageTracking";
 import { CarDetailSkeleton } from "@/components/CarDetailSkeleton";
+import { useHaptics } from "@/hooks/useHaptics";
+import { nativeShare } from "@/lib/nativeCapabilities";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -100,6 +102,7 @@ const CarDetail = () => {
     imagesUsed: number;
   } | null>(null);
   const { toast } = useToast();
+  const { lightImpact, successNotification } = useHaptics();
 
   useEffect(() => {
     if (id) {
@@ -293,10 +296,22 @@ const CarDetail = () => {
       // Generate shareable URL
       const shareUrl = `${window.location.origin}/shared/${tokenData}`;
 
-      navigator.clipboard.writeText(shareUrl);
+      // Try native share first
+      const shared = await nativeShare(
+        `${car.make} ${car.model} ${car.year}`,
+        "Kolla in dessa bilder!",
+        shareUrl
+      );
+
+      // Fallback to clipboard if native share not available
+      if (!shared) {
+        navigator.clipboard.writeText(shareUrl);
+      }
+      
+      successNotification();
       toast({
         title: "Delningslänk skapad!",
-        description: "Länken har kopierats till urklipp",
+        description: shared ? "Delad framgångsrikt" : "Länken har kopierats till urklipp",
       });
 
       // Clear selections
