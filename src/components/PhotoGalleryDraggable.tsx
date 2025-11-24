@@ -7,6 +7,7 @@ import { Trash2, Check, Download, GripVertical, Maximize2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ImageLightbox from "./ImageLightbox";
+import { getOptimizedImageUrl } from "@/lib/imageOptimization";
 import {
   DndContext,
   closestCenter,
@@ -105,7 +106,7 @@ const SortablePhotoCard = ({
           />
         </div>
         <img
-          src={photo.url}
+          src={getOptimizedImageUrl(photo.url, { width: 600, quality: 75 })}
           alt="Bilfoto"
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 cursor-pointer"
           loading="lazy"

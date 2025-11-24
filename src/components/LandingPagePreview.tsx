@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { getOptimizedImageUrl } from "@/lib/imageOptimization";
 
 interface LandingPagePreviewProps {
   logoUrl: string;
@@ -80,7 +81,7 @@ export const LandingPagePreview = ({
           )}
           {headerImageUrl && (
             <img 
-              src={headerImageUrl} 
+              src={getOptimizedImageUrl(headerImageUrl, { width: 800, quality: 80 })} 
               alt="Header" 
               className={`w-full ${headerHeightClass} ${headerFitClass} rounded`}
             />
