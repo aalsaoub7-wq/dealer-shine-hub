@@ -422,26 +422,26 @@ export const AiSettingsDialog = () => {
           <div className="mt-4 rounded-xl border border-border bg-muted p-3 shadow-sm md:bg-transparent md:border-0 md:p-0 md:rounded-none">
             <TabsList className={`grid w-full ${userRole === "admin" ? "grid-cols-5" : "grid-cols-3"} gap-1`}>
               <TabsTrigger value="background" className="flex items-center justify-center">
-                <Palette className="h-4 w-4 md:mr-2" />
+                <Palette className="h-4 w-4 md:hidden" />
                 <span className="hidden md:inline">Bakgrund</span>
               </TabsTrigger>
               <TabsTrigger value="watermark" className="flex items-center justify-center">
-                <Stamp className="h-4 w-4 md:mr-2" />
+                <Stamp className="h-4 w-4 md:hidden" />
                 <span className="hidden md:inline">Vattenmärke</span>
               </TabsTrigger>
               <TabsTrigger value="landing" className="flex items-center justify-center">
-                <Globe className="h-4 w-4 md:mr-2" />
+                <Globe className="h-4 w-4 md:hidden" />
                 <span className="hidden md:inline">Landningssida</span>
               </TabsTrigger>
               {userRole === "admin" && (
                 <TabsTrigger value="payment" className="flex items-center justify-center">
-                  <CreditCard className="h-4 w-4 md:mr-2" />
+                  <CreditCard className="h-4 w-4 md:hidden" />
                   <span className="hidden md:inline">Betalning</span>
                 </TabsTrigger>
               )}
               {userRole === "admin" && (
                 <TabsTrigger value="team" className="flex items-center justify-center">
-                  <Users className="h-4 w-4 md:mr-2" />
+                  <Users className="h-4 w-4 md:hidden" />
                   <span className="hidden md:inline">Anställda</span>
                 </TabsTrigger>
               )}
