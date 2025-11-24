@@ -447,11 +447,11 @@ export const AiSettingsDialog = () => {
               )}
             </TabsList>
 
-            <Separator className="my-10 md:hidden" />
+            <Separator className="my-3 md:hidden" />
 
             <TabsContent
               value="background"
-              className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+              className="space-y-4 mt-3 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
@@ -479,7 +479,7 @@ export const AiSettingsDialog = () => {
 
             <TabsContent
               value="watermark"
-              className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+              className="space-y-4 mt-3 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
@@ -542,7 +542,7 @@ export const AiSettingsDialog = () => {
 
             <TabsContent
               value="landing"
-              className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm"
+              className="space-y-4 mt-3 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
@@ -842,7 +842,7 @@ export const AiSettingsDialog = () => {
             {userRole === "admin" && (
               <TabsContent
                 value="payment"
-                className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+                className="space-y-4 mt-3 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
               >
@@ -853,7 +853,7 @@ export const AiSettingsDialog = () => {
             {userRole === "admin" && (
               <TabsContent
                 value="team"
-                className="space-y-4 mt-0 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
+                className="space-y-4 mt-3 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
               >
