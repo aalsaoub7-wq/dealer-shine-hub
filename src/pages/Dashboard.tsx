@@ -177,10 +177,11 @@ const Dashboard = () => {
 
   return (
     <div 
-      className="min-h-screen bg-gradient-to-br from-background via-card to-background"
+      className={`bg-gradient-to-br from-background via-card to-background ${isNativeApp() ? 'h-full overflow-y-auto' : 'min-h-screen'}`}
       style={isNativeApp() ? {
         touchAction: 'pan-y',
         overscrollBehavior: 'contain',
+        paddingBottom: 'env(safe-area-inset-bottom)',
       } : undefined}
     >
       {/* Offline indicator (Native only) */}
@@ -198,7 +199,7 @@ const Dashboard = () => {
       )}
 
       {/* Header */}
-      <header className="border-b border-border/50 bg-card/50 backdrop-blur-lg sticky top-0 z-10 shadow-card animate-fade-in">
+      <header className={`border-b border-border/50 bg-card/50 backdrop-blur-lg sticky top-0 z-10 shadow-card animate-fade-in ${isNativeApp() ? 'pt-[env(safe-area-inset-top)]' : ''}`}>
         <div className="container mx-auto px-3 md:px-4 py-3 md:py-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 md:gap-3">
