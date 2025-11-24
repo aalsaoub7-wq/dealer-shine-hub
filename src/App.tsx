@@ -31,6 +31,7 @@ const App = () => {
         // Status bar styling
         StatusBar.setStyle({ style: Style.Dark });
         StatusBar.setBackgroundColor({ color: '#0a0a0f' });
+        StatusBar.setOverlaysWebView({ overlay: true });
 
         // Hide splash screen after app is ready
         setTimeout(() => {
