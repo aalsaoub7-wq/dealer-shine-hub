@@ -6,6 +6,7 @@ import { Download, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Masonry from "react-masonry-css";
 import ImageLightbox from "@/components/ImageLightbox";
+import { getOptimizedImageUrl } from "@/lib/imageOptimization";
 
 interface Photo {
   id: string;
@@ -250,7 +251,7 @@ const SharedPhotos = () => {
                 className="group relative aspect-video bg-secondary rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <img
-                  src={photo.url}
+                  src={getOptimizedImageUrl(photo.url, { width: 800, quality: 80 })}
                   alt={`Foto ${index + 1}`}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   loading="lazy"
@@ -290,7 +291,7 @@ const SharedPhotos = () => {
           <div className="relative max-w-4xl mx-auto px-2 md:px-0">
             <div className="aspect-video bg-secondary rounded-lg overflow-hidden shadow-lg">
               <img
-                src={collection.photos[currentImageIndex]?.url}
+                src={getOptimizedImageUrl(collection.photos[currentImageIndex]?.url, { width: 1200, quality: 85 })}
                 alt={`Foto ${currentImageIndex + 1}`}
                 className="w-full h-full object-cover"
                 loading="eager"
@@ -375,7 +376,7 @@ const SharedPhotos = () => {
                 className="group relative mb-4 md:mb-6 bg-secondary rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <img
-                  src={photo.url}
+                  src={getOptimizedImageUrl(photo.url, { width: 800, quality: 80 })}
                   alt={`Foto ${index + 1}`}
                   className="w-full object-cover group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
