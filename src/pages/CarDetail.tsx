@@ -625,7 +625,7 @@ const CarDetail = () => {
           <CardHeader className="p-4 md:p-6 pb-2 md:pb-3">
             <div className="flex justify-between items-start gap-2">
               <CardTitle className="text-lg md:text-2xl bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-                {car.year} {car.make} {car.model}
+                {car.make} {car.model}
               </CardTitle>
               <Button
                 variant="ghost"
