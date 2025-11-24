@@ -8,9 +8,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, Camera, Image } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { validateImageFile } from "@/lib/validation";
+import { useNativeCamera } from "@/hooks/useNativeCamera";
+import { useHaptics } from "@/hooks/useHaptics";
+import { isNativeApp } from "@/lib/utils";
 
 interface PhotoUploadProps {
   open: boolean;
@@ -30,6 +33,21 @@ const PhotoUpload = ({
   const [uploading, setUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const { toast } = useToast();
+  const { takePhoto, pickFromGallery, isCapturing } = useNativeCamera({
+    onPhotoCaptured: (file) => {
+      const validation = validateImageFile(file);
+      if (validation.valid) {
+        setSelectedFiles((prev) => [...prev, file]);
+      } else {
+        toast({
+          title: "Ogiltig fil",
+          description: validation.error,
+          variant: "destructive",
+        });
+      }
+    },
+  });
+  const { lightImpact } = useHaptics();
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -187,28 +205,64 @@ const PhotoUpload = ({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-            <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <input
-              type="file"
-              multiple
-              accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
-              onChange={handleFileSelect}
-              className="hidden"
-              id="file-upload"
-            />
-            <label
-              htmlFor="file-upload"
-              className="cursor-pointer text-primary hover:text-primary/80 transition-colors"
-            >
-              Välj filer (max 10MB per fil)
-            </label>
-            {selectedFiles.length > 0 && (
-              <p className="mt-2 text-sm text-muted-foreground">
-                {selectedFiles.length} {selectedFiles.length === 1 ? "fil vald" : "filer valda"}
-              </p>
-            )}
-          </div>
+          {isNativeApp() ? (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  onClick={async () => {
+                    lightImpact();
+                    await takePhoto();
+                  }}
+                  disabled={isCapturing || uploading}
+                  variant="outline"
+                  className="h-24 flex-col border-border"
+                >
+                  <Camera className="w-8 h-8 mb-2" />
+                  <span>Ta foto</span>
+                </Button>
+                <Button
+                  onClick={async () => {
+                    lightImpact();
+                    await pickFromGallery();
+                  }}
+                  disabled={isCapturing || uploading}
+                  variant="outline"
+                  className="h-24 flex-col border-border"
+                >
+                  <Image className="w-8 h-8 mb-2" />
+                  <span>Välj från galleri</span>
+                </Button>
+              </div>
+              {selectedFiles.length > 0 && (
+                <p className="text-sm text-muted-foreground text-center">
+                  {selectedFiles.length} {selectedFiles.length === 1 ? "fil vald" : "filer valda"}
+                </p>
+              )}
+            </>
+          ) : (
+            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+              <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <input
+                type="file"
+                multiple
+                accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
+                onChange={handleFileSelect}
+                className="hidden"
+                id="file-upload"
+              />
+              <label
+                htmlFor="file-upload"
+                className="cursor-pointer text-primary hover:text-primary/80 transition-colors"
+              >
+                Välj filer (max 10MB per fil)
+              </label>
+              {selectedFiles.length > 0 && (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {selectedFiles.length} {selectedFiles.length === 1 ? "fil vald" : "filer valda"}
+                </p>
+              )}
+            </div>
+          )}
           <div className="flex justify-end gap-3">
             <Button
               variant="outline"
