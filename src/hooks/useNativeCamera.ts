@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { isNativeApp } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -11,13 +10,16 @@ export interface UseNativeCameraOptions {
 export const useNativeCamera = (options: UseNativeCameraOptions = {}) => {
   const [isCapturing, setIsCapturing] = useState(false);
 
-  const takePicture = async (source: CameraSource = CameraSource.Camera) => {
+  const takePicture = async (sourceType: 'camera' | 'photos' = 'camera') => {
     if (!isNativeApp()) {
       return null;
     }
 
     try {
       setIsCapturing(true);
+      
+      const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
+      const source = sourceType === 'camera' ? CameraSource.Camera : CameraSource.Photos;
       
       const image = await Camera.getPhoto({
         quality: 90,
@@ -51,8 +53,8 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}) => {
     }
   };
 
-  const takePhoto = () => takePicture(CameraSource.Camera);
-  const pickFromGallery = () => takePicture(CameraSource.Photos);
+  const takePhoto = () => takePicture('camera');
+  const pickFromGallery = () => takePicture('photos');
 
   return {
     takePhoto,

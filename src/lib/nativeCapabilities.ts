@@ -1,7 +1,3 @@
-import { Share } from '@capacitor/share';
-import { App } from '@capacitor/app';
-import { Keyboard } from '@capacitor/keyboard';
-import { SplashScreen } from '@capacitor/splash-screen';
 import { isNativeApp } from './utils';
 
 // Share functionality
@@ -21,6 +17,7 @@ export const nativeShare = async (title: string, text: string, url: string) => {
   }
 
   try {
+    const { Share } = await import('@capacitor/share');
     await Share.share({
       title,
       text,
@@ -39,6 +36,7 @@ export const hideKeyboard = async () => {
   if (!isNativeApp()) return;
   
   try {
+    const { Keyboard } = await import('@capacitor/keyboard');
     await Keyboard.hide();
   } catch (error) {
     console.error('Hide keyboard error:', error);
@@ -49,6 +47,7 @@ export const showKeyboard = async () => {
   if (!isNativeApp()) return;
   
   try {
+    const { Keyboard } = await import('@capacitor/keyboard');
     await Keyboard.show();
   } catch (error) {
     console.error('Show keyboard error:', error);
@@ -60,6 +59,7 @@ export const hideSplashScreen = async () => {
   if (!isNativeApp()) return;
   
   try {
+    const { SplashScreen } = await import('@capacitor/splash-screen');
     await SplashScreen.hide();
   } catch (error) {
     console.error('Hide splash screen error:', error);
@@ -67,8 +67,10 @@ export const hideSplashScreen = async () => {
 };
 
 // App state management
-export const setupAppListeners = () => {
+export const setupAppListeners = async () => {
   if (!isNativeApp()) return;
+
+  const { App } = await import('@capacitor/app');
 
   App.addListener('backButton', ({ canGoBack }) => {
     if (!canGoBack) {
@@ -92,5 +94,6 @@ export const setupAppListeners = () => {
 export const removeAppListeners = async () => {
   if (!isNativeApp()) return;
 
+  const { App } = await import('@capacitor/app');
   await App.removeAllListeners();
 };
