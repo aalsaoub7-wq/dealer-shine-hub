@@ -187,7 +187,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
             </Button>
           </div>
 
-          <ScrollArea className="h-[400px]">
+          <ScrollArea className="h-[250px] md:h-[400px]">
             <div className="space-y-3 pr-4">
               {platforms.map((platform) => {
                 const status = getPlatformStatus(platform.id);
