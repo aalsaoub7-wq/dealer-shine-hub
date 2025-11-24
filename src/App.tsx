@@ -15,36 +15,43 @@ import TermsOfService from "./pages/TermsOfService";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { NativeRouter } from "./components/NativeRouter";
-import { StatusBar, Style } from '@capacitor/status-bar';
 import { isNativeApp } from '@/lib/utils';
 import { hideSplashScreen, setupAppListeners, removeAppListeners } from '@/lib/nativeCapabilities';
-import { Keyboard } from '@capacitor/keyboard';
 
 const queryClient = new QueryClient();
 
 const App = () => {
   // Native app initialization
   useEffect(() => {
-    if (isNativeApp()) {
-      // Status bar styling
-      StatusBar.setStyle({ style: Style.Dark });
-      StatusBar.setBackgroundColor({ color: '#0a0a0f' });
+    const initNative = async () => {
+      if (isNativeApp()) {
+        const { StatusBar, Style } = await import('@capacitor/status-bar');
+        const { Keyboard } = await import('@capacitor/keyboard');
 
-      // Hide splash screen after app is ready
-      setTimeout(() => {
-        hideSplashScreen();
-      }, 500);
+        // Status bar styling
+        StatusBar.setStyle({ style: Style.Dark });
+        StatusBar.setBackgroundColor({ color: '#0a0a0f' });
 
-      // Setup app listeners for back button and deep links
-      setupAppListeners();
+        // Hide splash screen after app is ready
+        setTimeout(() => {
+          hideSplashScreen();
+        }, 500);
 
-      // Keyboard configuration
-      Keyboard.setAccessoryBarVisible({ isVisible: true });
+        // Setup app listeners for back button and deep links
+        setupAppListeners();
 
-      return () => {
+        // Keyboard configuration
+        Keyboard.setAccessoryBarVisible({ isVisible: true });
+      }
+    };
+
+    initNative();
+
+    return () => {
+      if (isNativeApp()) {
         removeAppListeners();
-      };
-    }
+      }
+    };
   }, []);
 
   return (

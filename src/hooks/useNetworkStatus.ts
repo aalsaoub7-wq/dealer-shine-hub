@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Network } from '@capacitor/network';
 import { isNativeApp } from '@/lib/utils';
 
 export const useNetworkStatus = () => {
@@ -24,20 +23,23 @@ export const useNetworkStatus = () => {
     }
 
     // Native implementation
-    const checkStatus = async () => {
+    const initNetwork = async () => {
+      const { Network } = await import('@capacitor/network');
+      
       const status = await Network.getStatus();
       setIsOnline(status.connected);
       setConnectionType(status.connectionType);
+
+      const handle = await Network.addListener('networkStatusChange', (status) => {
+        setIsOnline(status.connected);
+        setConnectionType(status.connectionType);
+      });
+
+      return handle;
     };
 
-    checkStatus();
-
     let listenerHandle: any;
-    
-    Network.addListener('networkStatusChange', (status) => {
-      setIsOnline(status.connected);
-      setConnectionType(status.connectionType);
-    }).then((handle) => {
+    initNetwork().then((handle) => {
       listenerHandle = handle;
     });
 
