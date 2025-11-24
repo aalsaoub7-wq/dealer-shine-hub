@@ -17,6 +17,7 @@ import {
   Stamp,
   Sparkles,
   ChevronDown,
+  Download,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PhotoUpload from "@/components/PhotoUpload";
@@ -204,6 +205,32 @@ const CarDetail = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleDownloadPhotos = async (photoIds: string[]) => {
+    const photosToDownload = [...mainPhotos, ...docPhotos].filter(p => photoIds.includes(p.id));
+    
+    for (const photo of photosToDownload) {
+      try {
+        const response = await fetch(photo.url);
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `photo-${photo.id}.png`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(downloadUrl);
+        document.body.removeChild(a);
+      } catch (error) {
+        console.error('Download error:', error);
+      }
+    }
+    
+    toast({
+      title: "Nedladdning klar",
+      description: `${photosToDownload.length} bild(er) laddades ned`,
+    });
   };
 
   const handleSharePhotos = async (photoIds: string[]) => {
@@ -692,17 +719,27 @@ const CarDetail = () => {
             </TabsList>
 
             <div className="flex flex-col sm:flex-row gap-2 lg:ml-auto">
-              {allSelectedPhotos.length > 0 && (
-                <Button
-                  onClick={() => handleSharePhotos(allSelectedPhotos)}
-                  variant="outline"
-                  disabled={sharing}
-                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-12 md:h-10"
-                >
-                  <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-                  {sharing ? "Skapar länk..." : `Dela (${allSelectedPhotos.length})`}
-                </Button>
-              )}
+                {allSelectedPhotos.length > 0 && (
+                  <>
+                    <Button
+                      onClick={() => handleSharePhotos(allSelectedPhotos)}
+                      variant="outline"
+                      disabled={sharing}
+                      className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-12 md:h-10"
+                    >
+                      <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                      {sharing ? "Skapar länk..." : `Dela (${allSelectedPhotos.length})`}
+                    </Button>
+                    <Button
+                      onClick={() => handleDownloadPhotos(allSelectedPhotos)}
+                      variant="outline"
+                      className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-12 md:h-10"
+                    >
+                      <Download className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                      Ladda ned ({allSelectedPhotos.length})
+                    </Button>
+                  </>
+                )}
               {activeTab === "main" && selectedMainPhotos.length > 0 && (
                 <>
                   <Button
