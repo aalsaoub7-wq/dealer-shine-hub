@@ -239,11 +239,11 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
           </ScrollArea>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+        <DialogFooter className="flex-row gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading} className="flex-1 sm:flex-none">
             Avbryt
           </Button>
-          <Button onClick={handleSync} disabled={selectedPlatforms.length === 0 || isLoading}>
+          <Button onClick={handleSync} disabled={selectedPlatforms.length === 0 || isLoading} className="flex-1 sm:flex-none">
             {isLoading ? (
               <>
                 <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
