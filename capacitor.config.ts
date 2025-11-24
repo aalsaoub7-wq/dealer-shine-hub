@@ -4,7 +4,6 @@ const config: CapacitorConfig = {
   appId: "se.luvero.app",
   appName: "Luvero",
   webDir: "dist",
-  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
