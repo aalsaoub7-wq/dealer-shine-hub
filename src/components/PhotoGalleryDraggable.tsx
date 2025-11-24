@@ -46,7 +46,6 @@ interface SortablePhotoCardProps {
   index: number;
   onDelete: (photoId: string) => void;
   onImageClick: (url: string) => void;
-  onDownload: (url: string) => void;
   isSelected: boolean;
   onSelect: (photoId: string, selected: boolean) => void;
 }
@@ -56,7 +55,6 @@ const SortablePhotoCard = ({
   index,
   onDelete,
   onImageClick,
-  onDownload,
   isSelected,
   onSelect,
 }: SortablePhotoCardProps) => {
@@ -141,14 +139,6 @@ const SortablePhotoCard = ({
           </Button>
           <Button
             size="icon"
-            variant="secondary"
-            onClick={() => onDownload(photo.url)}
-            className="h-8 w-8 hover:scale-110 transition-transform duration-300"
-          >
-            <Download className="w-4 h-4" />
-          </Button>
-          <Button
-            size="icon"
             variant="destructive"
             onClick={() => onDelete(photo.id)}
             className="h-8 w-8 hover:scale-110 transition-transform duration-300"
@@ -187,27 +177,6 @@ const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionCh
       toast({
         title: "Fel vid radering av foto",
         description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDownload = async (url: string) => {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = `photo-${Date.now()}.png`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(downloadUrl);
-      document.body.removeChild(a);
-    } catch (error) {
-      toast({
-        title: "Fel vid nedladdning",
-        description: "Kunde inte ladda ner bilden",
         variant: "destructive",
       });
     }
@@ -273,7 +242,6 @@ const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionCh
                 index={index}
                 onDelete={handleDelete}
                 onImageClick={setLightboxUrl}
-                onDownload={handleDownload}
                 isSelected={selectedPhotos.includes(photo.id)}
                 onSelect={(photoId, selected) => {
                   if (selected) {
