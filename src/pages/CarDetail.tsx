@@ -697,7 +697,7 @@ const CarDetail = () => {
                   onClick={() => handleSharePhotos(allSelectedPhotos)}
                   variant="outline"
                   disabled={sharing}
-                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-8 md:h-10"
+                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-12 md:h-10"
                 >
                   <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                   {sharing ? "Skapar länk..." : `Dela (${allSelectedPhotos.length})`}
@@ -708,7 +708,7 @@ const CarDetail = () => {
                   <Button
                     onClick={() => handleEditPhotos(selectedMainPhotos, "main")}
                     variant="outline"
-                    className="border-accent text-accent hover:bg-accent hover:text-accent-foreground text-xs md:text-sm h-8 md:h-10"
+                    className="border-accent text-accent hover:bg-accent hover:text-accent-foreground text-xs md:text-sm h-12 md:h-10"
                   >
                     <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                     <span className="hidden sm:inline">AI redigera ({selectedMainPhotos.length})</span>
@@ -718,7 +718,7 @@ const CarDetail = () => {
                     onClick={() => handleApplyWatermark(selectedMainPhotos, "main")}
                     variant="outline"
                     disabled={applyingWatermark}
-                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-8 md:h-10"
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-12 md:h-10"
                   >
                     <Stamp className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                     {applyingWatermark ? (
