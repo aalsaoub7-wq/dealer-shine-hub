@@ -106,7 +106,7 @@ const SortablePhotoCard = ({
           />
         </div>
         <img
-          src={getOptimizedImageUrl(photo.url, { width: 600, quality: 75 })}
+          src={getOptimizedImageUrl(photo.url, { width: 600, height: 338, quality: 75 })}
           alt="Bilfoto"
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 cursor-pointer"
           loading="lazy"
