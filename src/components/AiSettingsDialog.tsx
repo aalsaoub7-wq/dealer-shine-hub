@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Settings, Upload, X, Languages } from "lucide-react";
+import { Settings, Upload, X, Languages, Palette, Stamp, Globe, CreditCard, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { WatermarkPreview } from "./WatermarkPreview";
@@ -420,12 +420,31 @@ export const AiSettingsDialog = () => {
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
           <div className="mt-4 rounded-xl border border-border bg-muted p-3 shadow-sm md:bg-transparent md:border-0 md:p-0 md:rounded-none">
-            <TabsList className={`grid w-full ${userRole === "admin" ? "grid-cols-2 md:grid-cols-5" : "grid-cols-3"} gap-1`}>
-              <TabsTrigger value="background">Bakgrund</TabsTrigger>
-              <TabsTrigger value="watermark">Vattenmärke</TabsTrigger>
-              <TabsTrigger value="landing">Landningssida</TabsTrigger>
-              {userRole === "admin" && <TabsTrigger value="payment">Betalning</TabsTrigger>}
-              {userRole === "admin" && <TabsTrigger value="team">Anställda</TabsTrigger>}
+            <TabsList className={`grid w-full ${userRole === "admin" ? "grid-cols-5" : "grid-cols-3"} gap-1`}>
+              <TabsTrigger value="background">
+                <Palette className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Bakgrund</span>
+              </TabsTrigger>
+              <TabsTrigger value="watermark">
+                <Stamp className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Vattenmärke</span>
+              </TabsTrigger>
+              <TabsTrigger value="landing">
+                <Globe className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Landningssida</span>
+              </TabsTrigger>
+              {userRole === "admin" && (
+                <TabsTrigger value="payment">
+                  <CreditCard className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Betalning</span>
+                </TabsTrigger>
+              )}
+              {userRole === "admin" && (
+                <TabsTrigger value="team">
+                  <Users className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">Anställda</span>
+                </TabsTrigger>
+              )}
             </TabsList>
 
             <Separator className="my-10 md:hidden" />
