@@ -126,8 +126,11 @@ All colors MUST be HSL.
 .native-layout {
   min-height: 100vh;
   min-height: 100dvh;
+  height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 /* iOS Safe Area Support */
