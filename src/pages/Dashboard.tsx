@@ -258,7 +258,7 @@ const Dashboard = () => {
               placeholder="Sök på märke, modell, reg. nr..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 md:pl-10 text-sm md:text-base h-9 md:h-10 bg-secondary border-border focus:border-primary focus:shadow-glow transition-all duration-300"
+              className="pl-8 md:pl-10 text-base h-9 md:h-10 bg-secondary border-border focus:border-primary focus:shadow-glow transition-all duration-300"
             />
           </div>
           <Button
