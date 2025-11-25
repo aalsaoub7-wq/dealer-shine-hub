@@ -199,7 +199,7 @@ const Dashboard = () => {
       )}
 
       {/* Header */}
-      <header className={`border-b border-border/50 bg-card/50 backdrop-blur-lg sticky top-0 z-10 shadow-card animate-fade-in ${isNativeApp() ? 'pt-[env(safe-area-inset-top)]' : ''}`}>
+      <header className="border-b border-border/50 bg-card/50 backdrop-blur-lg sticky top-0 z-10 shadow-card animate-fade-in">
         <div className="container mx-auto px-3 md:px-4 py-3 md:py-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 md:gap-3">

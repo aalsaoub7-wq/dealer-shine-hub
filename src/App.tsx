@@ -15,6 +15,7 @@ import TermsOfService from "./pages/TermsOfService";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { NativeRouter } from "./components/NativeRouter";
+import { NativeLayout } from "./components/NativeLayout";
 import { isNativeApp } from '@/lib/utils';
 import { hideSplashScreen, setupAppListeners, removeAppListeners } from '@/lib/nativeCapabilities';
 
@@ -63,17 +64,19 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <NativeRouter>
-              <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/car/:id" element={<ProtectedRoute><CarDetail /></ProtectedRoute>} />
-                <Route path="/shared/:token" element={<SharedPhotos />} />
-                <Route path="/integritetspolicy" element={<PrivacyPolicy />} />
-                <Route path="/användarvillkor" element={<TermsOfService />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <NativeLayout>
+                <Routes>
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/car/:id" element={<ProtectedRoute><CarDetail /></ProtectedRoute>} />
+                  <Route path="/shared/:token" element={<SharedPhotos />} />
+                  <Route path="/integritetspolicy" element={<PrivacyPolicy />} />
+                  <Route path="/användarvillkor" element={<TermsOfService />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </NativeLayout>
             </NativeRouter>
           </BrowserRouter>
         </TooltipProvider>

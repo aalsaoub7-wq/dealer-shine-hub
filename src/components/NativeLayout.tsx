@@ -11,9 +11,9 @@ export const NativeLayout = ({ children }: NativeLayoutProps) => {
     return <>{children}</>;
   }
 
-  // Native: applicera mobil-optimerad layout
+  // Native: applicera safe area padding och scroll-hantering
   return (
-    <div className="native-layout">
+    <div className="native-layout pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       {children}
     </div>
   );
