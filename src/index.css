@@ -131,6 +131,7 @@ All colors MUST be HSL.
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  background-color: hsl(var(--background));
 }
 
 /* iOS Safe Area Support */

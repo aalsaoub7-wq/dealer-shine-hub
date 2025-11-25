@@ -13,7 +13,7 @@ export const NativeLayout = ({ children }: NativeLayoutProps) => {
 
   // Native: applicera safe area padding och scroll-hantering
   return (
-    <div className="native-layout pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+    <div className="native-layout bg-background pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       {children}
     </div>
   );
