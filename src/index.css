@@ -132,9 +132,11 @@ All colors MUST be HSL.
 
 /* Native-only layout optimizations */
 .native-layout {
-  min-height: 100vh;
-  min-height: 100dvh;
-  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
