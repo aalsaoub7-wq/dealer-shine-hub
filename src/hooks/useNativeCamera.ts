@@ -19,6 +19,22 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}) => {
       setIsCapturing(true);
       
       const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
+      
+      // Kontrollera och begär behörigheter först
+      const permissions = await Camera.checkPermissions();
+      
+      if (permissions.camera !== 'granted' || permissions.photos !== 'granted') {
+        const requested = await Camera.requestPermissions();
+        if (requested.camera !== 'granted' && sourceType === 'camera') {
+          toast.error('Kamerabehörighet krävs för att ta foton');
+          return null;
+        }
+        if (requested.photos !== 'granted' && sourceType === 'photos') {
+          toast.error('Fotobehörighet krävs för att välja bilder');
+          return null;
+        }
+      }
+      
       const source = sourceType === 'camera' ? CameraSource.Camera : CameraSource.Photos;
       
       const image = await Camera.getPhoto({
@@ -30,7 +46,6 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}) => {
       });
 
       if (image.webPath) {
-        // Convert to File object
         const response = await fetch(image.webPath);
         const blob = await response.blob();
         const file = new File([blob], `photo_${Date.now()}.jpg`, {
@@ -43,9 +58,9 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}) => {
 
       return null;
     } catch (error: any) {
+      console.error('Camera error:', error);
       if (error.message !== 'User cancelled photos app') {
-        console.error('Error capturing photo:', error);
-        toast.error('Kunde inte ta foto');
+        toast.error(`Kunde inte ${sourceType === 'camera' ? 'ta foto' : 'välja bild'}: ${error.message}`);
       }
       return null;
     } finally {
