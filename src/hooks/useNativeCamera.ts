@@ -109,12 +109,78 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}) => {
     }
   };
 
+  const pickMultipleFromGallery = async () => {
+    if (!isNativeApp()) {
+      return [];
+    }
+
+    try {
+      setIsCapturing(true);
+      
+      const Capacitor = (window as any).Capacitor;
+      if (!Capacitor?.Plugins?.Camera) {
+        toast.error('Kamera-plugin är inte tillgänglig');
+        return [];
+      }
+
+      const Camera = Capacitor.Plugins.Camera;
+
+      // Kontrollera behörigheter
+      const permissions = await Camera.checkPermissions();
+      
+      if (permissions.photos !== 'granted') {
+        const requested = await Camera.requestPermissions();
+        if (requested.photos !== 'granted') {
+          toast.error('Fotobehörighet krävs för att välja bilder');
+          return [];
+        }
+      }
+
+      // Använd pickImages för multi-select
+      const result = await Camera.pickImages({
+        quality: 90,
+        limit: 20, // Max 20 bilder
+      });
+
+      const files: File[] = [];
+
+      // Konvertera varje bild till File
+      for (const photo of result.photos) {
+        if (photo.webPath) {
+          const response = await fetch(photo.webPath);
+          const blob = await response.blob();
+          const file = new File([blob], `photo_${Date.now()}_${Math.random()}.jpg`, {
+            type: 'image/jpeg',
+          });
+          
+          files.push(file);
+          options.onPhotoCaptured?.(file);
+        }
+      }
+
+      return files;
+    } catch (error: any) {
+      console.error('Camera error:', error);
+      if (error.message !== 'User cancelled photos app') {
+        toast.error(`Kunde inte välja bilder: ${error.message}`);
+      }
+      return [];
+    } finally {
+      setIsCapturing(false);
+      
+      setTimeout(() => {
+        resetViewport();
+      }, 100);
+    }
+  };
+
   const takePhoto = () => takePicture('camera');
   const pickFromGallery = () => takePicture('photos');
 
   return {
     takePhoto,
     pickFromGallery,
+    pickMultipleFromGallery,
     isCapturing,
   };
 };
