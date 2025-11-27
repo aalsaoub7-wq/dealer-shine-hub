@@ -11,22 +11,19 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}) => {
   const [isCapturing, setIsCapturing] = useState(false);
 
   const resetViewport = () => {
-    // Återställ #root scroll-position (den faktiska scroll-containern)
-    const root = document.getElementById('root');
-    if (root) {
-      root.scrollTop = 0;
+    // Tvinga iOS WebView att återberäkna layout genom att togla en CSS-transform
+    const nativeLayout = document.querySelector('.native-layout') as HTMLElement;
+    if (nativeLayout) {
+      nativeLayout.style.transform = 'translateZ(0)';
+      requestAnimationFrame(() => {
+        nativeLayout.style.transform = '';
+      });
     }
     
-    // Återställ även window för säkerhets skull
+    // Återställ scroll-positioner
+    const root = document.getElementById('root');
+    if (root) root.scrollTop = 0;
     window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    
-    // Tvinga en re-layout genom att trigga en liten viewport-justering
-    document.body.style.minHeight = '100.1vh';
-    requestAnimationFrame(() => {
-      document.body.style.minHeight = '';
-    });
   };
 
   const takePicture = async (sourceType: 'camera' | 'photos' = 'camera') => {
