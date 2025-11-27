@@ -11,7 +11,7 @@ export const NativeLayout = ({ children }: NativeLayoutProps) => {
   }
 
   return (
-    <div className="native-layout bg-background">
+    <div className="native-layout bg-background pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       {children}
     </div>
   );

@@ -107,14 +107,6 @@ All colors MUST be HSL.
     overflow: hidden;
     background-color: hsl(var(--background));
   }
-  
-  /* På native iOS, lägg padding på html så bakgrunden täcker safe area */
-  @supports (-webkit-touch-callout: none) {
-    html {
-      padding-top: env(safe-area-inset-top);
-      box-sizing: border-box;
-    }
-  }
 
   body {
     margin: 0;
@@ -143,7 +135,7 @@ All colors MUST be HSL.
 .native-layout {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
+  min-height: 100dvh;
   width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
