@@ -18,7 +18,27 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}) => {
     try {
       setIsCapturing(true);
       
-      const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
+      // Använd Capacitor's globala plugin-objekt istället för dynamisk import
+      const Capacitor = (window as any).Capacitor;
+      if (!Capacitor?.Plugins?.Camera) {
+        toast.error('Kamera-plugin är inte tillgänglig');
+        return null;
+      }
+
+      const Camera = Capacitor.Plugins.Camera;
+
+      // Definiera konstanter som används av Camera plugin
+      const CameraResultType = {
+        Uri: 'uri',
+        Base64: 'base64',
+        DataUrl: 'dataUrl'
+      };
+
+      const CameraSource = {
+        Prompt: 'PROMPT',
+        Camera: 'CAMERA',
+        Photos: 'PHOTOS'
+      };
       
       // Kontrollera och begär behörigheter först
       const permissions = await Camera.checkPermissions();
