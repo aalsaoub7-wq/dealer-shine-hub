@@ -132,8 +132,11 @@ All colors MUST be HSL.
 
 /* Native-only layout optimizations */
 .native-layout {
-  min-height: 100dvh;
-  min-height: -webkit-fill-available;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
