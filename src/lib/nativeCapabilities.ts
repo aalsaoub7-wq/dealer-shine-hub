@@ -97,3 +97,25 @@ export const removeAppListeners = async () => {
   const { App } = await import('@capacitor/app');
   await App.removeAllListeners();
 };
+
+// Open external URL (Stripe portal, PDFs, etc.)
+export const openExternalUrl = async (url: string): Promise<void> => {
+  if (!isNativeApp()) {
+    window.open(url, "_blank");
+    return;
+  }
+
+  try {
+    const Capacitor = (window as any).Capacitor;
+    if (Capacitor?.Plugins?.Browser) {
+      await Capacitor.Plugins.Browser.open({ url });
+    } else {
+      // Fallback to window.open if Browser plugin not available
+      window.open(url, "_blank");
+    }
+  } catch (error) {
+    console.error('Open external URL error:', error);
+    // Fallback to window.open
+    window.open(url, "_blank");
+  }
+};

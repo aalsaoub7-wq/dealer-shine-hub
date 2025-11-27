@@ -33,7 +33,7 @@ const PhotoUpload = ({
   const [uploading, setUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const { toast } = useToast();
-  const { takePhoto, pickFromGallery, isCapturing } = useNativeCamera({
+  const { takePhoto, pickFromGallery, pickMultipleFromGallery, isCapturing } = useNativeCamera({
     onPhotoCaptured: (file) => {
       const validation = validateImageFile(file);
       if (validation.valid) {
@@ -223,7 +223,7 @@ const PhotoUpload = ({
                 <Button
                   onClick={async () => {
                     lightImpact();
-                    await pickFromGallery();
+                    await pickMultipleFromGallery();
                   }}
                   disabled={isCapturing || uploading}
                   variant="outline"

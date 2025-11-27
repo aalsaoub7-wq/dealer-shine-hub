@@ -20,6 +20,7 @@ export default defineConfig(({ mode }) => ({
       external: [
         '@capacitor/core',
         '@capacitor/app',
+        '@capacitor/browser',
         '@capacitor/camera',
         '@capacitor/haptics',
         '@capacitor/keyboard',

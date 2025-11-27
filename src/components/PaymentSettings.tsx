@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { PaymentSettingsSkeleton } from "./PaymentSettingsSkeleton";
 import { PRICES } from "@/lib/usageTracking";
+import { openExternalUrl } from "@/lib/nativeCapabilities";
 interface BillingInfo {
   hasCustomer: boolean;
   customerId?: string;
@@ -142,7 +143,7 @@ export const PaymentSettings = () => {
       } = await supabase.functions.invoke("customer-portal");
       if (error) throw error;
       if (data?.url) {
-        window.open(data.url, "_blank");
+        await openExternalUrl(data.url);
 
         // Start polling every 30 seconds to check for payment method updates
         if (pollingIntervalRef.current) {
@@ -424,7 +425,7 @@ export const PaymentSettings = () => {
                         {invoice.amount.toFixed(2)}{" "}
                         {invoice.currency.toUpperCase()}
                       </span>
-                      {invoice.invoicePdf && <Button variant="outline" size="sm" onClick={() => window.open(invoice.invoicePdf!, "_blank")}>
+                      {invoice.invoicePdf && <Button variant="outline" size="sm" onClick={() => openExternalUrl(invoice.invoicePdf!)}>
                           <ExternalLink className="h-3 w-3" />
                         </Button>}
                     </div>
