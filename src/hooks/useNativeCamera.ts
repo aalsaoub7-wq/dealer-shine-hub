@@ -10,6 +10,25 @@ export interface UseNativeCameraOptions {
 export const useNativeCamera = (options: UseNativeCameraOptions = {}) => {
   const [isCapturing, setIsCapturing] = useState(false);
 
+  const resetViewport = () => {
+    // Återställ #root scroll-position (den faktiska scroll-containern)
+    const root = document.getElementById('root');
+    if (root) {
+      root.scrollTop = 0;
+    }
+    
+    // Återställ även window för säkerhets skull
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    
+    // Tvinga en re-layout genom att trigga en liten viewport-justering
+    document.body.style.minHeight = '100.1vh';
+    requestAnimationFrame(() => {
+      document.body.style.minHeight = '';
+    });
+  };
+
   const takePicture = async (sourceType: 'camera' | 'photos' = 'camera') => {
     if (!isNativeApp()) {
       return null;
@@ -85,6 +104,11 @@ export const useNativeCamera = (options: UseNativeCameraOptions = {}) => {
       return null;
     } finally {
       setIsCapturing(false);
+      
+      // Återställ viewport efter kamerainteraktion
+      setTimeout(() => {
+        resetViewport();
+      }, 100);
     }
   };
 

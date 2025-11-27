@@ -16,6 +16,11 @@ export const NativeLayout = ({ children }: NativeLayoutProps) => {
       const handleResize = () => {
         // Kort delay för att låta iOS stabilisera viewporten
         setTimeout(() => {
+          // Återställ #root scroll-position
+          const root = document.getElementById('root');
+          if (root) {
+            root.scrollTop = 0;
+          }
           document.documentElement.scrollTop = 0;
           document.body.scrollTop = 0;
         }, 100);
