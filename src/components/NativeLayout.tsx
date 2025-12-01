@@ -9,7 +9,7 @@ export const NativeLayout = ({ children }: NativeLayoutProps) => {
   useEffect(() => {
     if (!isNativeApp()) return;
 
-    let isFirstActivation = true;
+    let hasRecalculated = false;
 
     const forceViewportRecalc = () => {
       // Force reflow by manipulating body style
@@ -26,37 +26,36 @@ export const NativeLayout = ({ children }: NativeLayoutProps) => {
       window.dispatchEvent(new Event('orientationchange'));
     };
 
-    // Listen for app state changes to recalculate when app becomes active
-    const setupAppStateListener = async () => {
-      try {
-        const { App } = await import('@capacitor/app');
-        
-        const listener = await App.addListener('appStateChange', (state) => {
-          if (state.isActive && isFirstActivation) {
-            isFirstActivation = false;
-            // Run immediately when app becomes active
-            forceViewportRecalc();
-            // Run again after delays to ensure iOS catches it
-            setTimeout(forceViewportRecalc, 100);
-            setTimeout(forceViewportRecalc, 300);
-            setTimeout(forceViewportRecalc, 500);
-          }
-        });
-
-        // Also try immediately, in case we mount after app is already active
-        setTimeout(forceViewportRecalc, 300);
-        setTimeout(forceViewportRecalc, 600);
-        setTimeout(forceViewportRecalc, 1000);
-
-        return () => {
-          listener.remove();
-        };
-      } catch (error) {
-        console.error('Failed to setup app state listener:', error);
+    // Listen for scroll to trigger recalculation
+    const handleScroll = () => {
+      if (!hasRecalculated) {
+        hasRecalculated = true;
+        forceViewportRecalc();
+        // Remove listener after first scroll
+        window.removeEventListener('scroll', handleScroll, true);
+        document.removeEventListener('scroll', handleScroll, true);
       }
     };
 
-    setupAppStateListener();
+    // Listen for touch start as an alternative trigger
+    const handleTouchStart = () => {
+      if (!hasRecalculated) {
+        hasRecalculated = true;
+        forceViewportRecalc();
+        window.removeEventListener('touchstart', handleTouchStart, true);
+      }
+    };
+
+    // Add listeners with capture to catch all scroll/touch events
+    window.addEventListener('scroll', handleScroll, true);
+    document.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('touchstart', handleTouchStart, true);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+      document.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('touchstart', handleTouchStart, true);
+    };
   }, []);
 
   if (!isNativeApp()) {
