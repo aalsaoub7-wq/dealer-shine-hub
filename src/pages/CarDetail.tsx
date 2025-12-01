@@ -821,7 +821,7 @@ const CarDetail = () => {
           </div>
 
           <TabsContent value="main" className="space-y-4 md:space-y-6">
-            <div className="h-16 pointer-events-none" />
+            <div className="h-8 pointer-events-none" />
             <PhotoGalleryDraggable
               photos={mainPhotos}
               onUpdate={() => fetchCarData(true)}
@@ -831,7 +831,7 @@ const CarDetail = () => {
           </TabsContent>
 
           <TabsContent value="docs" className="space-y-4 md:space-y-6">
-            <div className="h-16 pointer-events-none" />
+            <div className="h-8 pointer-events-none" />
             <PhotoGalleryDraggable
               photos={docPhotos}
               onUpdate={() => fetchCarData(true)}
