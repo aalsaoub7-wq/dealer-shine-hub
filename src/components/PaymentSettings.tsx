@@ -404,7 +404,11 @@ export const PaymentSettings = () => {
                 <p className="text-sm text-muted-foreground">
                   Hantera ditt konto och din prenumeration via vår webbportal.
                 </p>
-                <Button variant="outline" className="w-full" onClick={() => openExternalUrl("https://luvero.se")}>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => openExternalUrl("https://luvero.se/dashboard")}
+                >
                   Gå till Luvero.se
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
