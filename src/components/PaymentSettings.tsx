@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { PaymentSettingsSkeleton } from "./PaymentSettingsSkeleton";
 import { PRICES } from "@/lib/usageTracking";
 import { openExternalUrl } from "@/lib/nativeCapabilities";
+import { isNativeApp } from "@/lib/utils";
 interface BillingInfo {
   hasCustomer: boolean;
   customerId?: string;
@@ -387,15 +388,33 @@ export const PaymentSettings = () => {
         <h3 className="text-sm font-medium">Hantera betalning</h3>
         <Card>
           <CardContent className="pt-6">
-            <Button onClick={openCustomerPortal} disabled={openingPortal} className="w-full">
-              {openingPortal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Öppna Stripe-portal
-              <ExternalLink className="ml-2 h-4 w-4" />
-            </Button>
-            <p className="text-xs text-muted-foreground mt-2">
-              Hantera dina betalningsmetoder, se fakturor och uppdatera
-              betalningsinformation
-            </p>
+            {isNativeApp() ? (
+              <div className="text-center space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Logga in på webben för att lägga till betalmetod
+                </p>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => openExternalUrl("https://luvero.se")}
+                >
+                  Gå till Luvero.se
+                  <ExternalLink className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Button onClick={openCustomerPortal} disabled={openingPortal} className="w-full">
+                  {openingPortal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Öppna Stripe-portal
+                  <ExternalLink className="ml-2 h-4 w-4" />
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Hantera dina betalningsmetoder, se fakturor och uppdatera
+                  betalningsinformation
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
