@@ -803,7 +803,9 @@ const CarDetail = () => {
                 </Button>
               )}
               <Button
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   setUploadType(activeTab === "main" ? "main" : "documentation");
                   setUploadDialogOpen(true);
                 }}
@@ -818,7 +820,7 @@ const CarDetail = () => {
             </div>
           </div>
 
-          <TabsContent value="main" className="space-y-4 md:space-y-6">
+          <TabsContent value="main" className="space-y-4 md:space-y-6 mt-8">
             <PhotoGalleryDraggable
               photos={mainPhotos}
               onUpdate={() => fetchCarData(true)}
@@ -827,7 +829,7 @@ const CarDetail = () => {
             />
           </TabsContent>
 
-          <TabsContent value="docs" className="space-y-4 md:space-y-6">
+          <TabsContent value="docs" className="space-y-4 md:space-y-6 mt-8">
             <PhotoGalleryDraggable
               photos={docPhotos}
               onUpdate={() => fetchCarData(true)}
