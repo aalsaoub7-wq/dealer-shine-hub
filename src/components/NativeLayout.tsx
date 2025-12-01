@@ -9,53 +9,41 @@ export const NativeLayout = ({ children }: NativeLayoutProps) => {
   useEffect(() => {
     if (!isNativeApp()) return;
 
-    let hasRecalculated = false;
-
-    const forceViewportRecalc = () => {
-      // Force reflow by manipulating body style
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      void document.body.offsetHeight; // Force reflow
-      document.body.style.overflow = originalOverflow;
+    // Trick iOS into recalculating viewport by briefly focusing a hidden password field
+    const triggerIOSViewportFix = () => {
+      // Create a hidden password input
+      const hiddenInput = document.createElement('input');
+      hiddenInput.type = 'password';
+      hiddenInput.style.cssText = `
+        position: fixed;
+        top: -9999px;
+        left: -9999px;
+        opacity: 0;
+        width: 1px;
+        height: 1px;
+        pointer-events: none;
+      `;
       
-      // Scroll to top
-      window.scrollTo(0, 0);
+      document.body.appendChild(hiddenInput);
       
-      // Dispatch multiple events
-      window.dispatchEvent(new Event('resize'));
-      window.dispatchEvent(new Event('orientationchange'));
+      // Focus the input to trigger iOS secure text entry mode
+      // This forces iOS to recalculate the viewport
+      hiddenInput.focus();
+      
+      // Immediately blur and remove
+      setTimeout(() => {
+        hiddenInput.blur();
+        document.body.removeChild(hiddenInput);
+        
+        // Additional scroll to ensure layout is settled
+        window.scrollTo(0, 0);
+      }, 50);
     };
 
-    // Listen for scroll to trigger recalculation
-    const handleScroll = () => {
-      if (!hasRecalculated) {
-        hasRecalculated = true;
-        forceViewportRecalc();
-        // Remove listener after first scroll
-        window.removeEventListener('scroll', handleScroll, true);
-        document.removeEventListener('scroll', handleScroll, true);
-      }
-    };
+    // Run after a short delay to ensure the app has rendered
+    const timeout = setTimeout(triggerIOSViewportFix, 300);
 
-    // Listen for touch start as an alternative trigger
-    const handleTouchStart = () => {
-      if (!hasRecalculated) {
-        hasRecalculated = true;
-        forceViewportRecalc();
-        window.removeEventListener('touchstart', handleTouchStart, true);
-      }
-    };
-
-    // Add listeners with capture to catch all scroll/touch events
-    window.addEventListener('scroll', handleScroll, true);
-    document.addEventListener('scroll', handleScroll, true);
-    window.addEventListener('touchstart', handleTouchStart, true);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll, true);
-      document.removeEventListener('scroll', handleScroll, true);
-      window.removeEventListener('touchstart', handleTouchStart, true);
-    };
+    return () => clearTimeout(timeout);
   }, []);
 
   if (!isNativeApp()) {
