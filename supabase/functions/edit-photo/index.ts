@@ -13,8 +13,11 @@ const TEMPLATE_CONFIGS: Record<string, { prompt: string; seed: string }> = {
 The background must be only a plain, empty wall and floor.
 
 Floor:
-– perfectly flat, perfectly matte, uniform solid grey color #c8cfdb
-– no tiles, no seams, no lines, no patterns, no texture, no reflections, no gradient
+– one single, continuous, perfectly flat surface
+– perfectly matte, uniform solid grey color #c8cfdb
+– no tiles, no seams, no joints, no cracks, no squares, no rectangles, no grid, no pattern, no texture, no noise, no speckles, no reflections, no highlights, no gradients
+– absolutely no visible lines or edges on the floor in any direction
+– the floor must look like a completely smooth, featureless, infinite grey plane
 
 Wall:
 – perfectly flat, perfectly matte, uniform solid pure white
@@ -22,14 +25,14 @@ Wall:
 – no doors, no windows, no openings, no panels, no columns, no corners, no edges, no switches, no sockets, no lamps, no signs, no text, no logos, no objects at all
 – absolutely nothing on the wall except solid white color
 
-The line where floor and wall meet is a single perfectly straight horizontal line.
+The line where floor and wall meet is a single perfectly straight horizontal line. No other lines or shapes in the background.
 
 Lighting:
 – neutral white studio lighting from the front
 – one very soft, short shadow directly under and slightly behind the tyres
-– no other shadows, no light spots on the wall, no gradients, no colored light, no vignetting
+– no other shadows, no light spots on the wall, no gradients on the wall or floor, no colored light, no vignetting
 
-The entire background must look like a completely empty, featureless white wall and a featureless grey floor, with zero additional details.`,
+The entire background must look like a completely empty, featureless white wall and a completely smooth, featureless grey floor, with zero additional details.`,
     seed: "317869369",
   },
   "luxury-studio": {
