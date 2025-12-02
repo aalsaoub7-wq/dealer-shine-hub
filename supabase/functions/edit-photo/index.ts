@@ -39,7 +39,7 @@ The entire background must look like a completely empty, featureless white wall 
     seed: "583913403",
   },
   "luxury-studio": {
-    prompt: `A single car centered in frame on a perfectly flat matte floor in solid grey color #c8cfdb, no tiles, no seams, no lines, no patterns, no objects, plain matte white wall in the background, no doors, no windows, neutral white studio lighting, one soft short shadow under and slightly behind the tyres, no other shadows or objects.`,
+    prompt: `A single car centered in frame inside a closed luxury car photo studio. The car stands on a perfectly flat, glossy dark grey floor in exact color #2b2d30, with a single uniform mirror-like reflection of the car directly under it, fading smoothly to 0 within one car length, no tiles, no seams, no lines, no texture, no patterns and no other reflections anywhere on the floor. Around the car is a perfectly circular, slightly brighter glossy platform in exact color #3a3c40, with a clean sharp edge, perfectly centered under the car. The walls are a continuous seamless matte very dark charcoal in exact color #14151a, with no corners, no doors, no windows, no objects, no logos, no panels and no visible texture, only a very subtle vertical brightness gradient from #14151a at the edges to #191b20 behind the car. Lighting is from three invisible softboxes: one large soft light directly in front of the car and two smaller symmetric lights at 45 degrees, creating extremely soft, controlled highlights on the car and a single very soft shadow just behind and slightly to the sides of the tyres. There are no other shadows, no color casts, no vignetting and no additional light sources anywhere in the scene.`,
     seed: "102821603",
   },
 };
