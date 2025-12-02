@@ -145,7 +145,7 @@ export const AiSettingsDialog = () => {
       const { data, error } = await supabase
         .from("ai_settings")
         .select(
-          "background_prompt, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity, landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text, landing_page_logo_size, landing_page_logo_position, landing_page_header_height, landing_page_header_fit",
+          "background_prompt, background_template_id, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity, landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text, landing_page_logo_size, landing_page_logo_position, landing_page_header_height, landing_page_header_fit",
         )
         .eq("company_id", companyData.company_id)
         .single();
@@ -156,18 +156,33 @@ export const AiSettingsDialog = () => {
 
       if (data) {
         const savedPrompt = data.background_prompt;
+        const savedTemplateId = (data as any).background_template_id;
         setBackgroundPrompt(savedPrompt);
         
-        // Determine if saved prompt matches a template or is custom
-        const matchingTemplate = BACKGROUND_TEMPLATES.find(t => t.prompt === savedPrompt);
-        if (matchingTemplate) {
-          setSelectedTemplateId(matchingTemplate.id);
-          setUseCustomPrompt(false);
-          setCustomPrompt("");
+        // Use saved template_id if available, otherwise match by prompt
+        if (savedTemplateId) {
+          const matchingTemplate = BACKGROUND_TEMPLATES.find(t => t.id === savedTemplateId);
+          if (matchingTemplate) {
+            setSelectedTemplateId(savedTemplateId);
+            setUseCustomPrompt(false);
+            setCustomPrompt("");
+          } else {
+            setSelectedTemplateId(null);
+            setUseCustomPrompt(true);
+            setCustomPrompt(savedPrompt);
+          }
         } else {
-          setSelectedTemplateId(null);
-          setUseCustomPrompt(true);
-          setCustomPrompt(savedPrompt);
+          // Fallback to prompt matching for backwards compatibility
+          const matchingTemplate = BACKGROUND_TEMPLATES.find(t => t.prompt === savedPrompt);
+          if (matchingTemplate) {
+            setSelectedTemplateId(matchingTemplate.id);
+            setUseCustomPrompt(false);
+            setCustomPrompt("");
+          } else {
+            setSelectedTemplateId(null);
+            setUseCustomPrompt(true);
+            setCustomPrompt(savedPrompt);
+          }
         }
         
         setExampleDescriptions(data.example_descriptions || "");
@@ -387,11 +402,15 @@ export const AiSettingsDialog = () => {
 
       if (!companyData) throw new Error("Kunde inte hitta företag");
 
+      // Determine template ID to save (null for custom prompt)
+      const templateIdToSave = useCustomPrompt ? null : selectedTemplateId;
+      
       const { error } = await supabase.from("ai_settings").upsert(
         {
           user_id: user.id,
           company_id: companyData.company_id,
           background_prompt: backgroundPrompt,
+          background_template_id: templateIdToSave,
           example_descriptions: exampleDescriptions,
           logo_url: logoUrl,
           watermark_x: watermarkX,
