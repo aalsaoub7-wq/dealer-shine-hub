@@ -92,7 +92,9 @@ serve(async (req) => {
     photoroomFormData.append("padding", "0.10");
     photoroomFormData.append("horizontalAlignment", "center");
     photoroomFormData.append("verticalAlignment", "center");
-    // Only add guidance scale parameter
+    // Fixed background prompt for all templates
+    const fixedPrompt = "A single car, centered in frame. Keep the car's exact shape and colors. Place it in a professional indoor car photo studio matching the guidance image: same floor type, same wall color, same camera angle and lighting. No extra objects, no text, no logos, no doors, no windows. Soft neutral white studio lighting from the front, one soft shadow under and slightly behind the tyres.";
+    photoroomFormData.append("background.prompt", fixedPrompt);
     photoroomFormData.append("background.guidance.scale", "0.8");
 
     // If a template is selected, fetch and add the guidance image
