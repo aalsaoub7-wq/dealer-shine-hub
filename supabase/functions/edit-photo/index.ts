@@ -1,153 +1,156 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 // Template image URLs in storage (uploaded to car-photos bucket under templates/)
 const TEMPLATE_STORAGE_PATHS: Record<string, string> = {
-  'showroom': 'templates/showroom.jpg',
-  'luxury-studio': 'templates/luxury-studio.jpg',
+  showroom: "templates/showroom.jpg",
+  "luxury-studio": "templates/luxury-studio.jpg",
 };
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const PHOTOROOM_API_KEY = Deno.env.get('PHOTOROOM_API_KEY');
+    const PHOTOROOM_API_KEY = Deno.env.get("PHOTOROOM_API_KEY");
     if (!PHOTOROOM_API_KEY) {
-      throw new Error('PHOTOROOM_API_KEY not configured');
+      throw new Error("PHOTOROOM_API_KEY not configured");
     }
 
     // Get user's AI settings for background prompt
-    const authHeader = req.headers.get('Authorization');
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
-    
+    const authHeader = req.headers.get("Authorization");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: {
-        headers: { Authorization: authHeader ?? '' },
+        headers: { Authorization: authHeader ?? "" },
       },
     });
 
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    let backgroundPrompt = 'car on clean ceramic floor with the colour #c8cfdb, with plain white walls in the background, evenly lit';
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    let backgroundPrompt =
+      "car on clean ceramic floor with the colour #c8cfdb, with plain white walls in the background, evenly lit";
     let backgroundTemplateId: string | null = null;
-    let promptSource = 'default';
-    
+    let promptSource = "default";
+
     if (user) {
       // Get user's company to fetch company-wide AI settings
       const { data: userCompany } = await supabase
-        .from('user_companies')
-        .select('company_id')
-        .eq('user_id', user.id)
+        .from("user_companies")
+        .select("company_id")
+        .eq("user_id", user.id)
         .single();
-      
+
       if (userCompany) {
         console.log(`Fetching AI settings for company: ${userCompany.company_id}`);
-        
+
         const { data: aiSettings } = await supabase
-          .from('ai_settings')
-          .select('background_prompt, background_template_id')
-          .eq('company_id', userCompany.company_id)
+          .from("ai_settings")
+          .select("background_prompt, background_template_id")
+          .eq("company_id", userCompany.company_id)
           .single();
-        
+
         if (aiSettings?.background_prompt) {
           backgroundPrompt = aiSettings.background_prompt;
           backgroundTemplateId = aiSettings.background_template_id;
-          promptSource = 'company_settings';
-          
+          promptSource = "company_settings";
+
           // Log prompt identification for debugging
           const promptPreview = backgroundPrompt.substring(0, 100);
           console.log(`Using background prompt from company settings`);
           console.log(`Prompt preview: "${promptPreview}..."`);
-          console.log(`Template ID: ${backgroundTemplateId || 'custom/none'}`);
+          console.log(`Template ID: ${backgroundTemplateId || "custom/none"}`);
         }
       }
     }
-    
+
     console.log(`Prompt source: ${promptSource}`);
 
     const formData = await req.formData();
-    const imageFile = formData.get('image_file');
+    const imageFile = formData.get("image_file");
 
     if (!imageFile || !(imageFile instanceof File)) {
-      throw new Error('No image file provided');
+      throw new Error("No image file provided");
     }
 
-    console.log('Processing image with PhotoRoom API:', imageFile.name);
+    console.log("Processing image with PhotoRoom API:", imageFile.name);
 
     // Create FormData for PhotoRoom API
     const photoroomFormData = new FormData();
-    photoroomFormData.append('imageFile', imageFile);
-    photoroomFormData.append('outputSize', '3840x2880');
-    photoroomFormData.append('padding', '0.10');
-    photoroomFormData.append('horizontalAlignment', 'center');
-    photoroomFormData.append('verticalAlignment', 'center');
+    photoroomFormData.append("imageFile", imageFile);
+    photoroomFormData.append("outputSize", "3840x2880");
+    photoroomFormData.append("padding", "0.10");
+    photoroomFormData.append("horizontalAlignment", "center");
+    photoroomFormData.append("verticalAlignment", "center");
     // Only add guidance scale parameter
-    photoroomFormData.append('background.guidance.scale', '1.0');
-    
+    photoroomFormData.append("background.guidance.scale", "0.8");
+
     // If a template is selected, fetch and add the guidance image
     if (backgroundTemplateId && TEMPLATE_STORAGE_PATHS[backgroundTemplateId]) {
       const templatePath = TEMPLATE_STORAGE_PATHS[backgroundTemplateId];
       console.log(`Fetching guidance image from storage: ${templatePath}`);
-      
+
       const { data: templateImageData, error: downloadError } = await supabase.storage
-        .from('car-photos')
+        .from("car-photos")
         .download(templatePath);
-      
+
       if (downloadError) {
         console.error(`Failed to download guidance image: ${downloadError.message}`);
         // Continue without guidance image rather than failing entirely
       } else if (templateImageData) {
         console.log(`Successfully fetched guidance image, size: ${templateImageData.size} bytes`);
         // Convert Blob to File for FormData
-        const guidanceFile = new File([templateImageData], 'guidance.jpg', { type: 'image/jpeg' });
-        photoroomFormData.append('background.guidance.imageFile', guidanceFile);
-        console.log('Added guidance image to PhotoRoom request');
+        const guidanceFile = new File([templateImageData], "guidance.jpg", { type: "image/jpeg" });
+        photoroomFormData.append("background.guidance.imageFile", guidanceFile);
+        console.log("Added guidance image to PhotoRoom request");
       }
     } else {
-      console.log('No template selected, skipping guidance image');
+      console.log("No template selected, skipping guidance image");
     }
 
     // Call PhotoRoom API
-    const response = await fetch('https://image-api.photoroom.com/v2/edit', {
-      method: 'POST',
+    const response = await fetch("https://image-api.photoroom.com/v2/edit", {
+      method: "POST",
       headers: {
-        'Accept': 'image/png, application/json',
-        'x-api-key': PHOTOROOM_API_KEY,
+        Accept: "image/png, application/json",
+        "x-api-key": PHOTOROOM_API_KEY,
       },
       body: photoroomFormData,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('PhotoRoom API error:', response.status, errorText);
+      console.error("PhotoRoom API error:", response.status, errorText);
       throw new Error(`PhotoRoom API error: ${response.status} - ${errorText}`);
     }
 
-    const contentType = response.headers.get('content-type') || '';
-    if (!contentType.startsWith('image/')) {
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.startsWith("image/")) {
       const errorText = await response.text();
-      console.error('PhotoRoom API unexpected content-type:', contentType, errorText);
+      console.error("PhotoRoom API unexpected content-type:", contentType, errorText);
       throw new Error(`PhotoRoom API returned non-image response: ${contentType} - ${errorText}`);
     }
 
     // Get the edited image as blob
     const editedImageBlob = await response.blob();
-    console.log('Successfully edited image, size:', editedImageBlob.size);
+    console.log("Successfully edited image, size:", editedImageBlob.size);
 
     // Convert to base64 for JSON response (handle large files)
     const arrayBuffer = await editedImageBlob.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
-    
+
     // Convert to base64 in chunks to avoid stack overflow
-    let binary = '';
+    let binary = "";
     const chunkSize = 8192;
     for (let i = 0; i < uint8Array.length; i += chunkSize) {
       const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
@@ -159,17 +162,14 @@ serve(async (req) => {
     return new Response(JSON.stringify({ image: base64 }), {
       headers: {
         ...corsHeaders,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
   } catch (error: any) {
-    console.error('Error in edit-photo function:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
+    console.error("Error in edit-photo function:", error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
