@@ -31,6 +31,7 @@ serve(async (req) => {
     const { data: { user } } = await supabase.auth.getUser();
     
     let backgroundPrompt = 'car on clean ceramic floor with the colour #c8cfdb, with plain white walls in the background, evenly lit';
+    let promptSource = 'default';
     
     if (user) {
       // Get user's company to fetch company-wide AI settings
@@ -41,6 +42,8 @@ serve(async (req) => {
         .single();
       
       if (userCompany) {
+        console.log(`Fetching AI settings for company: ${userCompany.company_id}`);
+        
         const { data: aiSettings } = await supabase
           .from('ai_settings')
           .select('background_prompt')
@@ -49,10 +52,26 @@ serve(async (req) => {
         
         if (aiSettings?.background_prompt) {
           backgroundPrompt = aiSettings.background_prompt;
-          console.log('Using custom background prompt from company settings');
+          promptSource = 'company_settings';
+          
+          // Log prompt identification for debugging
+          const promptPreview = backgroundPrompt.substring(0, 100);
+          console.log(`Using background prompt from company settings`);
+          console.log(`Prompt preview: "${promptPreview}..."`);
+          
+          // Identify if it's a known template
+          if (backgroundPrompt.includes('#55575a') && backgroundPrompt.includes('white skirting board')) {
+            console.log('Template identified: Showroom');
+          } else if (backgroundPrompt.includes('#2b2d30') && backgroundPrompt.includes('luxury car photo studio')) {
+            console.log('Template identified: Luxury Studio');
+          } else {
+            console.log('Template identified: Custom prompt');
+          }
         }
       }
     }
+    
+    console.log(`Prompt source: ${promptSource}`);
 
     const formData = await req.formData();
     const imageFile = formData.get('image_file');

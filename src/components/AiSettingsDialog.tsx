@@ -415,9 +415,14 @@ export const AiSettingsDialog = () => {
 
       if (error) throw error;
 
+      // Show which background was saved
+      const savedBackgroundName = useCustomPrompt 
+        ? "Egen prompt" 
+        : BACKGROUND_TEMPLATES.find(t => t.id === selectedTemplateId)?.name || "Standard";
+      
       toast({
         title: "Inställningar sparade",
-        description: "AI-inställningarna har uppdaterats",
+        description: `Bakgrund: ${savedBackgroundName}`,
       });
       setOpen(false);
     } catch (error: any) {
@@ -506,8 +511,8 @@ export const AiSettingsDialog = () => {
                   </p>
                 </div>
 
-                {/* Template options grid */}
-                <div className="grid grid-cols-2 gap-3">
+                {/* Template options grid - 1 per row on mobile, 2 on desktop */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {BACKGROUND_TEMPLATES.map((template) => {
                     const isSelected = !useCustomPrompt && selectedTemplateId === template.id;
                     return (
