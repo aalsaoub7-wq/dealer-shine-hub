@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Settings, Upload, X, Languages, Palette, Stamp, Globe, CreditCard, Users } from "lucide-react";
+import { Settings, Upload, X, Languages, Palette, Stamp, Globe, CreditCard, Users, Check, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { WatermarkPreview } from "./WatermarkPreview";
@@ -16,12 +16,37 @@ import { PaymentSettings } from "./PaymentSettings";
 import { TeamManagement } from "./TeamManagement";
 import { useQuery } from "@tanstack/react-query";
 
+// Import background template images
+import bgTemplateShowroom from "@/assets/bg-template-showroom.jpg";
+import bgTemplateLuxuryStudio from "@/assets/bg-template-luxury-studio.jpg";
+
+// Background templates with their prompts
+const BACKGROUND_TEMPLATES = [
+  {
+    id: "showroom",
+    name: "Showroom",
+    description: "Grå golv med vita väggar",
+    image: bgTemplateShowroom,
+    prompt: "Peugeot 3008 SUV centered in frame on a perfectly flat, completely uniform matte floor in exact solid grey color #55575a, with no tiles, no seams, no lines, no texture, no patterns, no noise, no gradient and no reflections at all, the floor is a single continuous grey plane that meets a perfectly straight horizontal white skirting board, above it a completely plain matte white showroom wall with no doors, no windows, no corners, no objects and no shadows on the wall, camera straight-on at car height, neutral white studio lighting from the front, a single very soft short shadow directly under and just slightly behind the car, and absolutely no other shadows, lights, color shifts, vignetting or background details anywhere in the image."
+  },
+  {
+    id: "luxury-studio",
+    name: "Lyxig Studio",
+    description: "Mörk studio med cirkulär plattform",
+    image: bgTemplateLuxuryStudio,
+    prompt: "A single car centered in frame inside a closed luxury car photo studio. The car stands on a perfectly flat, glossy dark grey floor in exact color #2b2d30, with a single uniform mirror-like reflection of the car directly under it, fading smoothly to 0 within one car length, no tiles, no seams, no lines, no texture, no patterns and no other reflections anywhere on the floor. Around the car is a perfectly circular, slightly brighter glossy platform in exact color #3a3c40, with a clean sharp edge, perfectly centered under the car. The walls are a continuous seamless matte very dark charcoal in exact color #14151a, with no corners, no doors, no windows, no objects, no logos, no panels and no visible texture, only a very subtle vertical brightness gradient from #14151a at the edges to #191b20 behind the car. Lighting is from three invisible softboxes: one large soft light directly in front of the car and two smaller symmetric lights at 45 degrees, creating extremely soft, controlled highlights on the car and a single very soft shadow just behind and slightly to the sides of the tyres. There are no other shadows, no color casts, no vignetting and no additional light sources anywhere in the scene."
+  }
+];
+
 export const AiSettingsDialog = () => {
   const [open, setOpen] = useState(false);
   const [currentTab, setCurrentTab] = useState("background");
   const [backgroundPrompt, setBackgroundPrompt] = useState(
     "car on on clean ceramic floor with the colour #c8cfdb, with Plain white walls in the backgrond in the background, evenly lit",
   );
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [customPrompt, setCustomPrompt] = useState("");
+  const [useCustomPrompt, setUseCustomPrompt] = useState(false);
   const [exampleDescriptions, setExampleDescriptions] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [watermarkX, setWatermarkX] = useState(20);
@@ -130,7 +155,21 @@ export const AiSettingsDialog = () => {
       }
 
       if (data) {
-        setBackgroundPrompt(data.background_prompt);
+        const savedPrompt = data.background_prompt;
+        setBackgroundPrompt(savedPrompt);
+        
+        // Determine if saved prompt matches a template or is custom
+        const matchingTemplate = BACKGROUND_TEMPLATES.find(t => t.prompt === savedPrompt);
+        if (matchingTemplate) {
+          setSelectedTemplateId(matchingTemplate.id);
+          setUseCustomPrompt(false);
+          setCustomPrompt("");
+        } else {
+          setSelectedTemplateId(null);
+          setUseCustomPrompt(true);
+          setCustomPrompt(savedPrompt);
+        }
+        
         setExampleDescriptions(data.example_descriptions || "");
         setLogoUrl(data.logo_url || "");
         setWatermarkX(data.watermark_x || 20);
@@ -289,7 +328,8 @@ export const AiSettingsDialog = () => {
   };
 
   const handleTranslateToEnglish = async () => {
-    if (!backgroundPrompt.trim()) {
+    const textToTranslate = useCustomPrompt ? customPrompt : backgroundPrompt;
+    if (!textToTranslate.trim()) {
       toast({
         title: "Ingen text att översätta",
         description: "Ange en text i bakgrundsfältet först",
@@ -301,13 +341,16 @@ export const AiSettingsDialog = () => {
     setTranslating(true);
     try {
       const { data, error } = await supabase.functions.invoke("translate-text", {
-        body: { text: backgroundPrompt },
+        body: { text: textToTranslate },
       });
 
       if (error) throw error;
 
       if (data?.translatedText) {
         setBackgroundPrompt(data.translatedText);
+        if (useCustomPrompt) {
+          setCustomPrompt(data.translatedText);
+        }
         toast({
           title: "Översättning klar",
           description: "Texten har översatts till engelska",
@@ -455,25 +498,130 @@ export const AiSettingsDialog = () => {
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
-              <div className="space-y-2">
-                <Label htmlFor="background-prompt">Instruktioner (prompt) för bakgrunden</Label>
-                <Textarea
-                  id="background-prompt"
-                  value={backgroundPrompt}
-                  onChange={(e) => setBackgroundPrompt(e.target.value)}
-                  placeholder="Beskriv hur bakgrunden ska se ut..."
-                  className="min-h-[100px]"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleTranslateToEnglish}
-                  disabled={translating || !backgroundPrompt.trim()}
-                  className="w-full md:w-auto"
-                >
-                  <Languages className="h-4 w-4 mr-2" />
-                  {translating ? "Översätter..." : "Översätt till engelska"}
-                </Button>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-base font-medium">Välj bakgrund</Label>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Välj en mall eller skriv en egen prompt
+                  </p>
+                </div>
+
+                {/* Template options grid */}
+                <div className="grid grid-cols-2 gap-3">
+                  {BACKGROUND_TEMPLATES.map((template) => {
+                    const isSelected = !useCustomPrompt && selectedTemplateId === template.id;
+                    return (
+                      <button
+                        key={template.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedTemplateId(template.id);
+                          setUseCustomPrompt(false);
+                          setBackgroundPrompt(template.prompt);
+                        }}
+                        className={`relative rounded-xl overflow-hidden border-2 transition-all ${
+                          isSelected 
+                            ? "border-primary ring-2 ring-primary/20" 
+                            : "border-border hover:border-muted-foreground/50"
+                        }`}
+                      >
+                        <div className="aspect-video relative">
+                          <img
+                            src={template.image}
+                            alt={template.name}
+                            className="w-full h-full object-cover"
+                          />
+                          {isSelected && (
+                            <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
+                              <Check className="h-3 w-3" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-2 bg-background">
+                          <p className="font-medium text-sm">{template.name}</p>
+                          <p className="text-xs text-muted-foreground">{template.description}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+
+                  {/* Custom prompt option */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUseCustomPrompt(true);
+                      setSelectedTemplateId(null);
+                      if (!customPrompt) {
+                        setCustomPrompt(backgroundPrompt);
+                      }
+                      setBackgroundPrompt(customPrompt || backgroundPrompt);
+                    }}
+                    className={`relative rounded-xl overflow-hidden border-2 transition-all ${
+                      useCustomPrompt 
+                        ? "border-primary ring-2 ring-primary/20" 
+                        : "border-border hover:border-muted-foreground/50"
+                    }`}
+                  >
+                    <div className="aspect-video relative bg-muted flex items-center justify-center">
+                      <Pencil className="h-8 w-8 text-muted-foreground" />
+                      {useCustomPrompt && (
+                        <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
+                          <Check className="h-3 w-3" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-2 bg-background">
+                      <p className="font-medium text-sm">Egen prompt</p>
+                      <p className="text-xs text-muted-foreground">Skriv din egen beskrivning</p>
+                    </div>
+                  </button>
+                </div>
+
+                {/* Status indicator */}
+                <div className="rounded-lg bg-muted/50 p-3 border border-border">
+                  <p className="text-sm font-medium">
+                    {useCustomPrompt ? (
+                      <span className="flex items-center gap-2">
+                        <Pencil className="h-4 w-4 text-primary" />
+                        Använder egen prompt
+                      </span>
+                    ) : selectedTemplateId ? (
+                      <span className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-primary" />
+                        Använder mall: {BACKGROUND_TEMPLATES.find(t => t.id === selectedTemplateId)?.name}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">Ingen bakgrund vald</span>
+                    )}
+                  </p>
+                </div>
+
+                {/* Custom prompt textarea - only show when custom is selected */}
+                {useCustomPrompt && (
+                  <div className="space-y-2">
+                    <Label htmlFor="custom-prompt">Din egen prompt</Label>
+                    <Textarea
+                      id="custom-prompt"
+                      value={customPrompt}
+                      onChange={(e) => {
+                        setCustomPrompt(e.target.value);
+                        setBackgroundPrompt(e.target.value);
+                      }}
+                      placeholder="Beskriv hur bakgrunden ska se ut..."
+                      className="min-h-[100px]"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleTranslateToEnglish}
+                      disabled={translating || !customPrompt.trim()}
+                      className="w-full md:w-auto"
+                    >
+                      <Languages className="h-4 w-4 mr-2" />
+                      {translating ? "Översätter..." : "Översätt till engelska"}
+                    </Button>
+                  </div>
+                )}
               </div>
             </TabsContent>
 
