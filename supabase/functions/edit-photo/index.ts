@@ -92,33 +92,14 @@ serve(async (req) => {
     photoroomFormData.append("padding", "0.10");
     photoroomFormData.append("horizontalAlignment", "center");
     photoroomFormData.append("verticalAlignment", "center");
-    // Fixed background prompt for all templates
-    const fixedPrompt = "A single car, centered in frame. Keep the car's exact shape and colors. Place it in a professional indoor car photo studio matching the guidance image: same floor type, same wall color, same camera angle and lighting. No extra objects, no text, no logos, no doors, no windows. Soft neutral white studio lighting from the front, one soft shadow under and slightly behind the tyres.";
-    photoroomFormData.append("background.prompt", fixedPrompt);
-    photoroomFormData.append("background.guidance.scale", "0.8");
+    
+    // Background prompt with seed for consistent results
+    const backgroundPromptText = "A single car centered in frame on a perfectly flat matte floor in solid grey color #c8cfdb, no tiles, no seams, no lines, no patterns, no objects, plain matte white wall in the background, no doors, no windows, neutral white studio lighting, one soft short shadow under and slightly behind the tyres, no other shadows or objects.";
+    photoroomFormData.append("background.prompt", backgroundPromptText);
+    photoroomFormData.append("background.expandPrompt.mode", "ai.never");
+    photoroomFormData.append("background.seed", "117879368");
 
-    // If a template is selected, fetch and add the guidance image
-    if (backgroundTemplateId && TEMPLATE_STORAGE_PATHS[backgroundTemplateId]) {
-      const templatePath = TEMPLATE_STORAGE_PATHS[backgroundTemplateId];
-      console.log(`Fetching guidance image from storage: ${templatePath}`);
-
-      const { data: templateImageData, error: downloadError } = await supabase.storage
-        .from("car-photos")
-        .download(templatePath);
-
-      if (downloadError) {
-        console.error(`Failed to download guidance image: ${downloadError.message}`);
-        // Continue without guidance image rather than failing entirely
-      } else if (templateImageData) {
-        console.log(`Successfully fetched guidance image, size: ${templateImageData.size} bytes`);
-        // Convert Blob to File for FormData
-        const guidanceFile = new File([templateImageData], "guidance.jpg", { type: "image/jpeg" });
-        photoroomFormData.append("background.guidance.imageFile", guidanceFile);
-        console.log("Added guidance image to PhotoRoom request");
-      }
-    } else {
-      console.log("No template selected, skipping guidance image");
-    }
+    console.log("Using prompt with seed instead of guidance image");
 
     // Call PhotoRoom API
     const response = await fetch("https://image-api.photoroom.com/v2/edit", {
@@ -126,6 +107,7 @@ serve(async (req) => {
       headers: {
         Accept: "image/png, application/json",
         "x-api-key": PHOTOROOM_API_KEY,
+        "pr-ai-background-model-version": "background-studio-beta-2025-03-17",
       },
       body: photoroomFormData,
     });
