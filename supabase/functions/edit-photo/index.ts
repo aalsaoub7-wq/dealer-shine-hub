@@ -6,10 +6,42 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Template image URLs in storage (uploaded to car-photos bucket under templates/)
-const TEMPLATE_STORAGE_PATHS: Record<string, string> = {
-  showroom: "templates/showroom.jpg",
-  "luxury-studio": "templates/luxury-studio.jpg",
+// Template configurations with specific prompts and seeds
+const TEMPLATE_CONFIGS: Record<string, { prompt: string; seed: string }> = {
+  showroom: {
+    prompt: `A single car centered in frame.
+The background must be only a plain, empty wall and floor.
+
+Floor:
+– perfectly flat, perfectly matte, uniform solid grey color #c8cfdb
+– no tiles, no seams, no lines, no patterns, no texture, no reflections, no gradient
+
+Wall:
+– perfectly flat, perfectly matte, uniform solid pure white
+– the wall is one single flat plane
+– no doors, no windows, no openings, no panels, no columns, no corners, no edges, no switches, no sockets, no lamps, no signs, no text, no logos, no objects at all
+– absolutely nothing on the wall except solid white color
+
+The line where floor and wall meet is a single perfectly straight horizontal line.
+
+Lighting:
+– neutral white studio lighting from the front
+– one very soft, short shadow directly under and slightly behind the tyres
+– no other shadows, no light spots on the wall, no gradients, no colored light, no vignetting
+
+The entire background must look like a completely empty, featureless white wall and a featureless grey floor, with zero additional details.`,
+    seed: "317869369",
+  },
+  "luxury-studio": {
+    prompt: `A single car centered in frame on a perfectly flat matte floor in solid grey color #c8cfdb, no tiles, no seams, no lines, no patterns, no objects, plain matte white wall in the background, no doors, no windows, neutral white studio lighting, one soft short shadow under and slightly behind the tyres, no other shadows or objects.`,
+    seed: "117879368",
+  },
+};
+
+// Default config if no template selected
+const DEFAULT_CONFIG = {
+  prompt: `A single car centered in frame on a perfectly flat matte floor in solid grey color #c8cfdb, no tiles, no seams, no lines, no patterns, no objects, plain matte white wall in the background, no doors, no windows, neutral white studio lighting, one soft short shadow under and slightly behind the tyres, no other shadows or objects.`,
+  seed: "117879368",
 };
 
 serve(async (req) => {
@@ -93,13 +125,17 @@ serve(async (req) => {
     photoroomFormData.append("horizontalAlignment", "center");
     photoroomFormData.append("verticalAlignment", "center");
     
-    // Background prompt with seed for consistent results
-    const backgroundPromptText = "A single car centered in frame on a perfectly flat matte floor in solid grey color #c8cfdb, no tiles, no seams, no lines, no patterns, no objects, plain matte white wall in the background, no doors, no windows, neutral white studio lighting, one soft short shadow under and slightly behind the tyres, no other shadows or objects.";
-    photoroomFormData.append("background.prompt", backgroundPromptText);
+    // Get template-specific config or use default
+    const templateConfig = backgroundTemplateId && TEMPLATE_CONFIGS[backgroundTemplateId] 
+      ? TEMPLATE_CONFIGS[backgroundTemplateId] 
+      : DEFAULT_CONFIG;
+    
+    console.log(`Using template: ${backgroundTemplateId || 'default'}`);
+    console.log(`Seed: ${templateConfig.seed}`);
+    
+    photoroomFormData.append("background.prompt", templateConfig.prompt);
     photoroomFormData.append("background.expandPrompt.mode", "ai.never");
-    photoroomFormData.append("background.seed", "117879368");
-
-    console.log("Using prompt with seed instead of guidance image");
+    photoroomFormData.append("background.seed", templateConfig.seed);
 
     // Call PhotoRoom API
     const response = await fetch("https://image-api.photoroom.com/v2/edit", {
