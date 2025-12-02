@@ -6,6 +6,12 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Template image URLs in storage (uploaded to car-photos bucket under templates/)
+const TEMPLATE_STORAGE_PATHS: Record<string, string> = {
+  'showroom': 'templates/showroom.jpg',
+  'luxury-studio': 'templates/luxury-studio.jpg',
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -31,6 +37,7 @@ serve(async (req) => {
     const { data: { user } } = await supabase.auth.getUser();
     
     let backgroundPrompt = 'car on clean ceramic floor with the colour #c8cfdb, with plain white walls in the background, evenly lit';
+    let backgroundTemplateId: string | null = null;
     let promptSource = 'default';
     
     if (user) {
@@ -46,27 +53,20 @@ serve(async (req) => {
         
         const { data: aiSettings } = await supabase
           .from('ai_settings')
-          .select('background_prompt')
+          .select('background_prompt, background_template_id')
           .eq('company_id', userCompany.company_id)
           .single();
         
         if (aiSettings?.background_prompt) {
           backgroundPrompt = aiSettings.background_prompt;
+          backgroundTemplateId = aiSettings.background_template_id;
           promptSource = 'company_settings';
           
           // Log prompt identification for debugging
           const promptPreview = backgroundPrompt.substring(0, 100);
           console.log(`Using background prompt from company settings`);
           console.log(`Prompt preview: "${promptPreview}..."`);
-          
-          // Identify if it's a known template
-          if (backgroundPrompt.includes('#55575a') && backgroundPrompt.includes('white skirting board')) {
-            console.log('Template identified: Showroom');
-          } else if (backgroundPrompt.includes('#2b2d30') && backgroundPrompt.includes('luxury car photo studio')) {
-            console.log('Template identified: Luxury Studio');
-          } else {
-            console.log('Template identified: Custom prompt');
-          }
+          console.log(`Template ID: ${backgroundTemplateId || 'custom/none'}`);
         }
       }
     }
@@ -90,6 +90,33 @@ serve(async (req) => {
     photoroomFormData.append('horizontalAlignment', 'center');
     photoroomFormData.append('verticalAlignment', 'center');
     photoroomFormData.append('background.prompt', backgroundPrompt);
+    
+    // Always add these new parameters
+    photoroomFormData.append('background.expandPrompt.mode', 'ai.never');
+    photoroomFormData.append('background.guidance.scale', '1.0');
+    
+    // If a template is selected, fetch and add the guidance image
+    if (backgroundTemplateId && TEMPLATE_STORAGE_PATHS[backgroundTemplateId]) {
+      const templatePath = TEMPLATE_STORAGE_PATHS[backgroundTemplateId];
+      console.log(`Fetching guidance image from storage: ${templatePath}`);
+      
+      const { data: templateImageData, error: downloadError } = await supabase.storage
+        .from('car-photos')
+        .download(templatePath);
+      
+      if (downloadError) {
+        console.error(`Failed to download guidance image: ${downloadError.message}`);
+        // Continue without guidance image rather than failing entirely
+      } else if (templateImageData) {
+        console.log(`Successfully fetched guidance image, size: ${templateImageData.size} bytes`);
+        // Convert Blob to File for FormData
+        const guidanceFile = new File([templateImageData], 'guidance.jpg', { type: 'image/jpeg' });
+        photoroomFormData.append('background.guidance.imageFile', guidanceFile);
+        console.log('Added guidance image to PhotoRoom request');
+      }
+    } else {
+      console.log('No template selected, skipping guidance image');
+    }
 
     // Call PhotoRoom API
     const response = await fetch('https://image-api.photoroom.com/v2/edit', {

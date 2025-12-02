@@ -17,6 +17,7 @@ export type Database = {
       ai_settings: {
         Row: {
           background_prompt: string
+          background_template_id: string | null
           company_id: string
           created_at: string
           example_descriptions: string | null
@@ -44,6 +45,7 @@ export type Database = {
         }
         Insert: {
           background_prompt?: string
+          background_template_id?: string | null
           company_id: string
           created_at?: string
           example_descriptions?: string | null
@@ -71,6 +73,7 @@ export type Database = {
         }
         Update: {
           background_prompt?: string
+          background_template_id?: string | null
           company_id?: string
           created_at?: string
           example_descriptions?: string | null
