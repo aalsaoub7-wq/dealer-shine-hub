@@ -9,25 +9,33 @@ const corsHeaders = {
 // Template configurations with specific prompts and seeds
 const TEMPLATE_CONFIGS: Record<string, { prompt: string; seed: string }> = {
   showroom: {
-    prompt: `A single car centered in frame. The background must be only a plain, empty wall and floor.
+    prompt: `A single car centered in frame.
+The background must be only a plain, empty wall and floor.
 
 Floor:
-– one single infinite surface under the car
-– perfectly matte, uniform solid grey color #c8cfdb
-– draw the floor as a smooth continuous plane with no repeating elements
-– do not draw any tiles, seams, gaps, joints, cracks, squares, rectangles, grids, patterns or lines on the floor
-– do not draw any perspective lines on the floor
-– do not draw any change of color or brightness in different parts of the floor
-– no texture, no noise, no speckles, no reflections, no highlights, no gradient on the floor
-– every pixel of the floor must have the same grey color #c8cfdb
+– one single, continuous, perfectly flat surface
+– covered with identical square tiles in uniform solid grey color #c8cfdb
+– all tiles must be exactly the same size and color
+– tiles are arranged in a perfect straight grid, aligned with the image: rows perfectly horizontal, columns perfectly vertical
+– grout lines are very thin, straight, evenly spaced and the same width everywhere
+– no broken tiles, no rotated tiles, no random patterns, no decorative tiles, no stains, no dirt
+– no texture, no noise, no speckles, no reflections, no highlights, no gradient on the tiles or grout
+– the tiled floor must look like a clean, perfectly regular infinite grid of identical grey tiles
 
-Wall: – perfectly flat, perfectly matte, uniform solid pure white – the wall is one single flat plane – no doors, no windows, no openings, no panels, no columns, no corners, no edges, no switches, no sockets, no lamps, no signs, no text, no logos, no objects at all – absolutely nothing on the wall except solid white color
+Wall:
+– perfectly flat, perfectly matte, uniform solid pure white
+– the wall is one single flat plane
+– no doors, no windows, no openings, no panels, no columns, no corners, no edges, no switches, no sockets, no lamps, no signs, no text, no logos, no objects at all
+– absolutely nothing on the wall except solid white color
 
 The line where floor and wall meet is a single perfectly straight horizontal line. No other lines or shapes in the background.
 
-Lighting: – neutral white studio lighting from the front – one very soft, short shadow directly under and slightly behind the tyres – no other shadows, no light spots on the wall, no gradients on the wall or floor, no colored light, no vignetting
+Lighting:
+– neutral white studio lighting from the front
+– one very soft, short shadow directly under and slightly behind the tyres
+– no other shadows, no light spots on the wall, no gradients on the wall or floor, no colored light, no vignetting
 
-The entire background must look like a completely empty, featureless white wall and a completely smooth, featureless grey floor, with zero additional details.`,
+The entire background must look like a completely empty, featureless white wall and a perfectly regular grid of identical grey floor tiles, with zero additional objects or decorative details.`,
     seed: "583913403",
   },
   "luxury-studio": {
