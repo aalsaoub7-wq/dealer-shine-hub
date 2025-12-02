@@ -28,18 +28,18 @@ The line where floor and wall meet is a single perfectly straight horizontal lin
 Lighting: – neutral white studio lighting from the front – one very soft, short shadow directly under and slightly behind the tyres – no other shadows, no light spots on the wall, no gradients on the wall or floor, no colored light, no vignetting
 
 The entire background must look like a completely empty, featureless white wall and a completely smooth, featureless grey floor, with zero additional details.`,
-    seed: "317869369",
+    seed: "583913403",
   },
   "luxury-studio": {
     prompt: `A single car centered in frame on a perfectly flat matte floor in solid grey color #c8cfdb, no tiles, no seams, no lines, no patterns, no objects, plain matte white wall in the background, no doors, no windows, neutral white studio lighting, one soft short shadow under and slightly behind the tyres, no other shadows or objects.`,
-    seed: "117879368",
+    seed: "102821603",
   },
 };
 
 // Default config if no template selected
 const DEFAULT_CONFIG = {
   prompt: `A single car centered in frame on a perfectly flat matte floor in solid grey color #c8cfdb, no tiles, no seams, no lines, no patterns, no objects, plain matte white wall in the background, no doors, no windows, neutral white studio lighting, one soft short shadow under and slightly behind the tyres, no other shadows or objects.`,
-  seed: "117879368",
+  seed: "542492587",
 };
 
 serve(async (req) => {
@@ -122,15 +122,16 @@ serve(async (req) => {
     photoroomFormData.append("padding", "0.10");
     photoroomFormData.append("horizontalAlignment", "center");
     photoroomFormData.append("verticalAlignment", "center");
-    
+
     // Get template-specific config or use default
-    const templateConfig = backgroundTemplateId && TEMPLATE_CONFIGS[backgroundTemplateId] 
-      ? TEMPLATE_CONFIGS[backgroundTemplateId] 
-      : DEFAULT_CONFIG;
-    
-    console.log(`Using template: ${backgroundTemplateId || 'default'}`);
+    const templateConfig =
+      backgroundTemplateId && TEMPLATE_CONFIGS[backgroundTemplateId]
+        ? TEMPLATE_CONFIGS[backgroundTemplateId]
+        : DEFAULT_CONFIG;
+
+    console.log(`Using template: ${backgroundTemplateId || "default"}`);
     console.log(`Seed: ${templateConfig.seed}`);
-    
+
     photoroomFormData.append("background.prompt", templateConfig.prompt);
     photoroomFormData.append("background.expandPrompt.mode", "ai.never");
     photoroomFormData.append("background.seed", templateConfig.seed);
