@@ -89,10 +89,7 @@ serve(async (req) => {
     photoroomFormData.append('padding', '0.10');
     photoroomFormData.append('horizontalAlignment', 'center');
     photoroomFormData.append('verticalAlignment', 'center');
-    photoroomFormData.append('background.prompt', backgroundPrompt);
-    
-    // Always add these new parameters
-    photoroomFormData.append('background.expandPrompt.mode', 'ai.never');
+    // Only add guidance scale parameter
     photoroomFormData.append('background.guidance.scale', '1.0');
     
     // If a template is selected, fetch and add the guidance image
