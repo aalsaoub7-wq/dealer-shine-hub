@@ -45,9 +45,9 @@ const Landing = () => {
       <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => scrollToSection('hero')}>
-              <img src={luveroLogo} alt="Luvero" className="h-10 w-10" />
-              <img src={luveroLogoText} alt="Luvero" className="h-8" />
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => scrollToSection('hero')}>
+              <img src={luveroLogo} alt="Luvero" className="h-6 w-6" />
+              <img src={luveroLogoText} alt="Luvero" className="h-4" />
             </div>
 
             {/* Desktop Navigation */}
@@ -784,8 +784,8 @@ const Landing = () => {
             {/* Column 1 - Brand */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <img src={luveroLogo} alt="Luvero" className="h-8 w-8" />
-                <img src={luveroLogoText} alt="Luvero" className="h-6" />
+                <img src={luveroLogo} alt="Luvero" className="h-5 w-5" />
+                <img src={luveroLogoText} alt="Luvero" className="h-3" />
               </div>
               <p className="text-sm text-muted-foreground">
                 Professionell bildredigering för återförsäljare. Snabbt, enkelt, och prisvärt.
