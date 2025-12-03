@@ -39,6 +39,8 @@ const Auth = () => {
   const [inviteCode, setInviteCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; inviteCode?: string }>({});
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -68,6 +70,41 @@ const Auth = () => {
         description: error.message,
         variant: "destructive",
       });
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+    setLoading(true);
+
+    try {
+      const emailValidation = z.string().email("Ogiltig e-postadress").safeParse(email);
+      if (!emailValidation.success) {
+        setErrors({ email: emailValidation.error.errors[0].message });
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+
+      if (error) throw error;
+
+      setResetEmailSent(true);
+      toast({
+        title: "E-post skickad",
+        description: "Kolla din inkorg för att återställa lösenordet.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Fel",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
     }
   };
@@ -188,10 +225,66 @@ const Auth = () => {
           </div>
           <img src={luveroLogoText} alt="Luvero" className="h-12 mx-auto" />
           <CardDescription>
-            {isLogin ? "Logga in på ditt återförsäljarkonto" : "Skapa ditt återförsäljarkonto"}
+            {isForgotPassword 
+              ? "Ange din e-postadress för att återställa lösenordet" 
+              : isLogin 
+                ? "Logga in på ditt återförsäljarkonto" 
+                : "Skapa ditt återförsäljarkonto"}
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {isForgotPassword ? (
+            resetEmailSent ? (
+              <div className="text-center space-y-4">
+                <p className="text-muted-foreground">
+                  Vi har skickat ett e-postmeddelande med instruktioner för att återställa ditt lösenord.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsForgotPassword(false);
+                    setResetEmailSent(false);
+                  }}
+                  className="w-full"
+                >
+                  Tillbaka till inloggning
+                </Button>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="reset-email" className="text-sm font-medium">
+                    E-postadress
+                  </label>
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    placeholder="namn@företag.se"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={loading}
+                    className={errors.email ? "border-destructive" : ""}
+                  />
+                  {errors.email && (
+                    <p className="text-sm text-destructive">{errors.email}</p>
+                  )}
+                </div>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Skickar..." : "Skicka återställningslänk"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setIsForgotPassword(false)}
+                  className="w-full"
+                  disabled={loading}
+                >
+                  Tillbaka till inloggning
+                </Button>
+              </form>
+            )
+          ) : (
+            <>
           {!isLogin && (
             <Alert className="mb-4 border-primary/20 bg-primary/5">
               <AlertCircle className="h-4 w-4 text-primary" />
@@ -270,6 +363,16 @@ const Auth = () => {
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password}</p>
               )}
+              {isLogin && (
+                <button
+                  type="button"
+                  onClick={() => setIsForgotPassword(true)}
+                  className="text-sm text-primary hover:underline"
+                  disabled={loading}
+                >
+                  Glömt lösenord?
+                </button>
+              )}
             </div>
             {!isLogin && (
               <div className="space-y-2">
@@ -307,6 +410,8 @@ const Auth = () => {
               {isLogin ? "Inget konto? Skapa ett här" : "Har redan ett konto? Logga in"}
             </button>
           </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
