@@ -87,8 +87,12 @@ const Auth = () => {
         return;
       }
 
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+      // Use custom password reset flow
+      const { error } = await supabase.functions.invoke("request-password-reset", {
+        body: {
+          email: email.trim().toLowerCase(),
+          redirectUrl: `${window.location.origin}/reset-password`,
+        },
       });
 
       if (error) throw error;
@@ -96,7 +100,7 @@ const Auth = () => {
       setResetEmailSent(true);
       toast({
         title: "E-post skickad",
-        description: "Kolla din inkorg för att återställa lösenordet.",
+        description: "Om e-postadressen finns skickas ett återställningsmail.",
       });
     } catch (error: any) {
       toast({

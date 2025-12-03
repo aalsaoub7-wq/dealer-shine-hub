@@ -272,6 +272,36 @@ export type Database = {
         }
         Relationships: []
       }
+      password_reset_tokens: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          token: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          token: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       photos: {
         Row: {
           car_id: string
@@ -638,6 +668,8 @@ export type Database = {
       }
     }
     Functions: {
+      cleanup_expired_reset_tokens: { Args: never; Returns: undefined }
+      generate_reset_token: { Args: never; Returns: string }
       generate_share_token: { Args: never; Returns: string }
       has_role: {
         Args: {

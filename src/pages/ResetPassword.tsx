@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import luveroLogo from "@/assets/luvero-logo.png";
 import luveroLogoText from "@/assets/luvero-logo-text.png";
 import { z } from "zod";
+import { Loader2 } from "lucide-react";
 
 const passwordSchema = z
   .string()
@@ -15,28 +16,30 @@ const passwordSchema = z
   .max(72, "Lösenordet får vara max 72 tecken");
 
 const ResetPassword = () => {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+  
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
+  const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if we have a valid session from the reset link
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          title: "Ogiltig länk",
-          description: "Återställningslänken är ogiltig eller har gått ut.",
-          variant: "destructive",
-        });
-        navigate("/auth");
-      }
-    };
-    checkSession();
-  }, [navigate, toast]);
+    // Check if we have a token in URL
+    if (!token) {
+      setIsValidToken(false);
+      toast({
+        title: "Ogiltig länk",
+        description: "Återställningslänken är ogiltig.",
+        variant: "destructive",
+      });
+    } else {
+      setIsValidToken(true);
+    }
+  }, [token, toast]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,28 +62,72 @@ const ResetPassword = () => {
         return;
       }
 
-      const { error } = await supabase.auth.updateUser({ password });
+      // Call custom reset-password edge function
+      const { data, error } = await supabase.functions.invoke("reset-password", {
+        body: {
+          token,
+          newPassword: password,
+        },
+      });
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(error.message || "Ett fel uppstod");
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       toast({
         title: "Lösenord uppdaterat",
         description: "Ditt lösenord har ändrats. Du kan nu logga in.",
       });
 
-      // Sign out and redirect to login
-      await supabase.auth.signOut();
+      // Redirect to login
       navigate("/auth");
     } catch (error: any) {
       toast({
         title: "Fel",
-        description: error.message,
+        description: error.message || "Kunde inte uppdatera lösenordet",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
+
+  // Show loading state while checking token
+  if (isValidToken === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-card to-background p-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Show error state if no token
+  if (!isValidToken) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-card to-background p-4">
+        <Card className="w-full max-w-md bg-gradient-card border-border/50 shadow-glow">
+          <CardHeader className="space-y-4 text-center">
+            <div className="flex justify-center">
+              <img src={luveroLogo} alt="Luvero Orbit Logo" className="w-16 h-16" />
+            </div>
+            <img src={luveroLogoText} alt="Luvero" className="h-12 mx-auto" />
+            <CardDescription className="text-destructive">
+              Återställningslänken är ogiltig eller har gått ut.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate("/auth")} className="w-full">
+              Tillbaka till inloggning
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-card to-background p-4">
@@ -131,7 +178,23 @@ const ResetPassword = () => {
               )}
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Uppdaterar..." : "Uppdatera lösenord"}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Uppdaterar...
+                </>
+              ) : (
+                "Uppdatera lösenord"
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => navigate("/auth")}
+              className="w-full"
+              disabled={loading}
+            >
+              Tillbaka till inloggning
             </Button>
           </form>
         </CardContent>
