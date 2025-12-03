@@ -20,6 +20,7 @@ export type Database = {
           background_template_id: string | null
           company_id: string
           created_at: string
+          custom_background_seed: string | null
           example_descriptions: string | null
           id: string
           landing_page_accent_color: string | null
@@ -48,6 +49,7 @@ export type Database = {
           background_template_id?: string | null
           company_id: string
           created_at?: string
+          custom_background_seed?: string | null
           example_descriptions?: string | null
           id?: string
           landing_page_accent_color?: string | null
@@ -76,6 +78,7 @@ export type Database = {
           background_template_id?: string | null
           company_id?: string
           created_at?: string
+          custom_background_seed?: string | null
           example_descriptions?: string | null
           id?: string
           landing_page_accent_color?: string | null

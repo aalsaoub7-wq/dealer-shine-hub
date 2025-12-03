@@ -94,7 +94,7 @@ serve(async (req) => {
 
         const { data: aiSettings } = await supabase
           .from("ai_settings")
-          .select("background_prompt, background_template_id")
+          .select("background_prompt, background_template_id, custom_background_seed")
           .eq("company_id", userCompany.company_id)
           .single();
 
@@ -108,6 +108,13 @@ serve(async (req) => {
           console.log(`Using background prompt from company settings`);
           console.log(`Prompt preview: "${promptPreview}..."`);
           console.log(`Template ID: ${backgroundTemplateId || "custom/none"}`);
+          
+          // Store custom seed if available (for custom prompts)
+          if (aiSettings.custom_background_seed) {
+            console.log(`Custom background seed: ${aiSettings.custom_background_seed}`);
+            // Store in a variable to use later
+            (globalThis as any).__customBackgroundSeed = aiSettings.custom_background_seed;
+          }
         }
       }
     }
@@ -131,18 +138,31 @@ serve(async (req) => {
     photoroomFormData.append("horizontalAlignment", "center");
     photoroomFormData.append("verticalAlignment", "center");
 
-    // Get template-specific config or use default
-    const templateConfig =
-      backgroundTemplateId && TEMPLATE_CONFIGS[backgroundTemplateId]
-        ? TEMPLATE_CONFIGS[backgroundTemplateId]
-        : DEFAULT_CONFIG;
+    // Get template-specific config or use custom seed for custom prompts
+    let promptToUse: string;
+    let seedToUse: string;
 
-    console.log(`Using template: ${backgroundTemplateId || "default"}`);
-    console.log(`Seed: ${templateConfig.seed}`);
+    if (backgroundTemplateId && TEMPLATE_CONFIGS[backgroundTemplateId]) {
+      // Use template config (Showroom or Luxury Studio)
+      const templateConfig = TEMPLATE_CONFIGS[backgroundTemplateId];
+      promptToUse = templateConfig.prompt;
+      seedToUse = templateConfig.seed;
+      console.log(`Using template: ${backgroundTemplateId}`);
+    } else {
+      // Custom prompt - use stored custom seed or default
+      const customSeed = (globalThis as any).__customBackgroundSeed;
+      promptToUse = backgroundPrompt;
+      seedToUse = customSeed || DEFAULT_CONFIG.seed;
+      console.log(`Using custom prompt with seed: ${seedToUse}`);
+      // Clean up global variable
+      delete (globalThis as any).__customBackgroundSeed;
+    }
 
-    photoroomFormData.append("background.prompt", templateConfig.prompt);
+    console.log(`Seed: ${seedToUse}`);
+
+    photoroomFormData.append("background.prompt", promptToUse);
     photoroomFormData.append("background.expandPrompt.mode", "ai.never");
-    photoroomFormData.append("background.seed", templateConfig.seed);
+    photoroomFormData.append("background.seed", seedToUse);
 
     // Call PhotoRoom API
     const response = await fetch("https://image-api.photoroom.com/v2/edit", {
