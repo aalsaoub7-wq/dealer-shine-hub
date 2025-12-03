@@ -47,7 +47,7 @@ const Landing = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => scrollToSection('hero')}>
               <img src={luveroLogo} alt="Luvero" className="h-10 w-10" />
-              <img src={luveroLogoText} alt="Luvero" className="h-16" />
+              <img src={luveroLogoText} alt="Luvero" className="h-8" />
             </div>
 
             {/* Desktop Navigation */}
@@ -785,7 +785,7 @@ const Landing = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <img src={luveroLogo} alt="Luvero" className="h-8 w-8" />
-                <img src={luveroLogoText} alt="Luvero" className="h-14" />
+                <img src={luveroLogoText} alt="Luvero" className="h-6" />
               </div>
               <p className="text-sm text-muted-foreground">
                 Professionell bildredigering för återförsäljare. Snabbt, enkelt, och prisvärt.
