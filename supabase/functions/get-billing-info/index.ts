@@ -104,8 +104,24 @@ serve(async (req) => {
       .eq("status", "active")
       .maybeSingle();
 
-    // Get current plan (default to 'start')
-    const currentPlan = subscription?.plan || 'start';
+    // Get current plan - check subscription first, then Stripe customer metadata as fallback
+    let currentPlan = subscription?.plan || null;
+    
+    // If no plan from subscription, try to get from Stripe customer metadata
+    if (!currentPlan && company.stripe_customer_id) {
+      try {
+        const customer = await stripe.customers.retrieve(company.stripe_customer_id) as any;
+        if (customer && !customer.deleted && customer.metadata?.plan) {
+          currentPlan = customer.metadata.plan;
+          console.log(`[BILLING-INFO] Got plan from Stripe metadata: ${currentPlan}`);
+        }
+      } catch (error) {
+        console.error("[BILLING-INFO] Error fetching customer metadata:", error);
+      }
+    }
+    
+    // Default to 'start' if still no plan
+    currentPlan = currentPlan || 'start';
     const planConfig = PLAN_PRICING[currentPlan as keyof typeof PLAN_PRICING] || PLAN_PRICING.start;
 
     if (!company.stripe_customer_id) {
