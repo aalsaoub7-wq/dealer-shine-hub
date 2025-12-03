@@ -546,11 +546,11 @@ const Landing = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 md:gap-6 max-w-6xl mx-auto">
             {/* Start Plan */}
             <div className="relative p-6 md:p-8 rounded-3xl bg-card border-2 border-green-500/50 shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20">
-              <div className="absolute -top-3 left-6">
-                <span className="px-3 py-1 text-xs font-semibold bg-green-500/20 text-green-500 rounded-full border border-green-500/30">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="px-3 py-1 text-xs font-semibold bg-green-500 text-white rounded-full">
                   Billigast &lt; 100 bilder
                 </span>
               </div>
@@ -624,8 +624,8 @@ const Landing = () => {
 
             {/* Elit Plan */}
             <div className="relative p-6 md:p-8 rounded-3xl bg-card border-2 border-purple-500/50 shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
-              <div className="absolute -top-3 left-6">
-                <span className="px-3 py-1 text-xs font-semibold bg-purple-500/20 text-purple-500 rounded-full border border-purple-500/30">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="px-3 py-1 text-xs font-semibold bg-purple-500 text-white rounded-full">
                   Bäst för 500+ bilder
                 </span>
               </div>
