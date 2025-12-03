@@ -205,7 +205,7 @@ const Dashboard = () => {
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 md:gap-3">
               <img src={luveroLogo} alt="Luvero Orbit Logo" className="w-8 h-8 md:w-10 md:h-10" />
-              <img src={luveroLogoText} alt="Luvero" className="h-5 md:h-6" />
+              <img src={luveroLogoText} alt="Luvero" className="h-14 md:h-16" />
             </div>
             <div className="flex items-center gap-1.5 md:gap-2">
               <AiSettingsDialog />
