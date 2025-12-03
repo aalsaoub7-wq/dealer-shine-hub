@@ -183,7 +183,7 @@ const Auth = () => {
           <div className="flex justify-center">
             <img src={luveroLogo} alt="Luvero Orbit Logo" className="w-16 h-16" />
           </div>
-          <img src={luveroLogoText} alt="Luvero" className="h-16 mx-auto" />
+          <img src={luveroLogoText} alt="Luvero" className="h-32 mx-auto" />
           <CardDescription>
             {isLogin ? "Logga in på ditt återförsäljarkonto" : "Skapa ditt återförsäljarkonto"}
           </CardDescription>
