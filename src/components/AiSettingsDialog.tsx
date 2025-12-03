@@ -47,6 +47,12 @@ export const AiSettingsDialog = () => {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [customPrompt, setCustomPrompt] = useState("");
   const [useCustomPrompt, setUseCustomPrompt] = useState(false);
+  const [customBackgroundSeed, setCustomBackgroundSeed] = useState<string | null>(null);
+
+  // Generate a random 9-digit seed
+  const generateCustomSeed = () => {
+    return Math.floor(100000000 + Math.random() * 900000000).toString();
+  };
   const [exampleDescriptions, setExampleDescriptions] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [watermarkX, setWatermarkX] = useState(20);
@@ -145,7 +151,7 @@ export const AiSettingsDialog = () => {
       const { data, error } = await supabase
         .from("ai_settings")
         .select(
-          "background_prompt, background_template_id, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity, landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text, landing_page_logo_size, landing_page_logo_position, landing_page_header_height, landing_page_header_fit",
+          "background_prompt, background_template_id, custom_background_seed, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity, landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text, landing_page_logo_size, landing_page_logo_position, landing_page_header_height, landing_page_header_fit",
         )
         .eq("company_id", companyData.company_id)
         .single();
@@ -158,6 +164,10 @@ export const AiSettingsDialog = () => {
         const savedPrompt = data.background_prompt;
         const savedTemplateId = (data as any).background_template_id;
         setBackgroundPrompt(savedPrompt);
+        
+        // Load custom background seed if available
+        const savedCustomSeed = (data as any).custom_background_seed;
+        setCustomBackgroundSeed(savedCustomSeed || null);
         
         // Use saved template_id if available, otherwise match by prompt
         if (savedTemplateId) {
@@ -404,6 +414,8 @@ export const AiSettingsDialog = () => {
 
       // Determine template ID to save (null for custom prompt)
       const templateIdToSave = useCustomPrompt ? null : selectedTemplateId;
+      // Save custom seed only if using custom prompt
+      const seedToSave = useCustomPrompt ? customBackgroundSeed : null;
       
       const { error } = await supabase.from("ai_settings").upsert(
         {
@@ -411,6 +423,7 @@ export const AiSettingsDialog = () => {
           company_id: companyData.company_id,
           background_prompt: backgroundPrompt,
           background_template_id: templateIdToSave,
+          custom_background_seed: seedToSave,
           example_descriptions: exampleDescriptions,
           logo_url: logoUrl,
           watermark_x: watermarkX,
@@ -436,7 +449,7 @@ export const AiSettingsDialog = () => {
 
       // Show which background was saved
       const savedBackgroundName = useCustomPrompt 
-        ? "Egen prompt" 
+        ? "Egen Bakgrund" 
         : BACKGROUND_TEMPLATES.find(t => t.id === selectedTemplateId)?.name || "Standard";
       
       toast({
@@ -579,6 +592,10 @@ export const AiSettingsDialog = () => {
                         setCustomPrompt(backgroundPrompt);
                       }
                       setBackgroundPrompt(customPrompt || backgroundPrompt);
+                      // Generate seed if not already set
+                      if (!customBackgroundSeed) {
+                        setCustomBackgroundSeed(generateCustomSeed());
+                      }
                     }}
                     className={`relative rounded-xl overflow-hidden border-2 transition-all ${
                       useCustomPrompt 
@@ -595,8 +612,8 @@ export const AiSettingsDialog = () => {
                       )}
                     </div>
                     <div className="p-2 bg-background">
-                      <p className="font-medium text-sm">Egen prompt</p>
-                      <p className="text-xs text-muted-foreground">Skriv din egen beskrivning</p>
+                      <p className="font-medium text-sm">Egen Bakgrund</p>
+                      <p className="text-xs text-muted-foreground">Beskriv din bakgrund</p>
                     </div>
                   </button>
                 </div>
@@ -604,10 +621,10 @@ export const AiSettingsDialog = () => {
                 {/* Status indicator */}
                 <div className="rounded-lg bg-muted/50 p-3 border border-border">
                   <p className="text-sm font-medium">
-                    {useCustomPrompt ? (
+                  {useCustomPrompt ? (
                       <span className="flex items-center gap-2">
                         <Pencil className="h-4 w-4 text-primary" />
-                        Använder egen prompt
+                        Använder egen bakgrund
                       </span>
                     ) : selectedTemplateId ? (
                       <span className="flex items-center gap-2">
@@ -623,17 +640,25 @@ export const AiSettingsDialog = () => {
                 {/* Custom prompt textarea - only show when custom is selected */}
                 {useCustomPrompt && (
                   <div className="space-y-2">
-                    <Label htmlFor="custom-prompt">Din egen prompt</Label>
+                    <Label htmlFor="custom-prompt">Beskriv din bakgrund</Label>
                     <Textarea
                       id="custom-prompt"
                       value={customPrompt}
                       onChange={(e) => {
-                        setCustomPrompt(e.target.value);
-                        setBackgroundPrompt(e.target.value);
+                        const newPrompt = e.target.value;
+                        setCustomPrompt(newPrompt);
+                        setBackgroundPrompt(newPrompt);
+                        // Generate new seed when prompt changes
+                        setCustomBackgroundSeed(generateCustomSeed());
                       }}
-                      placeholder="Beskriv hur bakgrunden ska se ut..."
+                      placeholder="Beskriv din bakgrund..."
                       className="min-h-[100px]"
                     />
+                    <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-3">
+                      <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
+                        OBS! Egna bakgrunder kan bli dåliga då du styr de helt själv.
+                      </p>
+                    </div>
                     <Button
                       variant="outline"
                       size="sm"
