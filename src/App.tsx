@@ -70,7 +70,7 @@ const App = () => {
                   <Route path="/" element={<Landing />} />
                   <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                   <Route path="/auth" element={<Auth />} />
-                  <Route path="/auth/reset-password" element={<ResetPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/car/:id" element={<ProtectedRoute><CarDetail /></ProtectedRoute>} />
                   <Route path="/shared/:token" element={<SharedPhotos />} />
                   <Route path="/integritetspolicy" element={<PrivacyPolicy />} />
