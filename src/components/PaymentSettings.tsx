@@ -322,9 +322,6 @@ export const PaymentSettings = () => {
                 + {planConfig.pricePerImage} kr per AI-redigerad bild
               </p>
             </div>
-            <div className="text-right text-sm text-muted-foreground">
-              <p>{planConfig.recommended}</p>
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -525,44 +522,6 @@ export const PaymentSettings = () => {
         </Card>
       </div>
 
-      {/* Invoice History */}
-      {billingInfo.invoices && billingInfo.invoices.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Fakturahistorik</h3>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-3">
-                {billingInfo.invoices.map((invoice) => (
-                  <div key={invoice.id} className="flex justify-between items-center py-2 border-b last:border-0">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">
-                        {new Date(invoice.created).toLocaleDateString("sv-SE", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Status: {invoice.status === "paid" ? "Betald" : invoice.status}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold">
-                        {invoice.amount.toFixed(2)} {invoice.currency.toUpperCase()}
-                      </span>
-                      {invoice.invoicePdf && (
-                        <Button variant="outline" size="sm" onClick={() => openExternalUrl(invoice.invoicePdf!)}>
-                          <ExternalLink className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 };
