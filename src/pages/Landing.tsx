@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import luveroLogo from "@/assets/luvero-logo-new.png";
+import luveroLogoText from "@/assets/luvero-logo-text.png";
 import adstuffLogo from "@/assets/adstuff-logo.png";
 import { Brain, Link2, Shield, Globe, Users, DollarSign, Upload, Wand2, Download, Check, ChevronDown, Menu, X, Package, Phone, Mail } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -46,9 +47,7 @@ const Landing = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => scrollToSection('hero')}>
               <img src={luveroLogo} alt="Luvero" className="h-10 w-10" />
-              <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                Luvero ©
-              </span>
+              <img src={luveroLogoText} alt="Luvero" className="h-6" />
             </div>
 
             {/* Desktop Navigation */}
@@ -786,9 +785,7 @@ const Landing = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <img src={luveroLogo} alt="Luvero" className="h-8 w-8" />
-                <span className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
-                  Luvero ©
-                </span>
+                <img src={luveroLogoText} alt="Luvero" className="h-5" />
               </div>
               <p className="text-sm text-muted-foreground">
                 Professionell bildredigering för återförsäljare. Snabbt, enkelt, och prisvärt.

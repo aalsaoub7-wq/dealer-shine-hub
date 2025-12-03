@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import luveroLogo from "@/assets/luvero-logo.png";
+import luveroLogoText from "@/assets/luvero-logo-text.png";
 import { z } from "zod";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -182,7 +183,7 @@ const Auth = () => {
           <div className="flex justify-center">
             <img src={luveroLogo} alt="Luvero Orbit Logo" className="w-16 h-16" />
           </div>
-          <CardTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">Luvero ©</CardTitle>
+          <img src={luveroLogoText} alt="Luvero" className="h-6 mx-auto" />
           <CardDescription>
             {isLogin ? "Logga in på ditt återförsäljarkonto" : "Skapa ditt återförsäljarkonto"}
           </CardDescription>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LogOut, Plus, Search, Sparkles } from "lucide-react";
 import luveroLogo from "@/assets/luvero-logo.png";
+import luveroLogoText from "@/assets/luvero-logo-text.png";
 import CarCard from "@/components/CarCard";
 import AddCarDialog from "@/components/AddCarDialog";
 import { AiSettingsDialog } from "@/components/AiSettingsDialog";
@@ -204,9 +205,7 @@ const Dashboard = () => {
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 md:gap-3">
               <img src={luveroLogo} alt="Luvero Orbit Logo" className="w-8 h-8 md:w-10 md:h-10" />
-              <h1 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-                Luvero ©
-              </h1>
+              <img src={luveroLogoText} alt="Luvero" className="h-5 md:h-6" />
             </div>
             <div className="flex items-center gap-1.5 md:gap-2">
               <AiSettingsDialog />
