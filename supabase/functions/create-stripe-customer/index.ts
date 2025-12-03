@@ -12,12 +12,41 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// Plan pricing configuration
+const PLAN_PRICES = {
+  start: {
+    monthly: "price_1SaG7tRrATtOsqxE8nAWiFuY", // 239 kr/month
+    metered: "price_1SVYkmRrATtOsqxEkpteepcs", // 4.95 kr per image
+  },
+  pro: {
+    monthly: "price_1SaG85RrATtOsqxEFU109fpS", // 449 kr/month
+    metered: "price_1SVYkmRrATtOsqxEkpteepcs", // TODO: Create 1.95 kr metered price
+  },
+  elit: {
+    monthly: "price_1SaG86RrATtOsqxEYMD9EfdF", // 995 kr/month
+    metered: "price_1SVYkmRrATtOsqxEkpteepcs", // TODO: Create 0.99 kr metered price
+  },
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Parse request body for plan selection
+    let selectedPlan = "start";
+    try {
+      const body = await req.json();
+      if (body.plan && PLAN_PRICES[body.plan as keyof typeof PLAN_PRICES]) {
+        selectedPlan = body.plan;
+      }
+    } catch {
+      // No body or invalid JSON, use default plan
+    }
+
+    console.log(`[CREATE-STRIPE-CUSTOMER] Creating customer with plan: ${selectedPlan}`);
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
@@ -78,6 +107,7 @@ serve(async (req) => {
       metadata: {
         company_id: company.id,
         user_id: user.id,
+        plan: selectedPlan,
       },
     });
 
@@ -105,26 +135,29 @@ serve(async (req) => {
       ? Math.floor(new Date(companyData.trial_end_date).getTime() / 1000)
       : undefined;
 
+    // Get plan-specific prices
+    const planPrices = PLAN_PRICES[selectedPlan as keyof typeof PLAN_PRICES];
+
     // Create subscription with both monthly fee and metered billing
     const subscription = await stripe.subscriptions.create({
       customer: customer.id,
       items: [
         {
-          // Monthly fixed fee: 239 SEK/month
-          price: "price_1SWQj4RrATtOsqxEX5ZWPNld",
+          // Monthly fixed fee based on plan
+          price: planPrices.monthly,
         },
         {
-          // Metered billing: 4.95 SEK per edited image
-          price: "price_1SVYkmRrATtOsqxEkpteepcs",
+          // Metered billing based on plan
+          price: planPrices.metered,
         }
       ],
       trial_end: trialEnd, // 21-day trial period
       proration_behavior: 'none',
     });
 
-    console.log("Created Stripe subscription:", subscription.id);
+    console.log(`Created Stripe subscription: ${subscription.id} for plan: ${selectedPlan}`);
 
-    // Save subscription to database using admin client
+    // Save subscription to database using admin client (with plan)
     const { error: subError } = await supabaseAdmin
       .from("subscriptions")
       .insert({
@@ -132,6 +165,7 @@ serve(async (req) => {
         stripe_subscription_id: subscription.id,
         stripe_customer_id: customer.id,
         status: subscription.status,
+        plan: selectedPlan,
         current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
         current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
       });
@@ -145,6 +179,7 @@ serve(async (req) => {
       JSON.stringify({
         customerId: customer.id,
         subscriptionId: subscription.id,
+        plan: selectedPlan,
         message: "Customer and subscription created successfully",
       }),
       {
