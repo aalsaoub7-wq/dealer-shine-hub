@@ -567,7 +567,7 @@ const Landing = () => {
 
                 <div className="py-4 space-y-3">
                   {['Lagerhantering & dokumentation', 'Obegränsat antal bilar', 'Obegränsat antal användare', 'AI bakgrundsredigering'].map((feature, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm">
+                    <div key={i} className="flex items-center gap-2 text-sm whitespace-nowrap">
                       <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
                       <span className="text-foreground">{feature}</span>
                     </div>
