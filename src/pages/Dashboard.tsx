@@ -212,7 +212,7 @@ const Dashboard = () => {
                   Testa alla funktioner gratis till {new Date(trialInfo.endDate).toLocaleDateString('sv-SE')}
                 </p>
                 <p className="text-sm opacity-90 mt-1">
-                  {trialInfo.imagesRemaining} av 150 gratis bilder kvar
+                  {trialInfo.imagesRemaining} av 50 gratis bilder kvar
                 </p>
               </div>
               {!trialInfo.hasPaymentMethod && <Button variant="secondary" onClick={() => openSettingsDialog("payment")} className="whitespace-nowrap">

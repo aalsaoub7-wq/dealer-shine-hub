@@ -23,9 +23,10 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { company_id, user_email, company_name } = await req.json();
+    const { company_id, user_email, company_name, plan } = await req.json();
+    const selectedPlan = plan || "start";
 
-    console.log(`[AUTO-STRIPE] Creating customer for company: ${company_id}`);
+    console.log(`[AUTO-STRIPE] Creating customer for company: ${company_id}, plan: ${selectedPlan}`);
 
     // Check if customer already exists
     const { data: company } = await supabaseAdmin
@@ -52,6 +53,7 @@ serve(async (req) => {
       name: company_name,
       metadata: {
         company_id: company_id,
+        plan: selectedPlan,
       },
     });
 

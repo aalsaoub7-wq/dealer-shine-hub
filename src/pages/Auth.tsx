@@ -32,6 +32,8 @@ const Auth = () => {
     // Check if mode=signup is in URL
     return searchParams.get('mode') !== 'signup';
   });
+  // Get plan from URL (start, pro, elit)
+  const selectedPlan = searchParams.get('plan') || 'start';
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [inviteCode, setInviteCode] = useState("");
@@ -143,14 +145,15 @@ const Auth = () => {
               .single();
 
             if (userCompany) {
-              // Trigger auto Stripe customer creation in background
+              // Trigger auto Stripe customer creation in background with selected plan
               supabase.functions.invoke("trigger-auto-stripe-customer", {
                 body: {
                   company_id: userCompany.company_id,
                   user_id: authData.user.id,
+                  plan: selectedPlan,
                 },
               }).then(() => {
-                console.log("Stripe customer creation triggered");
+                console.log(`Stripe customer creation triggered with plan: ${selectedPlan}`);
               }).catch((err) => {
                 console.error("Error triggering Stripe customer creation:", err);
               });

@@ -15,7 +15,7 @@ export const PLANS = {
     isPopular: false,
     stripePrices: {
       monthly: 'price_1SaG7tRrATtOsqxE8nAWiFuY',
-      metered: 'price_1SVYkmRrATtOsqxEkpteepcs'
+      metered: 'price_1SaGraRrATtOsqxE9qIFXSax'
     },
     recommended: '< 100 bilder/månad',
     breakEvenImages: 100,
@@ -32,7 +32,7 @@ export const PLANS = {
     isPopular: true,
     stripePrices: {
       monthly: 'price_1SaG85RrATtOsqxEFU109fpS',
-      metered: 'price_1SVYkmRrATtOsqxEkpteepcs' // TODO: Create Pro metered price (1.95 SEK) in Stripe
+      metered: 'price_1SaGsbRrATtOsqxEj14M7j1A'
     },
     recommended: '100-500 bilder/månad',
     breakEvenImages: 500,
@@ -49,7 +49,7 @@ export const PLANS = {
     isPopular: false,
     stripePrices: {
       monthly: 'price_1SaG86RrATtOsqxEYMD9EfdF',
-      metered: 'price_1SVYkmRrATtOsqxEkpteepcs' // TODO: Create Elit metered price (0.99 SEK) in Stripe
+      metered: 'price_1SaGsvRrATtOsqxEtH1fjQmG'
     },
     recommended: '500+ bilder/månad',
     breakEvenImages: Infinity,
