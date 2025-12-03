@@ -18,9 +18,9 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { company_id, user_id } = await req.json();
+    const { company_id, user_id, plan } = await req.json();
 
-    console.log(`[TRIGGER] Auto-creating Stripe customer for company: ${company_id}`);
+    console.log(`[TRIGGER] Auto-creating Stripe customer for company: ${company_id}, plan: ${plan || 'start'}`);
 
     // Get company and user details
     const { data: company } = await supabaseAdmin
@@ -51,6 +51,7 @@ serve(async (req) => {
           company_id,
           user_email: user.user.email,
           company_name: company?.name || `Company - ${user.user.email}`,
+          plan: plan || "start",
         },
       }
     );

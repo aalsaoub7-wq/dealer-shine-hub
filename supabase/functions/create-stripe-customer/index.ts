@@ -16,15 +16,15 @@ const corsHeaders = {
 const PLAN_PRICES = {
   start: {
     monthly: "price_1SaG7tRrATtOsqxE8nAWiFuY", // 239 kr/month
-    metered: "price_1SVYkmRrATtOsqxEkpteepcs", // 4.95 kr per image
+    metered: "price_1SaGraRrATtOsqxE9qIFXSax", // 4.95 kr per image
   },
   pro: {
     monthly: "price_1SaG85RrATtOsqxEFU109fpS", // 449 kr/month
-    metered: "price_1SVYkmRrATtOsqxEkpteepcs", // TODO: Create 1.95 kr metered price
+    metered: "price_1SaGsbRrATtOsqxEj14M7j1A", // 1.95 kr per image
   },
   elit: {
     monthly: "price_1SaG86RrATtOsqxEYMD9EfdF", // 995 kr/month
-    metered: "price_1SVYkmRrATtOsqxEkpteepcs", // TODO: Create 0.99 kr metered price
+    metered: "price_1SaGsvRrATtOsqxEtH1fjQmG", // 0.99 kr per image
   },
 };
 
@@ -88,9 +88,22 @@ serve(async (req) => {
 
     // Check if customer already exists
     if (company.stripe_customer_id) {
+      // Customer exists - check if we need to use plan from metadata
+      let planToUse = selectedPlan;
+      try {
+        const existingCustomer = await stripe.customers.retrieve(company.stripe_customer_id);
+        if (existingCustomer && !existingCustomer.deleted && existingCustomer.metadata?.plan) {
+          planToUse = existingCustomer.metadata.plan;
+          console.log(`[CREATE-STRIPE-CUSTOMER] Using plan from customer metadata: ${planToUse}`);
+        }
+      } catch (e) {
+        console.log("[CREATE-STRIPE-CUSTOMER] Could not retrieve customer metadata");
+      }
+      
       return new Response(
         JSON.stringify({
           customerId: company.stripe_customer_id,
+          plan: planToUse,
           message: "Customer already exists",
         }),
         {
