@@ -1,8 +1,69 @@
 import { supabase } from "@/integrations/supabase/client";
 
+export type PlanType = 'start' | 'pro' | 'elit';
+
+export const PLANS = {
+  start: {
+    id: 'start',
+    name: 'Start',
+    monthlyFee: 239,
+    pricePerImage: 4.95,
+    color: 'green',
+    colorClass: 'text-green-500',
+    bgClass: 'bg-green-500/10',
+    borderClass: 'border-green-500/50',
+    isPopular: false,
+    stripePrices: {
+      monthly: 'price_1SaG7tRrATtOsqxE8nAWiFuY',
+      metered: 'price_1SVYkmRrATtOsqxEkpteepcs'
+    },
+    recommended: '< 100 bilder/månad',
+    breakEvenImages: 100,
+  },
+  pro: {
+    id: 'pro',
+    name: 'Pro',
+    monthlyFee: 449,
+    pricePerImage: 1.95,
+    color: 'blue',
+    colorClass: 'text-blue-500',
+    bgClass: 'bg-blue-500/10',
+    borderClass: 'border-blue-500/50',
+    isPopular: true,
+    stripePrices: {
+      monthly: 'price_1SaG85RrATtOsqxEFU109fpS',
+      metered: 'price_1SVYkmRrATtOsqxEkpteepcs' // TODO: Create Pro metered price (1.95 SEK) in Stripe
+    },
+    recommended: '100-500 bilder/månad',
+    breakEvenImages: 500,
+  },
+  elit: {
+    id: 'elit',
+    name: 'Elit',
+    monthlyFee: 995,
+    pricePerImage: 0.99,
+    color: 'purple',
+    colorClass: 'text-purple-500',
+    bgClass: 'bg-purple-500/10',
+    borderClass: 'border-purple-500/50',
+    isPopular: false,
+    stripePrices: {
+      monthly: 'price_1SaG86RrATtOsqxEYMD9EfdF',
+      metered: 'price_1SVYkmRrATtOsqxEkpteepcs' // TODO: Create Elit metered price (0.99 SEK) in Stripe
+    },
+    recommended: '500+ bilder/månad',
+    breakEvenImages: Infinity,
+  }
+} as const;
+
+// Legacy export for backward compatibility
 export const PRICES = {
   MONTHLY_FEE: 239,
   EDITED_IMAGE: 4.95,
+};
+
+export const getPlanPricing = (plan: PlanType) => {
+  return PLANS[plan] || PLANS.start;
 };
 
 export const trackUsage = async (
@@ -61,6 +122,17 @@ export const trackUsage = async (
     const year = now.getFullYear();
     const month = `${year}-${String(monthDate + 1).padStart(2, '0')}-01`;
 
+    // Get subscription to determine plan and pricing
+    const { data: subscription } = await supabase
+      .from("subscriptions")
+      .select("plan")
+      .eq("company_id", company.id)
+      .eq("status", "active")
+      .maybeSingle();
+
+    const plan = (subscription?.plan as PlanType) || 'start';
+    const planPricing = getPlanPricing(plan);
+
     // Get or create usage stats for current month
     const { data: existingStats, error: fetchError } = await supabase
       .from("usage_stats")
@@ -74,9 +146,9 @@ export const trackUsage = async (
       return;
     }
 
-    // Track each edited image
+    // Track each edited image with plan-specific pricing
     const newCount = (existingStats?.edited_images_count || 0) + 1;
-    const newCost = (existingStats?.edited_images_cost || 0) + PRICES.EDITED_IMAGE;
+    const newCost = (existingStats?.edited_images_cost || 0) + planPricing.pricePerImage;
 
     const updates = {
       user_id: user.id,

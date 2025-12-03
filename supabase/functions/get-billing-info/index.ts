@@ -12,6 +12,28 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// Plan pricing configuration
+const PLAN_PRICING = {
+  start: {
+    name: 'Start',
+    monthlyFee: 239,
+    pricePerImage: 4.95,
+    color: 'green',
+  },
+  pro: {
+    name: 'Pro',
+    monthlyFee: 449,
+    pricePerImage: 1.95,
+    color: 'blue',
+  },
+  elit: {
+    name: 'Elit',
+    monthlyFee: 995,
+    pricePerImage: 0.99,
+    color: 'purple',
+  },
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -74,11 +96,25 @@ serve(async (req) => {
       ? Math.max(0, Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
       : 0;
 
+    // Get subscription info including plan
+    const { data: subscription } = await supabaseClient
+      .from("subscriptions")
+      .select("*, plan")
+      .eq("company_id", company.id)
+      .eq("status", "active")
+      .maybeSingle();
+
+    // Get current plan (default to 'start')
+    const currentPlan = subscription?.plan || 'start';
+    const planConfig = PLAN_PRICING[currentPlan as keyof typeof PLAN_PRICING] || PLAN_PRICING.start;
+
     if (!company.stripe_customer_id) {
       return new Response(
         JSON.stringify({
           hasCustomer: false,
           hasPaymentMethod: false,
+          plan: currentPlan,
+          planConfig,
           trial: {
             isInTrial,
             daysLeft: daysLeftInTrial,
@@ -121,37 +157,30 @@ serve(async (req) => {
       .select("id, email")
       .in("id", userIds);
 
-    // Create per-user breakdown
+    // Create per-user breakdown with plan-specific pricing
     const userUsageStats = (companyUsers || []).map((uc) => {
       const profile = profiles?.find((p) => p.id === uc.user_id);
       const stats = usageStats?.find((s) => s.user_id === uc.user_id);
+      const editedImages = stats?.edited_images_count || 0;
       
       return {
         userId: uc.user_id,
         email: profile?.email || "Okänd användare",
-        editedImages: stats?.edited_images_count || 0,
-        cost: stats?.edited_images_cost || 0,
+        editedImages,
+        cost: editedImages * planConfig.pricePerImage,
       };
     });
 
-    // Calculate total company usage (excluding monthly fee here - added in frontend)
-    const totalUsage = (usageStats || []).reduce(
-      (acc, stat) => ({
-        editedImages: acc.editedImages + stat.edited_images_count,
-        cost: acc.cost + stat.edited_images_cost,
-      }),
-      { editedImages: 0, cost: 0 }
+    // Calculate total company usage with plan-specific pricing
+    const totalEditedImages = (usageStats || []).reduce(
+      (acc, stat) => acc + stat.edited_images_count,
+      0
     );
     
-    // Note: Monthly fee (239 kr) is added in the frontend PaymentSettings component
-
-    // Get subscription info
-    const { data: subscription } = await supabaseClient
-      .from("subscriptions")
-      .select("*")
-      .eq("company_id", company.id)
-      .eq("status", "active")
-      .maybeSingle();
+    const totalUsage = {
+      editedImages: totalEditedImages,
+      cost: totalEditedImages * planConfig.pricePerImage,
+    };
 
     // Check if user has payment method by retrieving customer from Stripe
     let hasPaymentMethod = false;
@@ -177,10 +206,6 @@ serve(async (req) => {
         );
         
         console.log(`[BILLING-INFO] Payment method status: ${hasPaymentMethod}`);
-        
-        if (subscription) {
-          console.log(`[BILLING-INFO] Subscription default_payment_method: ${subscription.default_payment_method}`);
-        }
       } catch (error) {
         console.error("[BILLING-INFO] Error checking payment methods:", error);
       }
@@ -203,9 +228,12 @@ serve(async (req) => {
         hasCustomer: true,
         customerId: company.stripe_customer_id,
         hasPaymentMethod,
+        plan: currentPlan,
+        planConfig,
         subscription: subscription ? {
           status: subscription.status,
           current_period_end: subscription.current_period_end,
+          plan: subscription.plan,
         } : undefined,
         currentUsage: totalUsage,
         userUsageStats: userUsageStats,

@@ -47,10 +47,10 @@ serve(async (req) => {
       throw new Error("Company not found");
     }
 
-    // Get company's subscription
+    // Get company's subscription with plan
     const { data: subscription, error: subError } = await supabase
       .from("subscriptions")
-      .select("*")
+      .select("*, plan")
       .eq("company_id", userCompany.company_id)
       .eq("status", "active")
       .single();
@@ -60,7 +60,9 @@ serve(async (req) => {
       throw new Error("No active subscription found");
     }
 
-    // Get the subscription from Stripe to find the subscription item ID
+    console.log(`[REPORT-USAGE] Subscription plan: ${subscription.plan || 'start'}`);
+
+    // Get the subscription from Stripe to find the metered subscription item ID
     const stripeSubscription = await stripe.subscriptions.retrieve(
       subscription.stripe_subscription_id
     );
@@ -69,7 +71,18 @@ serve(async (req) => {
       throw new Error("No subscription items found");
     }
 
-    const subscriptionItemId = stripeSubscription.items.data[0].id;
+    // Find the metered subscription item (not the fixed monthly one)
+    const meteredItem = stripeSubscription.items.data.find(
+      (item: any) => item.price.recurring?.usage_type === 'metered'
+    );
+
+    if (!meteredItem) {
+      console.error("No metered subscription item found");
+      throw new Error("No metered subscription item found");
+    }
+
+    const subscriptionItemId = meteredItem.id;
+    console.log(`[REPORT-USAGE] Using metered subscription item: ${subscriptionItemId}`);
 
     // Parse request body
     const { quantity = 1 } = await req.json();
@@ -84,12 +97,13 @@ serve(async (req) => {
       }
     );
 
-    console.log("Reported usage to Stripe:", usageRecord);
+    console.log(`[REPORT-USAGE] Reported ${quantity} usage to Stripe for plan ${subscription.plan || 'start'}:`, usageRecord.id);
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        usageRecordId: usageRecord.id 
+        usageRecordId: usageRecord.id,
+        plan: subscription.plan || 'start'
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

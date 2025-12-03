@@ -538,54 +538,138 @@ const Landing = () => {
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
               <span className="bg-gradient-primary bg-clip-text text-transparent">
-                Enkel prissättning
+                Välj din plan
               </span>
             </h2>
             <p className="text-xl text-muted-foreground">
-              Betala endast för det du använder. Inga dolda kostnader.
+              Betala endast för det du använder. Inget kort behövs för att testa.
             </p>
           </div>
 
-          <div className="max-w-lg mx-auto">
-            <div className="relative p-8 md:p-12 rounded-3xl bg-gradient-to-br from-card to-muted border-2 border-primary/50 shadow-2xl shadow-primary/20">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-3xl" />
+          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {/* Start Plan */}
+            <div className="relative p-6 md:p-8 rounded-3xl bg-card border-2 border-green-500/50 shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20">
+              <div className="absolute -top-3 left-6">
+                <span className="px-3 py-1 text-xs font-semibold bg-green-500/20 text-green-500 rounded-full border border-green-500/30">
+                  Billigast &lt; 100 bilder
+                </span>
+              </div>
               
-              <div className="relative text-center space-y-6">
-                <div>
-                  <div className="flex flex-col items-center justify-center gap-2 mb-4">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-5xl md:text-6xl font-extrabold bg-gradient-primary bg-clip-text text-transparent">
-                        239 kr
-                      </span>
-                      <span className="text-xl md:text-2xl text-muted-foreground">/månad</span>
+              <div className="text-center space-y-4 mt-4">
+                <h3 className="text-2xl font-bold text-green-500">Start</h3>
+                <div className="flex flex-col items-center gap-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-extrabold text-green-500">239 kr</span>
+                    <span className="text-muted-foreground">/mån</span>
+                  </div>
+                  <p className="text-lg text-muted-foreground">+ 4,95 kr per bild</p>
+                </div>
+
+                <div className="py-4 space-y-3">
+                  {['Lagerhantering & dokumentation', 'Obegränsat antal bilar', 'Obegränsat antal användare', 'AI bakgrundsredigering'].map((feature, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                      <span className="text-foreground">{feature}</span>
                     </div>
-                    <p className="text-lg md:text-xl text-muted-foreground">
-                      + 4,95 kr per AI-redigerad bild
-                    </p>
-                  </div>
-                  <p className="text-muted-foreground text-sm md:text-base italic">
-                    Lagerhantering & dokumentation ingår i månadsavgiften
-                  </p>
+                  ))}
                 </div>
 
-                <div className="flex flex-col items-center py-6">
-                  <div className="space-y-3">
-                    {['Överlägsna bilder till dina annonser', 'Obegränsat antal bilar och användare', 'Integration med befintliga system'].map((feature, i) => <div key={i} className="flex items-center gap-3">
-                      <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                      <span className="text-foreground font-medium">{feature}</span>
-                    </div>)}
-                  </div>
-                </div>
-
-                <Button size="lg" className="w-full text-lg py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300" onClick={() => navigate("/auth?mode=signup")}>
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="w-full border-green-500/50 text-green-500 hover:bg-green-500/10" 
+                  onClick={() => navigate("/auth?mode=signup&plan=start")}
+                >
                   Prova gratis i 21 dagar
                 </Button>
-
-                <p className="text-sm text-muted-foreground italic">
-                  Inget kort behövs för testperioden       
-                </p>
               </div>
             </div>
+
+            {/* Pro Plan - Most Popular */}
+            <div className="relative p-6 md:p-8 rounded-3xl bg-card border-2 border-blue-500 shadow-2xl shadow-blue-500/20 scale-105 transition-all duration-300 hover:scale-110">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="px-4 py-1 text-xs font-semibold bg-blue-500 text-white rounded-full">
+                  Mest populär
+                </span>
+              </div>
+              
+              <div className="text-center space-y-4 mt-4">
+                <h3 className="text-2xl font-bold text-blue-500">Pro</h3>
+                <div className="flex flex-col items-center gap-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-extrabold text-blue-500">449 kr</span>
+                    <span className="text-muted-foreground">/mån</span>
+                  </div>
+                  <p className="text-lg text-muted-foreground">+ 1,95 kr per bild</p>
+                </div>
+
+                <div className="py-4 space-y-3">
+                  {['Allt i Start', 'Bäst för 100-500 bilder/mån', 'Lägre kostnad per bild', 'Prioriterad support'].map((feature, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                      <span className="text-foreground">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <Button 
+                  size="lg" 
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30" 
+                  onClick={() => navigate("/auth?mode=signup&plan=pro")}
+                >
+                  Prova gratis i 21 dagar
+                </Button>
+              </div>
+            </div>
+
+            {/* Elit Plan */}
+            <div className="relative p-6 md:p-8 rounded-3xl bg-card border-2 border-purple-500/50 shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
+              <div className="absolute -top-3 left-6">
+                <span className="px-3 py-1 text-xs font-semibold bg-purple-500/20 text-purple-500 rounded-full border border-purple-500/30">
+                  Bäst för 500+ bilder
+                </span>
+              </div>
+              
+              <div className="text-center space-y-4 mt-4">
+                <h3 className="text-2xl font-bold text-purple-500">Elit</h3>
+                <div className="flex flex-col items-center gap-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-extrabold text-purple-500">995 kr</span>
+                    <span className="text-muted-foreground">/mån</span>
+                  </div>
+                  <p className="text-lg text-muted-foreground">+ 0,99 kr per bild</p>
+                </div>
+
+                <div className="py-4 space-y-3">
+                  {['Allt i Pro', 'Bäst för storvolymsanvändare', 'Lägsta kostnad per bild', 'Dedikerad support'].map((feature, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-purple-500 flex-shrink-0" />
+                      <span className="text-foreground">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="w-full border-purple-500/50 text-purple-500 hover:bg-purple-500/10" 
+                  onClick={() => navigate("/auth?mode=signup&plan=elit")}
+                >
+                  Prova gratis i 21 dagar
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Break-even info */}
+          <div className="mt-12 text-center">
+            <p className="text-muted-foreground text-sm max-w-2xl mx-auto">
+              <strong>Räkneexempel:</strong> Redigerar du under 100 bilder/månad? Välj Start. 
+              100-500 bilder/månad? Pro är billigast. Över 500 bilder? Elit sparar mest.
+            </p>
+            <p className="text-muted-foreground text-sm mt-4 font-medium">
+              ✓ Inget kort behövs för testperioden (21 dagar eller 50 bilder)
+            </p>
           </div>
         </div>
       </section>
@@ -646,7 +730,7 @@ const Landing = () => {
                 Hur fungerar den kostnadsfria testperioden?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Du får prova alla funktioner gratis i 21 dagar eller tills du når 150 redigerade bilder (det som inträffar först). Ingen bindningstid och inget kreditkort krävs. Efter testperioden betalar du 239 kr/månad + 4,95 kr per redigerad bild.
+                Du får prova alla funktioner gratis i 21 dagar eller tills du når 50 redigerade bilder (det som inträffar först). Ingen bindningstid och inget kreditkort krävs. Efter testperioden betalar du för din valda plan: Start (239 kr/mån + 4,95 kr/bild), Pro (449 kr/mån + 1,95 kr/bild) eller Elit (995 kr/mån + 0,99 kr/bild).
               </AccordionContent>
             </AccordionItem>
 
