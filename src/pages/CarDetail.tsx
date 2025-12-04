@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -103,6 +103,7 @@ const CarDetail = () => {
   } | null>(null);
   const { toast } = useToast();
   const { lightImpact, successNotification } = useHaptics();
+  const fetchDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -121,14 +122,22 @@ const CarDetail = () => {
             filter: `car_id=eq.${id}`
           },
           (payload) => {
-            // Update photos in real-time
-            fetchCarData(true);
+            // Debounce to handle multi-upload without multiple reloads
+            if (fetchDebounceRef.current) {
+              clearTimeout(fetchDebounceRef.current);
+            }
+            fetchDebounceRef.current = setTimeout(() => {
+              fetchCarData(true);
+            }, 500);
           }
         )
         .subscribe();
 
       return () => {
         supabase.removeChannel(channel);
+        if (fetchDebounceRef.current) {
+          clearTimeout(fetchDebounceRef.current);
+        }
       };
     }
   }, [id]);
