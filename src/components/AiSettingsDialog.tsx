@@ -17,24 +17,80 @@ import { TeamManagement } from "./TeamManagement";
 import { useQuery } from "@tanstack/react-query";
 
 // Import background template images
-import bgTemplateShowroom from "@/assets/bg-template-showroom.jpg";
-import bgTemplateLuxuryStudio from "@/assets/bg-template-luxury-studio.jpg";
+import bgTemplate1Showroom from "@/assets/bg-template-1-showroom.jpg";
+import bgTemplate2LuxuryShowroom from "@/assets/bg-template-2-luxury-showroom.jpg";
+import bgTemplate3SoftGreyGradient from "@/assets/bg-template-3-soft-grey-gradient.jpg";
+import bgTemplate4WhiteInfinityCove from "@/assets/bg-template-4-white-infinity-cove.jpg";
+import bgTemplate5TwoToneHorizon from "@/assets/bg-template-5-two-tone-horizon.jpg";
+import bgTemplate6LightShowroom from "@/assets/bg-template-6-light-showroom.jpg";
+import bgTemplate7DarkWallLightFloor from "@/assets/bg-template-7-dark-wall-light-floor.jpg";
+import bgTemplate8VeryLightStudio from "@/assets/bg-template-8-very-light-studio.jpg";
+import bgTemplate9DarkerLowerWall from "@/assets/bg-template-9-darker-lower-wall.jpg";
 
 // Background templates with their prompts
 const BACKGROUND_TEMPLATES = [
   {
     id: "showroom",
     name: "Showroom",
-    description: "Grå golv med vita väggar",
-    image: bgTemplateShowroom,
+    description: "Grå golv, vita väggar",
+    image: bgTemplate1Showroom,
     prompt: "Peugeot 3008 SUV centered in frame on a perfectly flat, completely uniform matte floor in exact solid grey color #55575a, with no tiles, no seams, no lines, no texture, no patterns, no noise, no gradient and no reflections at all, the floor is a single continuous grey plane that meets a perfectly straight horizontal white skirting board, above it a completely plain matte white showroom wall with no doors, no windows, no corners, no objects and no shadows on the wall, camera straight-on at car height, neutral white studio lighting from the front, a single very soft short shadow directly under and just slightly behind the car, and absolutely no other shadows, lights, color shifts, vignetting or background details anywhere in the image."
   },
   {
-    id: "luxury-studio",
-    name: "Lyxig Studio",
-    description: "Mörk studio med cirkulär plattform",
-    image: bgTemplateLuxuryStudio,
+    id: "luxury-showroom",
+    name: "Lyxig Showroom",
+    description: "Mörk studio, cirkulär plattform",
+    image: bgTemplate2LuxuryShowroom,
     prompt: "A single car centered in frame inside a closed luxury car photo studio. The car stands on a perfectly flat, glossy dark grey floor in exact color #2b2d30, with a single uniform mirror-like reflection of the car directly under it, fading smoothly to 0 within one car length, no tiles, no seams, no lines, no texture, no patterns and no other reflections anywhere on the floor. Around the car is a perfectly circular, slightly brighter glossy platform in exact color #3a3c40, with a clean sharp edge, perfectly centered under the car. The walls are a continuous seamless matte very dark charcoal in exact color #14151a, with no corners, no doors, no windows, no objects, no logos, no panels and no visible texture, only a very subtle vertical brightness gradient from #14151a at the edges to #191b20 behind the car. Lighting is from three invisible softboxes: one large soft light directly in front of the car and two smaller symmetric lights at 45 degrees, creating extremely soft, controlled highlights on the car and a single very soft shadow just behind and slightly to the sides of the tyres. There are no other shadows, no color casts, no vignetting and no additional light sources anywhere in the scene."
+  },
+  {
+    id: "soft-grey-gradient",
+    name: "Mjuk Grå Gradient",
+    description: "Gradient vägg",
+    image: bgTemplate3SoftGreyGradient,
+    prompt: "A car centered in frame on a perfectly flat matte floor in exact solid neutral grey color #80838a, with no tiles, no seams, no lines, no patterns, no texture, no noise and no reflections, the floor is a single continuous plane that meets a perfectly straight horizontal line where a smooth vertical gradient wall begins, the wall fades from slightly darker grey #30333a at the top to slightly lighter grey #3c4047 behind the car, with no corners, no doors, no windows, no panels, no logos, no text and no objects of any kind, camera straight-on at car height, neutral white studio lighting from the front and slightly above, one very soft short shadow directly under and slightly behind the car, and absolutely no other shadows, hotspots, banding, color shifts or details in the background."
+  },
+  {
+    id: "white-infinity-cove",
+    name: "Vit Infinity Cove",
+    description: "Sömlös vit studio",
+    image: bgTemplate4WhiteInfinityCove,
+    prompt: "A car centered in frame on a perfectly flat matte floor in uniform solid off-white color #f2f3f5, with no tiles, no seams, no lines, no texture, no patterns and no reflections, the floor curves smoothly upward into a continuous matte white infinity wall so there is no visible corner or edge, the entire background is one seamless white cyclorama with no doors, no windows, no panels, no objects, no gradient bands and no shadows on the wall, camera straight-on at car height, neutral white studio lighting from the front and slightly above, one very soft short shadow under and just behind the tyres, and absolutely no other shadows, color variations, vignetting or background elements."
+  },
+  {
+    id: "two-tone-horizon",
+    name: "Tvåtonad Horisont",
+    description: "Delad grå/vit",
+    image: bgTemplate5TwoToneHorizon,
+    prompt: "A car centered in frame on a perfectly flat matte floor in exact solid mid-grey color #b0b3ba, with no tiles, no seams, no lines, no texture, no patterns, no noise and no reflections, the floor occupies the lower 40 percent of the image and the upper 60 percent is a completely plain matte light grey wall in exact solid color #e3e5ea, separated by one perfectly straight, sharp horizontal line across the image, the wall has no doors, no windows, no panels, no corners, no logos, no text and no objects, camera straight-on at car height, neutral white studio lighting from the front, one very soft short shadow under and slightly behind the car on the floor, and absolutely no other shadows, gradients, light spots or details on either the floor or the wall."
+  },
+  {
+    id: "light-showroom",
+    name: "Ljus Showroom",
+    description: "Ljus vägg, mörkare golv",
+    image: bgTemplate6LightShowroom,
+    prompt: "A car centered in frame on a perfectly flat matte floor in exact solid warm grey color #c7c2bb, with no tiles, no seams, no lines, no patterns, no texture, no noise and no reflections, the floor is a continuous plane meeting a straight horizontal white skirting board, above it a completely plain matte off-white showroom wall in solid color #f5f6f7, with no doors, no windows, no glass, no columns, no ventilation, no lamps and no objects at all, camera straight-on at car height, neutral white studio lighting slightly above eye level, a single soft short shadow under and slightly behind the car, and absolutely no other shadows, reflections, bright spots, vignetting or extra geometry in the background."
+  },
+  {
+    id: "dark-wall-light-floor",
+    name: "Mörk Vägg, Ljust Golv",
+    description: "Kontrast stil",
+    image: bgTemplate7DarkWallLightFloor,
+    prompt: "A car centered in frame on a perfectly flat, uniform matte floor in solid light grey color #d0d2d7, with no tiles, seams, lines, patterns, texture, noise, gradients or reflections, the floor is a single plane that meets a perfectly straight horizontal line where a matte dark background wall in solid color #20222a starts, the wall is completely featureless with no doors, no windows, no panels, no frames, no objects and no visible corners, camera straight-on at car height, neutral white studio lighting from the front, one very soft short shadow under and slightly behind the tyres, and absolutely no other lights, backlights, rim lights, color shifts or background details in the scene."
+  },
+  {
+    id: "very-light-studio",
+    name: "Mycket Ljus Studio",
+    description: "Nästan vit",
+    image: bgTemplate8VeryLightStudio,
+    prompt: "A car centered in frame on a perfectly flat matte floor in solid very light grey color #eceff2, with no tiles, no grooves, no lines, no patterns, no texture, no noise, no reflections and no gradients, the floor is a continuous flat plane meeting a matte near-white wall in solid color #f9fafb at a perfectly straight horizontal edge, the wall is completely plain with no doors, no windows, no decorations, no signs, no objects and no shadows, camera straight-on at car height, neutral white softbox lighting from the front filling the whole frame evenly, a single very soft and faint short shadow under the car, and absolutely no other shadows, bright spots, color bands or details in the background."
+  },
+  {
+    id: "darker-lower-wall",
+    name: "Mörkare Nedre Väggband",
+    description: "Subtil väggdelning",
+    image: bgTemplate9DarkerLowerWall,
+    prompt: "A car centered in frame on a perfectly flat matte floor in uniform solid neutral grey color #a8abb3, with no tiles, seams, lines, texture, patterns, noise, gradients or reflections, the floor meets a matte white wall where the lower 15 percent of the wall is a slightly darker white band in solid color #e1e3e6 like a clean protective strip, and the upper part of the wall is pure matte white, the wall has no doors, no windows, no panels, no objects, no outlets and no shadows, camera straight-on at car height, neutral white studio lighting from the front, one very soft short shadow under and just behind the tyres, and absolutely no other shadows, color variations, markings or background elements."
   }
 ];
 
@@ -439,6 +495,10 @@ export const AiSettingsDialog = () => {
           landing_page_title: landingPageTitle,
           landing_page_description: landingPageDescription,
           landing_page_footer_text: landingPageFooterText,
+          landing_page_logo_size: landingPageLogoSize,
+          landing_page_logo_position: landingPageLogoPosition,
+          landing_page_header_height: landingPageHeaderHeight,
+          landing_page_header_fit: landingPageHeaderFit,
         },
         {
           onConflict: "company_id",
@@ -447,15 +507,11 @@ export const AiSettingsDialog = () => {
 
       if (error) throw error;
 
-      // Show which background was saved
-      const savedBackgroundName = useCustomPrompt 
-        ? "Egen Bakgrund" 
-        : BACKGROUND_TEMPLATES.find(t => t.id === selectedTemplateId)?.name || "Standard";
-      
       toast({
         title: "Inställningar sparade",
-        description: `Bakgrund: ${savedBackgroundName}`,
+        description: "Dina AI-inställningar har sparats",
       });
+
       setOpen(false);
     } catch (error: any) {
       console.error("Error saving AI settings:", error);
@@ -469,14 +525,42 @@ export const AiSettingsDialog = () => {
     }
   };
 
-  // Expose open function via window for external access
+  const handleSelectTemplate = (templateId: string) => {
+    const template = BACKGROUND_TEMPLATES.find((t) => t.id === templateId);
+    if (template) {
+      setSelectedTemplateId(templateId);
+      setBackgroundPrompt(template.prompt);
+      setUseCustomPrompt(false);
+      setCustomPrompt("");
+      setCustomBackgroundSeed(null);
+    }
+  };
+
+  const handleSelectCustomPrompt = () => {
+    setSelectedTemplateId(null);
+    setUseCustomPrompt(true);
+    // Keep existing custom prompt or start fresh
+    if (!customPrompt) {
+      setBackgroundPrompt("");
+    } else {
+      setBackgroundPrompt(customPrompt);
+    }
+    // Generate a new seed for custom prompt if none exists
+    if (!customBackgroundSeed) {
+      setCustomBackgroundSeed(generateCustomSeed());
+    }
+  };
+
+  const handleCustomPromptChange = (value: string) => {
+    setCustomPrompt(value);
+    setBackgroundPrompt(value);
+    // Generate new seed when prompt changes
+    setCustomBackgroundSeed(generateCustomSeed());
+  };
+
+  // Expose function for external access
   useEffect(() => {
-    (window as any).openSettingsDialog = (tab?: string) => {
-      setOpen(true);
-      if (tab) {
-        setTimeout(() => setCurrentTab(tab), 100);
-      }
-    };
+    (window as any).openSettingsDialog = () => setOpen(true);
     return () => {
       delete (window as any).openSettingsDialog;
     };
@@ -485,473 +569,285 @@ export const AiSettingsDialog = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Settings className="h-4 w-4 mr-2" />
-          <span className="hidden md:inline">Inställningar</span>
-          <span className="md:hidden">Inställningar</span>
+        <Button variant="outline" size="icon">
+          <Settings className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[95vw] md:max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-card border-border p-4 md:p-6">
+      <DialogContent 
+        className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <DialogHeader>
-          <DialogTitle className="bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-            Inställningar
-          </DialogTitle>
+          <DialogTitle>Inställningar</DialogTitle>
         </DialogHeader>
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-          <div className="mt-4 rounded-xl border border-border bg-muted p-3 shadow-sm md:bg-transparent md:border-0 md:p-0 md:rounded-none">
-            <TabsList className={`grid w-full ${userRole === "admin" ? "grid-cols-5" : "grid-cols-3"} gap-1`}>
-              <TabsTrigger value="background" className="flex items-center justify-center">
-                <Palette className="h-4 w-4 md:hidden" />
-                <span className="hidden md:inline">Bakgrund</span>
-              </TabsTrigger>
-              <TabsTrigger value="watermark" className="flex items-center justify-center">
-                <Stamp className="h-4 w-4 md:hidden" />
-                <span className="hidden md:inline">Vattenmärke</span>
-              </TabsTrigger>
-              <TabsTrigger value="landing" className="flex items-center justify-center">
-                <Globe className="h-4 w-4 md:hidden" />
-                <span className="hidden md:inline">Landningssida</span>
-              </TabsTrigger>
-              {userRole === "admin" && (
-                <TabsTrigger value="payment" className="flex items-center justify-center">
-                  <CreditCard className="h-4 w-4 md:hidden" />
+          <TabsList className={`grid w-full ${userRole === "admin" ? "grid-cols-5" : "grid-cols-3"}`}>
+            <TabsTrigger value="background" className="flex items-center gap-1">
+              <Palette className="h-4 w-4" />
+              <span className="hidden md:inline">Bakgrund</span>
+            </TabsTrigger>
+            <TabsTrigger value="watermark" className="flex items-center gap-1">
+              <Stamp className="h-4 w-4" />
+              <span className="hidden md:inline">Vattenmärke</span>
+            </TabsTrigger>
+            <TabsTrigger value="landing" className="flex items-center gap-1">
+              <Globe className="h-4 w-4" />
+              <span className="hidden md:inline">Landningssida</span>
+            </TabsTrigger>
+            {userRole === "admin" && (
+              <>
+                <TabsTrigger value="payment" className="flex items-center gap-1">
+                  <CreditCard className="h-4 w-4" />
                   <span className="hidden md:inline">Betalning</span>
                 </TabsTrigger>
-              )}
-              {userRole === "admin" && (
-                <TabsTrigger value="team" className="flex items-center justify-center">
-                  <Users className="h-4 w-4 md:hidden" />
-                  <span className="hidden md:inline">Anställda</span>
+                <TabsTrigger value="team" className="flex items-center gap-1">
+                  <Users className="h-4 w-4" />
+                  <span className="hidden md:inline">Team</span>
                 </TabsTrigger>
-              )}
-            </TabsList>
+              </>
+            )}
+          </TabsList>
 
-            <Separator className="my-3 md:hidden" />
+          <TabsContent value="background" className="space-y-6 mt-6">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-base font-semibold">Välj bakgrundsmall</Label>
+                <p className="text-sm text-muted-foreground mt-1 mb-4">
+                  Välj en av våra fördefinierade bakgrunder eller skapa en egen
+                </p>
+              </div>
 
-            <TabsContent
-              value="background"
-              className="space-y-4 mt-3 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-            >
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-base font-medium">Välj bakgrund</Label>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Välj en mall eller skriv en egen prompt
-                  </p>
-                </div>
-
-                {/* Template options grid - 1 per row on mobile, 2 on desktop */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {BACKGROUND_TEMPLATES.map((template) => {
-                    const isSelected = !useCustomPrompt && selectedTemplateId === template.id;
-                    return (
-                      <button
-                        key={template.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedTemplateId(template.id);
-                          setUseCustomPrompt(false);
-                          setBackgroundPrompt(template.prompt);
-                        }}
-                        className={`relative rounded-xl overflow-hidden border-2 transition-all ${
-                          isSelected 
-                            ? "border-primary ring-2 ring-primary/20" 
-                            : "border-border hover:border-muted-foreground/50"
-                        }`}
-                      >
-                        <div className="aspect-video relative">
-                          <img
-                            src={template.image}
-                            alt={template.name}
-                            className="w-full h-full object-cover"
-                          />
-                          {isSelected && (
-                            <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
-                              <Check className="h-3 w-3" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="p-2 bg-background">
-                          <p className="font-medium text-sm">{template.name}</p>
-                          <p className="text-xs text-muted-foreground">{template.description}</p>
-                        </div>
-                      </button>
-                    );
-                  })}
-
-                  {/* Custom prompt option */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setUseCustomPrompt(true);
-                      setSelectedTemplateId(null);
-                      if (!customPrompt) {
-                        setCustomPrompt(backgroundPrompt);
-                      }
-                      setBackgroundPrompt(customPrompt || backgroundPrompt);
-                      // Generate seed if not already set
-                      if (!customBackgroundSeed) {
-                        setCustomBackgroundSeed(generateCustomSeed());
-                      }
-                    }}
-                    className={`relative rounded-xl overflow-hidden border-2 transition-all ${
-                      useCustomPrompt 
-                        ? "border-primary ring-2 ring-primary/20" 
-                        : "border-border hover:border-muted-foreground/50"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {BACKGROUND_TEMPLATES.map((template) => (
+                  <div
+                    key={template.id}
+                    className={`relative cursor-pointer rounded-lg border-2 p-3 transition-all hover:border-primary ${
+                      selectedTemplateId === template.id && !useCustomPrompt
+                        ? "border-primary bg-primary/5"
+                        : "border-border"
                     }`}
+                    onClick={() => handleSelectTemplate(template.id)}
                   >
-                    <div className="aspect-video relative bg-muted flex items-center justify-center">
-                      <Pencil className="h-8 w-8 text-muted-foreground" />
-                      {useCustomPrompt && (
-                        <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
-                          <Check className="h-3 w-3" />
-                        </div>
+                    <div className="aspect-video mb-2 overflow-hidden rounded-md bg-muted">
+                      <img
+                        src={template.image}
+                        alt={template.name}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h4 className="font-medium text-sm">{template.name}</h4>
+                        <p className="text-xs text-muted-foreground">{template.description}</p>
+                      </div>
+                      {selectedTemplateId === template.id && !useCustomPrompt && (
+                        <Check className="h-5 w-5 text-primary flex-shrink-0" />
                       )}
                     </div>
-                    <div className="p-2 bg-background">
-                      <p className="font-medium text-sm">Egen Bakgrund</p>
-                      <p className="text-xs text-muted-foreground">Beskriv din bakgrund</p>
-                    </div>
-                  </button>
-                </div>
+                  </div>
+                ))}
 
-                {/* Status indicator */}
-                <div className="rounded-lg bg-muted/50 p-3 border border-border">
-                  <p className="text-sm font-medium">
-                  {useCustomPrompt ? (
-                      <span className="flex items-center gap-2">
-                        <Pencil className="h-4 w-4 text-primary" />
-                        Använder egen bakgrund
-                      </span>
-                    ) : selectedTemplateId ? (
-                      <span className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-primary" />
-                        Använder mall: {BACKGROUND_TEMPLATES.find(t => t.id === selectedTemplateId)?.name}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">Ingen bakgrund vald</span>
-                    )}
-                  </p>
-                </div>
-
-                {/* Custom prompt textarea - only show when custom is selected */}
-                {useCustomPrompt && (
-                  <div className="space-y-2">
-                    <Label htmlFor="custom-prompt">Beskriv din bakgrund</Label>
-                    <Textarea
-                      id="custom-prompt"
-                      value={customPrompt}
-                      onChange={(e) => {
-                        const newPrompt = e.target.value;
-                        setCustomPrompt(newPrompt);
-                        setBackgroundPrompt(newPrompt);
-                        // Generate new seed when prompt changes
-                        setCustomBackgroundSeed(generateCustomSeed());
-                      }}
-                      placeholder="Beskriv din bakgrund..."
-                      className="min-h-[100px]"
-                    />
-                    <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-3">
-                      <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
-                        OBS! Egna bakgrunder kan bli dåliga då du styr de helt själv.
-                      </p>
+                {/* Custom prompt option */}
+                <div
+                  className={`relative cursor-pointer rounded-lg border-2 p-3 transition-all hover:border-primary ${
+                    useCustomPrompt ? "border-primary bg-primary/5" : "border-border"
+                  }`}
+                  onClick={handleSelectCustomPrompt}
+                >
+                  <div className="aspect-video mb-2 overflow-hidden rounded-md bg-muted flex items-center justify-center">
+                    <Pencil className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="font-medium text-sm">Egen Bakgrund</h4>
+                      <p className="text-xs text-muted-foreground">Skriv din egen prompt</p>
                     </div>
+                    {useCustomPrompt && <Check className="h-5 w-5 text-primary flex-shrink-0" />}
+                  </div>
+                </div>
+              </div>
+
+              {useCustomPrompt && (
+                <div className="space-y-3 mt-4 p-4 rounded-lg border bg-muted/30">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="custom-prompt" className="font-medium">Din egen prompt</Label>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={handleTranslateToEnglish}
-                      disabled={translating || !customPrompt.trim()}
-                      className="w-full md:w-auto"
+                      disabled={translating}
+                      className="gap-2"
                     >
-                      <Languages className="h-4 w-4 mr-2" />
+                      <Languages className="h-4 w-4" />
                       {translating ? "Översätter..." : "Översätt till engelska"}
                     </Button>
                   </div>
-                )}
-              </div>
-            </TabsContent>
-
-            <TabsContent
-              value="watermark"
-              className="space-y-4 mt-3 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-            >
-              <div className="space-y-4">
-                <div>
-                  <Label>Logotyp för vattenmärke</Label>
-                  <div className="mt-2 flex flex-col gap-2">
-                    {logoUrl ? (
-                      <div className="relative w-32 h-32 border rounded-lg overflow-hidden bg-muted">
-                        <img src={logoUrl} alt="Logotyp" className="w-full h-full object-contain p-2" />
-                        <Button
-                          size="icon"
-                          variant="destructive"
-                          className="absolute top-1 right-1 h-6 w-6"
-                          onClick={handleRemoveLogo}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="file"
-                          id="logo-upload"
-                          accept="image/*"
-                          onChange={handleLogoUpload}
-                          className="hidden"
-                        />
-                        <Button
-                          variant="outline"
-                          onClick={() => document.getElementById("logo-upload")?.click()}
-                          disabled={uploadingLogo}
-                        >
-                          <Upload className="w-4 h-4 mr-2" />
-                          {uploadingLogo ? "Laddar upp..." : "Ladda upp logotyp"}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Denna logotyp placeras som vattenmärke på dina bilder
+                  <Textarea
+                    id="custom-prompt"
+                    value={customPrompt}
+                    onChange={(e) => handleCustomPromptChange(e.target.value)}
+                    placeholder="Beskriv hur du vill att bakgrunden ska se ut..."
+                    rows={4}
+                    className="text-base"
+                  />
+                  <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                    ⚠️ OBS! Egna bakgrunder kan bli dåliga då du styr de helt själv
                   </p>
                 </div>
+              )}
+            </div>
+          </TabsContent>
 
-                <WatermarkPreview
-                  logoUrl={logoUrl}
-                  x={watermarkX}
-                  y={watermarkY}
-                  size={watermarkSize}
-                  opacity={watermarkOpacity}
-                  onPositionChange={(x, y) => {
-                    setWatermarkX(x);
-                    setWatermarkY(y);
-                  }}
-                  onSizeChange={setWatermarkSize}
-                  onOpacityChange={setWatermarkOpacity}
-                />
+          <TabsContent value="watermark" className="space-y-6 mt-6">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="logo-upload" className="text-base font-semibold">
+                  Vattenmärke logotyp
+                </Label>
+                <p className="text-sm text-muted-foreground mt-1 mb-3">
+                  Ladda upp en logotyp som kommer att läggas till på dina redigerade bilder
+                </p>
+
+                {logoUrl ? (
+                  <div className="flex items-center gap-4 p-3 border rounded-lg bg-muted/30">
+                    <img src={logoUrl} alt="Logo" className="h-12 w-auto max-w-[120px] object-contain" />
+                    <Button variant="destructive" size="sm" onClick={handleRemoveLogo}>
+                      <X className="h-4 w-4 mr-1" />
+                      Ta bort
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="logo-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      disabled={uploadingLogo}
+                      className="max-w-[250px] text-base"
+                    />
+                    {uploadingLogo && <span className="text-sm text-muted-foreground">Laddar upp...</span>}
+                  </div>
+                )}
               </div>
-            </TabsContent>
 
-            <TabsContent
-              value="landing"
-              className="space-y-4 mt-3 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm"
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-            >
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Settings */}
-                <div className="space-y-4">
-                  <div>
-                    <Label>Logotyp för landningssida</Label>
-                    <div className="mt-2 flex flex-col gap-2">
-                      {landingPageLogoUrl ? (
-                        <div className="relative w-32 h-32 border rounded-lg overflow-hidden bg-muted">
-                          <img
-                            src={landingPageLogoUrl}
-                            alt="Landing logotyp"
-                            className="w-full h-full object-contain p-2"
-                          />
-                          <Button
-                            size="icon"
-                            variant="destructive"
-                            className="absolute top-1 right-1 h-6 w-6"
-                            onClick={() => setLandingPageLogoUrl("")}
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="file"
-                            id="landing-logo-upload"
-                            accept="image/*"
-                            onChange={handleLandingLogoUpload}
-                            className="hidden"
-                          />
-                          <Button
-                            variant="outline"
-                            onClick={() => document.getElementById("landing-logo-upload")?.click()}
-                            disabled={uploadingLandingLogo}
-                          >
-                            <Upload className="w-4 h-4 mr-2" />
-                            {uploadingLandingLogo ? "Laddar upp..." : "Ladda upp logotyp"}
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+              {logoUrl && (
+                <>
+                  <Separator />
 
-                  <div>
-                    <Label>Header-bild (valfritt)</Label>
-                    <div className="mt-2 flex flex-col gap-2">
-                      {landingPageHeaderImageUrl ? (
-                        <div className="relative w-full h-32 border rounded-lg overflow-hidden bg-muted">
-                          <img
-                            src={landingPageHeaderImageUrl}
-                            alt="Header bild"
-                            className="w-full h-full object-cover"
-                          />
-                          <Button
-                            size="icon"
-                            variant="destructive"
-                            className="absolute top-1 right-1 h-6 w-6"
-                            onClick={() => setLandingPageHeaderImageUrl("")}
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="file"
-                            id="header-upload"
-                            accept="image/*"
-                            onChange={handleHeaderImageUpload}
-                            className="hidden"
-                          />
-                          <Button
-                            variant="outline"
-                            onClick={() => document.getElementById("header-upload")?.click()}
-                            disabled={uploadingHeaderImage}
-                          >
-                            <Upload className="w-4 h-4 mr-2" />
-                            {uploadingHeaderImage ? "Laddar upp..." : "Ladda upp header-bild"}
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="landing-title">Titel</Label>
-                    <Input
-                      id="landing-title"
-                      value={landingPageTitle}
-                      onChange={(e) => setLandingPageTitle(e.target.value)}
-                      placeholder="Mina Bilder"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="landing-description">Beskrivning (valfritt)</Label>
-                    <Textarea
-                      id="landing-description"
-                      value={landingPageDescription}
-                      onChange={(e) => setLandingPageDescription(e.target.value)}
-                      placeholder="En kort beskrivning..."
-                      rows={2}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="landing-footer">Footer text (valfritt)</Label>
-                    <Input
-                      id="landing-footer"
-                      value={landingPageFooterText}
-                      onChange={(e) => setLandingPageFooterText(e.target.value)}
-                      placeholder="© 2024 Mitt Företag"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="bg-color">Bakgrundsfärg</Label>
-                      <div className="flex gap-2 items-center">
-                        <input
-                          type="color"
-                          id="bg-color"
-                          value={landingPageBackgroundColor}
-                          onChange={(e) => setLandingPageBackgroundColor(e.target.value)}
-                          className="w-12 h-10 rounded border cursor-pointer"
-                        />
-                        <Input
-                          type="text"
-                          value={landingPageBackgroundColor}
-                          onChange={(e) => setLandingPageBackgroundColor(e.target.value)}
-                          placeholder="#ffffff"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="text-color">Textfärg</Label>
-                      <div className="flex gap-2 items-center">
-                        <input
-                          type="color"
-                          id="text-color"
-                          value={landingPageTextColor}
-                          onChange={(e) => setLandingPageTextColor(e.target.value)}
-                          className="w-12 h-10 rounded border cursor-pointer"
-                        />
-                        <Input
-                          type="text"
-                          value={landingPageTextColor}
-                          onChange={(e) => setLandingPageTextColor(e.target.value)}
-                          placeholder="#000000"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="accent-color">Accentfärg (knappar)</Label>
-                    <div className="flex gap-2 items-center">
+                      <Label htmlFor="watermark-x">X-position ({watermarkX}px)</Label>
                       <input
-                        type="color"
-                        id="accent-color"
-                        value={landingPageAccentColor}
-                        onChange={(e) => setLandingPageAccentColor(e.target.value)}
-                        className="w-12 h-10 rounded border cursor-pointer"
+                        type="range"
+                        id="watermark-x"
+                        min="0"
+                        max="500"
+                        value={watermarkX}
+                        onChange={(e) => setWatermarkX(Number(e.target.value))}
+                        className="w-full"
                       />
-                      <Input
-                        type="text"
-                        value={landingPageAccentColor}
-                        onChange={(e) => setLandingPageAccentColor(e.target.value)}
-                        placeholder="#000000"
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="watermark-y">Y-position ({watermarkY}px)</Label>
+                      <input
+                        type="range"
+                        id="watermark-y"
+                        min="0"
+                        max="500"
+                        value={watermarkY}
+                        onChange={(e) => setWatermarkY(Number(e.target.value))}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="watermark-size">Storlek ({watermarkSize}%)</Label>
+                      <input
+                        type="range"
+                        id="watermark-size"
+                        min="5"
+                        max="50"
+                        value={watermarkSize}
+                        onChange={(e) => setWatermarkSize(Number(e.target.value))}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="watermark-opacity">Opacitet ({Math.round(watermarkOpacity * 100)}%)</Label>
+                      <input
+                        type="range"
+                        id="watermark-opacity"
+                        min="0.1"
+                        max="1"
+                        step="0.05"
+                        value={watermarkOpacity}
+                        onChange={(e) => setWatermarkOpacity(Number(e.target.value))}
+                        className="w-full"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Layout</Label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <Button
-                        variant={landingPageLayout === "grid" ? "default" : "outline"}
-                        onClick={() => setLandingPageLayout("grid")}
-                        className="w-full"
-                      >
-                        Grid
-                      </Button>
-                      <Button
-                        variant={landingPageLayout === "carousel" ? "default" : "outline"}
-                        onClick={() => setLandingPageLayout("carousel")}
-                        className="w-full"
-                      >
-                        Carousel
-                      </Button>
-                      <Button
-                        variant={landingPageLayout === "masonry" ? "default" : "outline"}
-                        onClick={() => setLandingPageLayout("masonry")}
-                        className="w-full"
-                      >
-                        Masonry
-                      </Button>
-                    </div>
+                  <div className="mt-4">
+                    <Label className="text-base font-semibold mb-3 block">Förhandsgranskning</Label>
+                    <WatermarkPreview
+                      logoUrl={logoUrl}
+                      x={watermarkX}
+                      y={watermarkY}
+                      sizePercent={watermarkSize}
+                      opacity={watermarkOpacity}
+                    />
                   </div>
+                </>
+              )}
+            </div>
+          </TabsContent>
 
+          <TabsContent value="landing" className="space-y-6 mt-6">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-base font-semibold">Landningssida för delning</Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Anpassa hur din delade bildsamling visas
+                </p>
+              </div>
+
+              {/* Logo upload */}
+              <div className="space-y-2">
+                <Label htmlFor="landing-logo-upload">Logotyp</Label>
+                {landingPageLogoUrl ? (
+                  <div className="flex items-center gap-4 p-3 border rounded-lg bg-muted/30">
+                    <img src={landingPageLogoUrl} alt="Logo" className="h-12 w-auto max-w-[120px] object-contain" />
+                    <Button variant="destructive" size="sm" onClick={() => setLandingPageLogoUrl("")}>
+                      <X className="h-4 w-4 mr-1" />
+                      Ta bort
+                    </Button>
+                  </div>
+                ) : (
+                  <Input
+                    id="landing-logo-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLandingLogoUpload}
+                    disabled={uploadingLandingLogo}
+                    className="text-base"
+                  />
+                )}
+              </div>
+
+              {/* Logo size and position */}
+              {landingPageLogoUrl && (
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="logo-size">Logotyp storlek</Label>
-                    <Select
-                      value={landingPageLogoSize}
-                      onValueChange={(value: "small" | "medium" | "large") => setLandingPageLogoSize(value)}
-                    >
-                      <SelectTrigger id="logo-size">
+                    <Label>Logotypstorlek</Label>
+                    <Select value={landingPageLogoSize} onValueChange={(v: "small" | "medium" | "large") => setLandingPageLogoSize(v)}>
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -961,14 +857,10 @@ export const AiSettingsDialog = () => {
                       </SelectContent>
                     </Select>
                   </div>
-
                   <div className="space-y-2">
-                    <Label htmlFor="logo-position">Logotyp position</Label>
-                    <Select
-                      value={landingPageLogoPosition}
-                      onValueChange={(value: "left" | "center" | "right") => setLandingPageLogoPosition(value)}
-                    >
-                      <SelectTrigger id="logo-position">
+                    <Label>Logotypposition</Label>
+                    <Select value={landingPageLogoPosition} onValueChange={(v: "left" | "center" | "right") => setLandingPageLogoPosition(v)}>
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -978,94 +870,220 @@ export const AiSettingsDialog = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+              )}
 
+              {/* Header image upload */}
+              <div className="space-y-2">
+                <Label htmlFor="header-image-upload">Header-bild</Label>
+                {landingPageHeaderImageUrl ? (
                   <div className="space-y-2">
-                    <Label htmlFor="header-height">Headerbild höjd</Label>
-                    <Select
-                      value={landingPageHeaderHeight}
-                      onValueChange={(value: "small" | "medium" | "large") => setLandingPageHeaderHeight(value)}
-                    >
-                      <SelectTrigger id="header-height">
+                    <div className="relative aspect-[3/1] w-full overflow-hidden rounded-lg border">
+                      <img src={landingPageHeaderImageUrl} alt="Header" className="h-full w-full object-cover" />
+                    </div>
+                    <Button variant="destructive" size="sm" onClick={() => setLandingPageHeaderImageUrl("")}>
+                      <X className="h-4 w-4 mr-1" />
+                      Ta bort
+                    </Button>
+                  </div>
+                ) : (
+                  <Input
+                    id="header-image-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleHeaderImageUpload}
+                    disabled={uploadingHeaderImage}
+                    className="text-base"
+                  />
+                )}
+              </div>
+
+              {/* Header image settings */}
+              {landingPageHeaderImageUrl && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Header-höjd</Label>
+                    <Select value={landingPageHeaderHeight} onValueChange={(v: "small" | "medium" | "large") => setLandingPageHeaderHeight(v)}>
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="small">Liten (128px)</SelectItem>
-                        <SelectItem value="medium">Medium (192px)</SelectItem>
-                        <SelectItem value="large">Stor (256px)</SelectItem>
+                        <SelectItem value="small">Liten</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="large">Stor</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-
                   <div className="space-y-2">
-                    <Label htmlFor="header-fit">Headerbild anpassning</Label>
-                    <Select
-                      value={landingPageHeaderFit}
-                      onValueChange={(value: "cover" | "contain" | "fill") => setLandingPageHeaderFit(value)}
-                    >
-                      <SelectTrigger id="header-fit">
+                    <Label>Bildpassning</Label>
+                    <Select value={landingPageHeaderFit} onValueChange={(v: "cover" | "contain" | "fill") => setLandingPageHeaderFit(v)}>
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="cover">Cover (täcker)</SelectItem>
-                        <SelectItem value="contain">Contain (innehåller)</SelectItem>
-                        <SelectItem value="fill">Fill (fyller)</SelectItem>
+                        <SelectItem value="cover">Fyll (beskär)</SelectItem>
+                        <SelectItem value="contain">Visa hela</SelectItem>
+                        <SelectItem value="fill">Sträck ut</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
+              )}
 
-                {/* Preview */}
-                <div className="space-y-2 sticky top-0 self-start">
-                  <Label>Förhandsvisning</Label>
-                  <LandingPagePreview
-                    logoUrl={landingPageLogoUrl}
-                    headerImageUrl={landingPageHeaderImageUrl}
-                    backgroundColor={landingPageBackgroundColor}
-                    textColor={landingPageTextColor}
-                    accentColor={landingPageAccentColor}
-                    title={landingPageTitle}
-                    description={landingPageDescription}
-                    footerText={landingPageFooterText}
-                    layout={landingPageLayout}
-                    logoSize={landingPageLogoSize}
-                    logoPosition={landingPageLogoPosition}
-                    headerHeight={landingPageHeaderHeight}
-                    headerFit={landingPageHeaderFit}
-                  />
+              <Separator />
+
+              {/* Title and description */}
+              <div className="space-y-2">
+                <Label htmlFor="landing-title">Titel</Label>
+                <Input
+                  id="landing-title"
+                  value={landingPageTitle}
+                  onChange={(e) => setLandingPageTitle(e.target.value)}
+                  placeholder="Mina Bilder"
+                  className="text-base"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="landing-description">Beskrivning (valfritt)</Label>
+                <Textarea
+                  id="landing-description"
+                  value={landingPageDescription}
+                  onChange={(e) => setLandingPageDescription(e.target.value)}
+                  placeholder="En kort beskrivning..."
+                  rows={2}
+                  className="text-base"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="landing-footer">Footer-text (valfritt)</Label>
+                <Input
+                  id="landing-footer"
+                  value={landingPageFooterText}
+                  onChange={(e) => setLandingPageFooterText(e.target.value)}
+                  placeholder="© 2024 Ditt Företag"
+                  className="text-base"
+                />
+              </div>
+
+              <Separator />
+
+              {/* Colors */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="bg-color">Bakgrundsfärg</Label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      id="bg-color"
+                      value={landingPageBackgroundColor}
+                      onChange={(e) => setLandingPageBackgroundColor(e.target.value)}
+                      className="h-10 w-14 cursor-pointer rounded border"
+                    />
+                    <Input
+                      value={landingPageBackgroundColor}
+                      onChange={(e) => setLandingPageBackgroundColor(e.target.value)}
+                      className="text-base"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="text-color">Textfärg</Label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      id="text-color"
+                      value={landingPageTextColor}
+                      onChange={(e) => setLandingPageTextColor(e.target.value)}
+                      className="h-10 w-14 cursor-pointer rounded border"
+                    />
+                    <Input
+                      value={landingPageTextColor}
+                      onChange={(e) => setLandingPageTextColor(e.target.value)}
+                      className="text-base"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="accent-color">Accentfärg</Label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      id="accent-color"
+                      value={landingPageAccentColor}
+                      onChange={(e) => setLandingPageAccentColor(e.target.value)}
+                      className="h-10 w-14 cursor-pointer rounded border"
+                    />
+                    <Input
+                      value={landingPageAccentColor}
+                      onChange={(e) => setLandingPageAccentColor(e.target.value)}
+                      className="text-base"
+                    />
+                  </div>
                 </div>
               </div>
+
+              {/* Layout */}
+              <div className="space-y-2">
+                <Label>Layout</Label>
+                <Select value={landingPageLayout} onValueChange={(v: "grid" | "carousel" | "masonry") => setLandingPageLayout(v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="grid">Rutnät</SelectItem>
+                    <SelectItem value="carousel">Karusell</SelectItem>
+                    <SelectItem value="masonry">Masonry</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Separator />
+
+              {/* Preview */}
+              <div>
+                <Label className="text-base font-semibold mb-3 block">Förhandsgranskning</Label>
+                <LandingPagePreview
+                  logoUrl={landingPageLogoUrl}
+                  headerImageUrl={landingPageHeaderImageUrl}
+                  backgroundColor={landingPageBackgroundColor}
+                  textColor={landingPageTextColor}
+                  accentColor={landingPageAccentColor}
+                  title={landingPageTitle}
+                  description={landingPageDescription}
+                  footerText={landingPageFooterText}
+                  layout={landingPageLayout}
+                  logoSize={landingPageLogoSize}
+                  logoPosition={landingPageLogoPosition}
+                  headerHeight={landingPageHeaderHeight}
+                  headerFit={landingPageHeaderFit}
+                />
+              </div>
+            </div>
+          </TabsContent>
+
+          {userRole === "admin" && (
+            <TabsContent value="payment" className="mt-6">
+              <PaymentSettings />
             </TabsContent>
+          )}
 
-            {userRole === "admin" && (
-              <TabsContent
-                value="payment"
-                className="space-y-4 mt-3 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
-              >
-                <PaymentSettings />
-              </TabsContent>
-            )}
-
-            {userRole === "admin" && (
-              <TabsContent
-                value="team"
-                className="space-y-4 mt-3 md:mt-4 md:p-4 md:border-2 md:border-border md:rounded-xl md:bg-card md:shadow-sm md:overflow-hidden"
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
-              >
-                <TeamManagement />
-              </TabsContent>
-            )}
-          </div>
+          {userRole === "admin" && (
+            <TabsContent value="team" className="mt-6">
+              <TeamManagement />
+            </TabsContent>
+          )}
         </Tabs>
 
-        <div className="flex justify-end gap-2 mt-4">
+        <div className="flex justify-end gap-3 pt-4 border-t">
           <Button variant="outline" onClick={() => setOpen(false)}>
             Avbryt
           </Button>
           <Button onClick={saveSettings} disabled={loading}>
-            {loading ? "Sparar..." : "Spara"}
+            {loading ? "Sparar..." : "Spara inställningar"}
           </Button>
         </div>
       </DialogContent>
