@@ -89,33 +89,40 @@ export const TeamManagement = () => {
 
       if (!userCompanies) throw new Error("No company found");
 
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select(`
-          user_id,
-          role,
-          created_at
-        `)
-        .eq("company_id", userCompanies.company_id)
-        .order("created_at", { ascending: true });
+      // Get all user_companies entries for this company to find all team members
+      const { data: companyUsers, error: companyUsersError } = await supabase
+        .from("user_companies")
+        .select("user_id")
+        .eq("company_id", userCompanies.company_id);
 
-      if (error) throw error;
-      
-      // Fetch profiles separately
-      if (!data || data.length === 0) return [];
-      
-      const userIds = data.map(member => member.user_id);
-      const { data: profilesData, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, email")
-        .in("id", userIds);
+      if (companyUsersError) throw companyUsersError;
+      if (!companyUsers || companyUsers.length === 0) return [];
 
-      if (profilesError) throw profilesError;
+      const userIds = companyUsers.map(cu => cu.user_id);
+
+      // Fetch user_roles and profiles in parallel
+      const [rolesResult, profilesResult] = await Promise.all([
+        supabase
+          .from("user_roles")
+          .select("user_id, role, created_at")
+          .eq("company_id", userCompanies.company_id)
+          .order("created_at", { ascending: true }),
+        supabase
+          .from("profiles")
+          .select("id, email")
+          .in("id", userIds)
+      ]);
+
+      if (rolesResult.error) throw rolesResult.error;
+      if (profilesResult.error) throw profilesResult.error;
+
+      const rolesData = rolesResult.data || [];
+      const profilesData = profilesResult.data || [];
 
       // Merge profiles with user_roles data
-      return data.map(member => ({
+      return rolesData.map(member => ({
         ...member,
-        profiles: profilesData?.find(p => p.id === member.user_id) || null
+        profiles: profilesData.find(p => p.id === member.user_id) || null
       }));
     },
     enabled: userRole === "admin",
