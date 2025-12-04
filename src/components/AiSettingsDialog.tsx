@@ -800,8 +800,14 @@ export const AiSettingsDialog = () => {
                       logoUrl={logoUrl}
                       x={watermarkX}
                       y={watermarkY}
-                      sizePercent={watermarkSize}
+                      size={watermarkSize}
                       opacity={watermarkOpacity}
+                      onPositionChange={(newX, newY) => {
+                        setWatermarkX(newX);
+                        setWatermarkY(newY);
+                      }}
+                      onSizeChange={setWatermarkSize}
+                      onOpacityChange={setWatermarkOpacity}
                     />
                   </div>
                 </>
