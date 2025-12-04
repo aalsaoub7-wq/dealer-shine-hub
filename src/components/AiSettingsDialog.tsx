@@ -585,25 +585,25 @@ export const AiSettingsDialog = () => {
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
           <TabsList className={`grid w-full ${userRole === "admin" ? "grid-cols-5" : "grid-cols-3"}`}>
             <TabsTrigger value="background" className="flex items-center gap-1">
-              <Palette className="h-4 w-4" />
+              <Palette className="h-4 w-4 md:hidden" />
               <span className="hidden md:inline">Bakgrund</span>
             </TabsTrigger>
             <TabsTrigger value="watermark" className="flex items-center gap-1">
-              <Stamp className="h-4 w-4" />
+              <Stamp className="h-4 w-4 md:hidden" />
               <span className="hidden md:inline">Vattenmärke</span>
             </TabsTrigger>
             <TabsTrigger value="landing" className="flex items-center gap-1">
-              <Globe className="h-4 w-4" />
+              <Globe className="h-4 w-4 md:hidden" />
               <span className="hidden md:inline">Landningssida</span>
             </TabsTrigger>
             {userRole === "admin" && (
               <>
                 <TabsTrigger value="payment" className="flex items-center gap-1">
-                  <CreditCard className="h-4 w-4" />
+                  <CreditCard className="h-4 w-4 md:hidden" />
                   <span className="hidden md:inline">Betalning</span>
                 </TabsTrigger>
                 <TabsTrigger value="team" className="flex items-center gap-1">
-                  <Users className="h-4 w-4" />
+                  <Users className="h-4 w-4 md:hidden" />
                   <span className="hidden md:inline">Team</span>
                 </TabsTrigger>
               </>
