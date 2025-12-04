@@ -856,7 +856,7 @@ const CarDetail = () => {
         onOpenChange={setUploadDialogOpen}
         carId={id!}
         photoType={uploadType}
-        onUploadComplete={() => fetchCarData(true)}
+        onUploadComplete={() => {}}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
