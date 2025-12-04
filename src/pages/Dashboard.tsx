@@ -216,7 +216,7 @@ const Dashboard = () => {
                 </p>
               </div>
               {!trialInfo.hasPaymentMethod && <Button variant="secondary" onClick={() => openSettingsDialog("payment")} className="whitespace-nowrap">
-                  Lägg till betalmetod
+                  Lägg till Betalmetod redan nu
                 </Button>}
             </div>
           </div>}
