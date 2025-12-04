@@ -120,6 +120,14 @@ serve(async (req) => {
     console.log(`[AUTO-STRIPE] Subscription created: ${subscription.id}`);
 
     // Save subscription to database
+    // Handle null period dates (can happen with incomplete subscriptions during trial)
+    const periodStart = subscription.current_period_start 
+      ? new Date(subscription.current_period_start * 1000).toISOString() 
+      : null;
+    const periodEnd = subscription.current_period_end 
+      ? new Date(subscription.current_period_end * 1000).toISOString() 
+      : null;
+
     const { error: subError } = await supabaseAdmin
       .from("subscriptions")
       .insert({
@@ -128,8 +136,8 @@ serve(async (req) => {
         stripe_subscription_id: subscription.id,
         status: subscription.status,
         plan: selectedPlan,
-        current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+        current_period_start: periodStart,
+        current_period_end: periodEnd,
       });
 
     if (subError) {
