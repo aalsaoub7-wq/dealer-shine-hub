@@ -97,23 +97,21 @@ export const trackUsage = async (
 
     // If in trial, decrement trial images
     if (isInTrial) {
-      console.log(`[USAGE] User in trial, decrementing trial images`);
+      console.log(`[USAGE] User in trial, decrementing trial images via edge function`);
       
-      // Update trial image counters
-      const { error: trialError } = await supabase
-        .from("companies")
-        .update({
-          trial_images_used: (company.trial_images_used || 0) + 1,
-          trial_images_remaining: Math.max(0, (company.trial_images_remaining || 0) - 1),
-        })
-        .eq("id", company.id);
+      // Use edge function with service role to update trial counters (bypasses RLS)
+      const { data, error: trialError } = await supabase.functions.invoke(
+        "track-trial-usage",
+        { body: { companyId: company.id } }
+      );
 
       if (trialError) {
         console.error("Error updating trial image counters:", trialError);
+      } else {
+        console.log(`[USAGE] Trial image used. Remaining: ${data?.trial_images_remaining}`);
       }
 
       // Do NOT report to Stripe or track usage stats during trial
-      console.log(`[USAGE] Trial image used. Remaining: ${(company.trial_images_remaining || 0) - 1}`);
       return;
     }
 
