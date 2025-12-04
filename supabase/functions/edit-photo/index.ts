@@ -9,38 +9,40 @@ const corsHeaders = {
 // Template configurations with specific prompts and seeds
 const TEMPLATE_CONFIGS: Record<string, { prompt: string; seed: string }> = {
   showroom: {
-    prompt: `A single car centered in frame.
-The background must be only a plain, empty wall and floor.
-
-Floor:
-– one single, continuous, perfectly flat surface
-– covered with identical square tiles in uniform solid grey color #c8cfdb
-– all tiles must be exactly the same size and color
-– tiles are arranged in a perfect straight grid, aligned with the image: rows perfectly horizontal, columns perfectly vertical
-– grout lines are very thin, straight, evenly spaced and the same width everywhere
-– no broken tiles, no rotated tiles, no random patterns, no decorative tiles, no stains, no dirt
-– no texture, no noise, no speckles, no reflections, no highlights, no gradient on the tiles or grout
-– the tiled floor must look like a clean, perfectly regular infinite grid of identical grey tiles
-
-Wall:
-– perfectly flat, perfectly matte, uniform solid pure white
-– the wall is one single flat plane
-– no doors, no windows, no openings, no panels, no columns, no corners, no edges, no switches, no sockets, no lamps, no signs, no text, no logos, no objects at all
-– absolutely nothing on the wall except solid white color
-
-The line where floor and wall meet is a single perfectly straight horizontal line. No other lines or shapes in the background.
-
-Lighting:
-– neutral white studio lighting from the front
-– one very soft, short shadow directly under and slightly behind the tyres
-– no other shadows, no light spots on the wall, no gradients on the wall or floor, no colored light, no vignetting
-
-The entire background must look like a completely empty, featureless white wall and a perfectly regular grid of identical grey floor tiles, with zero additional objects or decorative details.`,
-    seed: "583913403",
+    prompt: `Peugeot 3008 SUV centered in frame on a perfectly flat, completely uniform matte floor in exact solid grey color #55575a, with no tiles, no seams, no lines, no texture, no patterns, no noise, no gradient and no reflections at all, the floor is a single continuous grey plane that meets a perfectly straight horizontal white skirting board, above it a completely plain matte white showroom wall with no doors, no windows, no corners, no objects and no shadows on the wall, camera straight-on at car height, neutral white studio lighting from the front, a single very soft short shadow directly under and just slightly behind the car, and absolutely no other shadows, lights, color shifts, vignetting or background details anywhere in the image.`,
+    seed: "317869369",
   },
-  "luxury-studio": {
+  "luxury-showroom": {
     prompt: `A single car centered in frame inside a closed luxury car photo studio. The car stands on a perfectly flat, glossy dark grey floor in exact color #2b2d30, with a single uniform mirror-like reflection of the car directly under it, fading smoothly to 0 within one car length, no tiles, no seams, no lines, no texture, no patterns and no other reflections anywhere on the floor. Around the car is a perfectly circular, slightly brighter glossy platform in exact color #3a3c40, with a clean sharp edge, perfectly centered under the car. The walls are a continuous seamless matte very dark charcoal in exact color #14151a, with no corners, no doors, no windows, no objects, no logos, no panels and no visible texture, only a very subtle vertical brightness gradient from #14151a at the edges to #191b20 behind the car. Lighting is from three invisible softboxes: one large soft light directly in front of the car and two smaller symmetric lights at 45 degrees, creating extremely soft, controlled highlights on the car and a single very soft shadow just behind and slightly to the sides of the tyres. There are no other shadows, no color casts, no vignetting and no additional light sources anywhere in the scene.`,
-    seed: "102821603",
+    seed: "117879368",
+  },
+  "soft-grey-gradient": {
+    prompt: `A car centered in frame on a perfectly flat matte floor in exact solid neutral grey color #80838a, with no tiles, no seams, no lines, no patterns, no texture, no noise and no reflections, the floor is a single continuous plane that meets a perfectly straight horizontal line where a smooth vertical gradient wall begins, the wall fades from slightly darker grey #30333a at the top to slightly lighter grey #3c4047 behind the car, with no corners, no doors, no windows, no panels, no logos, no text and no objects of any kind, camera straight-on at car height, neutral white studio lighting from the front and slightly above, one very soft short shadow directly under and slightly behind the car, and absolutely no other shadows, hotspots, banding, color shifts or details in the background.`,
+    seed: "428193756",
+  },
+  "white-infinity-cove": {
+    prompt: `A car centered in frame on a perfectly flat matte floor in uniform solid off-white color #f2f3f5, with no tiles, no seams, no lines, no texture, no patterns and no reflections, the floor curves smoothly upward into a continuous matte white infinity wall so there is no visible corner or edge, the entire background is one seamless white cyclorama with no doors, no windows, no panels, no objects, no gradient bands and no shadows on the wall, camera straight-on at car height, neutral white studio lighting from the front and slightly above, one very soft short shadow under and just behind the tyres, and absolutely no other shadows, color variations, vignetting or background elements.`,
+    seed: "539284167",
+  },
+  "two-tone-horizon": {
+    prompt: `A car centered in frame on a perfectly flat matte floor in exact solid mid-grey color #b0b3ba, with no tiles, no seams, no lines, no texture, no patterns, no noise and no reflections, the floor occupies the lower 40 percent of the image and the upper 60 percent is a completely plain matte light grey wall in exact solid color #e3e5ea, separated by one perfectly straight, sharp horizontal line across the image, the wall has no doors, no windows, no panels, no corners, no logos, no text and no objects, camera straight-on at car height, neutral white studio lighting from the front, one very soft short shadow under and slightly behind the car on the floor, and absolutely no other shadows, gradients, light spots or details on either the floor or the wall.`,
+    seed: "641375289",
+  },
+  "light-showroom": {
+    prompt: `A car centered in frame on a perfectly flat matte floor in exact solid warm grey color #c7c2bb, with no tiles, no seams, no lines, no patterns, no texture, no noise and no reflections, the floor is a continuous plane meeting a straight horizontal white skirting board, above it a completely plain matte off-white showroom wall in solid color #f5f6f7, with no doors, no windows, no glass, no columns, no ventilation, no lamps and no objects at all, camera straight-on at car height, neutral white studio lighting slightly above eye level, a single soft short shadow under and slightly behind the car, and absolutely no other shadows, reflections, bright spots, vignetting or extra geometry in the background.`,
+    seed: "752486391",
+  },
+  "dark-wall-light-floor": {
+    prompt: `A car centered in frame on a perfectly flat, uniform matte floor in solid light grey color #d0d2d7, with no tiles, seams, lines, patterns, texture, noise, gradients or reflections, the floor is a single plane that meets a perfectly straight horizontal line where a matte dark background wall in solid color #20222a starts, the wall is completely featureless with no doors, no windows, no panels, no frames, no objects and no visible corners, camera straight-on at car height, neutral white studio lighting from the front, one very soft short shadow under and slightly behind the tyres, and absolutely no other lights, backlights, rim lights, color shifts or background details in the scene.`,
+    seed: "863597412",
+  },
+  "very-light-studio": {
+    prompt: `A car centered in frame on a perfectly flat matte floor in solid very light grey color #eceff2, with no tiles, no grooves, no lines, no patterns, no texture, no noise, no reflections and no gradients, the floor is a continuous flat plane meeting a matte near-white wall in solid color #f9fafb at a perfectly straight horizontal edge, the wall is completely plain with no doors, no windows, no decorations, no signs, no objects and no shadows, camera straight-on at car height, neutral white softbox lighting from the front filling the whole frame evenly, a single very soft and faint short shadow under the car, and absolutely no other shadows, bright spots, color bands or details in the background.`,
+    seed: "974618523",
+  },
+  "darker-lower-wall": {
+    prompt: `A car centered in frame on a perfectly flat matte floor in uniform solid neutral grey color #a8abb3, with no tiles, seams, lines, texture, patterns, noise, gradients or reflections, the floor meets a matte white wall where the lower 15 percent of the wall is a slightly darker white band in solid color #e1e3e6 like a clean protective strip, and the upper part of the wall is pure matte white, the wall has no doors, no windows, no panels, no objects, no outlets and no shadows, camera straight-on at car height, neutral white studio lighting from the front, one very soft short shadow under and just behind the tyres, and absolutely no other shadows, color variations, markings or background elements.`,
+    seed: "185729634",
   },
 };
 
@@ -143,7 +145,7 @@ serve(async (req) => {
     let seedToUse: string;
 
     if (backgroundTemplateId && TEMPLATE_CONFIGS[backgroundTemplateId]) {
-      // Use template config (Showroom or Luxury Studio)
+      // Use template config
       const templateConfig = TEMPLATE_CONFIGS[backgroundTemplateId];
       promptToUse = templateConfig.prompt;
       seedToUse = templateConfig.seed;
