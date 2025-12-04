@@ -105,11 +105,21 @@ const PhotoUpload = ({
     }
 
     setUploading(true);
+    
+    // Collect all photo data for batch insert
+    const photosToInsert: Array<{
+      car_id: string;
+      url: string;
+      original_url: string;
+      photo_type: string;
+      is_edited: boolean;
+    }> = [];
+    
     try {
+      // First, upload all files to storage
       for (const file of selectedFiles) {
         const fileExt = file.name.split(".").pop();
         
-        // For documentation photos, only upload original (no API editing)
         if (photoType === "documentation") {
           const originalFileName = `${carId}/doc-${Date.now()}-${Math.random()}.${fileExt}`;
           const { error: uploadError } = await supabase.storage
@@ -133,17 +143,15 @@ const PhotoUpload = ({
             }
           } catch {}
 
-          const { error: dbError } = await supabase.from("photos").insert({
+          // Collect for batch insert instead of inserting immediately
+          photosToInsert.push({
             car_id: carId,
             url: finalUrl,
             original_url: finalUrl,
             photo_type: photoType,
             is_edited: false,
           });
-
-          if (dbError) throw dbError;
         } else {
-          // For main photos, just upload original (no auto-editing)
           const originalFileName = `${carId}/original-${Date.now()}-${Math.random()}.${fileExt}`;
           const { error: originalUploadError } = await supabase.storage
             .from("car-photos")
@@ -166,16 +174,21 @@ const PhotoUpload = ({
             }
           } catch {}
 
-          const { error: dbError } = await supabase.from("photos").insert({
+          // Collect for batch insert instead of inserting immediately
+          photosToInsert.push({
             car_id: carId,
             url: finalOriginalUrl,
             original_url: finalOriginalUrl,
             photo_type: photoType,
             is_edited: false,
           });
-
-          if (dbError) throw dbError;
         }
+      }
+
+      // Single batch insert - triggers realtime only ONCE
+      if (photosToInsert.length > 0) {
+        const { error: dbError } = await supabase.from("photos").insert(photosToInsert);
+        if (dbError) throw dbError;
       }
 
       toast({ title: "Foton uppladdade!" });
