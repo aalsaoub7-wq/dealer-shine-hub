@@ -642,6 +642,18 @@ export const AiSettingsDialog = () => {
               {logoUrl && <>
                   <Separator />
 
+                  <div className="space-y-2">
+                    <Label>Transparens ({Math.round(watermarkOpacity * 100)}%)</Label>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="100" 
+                      value={Math.round(watermarkOpacity * 100)} 
+                      onChange={e => setWatermarkOpacity(Number(e.target.value) / 100)} 
+                      className="w-full" 
+                    />
+                  </div>
+
                   <div className="mt-4">
                     <Label className="text-base font-semibold mb-3 block">Förhandsgranskning</Label>
                     <WatermarkPreview logoUrl={logoUrl} x={watermarkX} y={watermarkY} size={watermarkSize} opacity={watermarkOpacity} onPositionChange={(newX, newY) => {
