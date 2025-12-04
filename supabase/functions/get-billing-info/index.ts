@@ -135,7 +135,7 @@ serve(async (req) => {
             isInTrial,
             daysLeft: daysLeftInTrial,
             endDate: trialEndDate?.toISOString(),
-            imagesRemaining: company.trial_images_remaining || 0,
+          imagesRemaining: Math.min(company.trial_images_remaining || 0, 50),
             imagesUsed: company.trial_images_used || 0,
           }
         }),
@@ -266,7 +266,7 @@ serve(async (req) => {
           isInTrial,
           daysLeft: daysLeftInTrial,
           endDate: trialEndDate?.toISOString(),
-          imagesRemaining: company.trial_images_remaining || 0,
+          imagesRemaining: Math.min(company.trial_images_remaining || 0, 50),
           imagesUsed: company.trial_images_used || 0,
         }
       }),

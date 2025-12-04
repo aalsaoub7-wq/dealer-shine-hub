@@ -306,7 +306,7 @@ export const PaymentSettings = () => {
                 Du har <strong>{billingInfo.trial.daysLeft} dagar</strong> kvar av din gratisperiod
               </p>
               <p className="text-sm text-foreground">
-                Bilder kvar: <strong>{billingInfo.trial.imagesRemaining}</strong> av 50
+                Bilder kvar: <strong>{Math.min(billingInfo.trial.imagesRemaining, 50)}</strong> av 50
               </p>
               <p className="text-xs text-muted-foreground">
                 Testperiod löper ut: {new Date(billingInfo.trial.endDate).toLocaleDateString("sv-SE")}
