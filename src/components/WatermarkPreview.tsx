@@ -12,7 +12,6 @@ interface WatermarkPreviewProps {
   opacity: number;
   onPositionChange: (x: number, y: number) => void;
   onSizeChange: (size: number) => void;
-  onOpacityChange: (opacity: number) => void;
 }
 
 export const WatermarkPreview = ({
@@ -23,7 +22,6 @@ export const WatermarkPreview = ({
   opacity,
   onPositionChange,
   onSizeChange,
-  onOpacityChange,
 }: WatermarkPreviewProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const testImgRef = useRef<HTMLImageElement | null>(null);
@@ -286,21 +284,6 @@ export const WatermarkPreview = ({
         </Card>
       </div>
 
-      <div>
-        <Label className="mb-2 block">Transparens ({Math.round(localOpacity * 100)}%)</Label>
-        <Slider
-          value={[localOpacity * 100]}
-          onValueChange={(values) => {
-            const newOpacity = values[0] / 100;
-            setLocalOpacity(newOpacity);
-            onOpacityChange(newOpacity);
-          }}
-          min={0}
-          max={100}
-          step={1}
-          className="w-full"
-        />
-      </div>
     </div>
   );
 };
