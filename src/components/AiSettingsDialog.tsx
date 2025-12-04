@@ -642,34 +642,12 @@ export const AiSettingsDialog = () => {
               {logoUrl && <>
                   <Separator />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="watermark-x">X-position ({watermarkX}px)</Label>
-                      <input type="range" id="watermark-x" min="0" max="500" value={watermarkX} onChange={e => setWatermarkX(Number(e.target.value))} className="w-full" />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="watermark-y">Y-position ({watermarkY}px)</Label>
-                      <input type="range" id="watermark-y" min="0" max="500" value={watermarkY} onChange={e => setWatermarkY(Number(e.target.value))} className="w-full" />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="watermark-size">Storlek ({watermarkSize}%)</Label>
-                      <input type="range" id="watermark-size" min="5" max="50" value={watermarkSize} onChange={e => setWatermarkSize(Number(e.target.value))} className="w-full" />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="watermark-opacity">Opacitet ({Math.round(watermarkOpacity * 100)}%)</Label>
-                      <input type="range" id="watermark-opacity" min="0.1" max="1" step="0.05" value={watermarkOpacity} onChange={e => setWatermarkOpacity(Number(e.target.value))} className="w-full" />
-                    </div>
-                  </div>
-
                   <div className="mt-4">
                     <Label className="text-base font-semibold mb-3 block">Förhandsgranskning</Label>
                     <WatermarkPreview logoUrl={logoUrl} x={watermarkX} y={watermarkY} size={watermarkSize} opacity={watermarkOpacity} onPositionChange={(newX, newY) => {
                   setWatermarkX(newX);
                   setWatermarkY(newY);
-                }} onSizeChange={setWatermarkSize} onOpacityChange={setWatermarkOpacity} />
+                }} onSizeChange={setWatermarkSize} />
                   </div>
                 </>}
             </div>
