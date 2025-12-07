@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeftRight } from 'lucide-react';
-import beforeImage from '@/assets/before-car.webp';
-import afterImage from '@/assets/after-car.jpg';
+import beforeImage from '@/assets/before-car.jpeg';
+import afterImage from '@/assets/after-car.jpeg';
 
 export const BeforeAfterSlider = () => {
   const [sliderPosition, setSliderPosition] = useState(50);
