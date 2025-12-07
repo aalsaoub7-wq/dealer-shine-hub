@@ -13,6 +13,7 @@ import SharedPhotos from "./pages/SharedPhotos";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import Documentation from "./pages/Documentation";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { NativeRouter } from "./components/NativeRouter";
@@ -75,6 +76,7 @@ const App = () => {
                   <Route path="/shared/:token" element={<SharedPhotos />} />
                   <Route path="/integritetspolicy" element={<PrivacyPolicy />} />
                   <Route path="/användarvillkor" element={<TermsOfService />} />
+                  <Route path="/docs" element={<Documentation />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
