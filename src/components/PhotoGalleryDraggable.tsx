@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trash2, Check, Download, GripVertical, Maximize2 } from "lucide-react";
+import { Trash2, Check, Download, GripVertical, Maximize2, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ImageLightbox from "./ImageLightbox";
@@ -40,6 +40,7 @@ interface PhotoGalleryProps {
   onUpdate: () => void;
   selectedPhotos: string[];
   onSelectionChange: (selectedIds: string[]) => void;
+  onRegenerate?: (photoId: string) => void;
 }
 
 interface SortablePhotoCardProps {
@@ -49,6 +50,7 @@ interface SortablePhotoCardProps {
   onImageClick: (url: string) => void;
   isSelected: boolean;
   onSelect: (photoId: string, selected: boolean) => void;
+  onRegenerate?: (photoId: string) => void;
 }
 
 const SortablePhotoCard = ({
@@ -58,6 +60,7 @@ const SortablePhotoCard = ({
   onImageClick,
   isSelected,
   onSelect,
+  onRegenerate,
 }: SortablePhotoCardProps) => {
   const {
     attributes,
@@ -130,6 +133,17 @@ const SortablePhotoCard = ({
           </Badge>
         )}
         <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 flex gap-2">
+          {photo.is_edited && onRegenerate && (
+            <Button
+              size="icon"
+              variant="secondary"
+              onClick={() => onRegenerate(photo.id)}
+              className="h-8 w-8 hover:scale-110 transition-transform duration-300"
+              title="Regenerera med ny bakgrund"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+          )}
           <Button
             size="icon"
             variant="secondary"
@@ -152,7 +166,7 @@ const SortablePhotoCard = ({
   );
 };
 
-const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionChange }: PhotoGalleryProps) => {
+const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionChange, onRegenerate }: PhotoGalleryProps) => {
   const { toast } = useToast();
   const [items, setItems] = useState(photos);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
@@ -251,6 +265,7 @@ const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionCh
                     onSelectionChange(selectedPhotos.filter(id => id !== photoId));
                   }
                 }}
+                onRegenerate={onRegenerate}
               />
             ))}
           </div>

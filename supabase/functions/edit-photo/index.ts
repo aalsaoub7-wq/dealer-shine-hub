@@ -125,9 +125,14 @@ serve(async (req) => {
 
     const formData = await req.formData();
     const imageFile = formData.get("image_file");
+    const overrideSeed = formData.get("override_seed");
 
     if (!imageFile || !(imageFile instanceof File)) {
       throw new Error("No image file provided");
+    }
+
+    if (overrideSeed) {
+      console.log(`Override seed provided: ${overrideSeed}`);
     }
 
     console.log("Processing image with PhotoRoom API:", imageFile.name);
@@ -148,13 +153,15 @@ serve(async (req) => {
       // Use template config
       const templateConfig = TEMPLATE_CONFIGS[backgroundTemplateId];
       promptToUse = templateConfig.prompt;
-      seedToUse = templateConfig.seed;
+      // Use override seed if provided (for regeneration), otherwise use template seed
+      seedToUse = overrideSeed ? String(overrideSeed) : templateConfig.seed;
       console.log(`Using template: ${backgroundTemplateId}`);
     } else {
       // Custom prompt - use stored custom seed or default
       const customSeed = (globalThis as any).__customBackgroundSeed;
       promptToUse = backgroundPrompt;
-      seedToUse = customSeed || DEFAULT_CONFIG.seed;
+      // Use override seed if provided (for regeneration), otherwise use custom/default seed
+      seedToUse = overrideSeed ? String(overrideSeed) : (customSeed || DEFAULT_CONFIG.seed);
       console.log(`Using custom prompt with seed: ${seedToUse}`);
       // Clean up global variable
       delete (globalThis as any).__customBackgroundSeed;

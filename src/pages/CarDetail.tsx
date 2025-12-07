@@ -522,6 +522,106 @@ const CarDetail = () => {
     });
   };
 
+  const handleRegeneratePhoto = async (photoId: string) => {
+    const photo = mainPhotos.find(p => p.id === photoId);
+    if (!photo || !photo.original_url) {
+      toast({
+        title: "Kan inte regenerera",
+        description: "Originalbild saknas",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check payment/trial requirements
+    if (!hasPaymentMethod) {
+      toast({
+        title: "Betalmetod krävs",
+        description: "Du måste lägga till en betalmetod för att regenerera bilder.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Regenererar bild",
+      description: "Bilden bearbetas med ny bakgrund...",
+    });
+
+    // Mark photo as processing
+    await supabase
+      .from("photos")
+      .update({ is_processing: true })
+      .eq("id", photoId);
+
+    // Process in background
+    (async () => {
+      try {
+        // Generate random 9-digit seed
+        const randomSeed = Math.floor(100000000 + Math.random() * 900000000).toString();
+
+        // Fetch ORIGINAL image
+        const response = await fetch(photo.original_url!);
+        const blob = await response.blob();
+        const file = new File([blob], "photo.jpg", { type: blob.type });
+
+        const formData = new FormData();
+        formData.append("image_file", file);
+        formData.append("override_seed", randomSeed);
+
+        const { data, error } = await supabase.functions.invoke("edit-photo", {
+          body: formData,
+        });
+
+        if (error) throw error;
+
+        // Convert base64 to blob
+        const base64 = data.image;
+        const binaryString = atob(base64);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const editedBlob = new Blob([bytes], { type: "image/png" });
+
+        // Upload regenerated image
+        const editedFileName = `${car!.id}/regenerated-${Date.now()}-${Math.random()}.png`;
+        const { error: uploadError } = await supabase.storage
+          .from("car-photos")
+          .upload(editedFileName, editedBlob, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("car-photos").getPublicUrl(editedFileName);
+
+        // Update photo - keep original_url, update url
+        await supabase
+          .from("photos")
+          .update({
+            url: publicUrl,
+            is_processing: false,
+          })
+          .eq("id", photoId);
+
+        successNotification();
+      } catch (error) {
+        console.error(`Error regenerating photo ${photoId}:`, error);
+        await supabase
+          .from("photos")
+          .update({ is_processing: false })
+          .eq("id", photoId);
+
+        toast({
+          title: "Fel vid regenerering",
+          description: error instanceof Error ? error.message : "Okänt fel",
+          variant: "destructive",
+        });
+      }
+    })();
+  };
+
   const handleApplyWatermark = async (photoIds: string[], photoType: "main" | "documentation") => {
     setApplyingWatermark(true);
     try {
@@ -836,6 +936,7 @@ const CarDetail = () => {
               onUpdate={() => fetchCarData(true)}
               selectedPhotos={selectedMainPhotos}
               onSelectionChange={setSelectedMainPhotos}
+              onRegenerate={handleRegeneratePhoto}
             />
           </TabsContent>
 
