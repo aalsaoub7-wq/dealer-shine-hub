@@ -605,6 +605,13 @@ const CarDetail = () => {
           })
           .eq("id", photoId);
 
+        // Track usage for this regenerated image (counts as billable edit)
+        try {
+          await trackUsage("edited_image", car!.id);
+        } catch (error) {
+          console.error("Error tracking usage for regeneration:", error);
+        }
+
         successNotification();
       } catch (error) {
         console.error(`Error regenerating photo ${photoId}:`, error);
