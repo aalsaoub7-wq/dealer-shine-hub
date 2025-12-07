@@ -833,10 +833,11 @@ const Landing = () => {
               </ul>
             </div>
 
-            {/* Column 4 - Legal */}
+            {/* Column 4 - Legal & Help */}
             <div>
-              <h3 className="font-semibold text-foreground mb-3">Juridiskt</h3>
+              <h3 className="font-semibold text-foreground mb-3">Hjälp & Juridiskt</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="/docs" className="hover:text-foreground transition-colors">Dokumentation</a></li>
                 <li><a href="/integritetspolicy" className="hover:text-foreground transition-colors">Integritetspolicy</a></li>
                 <li><a href="/användarvillkor" className="hover:text-foreground transition-colors">Användarvillkor</a></li>
               </ul>
