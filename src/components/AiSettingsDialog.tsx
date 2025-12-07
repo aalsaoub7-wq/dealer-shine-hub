@@ -120,6 +120,7 @@ export const AiSettingsDialog = () => {
   const [uploadingHeaderImage, setUploadingHeaderImage] = useState(false);
   const [loading, setLoading] = useState(false);
   const [translating, setTranslating] = useState(false);
+  const [removingLogoBg, setRemovingLogoBg] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const {
     toast
@@ -294,6 +295,32 @@ export const AiSettingsDialog = () => {
   };
   const handleRemoveLogo = () => {
     setLogoUrl("");
+  };
+  const handleRemoveLogoBackground = async () => {
+    if (!logoUrl) return;
+    setRemovingLogoBg(true);
+    try {
+      const response = await supabase.functions.invoke('remove-logo-background', {
+        body: { imageUrl: logoUrl }
+      });
+      if (response.error) throw response.error;
+      if (response.data?.error) throw new Error(response.data.error);
+      
+      setLogoUrl(response.data.newUrl);
+      toast({ 
+        title: "Bakgrund borttagen", 
+        description: "Logotypens bakgrund har tagits bort" 
+      });
+    } catch (error: any) {
+      console.error("Error removing logo background:", error);
+      toast({ 
+        title: "Fel", 
+        description: "Kunde inte ta bort bakgrunden: " + error.message, 
+        variant: "destructive" 
+      });
+    } finally {
+      setRemovingLogoBg(false);
+    }
   };
   const handleLandingLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -629,6 +656,14 @@ export const AiSettingsDialog = () => {
 
                 {logoUrl ? <div className="flex items-center gap-4 p-3 border rounded-lg bg-muted/30">
                     <img src={logoUrl} alt="Logo" className="h-12 w-auto max-w-[120px] object-contain" />
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleRemoveLogoBackground}
+                      disabled={removingLogoBg}
+                    >
+                      {removingLogoBg ? "Bearbetar..." : "Ta bort bakgrund"}
+                    </Button>
                     <Button variant="destructive" size="sm" onClick={handleRemoveLogo}>
                       <X className="h-4 w-4 mr-1" />
                       Ta bort
