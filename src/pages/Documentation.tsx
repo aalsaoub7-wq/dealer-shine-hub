@@ -1,24 +1,12 @@
 import { ArrowLeft, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 const Documentation = () => {
   const navigate = useNavigate();
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-12">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/")}
-          className="mb-8 text-muted-foreground hover:text-foreground"
-        >
+        <Button variant="ghost" onClick={() => navigate("/")} className="mb-8 text-muted-foreground hover:text-foreground">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Tillbaka till startsidan
         </Button>
@@ -151,7 +139,7 @@ const Documentation = () => {
                 <h4 className="font-medium text-foreground mb-2">Viktigt att veta</h4>
                 <ul className="list-disc list-inside space-y-1">
                   <li>Endast huvudbilder kan AI-redigeras (inte dokumentationsbilder)</li>
-                  <li>Redigerade bilder är permanenta – de kan inte återställas</li>
+                  <li>Redigerade bilder går att generera om ifall du inte tycker om de </li>
                   <li>Varje redigerad bild kostar 4,95 kr (gratis under testperioden)</li>
                   <li>Du måste ha en betalmetod registrerad efter testperioden</li>
                 </ul>
@@ -412,8 +400,6 @@ const Documentation = () => {
           </p>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Documentation;
