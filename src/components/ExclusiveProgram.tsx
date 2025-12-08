@@ -43,14 +43,36 @@ export const ExclusiveProgram = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Mouse tracking for 3D parallax (desktop only) - SUBTLE effect
+  // Smooth mouse position with interpolation for natural feel
+  const targetPosition = useRef({ x: 0, y: 0 });
+  const animationRef = useRef<number>();
+
+  // Mouse tracking for 3D parallax (desktop only)
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (prefersReducedMotion || !sectionRef.current) return;
     const rect = sectionRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
     const y = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
-    // Reduced to max 2 degrees for subtle effect
-    setMousePosition({ x: x * 2, y: y * -2 });
+    // Slightly increased sensitivity: max 3.5 degrees
+    targetPosition.current = { x: x * 3.5, y: y * -3.5 };
+  }, [prefersReducedMotion]);
+
+  // Smooth interpolation animation loop for natural movement
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    
+    const animate = () => {
+      setMousePosition(prev => ({
+        x: prev.x + (targetPosition.current.x - prev.x) * 0.08,
+        y: prev.y + (targetPosition.current.y - prev.y) * 0.08
+      }));
+      animationRef.current = requestAnimationFrame(animate);
+    };
+    
+    animationRef.current = requestAnimationFrame(animate);
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
   }, [prefersReducedMotion]);
 
   useEffect(() => {
@@ -87,15 +109,13 @@ export const ExclusiveProgram = () => {
     }
   };
 
-  // Subtle parallax - reduced rotation and smoother transition
+  // Parallax style with smooth transitions
   const getParallaxStyle = (depth: number) => {
     if (prefersReducedMotion) return {};
-    // Much subtler effect: 0.03 multiplier instead of 0.1
-    const rotateX = mousePosition.y * (depth * 0.03);
-    const rotateY = mousePosition.x * (depth * 0.03);
+    const rotateX = mousePosition.y * (depth * 0.04);
+    const rotateY = mousePosition.x * (depth * 0.04);
     return {
-      transform: `translateZ(${depth * 0.5}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
-      transition: "transform 0.3s ease-out"
+      transform: `translateZ(${depth * 0.5}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`
     };
   };
 
