@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { TypewriterText } from "@/components/TypewriterText";
+import { ExclusiveProgram } from "@/components/ExclusiveProgram";
 const Landing = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -672,6 +673,9 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
+      {/* Exclusive VIP Program Section */}
+      <ExclusiveProgram />
 
       {/* FAQ Section */}
       <section className="py-20 md:py-32 scroll-animate">

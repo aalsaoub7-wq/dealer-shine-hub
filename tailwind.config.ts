@@ -98,6 +98,36 @@ export default {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-10px)" },
         },
+        // VIP Section animations
+        "vip-pulse-glow": {
+          "0%, 100%": { boxShadow: "0 0 15px rgba(59, 130, 246, 0.2)" },
+          "50%": { boxShadow: "0 0 25px rgba(59, 130, 246, 0.4)" },
+        },
+        "vip-breathing": {
+          "0%, 100%": { opacity: "0.8" },
+          "50%": { opacity: "1" },
+        },
+        "vip-float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-8px)" },
+        },
+        "vip-particle": {
+          "0%": { transform: "translateX(0) translateY(0)", opacity: "0.3" },
+          "50%": { opacity: "0.6" },
+          "100%": { transform: "translateX(80px) translateY(-60px)", opacity: "0" },
+        },
+        "vip-neon-pulse": {
+          "0%, 100%": { opacity: "0.3", filter: "drop-shadow(0 0 10px rgba(59, 130, 246, 0.3))" },
+          "50%": { opacity: "0.6", filter: "drop-shadow(0 0 20px rgba(59, 130, 246, 0.6))" },
+        },
+        "vip-shine": {
+          "0%": { backgroundPosition: "-200% center" },
+          "100%": { backgroundPosition: "200% center" },
+        },
+        "vip-blink": {
+          "0%, 100%": { opacity: "0.3" },
+          "50%": { opacity: "0.8" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -108,6 +138,14 @@ export default {
         "slide-in-right": "slide-in-right 0.4s ease-out",
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
         "float": "float 3s ease-in-out infinite",
+        // VIP Section animations
+        "vip-pulse-glow": "vip-pulse-glow 4s ease-in-out infinite",
+        "vip-breathing": "vip-breathing 3s ease-in-out infinite",
+        "vip-float": "vip-float 4s ease-in-out infinite",
+        "vip-particle": "vip-particle 15s linear infinite",
+        "vip-neon-pulse": "vip-neon-pulse 3s ease-in-out infinite",
+        "vip-shine": "vip-shine 3s linear infinite",
+        "vip-blink": "vip-blink 3s ease-in-out infinite",
       },
     },
   },
