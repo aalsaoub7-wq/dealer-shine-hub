@@ -113,41 +113,7 @@ export const ExclusiveProgram = () => {
       className="relative min-h-[90vh] md:min-h-[90vh] w-full overflow-hidden py-20 md:py-32"
       style={{ perspective: "1000px", transformStyle: "preserve-3d" }}
     >
-      {/* Background Layer - Deepest */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={getParallaxStyle(-60)}
-        aria-hidden="true"
-      >
-        {/* Base gradient */}
-        <div className="absolute inset-0 bg-[#0c1219]" />
-        
-        {/* Radial glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(59,130,246,0.15)_0%,_transparent_70%)]" />
-        
-        {/* Aurora effect */}
-        <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-gradient-to-b from-blue-500/10 via-purple-500/5 to-transparent blur-3xl animate-vip-breathing" />
-        <div className="absolute bottom-0 right-1/4 w-1/2 h-1/2 bg-gradient-to-t from-red-500/10 via-orange-500/5 to-transparent blur-3xl animate-vip-breathing" style={{ animationDelay: "2s" }} />
-        
-        {/* Film grain overlay */}
-        <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjc1IiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI2EpIi8+PC9zdmc+')]" />
-        
-        {/* Subtle particles */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-white/20 rounded-full animate-vip-particle"
-              style={{
-                left: `${15 + i * 15}%`,
-                top: `${20 + (i % 3) * 25}%`,
-                animationDelay: `${i * 2}s`,
-                animationDuration: `${15 + i * 3}s`
-              }}
-            />
-          ))}
-        </div>
-      </div>
+      {/* No custom background - uses page background */}
 
       {/* Neon Car Outline Layer */}
       <div
@@ -196,39 +162,39 @@ export const ExclusiveProgram = () => {
         </svg>
       </div>
 
-      {/* HUD Glass Chips Layer */}
+      {/* HUD Glass Chips Layer - In front of main card */}
       <div
-        className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-1000 ${isInView ? "opacity-100" : "opacity-0"}`}
-        style={getParallaxStyle(20)}
+        className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-1000 z-20 ${isInView ? "opacity-100" : "opacity-0"}`}
+        style={getParallaxStyle(60)}
         aria-hidden="true"
       >
-        <div className="relative w-full max-w-4xl h-96 hidden md:block">
+        <div className="relative w-full max-w-5xl h-[500px] hidden md:block">
           {/* Deal Score chip - top left */}
-          <div className="absolute top-0 left-0 animate-vip-float" style={{ animationDelay: "0s" }}>
-            <div className="px-4 py-2 rounded-lg backdrop-blur-md bg-black/40 border border-white/20 shadow-lg animate-vip-pulse-glow">
+          <div className="absolute top-4 left-4 animate-vip-float" style={{ animationDelay: "0s" }}>
+            <div className="px-4 py-2 rounded-lg backdrop-blur-md bg-black/60 border border-white/20 shadow-lg animate-vip-pulse-glow">
               <span className="text-xs font-mono text-green-400">Ny annons</span>
             </div>
           </div>
           
           {/* Deal score - top right */}
-          <div className="absolute top-8 right-8 animate-vip-float" style={{ animationDelay: "0.5s" }}>
-            <div className="px-4 py-2 rounded-lg backdrop-blur-md bg-black/40 border border-blue-500/30 shadow-lg animate-vip-pulse-glow" style={{ animationDelay: "2s" }}>
+          <div className="absolute top-4 right-4 animate-vip-float" style={{ animationDelay: "0.5s" }}>
+            <div className="px-4 py-2 rounded-lg backdrop-blur-md bg-black/60 border border-blue-500/30 shadow-lg animate-vip-pulse-glow" style={{ animationDelay: "2s" }}>
               <span className="text-xs font-mono text-blue-400">Deal score </span>
               <span className="text-sm font-bold text-white">92</span>
             </div>
           </div>
           
           {/* Margin chip - bottom left */}
-          <div className="absolute bottom-16 left-12 animate-vip-float" style={{ animationDelay: "1s" }}>
-            <div className="px-4 py-2 rounded-lg backdrop-blur-md bg-black/40 border border-red-500/30 shadow-lg animate-vip-pulse-glow" style={{ animationDelay: "4s" }}>
+          <div className="absolute bottom-4 left-4 animate-vip-float" style={{ animationDelay: "1s" }}>
+            <div className="px-4 py-2 rounded-lg backdrop-blur-md bg-black/60 border border-red-500/30 shadow-lg animate-vip-pulse-glow" style={{ animationDelay: "4s" }}>
               <span className="text-xs font-mono text-red-400">Marginal </span>
               <span className="text-sm font-bold text-white">+24 000 kr</span>
             </div>
           </div>
           
           {/* Notification chip - bottom right */}
-          <div className="absolute bottom-8 right-16 animate-vip-float" style={{ animationDelay: "1.5s" }}>
-            <div className="px-4 py-2 rounded-lg backdrop-blur-md bg-black/40 border border-green-500/30 shadow-lg animate-vip-pulse-glow" style={{ animationDelay: "6s" }}>
+          <div className="absolute bottom-4 right-4 animate-vip-float" style={{ animationDelay: "1.5s" }}>
+            <div className="px-4 py-2 rounded-lg backdrop-blur-md bg-black/60 border border-green-500/30 shadow-lg animate-vip-pulse-glow" style={{ animationDelay: "6s" }}>
               <span className="text-xs font-mono text-green-400">✓ Notifiering skickad</span>
             </div>
           </div>
@@ -346,15 +312,6 @@ export const ExclusiveProgram = () => {
                 <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
               </Button>
               
-              <Button
-                onClick={handleDemoClick}
-                variant="outline"
-                size="lg"
-                className="border-white/20 bg-white/5 hover:bg-white/10 text-white font-semibold px-8 py-6 rounded-xl backdrop-blur-sm transition-all duration-300"
-              >
-                <Play className="h-5 w-5 mr-2" />
-                Se 2-min demo
-              </Button>
             </div>
           </div>
         </div>
