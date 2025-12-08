@@ -371,8 +371,8 @@ const Documentation = () => {
                 <h4 className="font-medium text-foreground mb-2">Kontakta support</h4>
                 <p>
                   Om du fortfarande har problem, kontakta oss på{" "}
-                  <a href="mailto:admin@luvero.se" className="text-primary hover:underline">
-                    admin@luvero.se
+                  <a className="text-primary hover:underline" href="mailto:support@luvero.se">
+                    support@luvero.se
                   </a>{" "}
                   eller ring{" "}
                   <a href="tel:0762123786" className="text-primary hover:underline">
