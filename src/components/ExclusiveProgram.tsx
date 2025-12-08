@@ -222,26 +222,26 @@ export const ExclusiveProgram = () => {
         </div>
       </div>
 
-      {/* Floating Logos Layer - No cards/frames */}
+      {/* Floating Logos Layer - No cards/frames, in front of main card */}
       <div
-        className="absolute inset-0 flex items-center justify-between px-12 md:px-32 pointer-events-none"
-        style={getParallaxStyle(35)}
+        className="absolute inset-0 flex items-center justify-between px-8 md:px-24 pointer-events-none z-30"
+        style={getParallaxStyle(80)}
         aria-hidden="true"
       >
-        {/* Blocket logo - left, bigger, no frame */}
+        {/* Blocket logo - left, bigger, no frame, smooth float like "Ny annons" */}
         <div 
           className={`hidden md:block transition-all duration-1000 animate-vip-float ${isInView ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"}`} 
-          style={{ transitionDelay: "600ms", filter: "drop-shadow(0 0 25px rgba(249,115,22,0.4))" }}
+          style={{ transitionDelay: "600ms", animationDelay: "0.3s", filter: "drop-shadow(0 0 35px rgba(249,115,22,0.5))" }}
         >
-          <img src={blocketLogo} alt="Blocket" className="h-20 w-auto object-contain animate-vip-breathing" />
+          <img src={blocketLogo} alt="Blocket" className="h-32 w-auto object-contain" />
         </div>
         
-        {/* Facebook Marketplace logo - right, bigger, no frame */}
+        {/* Facebook Marketplace logo - right, bigger, no frame, smooth float */}
         <div 
           className={`hidden md:block transition-all duration-1000 animate-vip-float ${isInView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"}`} 
-          style={{ transitionDelay: "800ms", animationDelay: "1s", filter: "drop-shadow(0 0 25px rgba(59,130,246,0.4))" }}
+          style={{ transitionDelay: "800ms", animationDelay: "0.8s", filter: "drop-shadow(0 0 35px rgba(59,130,246,0.5))" }}
         >
-          <img src={fbmLogo} alt="Facebook Marketplace" className="h-20 w-auto object-contain animate-vip-breathing" style={{ animationDelay: "1.5s" }} />
+          <img src={fbmLogo} alt="Facebook Marketplace" className="h-32 w-auto object-contain" />
         </div>
       </div>
 
@@ -250,12 +250,12 @@ export const ExclusiveProgram = () => {
         className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-[70vh]"
         style={getParallaxStyle(50)}
       >
-        {/* Badge with Luvero logo */}
+        {/* Badge with Luvero logo - Much larger */}
         <div
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md bg-gradient-to-r from-red-500/20 to-orange-500/20 border border-red-500/30 mb-6 transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"}`}
+          className={`inline-flex items-center gap-4 px-8 py-4 rounded-full backdrop-blur-md bg-gradient-to-r from-red-500/25 to-orange-500/25 border-2 border-red-500/40 mb-8 transition-all duration-700 shadow-[0_0_40px_rgba(255,59,59,0.3)] ${isInView ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"}`}
         >
-          <img src={luveroLogo} alt="Luvero" className="h-5 w-5 object-contain" />
-          <span className="text-sm font-medium text-white animate-vip-shine">
+          <img src={luveroLogo} alt="Luvero" className="h-10 w-10 object-contain" />
+          <span className="text-xl md:text-2xl font-bold text-white animate-vip-shine">
             Lorbit AI
           </span>
         </div>
