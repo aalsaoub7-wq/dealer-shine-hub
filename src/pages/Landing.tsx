@@ -566,20 +566,13 @@ const Landing = () => {
                 </div>
 
                 <div className="py-4 space-y-3">
-                  {['Lagerhantering & dokumentation', 'Obegränsat antal bilar', 'Obegränsat antal användare', 'AI bakgrundsredigering'].map((feature, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm whitespace-nowrap">
+                  {['Lagerhantering & dokumentation', 'Obegränsat antal bilar', 'Obegränsat antal användare', 'AI bakgrundsredigering'].map((feature, i) => <div key={i} className="flex items-center gap-2 text-sm whitespace-nowrap">
                       <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
                       <span className="text-foreground">{feature}</span>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
 
-                <Button 
-                  size="lg" 
-                  variant="outline"
-                  className="w-full border-green-500/50 text-green-500 hover:bg-green-500/10" 
-                  onClick={() => navigate("/auth?mode=signup&plan=start")}
-                >
+                <Button size="lg" variant="outline" className="w-full border-green-500/50 text-green-500 hover:bg-green-500/10" onClick={() => navigate("/auth?mode=signup&plan=start")}>
                   Prova gratis i 21 dagar
                 </Button>
               </div>
@@ -604,19 +597,13 @@ const Landing = () => {
                 </div>
 
                 <div className="py-4 space-y-3">
-                  {['Allt i Start', 'Bäst för 100-500 bilder/mån', 'Lägre kostnad per bild', 'Prioriterad support'].map((feature, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm">
+                  {['Allt i Start', 'Bäst för 100-500 bilder/mån', 'Lägre kostnad per bild', 'Prioriterad support'].map((feature, i) => <div key={i} className="flex items-center gap-2 text-sm">
                       <Check className="h-4 w-4 text-blue-500 flex-shrink-0" />
                       <span className="text-foreground">{feature}</span>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
 
-                <Button 
-                  size="lg" 
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30" 
-                  onClick={() => navigate("/auth?mode=signup&plan=pro")}
-                >
+                <Button size="lg" className="w-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30" onClick={() => navigate("/auth?mode=signup&plan=pro")}>
                   Prova gratis i 21 dagar
                 </Button>
               </div>
@@ -641,20 +628,13 @@ const Landing = () => {
                 </div>
 
                 <div className="py-4 space-y-3">
-                  {['Allt i Pro', 'Bäst för storvolymsanvändare', 'Lägsta kostnad per bild', 'Dedikerad support'].map((feature, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm">
+                  {['Allt i Pro', 'Bäst för storvolymsanvändare', 'Lägsta kostnad per bild', 'Dedikerad support'].map((feature, i) => <div key={i} className="flex items-center gap-2 text-sm">
                       <Check className="h-4 w-4 text-purple-500 flex-shrink-0" />
                       <span className="text-foreground">{feature}</span>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
 
-                <Button 
-                  size="lg" 
-                  variant="outline"
-                  className="w-full border-purple-500/50 text-purple-500 hover:bg-purple-500/10" 
-                  onClick={() => navigate("/auth?mode=signup&plan=elit")}
-                >
+                <Button size="lg" variant="outline" className="w-full border-purple-500/50 text-purple-500 hover:bg-purple-500/10" onClick={() => navigate("/auth?mode=signup&plan=elit")}>
                   Prova gratis i 21 dagar
                 </Button>
               </div>
@@ -831,7 +811,7 @@ const Landing = () => {
                 <li>
                   <a href="mailto:admin@luvero.se" className="hover:text-foreground transition-colors flex items-center gap-2">
                     <Mail className="w-4 h-4" />
-                    admin@luvero.se
+                    support@luvero.se
                   </a>
                 </li>
               </ul>
