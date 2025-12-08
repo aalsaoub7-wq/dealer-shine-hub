@@ -4,9 +4,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Lock, Play, Crown, ChevronDown, Zap, Target, Bell, Filter, Check } from "lucide-react";
+import { Lock, Play, ChevronDown, Zap, Target, Bell, Filter, Check } from "lucide-react";
 import blocketLogo from "@/assets/blocket-vip-logo.png";
 import fbmLogo from "@/assets/fbm-vip-logo.png";
+import luveroLogo from "@/assets/luvero-logo-new.png";
 
 export const ExclusiveProgram = () => {
   const [applyModalOpen, setApplyModalOpen] = useState(false);
@@ -221,24 +222,26 @@ export const ExclusiveProgram = () => {
         </div>
       </div>
 
-      {/* Logo Chips Layer */}
+      {/* Floating Logos Layer - No cards/frames */}
       <div
-        className="absolute inset-0 flex items-center justify-between px-8 md:px-20 pointer-events-none"
-        style={getParallaxStyle(30)}
+        className="absolute inset-0 flex items-center justify-between px-12 md:px-32 pointer-events-none"
+        style={getParallaxStyle(35)}
         aria-hidden="true"
       >
-        {/* Blocket logo - left */}
-        <div className={`hidden md:block transition-all duration-1000 ${isInView ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"}`} style={{ transitionDelay: "600ms" }}>
-          <div className="p-4 rounded-2xl backdrop-blur-md bg-black/30 border border-orange-500/20 shadow-[0_0_30px_rgba(249,115,22,0.2)] animate-vip-breathing">
-            <img src={blocketLogo} alt="Blocket" className="h-10 w-auto object-contain" />
-          </div>
+        {/* Blocket logo - left, bigger, no frame */}
+        <div 
+          className={`hidden md:block transition-all duration-1000 animate-vip-float ${isInView ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"}`} 
+          style={{ transitionDelay: "600ms", filter: "drop-shadow(0 0 25px rgba(249,115,22,0.4))" }}
+        >
+          <img src={blocketLogo} alt="Blocket" className="h-20 w-auto object-contain animate-vip-breathing" />
         </div>
         
-        {/* Facebook Marketplace logo - right */}
-        <div className={`hidden md:block transition-all duration-1000 ${isInView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"}`} style={{ transitionDelay: "800ms" }}>
-          <div className="p-4 rounded-2xl backdrop-blur-md bg-black/30 border border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.2)] animate-vip-breathing" style={{ animationDelay: "1.5s" }}>
-            <img src={fbmLogo} alt="Facebook Marketplace" className="h-10 w-auto object-contain" />
-          </div>
+        {/* Facebook Marketplace logo - right, bigger, no frame */}
+        <div 
+          className={`hidden md:block transition-all duration-1000 animate-vip-float ${isInView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"}`} 
+          style={{ transitionDelay: "800ms", animationDelay: "1s", filter: "drop-shadow(0 0 25px rgba(59,130,246,0.4))" }}
+        >
+          <img src={fbmLogo} alt="Facebook Marketplace" className="h-20 w-auto object-contain animate-vip-breathing" style={{ animationDelay: "1.5s" }} />
         </div>
       </div>
 
@@ -247,13 +250,13 @@ export const ExclusiveProgram = () => {
         className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-[70vh]"
         style={getParallaxStyle(50)}
       >
-        {/* Badge */}
+        {/* Badge with Luvero logo */}
         <div
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 mb-6 transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"}`}
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md bg-gradient-to-r from-red-500/20 to-orange-500/20 border border-red-500/30 mb-6 transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"}`}
         >
-          <Crown className="h-4 w-4 text-amber-400" />
-          <span className="text-sm font-medium text-amber-300 animate-vip-shine">
-            Endast 1 ny kund/månad
+          <img src={luveroLogo} alt="Luvero" className="h-5 w-5 object-contain" />
+          <span className="text-sm font-medium text-white animate-vip-shine">
+            Lorbit AI
           </span>
         </div>
 
@@ -359,7 +362,7 @@ export const ExclusiveProgram = () => {
         <DialogContent className="sm:max-w-md bg-[#0c1219]/95 backdrop-blur-xl border-white/10">
           <DialogHeader>
             <DialogTitle className="text-2xl text-white flex items-center gap-2">
-              <Crown className="h-6 w-6 text-amber-400" />
+              <img src={luveroLogo} alt="Luvero" className="h-6 w-6 object-contain" />
               Ansök om plats
             </DialogTitle>
             <DialogDescription className="text-gray-400">
