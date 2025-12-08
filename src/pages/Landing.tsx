@@ -62,6 +62,9 @@ const Landing = () => {
               <button onClick={() => scrollToSection('how-it-works')} className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
                 Så fungerar det
               </button>
+              <button onClick={() => scrollToSection('exclusive-program')} className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
+                Lorbit AI
+              </button>
               <div className="flex items-center gap-3">
                 <Button onClick={() => navigate("/auth")} className="bg-black text-white hover:bg-black hover:text-white hover:scale-100">
                   Logga in
@@ -90,6 +93,9 @@ const Landing = () => {
               </button>
               <button onClick={() => scrollToSection('how-it-works')} className="block w-full text-left px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-muted rounded-md transition-colors">
                 Så fungerar det
+              </button>
+              <button onClick={() => scrollToSection('exclusive-program')} className="block w-full text-left px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                Lorbit AI
               </button>
               <Button className="w-full bg-black text-white hover:bg-black hover:text-white hover:scale-100" onClick={() => navigate("/auth")}>
                 Logga in
