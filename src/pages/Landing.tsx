@@ -803,9 +803,9 @@ const Landing = () => {
               <h3 className="font-semibold text-foreground mb-3">Kontakt</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <a href="tel:0762123786" className="hover:text-foreground transition-colors flex items-center gap-2">
+                  <a className="hover:text-foreground transition-colors flex items-center gap-2" href="tel:0793436810">
                     <Phone className="w-4 h-4" />
-                    076-212 37 86
+                    079-343 68 10    
                   </a>
                 </li>
                 <li>
