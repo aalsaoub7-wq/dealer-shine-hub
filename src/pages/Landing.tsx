@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import luveroLogo from "@/assets/luvero-logo-new.png";
 import luveroLogoText from "@/assets/luvero-logo-text.png";
 import adstuffLogo from "@/assets/adstuff-logo.png";
-import { Brain, Link2, Shield, Globe, Users, DollarSign, Upload, Wand2, Download, Check, ChevronDown, Menu, X, Package, Phone, Mail } from "lucide-react";
+import { Brain, Link2, Shield, Globe, Users, DollarSign, Upload, Wand2, Download, Check, ChevronDown, Menu, X, Package, Phone, Mail, Crown, Radar, TrendingUp, Bell, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
@@ -669,6 +669,118 @@ const Landing = () => {
             <p className="text-muted-foreground text-sm mt-4 font-medium">
               ✓ Inget kort behövs för testperioden (21 dagar eller 50 bilder)
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Exclusive AI Scout Section */}
+      <section className="py-20 md:py-32 scroll-animate relative overflow-hidden">
+        {/* Premium gradient overlays */}
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-amber-600/10" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-yellow-500/10 rounded-full blur-3xl" />
+        
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          {/* Exclusive badge */}
+          <div className="text-center mb-8">
+            <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30 text-amber-400 text-sm font-semibold shadow-lg shadow-amber-500/10 animate-pulse">
+              <Crown className="h-4 w-4" />
+              Endast 1 ny plats per månad
+              <Sparkles className="h-4 w-4" />
+            </span>
+          </div>
+
+          {/* Main card with glassmorphism */}
+          <div className="backdrop-blur-xl bg-card/40 rounded-3xl border border-amber-500/20 p-8 md:p-12 shadow-2xl shadow-amber-500/5 relative overflow-hidden">
+            {/* Inner glow effects */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-amber-500/20 to-transparent rounded-full blur-2xl" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-yellow-500/15 to-transparent rounded-full blur-2xl" />
+            
+            <div className="relative">
+              {/* Header */}
+              <div className="text-center mb-10">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-600 mb-6 shadow-lg shadow-amber-500/30">
+                  <Radar className="h-10 w-10 text-black" />
+                </div>
+                <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                  <span className="bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+                    AI Scout
+                  </span>
+                </h2>
+                <p className="text-xl md:text-2xl text-foreground/90 font-medium">
+                  Exklusivt för utvalda bilhandlare
+                </p>
+              </div>
+
+              {/* Description */}
+              <p className="text-center text-lg text-muted-foreground max-w-3xl mx-auto mb-12">
+                Vår AI bevakar Facebook Marketplace och Blocket dygnet runt, analyserar varje bilannons som publiceras, 
+                och meddelar dig direkt när det dyker upp en affär som matchar din önskade vinstmarginal.
+              </p>
+
+              {/* Features grid */}
+              <div className="grid md:grid-cols-3 gap-6 mb-12">
+                <div className="group p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20 hover:border-amber-500/40 transition-all duration-300">
+                  <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <Radar className="h-6 w-6 text-amber-400" />
+                  </div>
+                  <h3 className="font-semibold text-lg mb-2 text-foreground">Realtidsbevakning</h3>
+                  <p className="text-muted-foreground text-sm">
+                    AI:n skannar Blocket och Facebook Marketplace sekund för sekund efter nya annonser
+                  </p>
+                </div>
+
+                <div className="group p-6 rounded-2xl bg-gradient-to-br from-yellow-500/10 to-transparent border border-yellow-500/20 hover:border-yellow-500/40 transition-all duration-300">
+                  <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <TrendingUp className="h-6 w-6 text-yellow-400" />
+                  </div>
+                  <h3 className="font-semibold text-lg mb-2 text-foreground">Marginalanalys</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Automatisk beräkning av potentiell vinst baserat på dina kriterier och marknadsvärde
+                  </p>
+                </div>
+
+                <div className="group p-6 rounded-2xl bg-gradient-to-br from-amber-600/10 to-transparent border border-amber-600/20 hover:border-amber-600/40 transition-all duration-300">
+                  <div className="w-12 h-12 rounded-xl bg-amber-600/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <Bell className="h-6 w-6 text-amber-500" />
+                  </div>
+                  <h3 className="font-semibold text-lg mb-2 text-foreground">Direktnotis</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Få omedelbart besked när en lukrativ affär dyker upp — före alla andra
+                  </p>
+                </div>
+              </div>
+
+              {/* Exclusivity notice */}
+              <div className="text-center mb-8">
+                <div className="inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-6 px-6 py-4 rounded-2xl bg-black/40 border border-amber-500/30">
+                  <div className="flex items-center gap-2 text-amber-400 font-medium">
+                    <Crown className="h-5 w-5" />
+                    <span>Reserverad för Luvero-användare</span>
+                  </div>
+                  <div className="hidden sm:block w-px h-6 bg-amber-500/30" />
+                  <div className="flex items-center gap-2 text-yellow-400 font-medium">
+                    <Sparkles className="h-5 w-5" />
+                    <span>Endast 1 ny kund väljs ut varje månad</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* CTA */}
+              <div className="text-center">
+                <Button 
+                  size="lg"
+                  className="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-black font-semibold px-8 py-6 text-lg shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-all duration-300 hover:scale-105"
+                  onClick={() => window.location.href = 'mailto:scout@luvero.se?subject=Intresseanmälan AI Scout&body=Hej! Jag är intresserad av AI Scout och vill anmäla mitt intresse för att bli utvald.'}
+                >
+                  <Crown className="h-5 w-5 mr-2" />
+                  Anmäl intresse
+                </Button>
+                <p className="text-muted-foreground text-sm mt-4">
+                  Vi kontaktar dig om du blir utvald
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
