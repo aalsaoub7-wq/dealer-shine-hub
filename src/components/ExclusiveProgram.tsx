@@ -43,13 +43,14 @@ export const ExclusiveProgram = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Mouse tracking for 3D parallax (desktop only)
+  // Mouse tracking for 3D parallax (desktop only) - SUBTLE effect
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (prefersReducedMotion || !sectionRef.current) return;
     const rect = sectionRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
     const y = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
-    setMousePosition({ x: x * 6, y: y * -6 }); // Max 6 degrees
+    // Reduced to max 2 degrees for subtle effect
+    setMousePosition({ x: x * 2, y: y * -2 });
   }, [prefersReducedMotion]);
 
   useEffect(() => {
@@ -86,16 +87,15 @@ export const ExclusiveProgram = () => {
     }
   };
 
+  // Subtle parallax - reduced rotation and smoother transition
   const getParallaxStyle = (depth: number) => {
     if (prefersReducedMotion) return {};
+    // Much subtler effect: 0.03 multiplier instead of 0.1
+    const rotateX = mousePosition.y * (depth * 0.03);
+    const rotateY = mousePosition.x * (depth * 0.03);
     return {
-      transform: `
-        perspective(1000px)
-        rotateX(${mousePosition.y * (depth * 0.1)}deg)
-        rotateY(${mousePosition.x * (depth * 0.1)}deg)
-        translateZ(${depth}px)
-      `,
-      transition: "transform 0.1s ease-out"
+      transform: `translateZ(${depth * 0.5}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
+      transition: "transform 0.3s ease-out"
     };
   };
 
