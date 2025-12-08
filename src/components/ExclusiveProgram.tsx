@@ -252,10 +252,10 @@ export const ExclusiveProgram = () => {
       >
         {/* Badge with Luvero logo - Much larger */}
         <div
-          className={`inline-flex items-center gap-4 px-8 py-4 rounded-full backdrop-blur-md bg-gradient-to-r from-red-500/25 to-orange-500/25 border-2 border-red-500/40 mb-8 transition-all duration-700 shadow-[0_0_40px_rgba(255,59,59,0.3)] ${isInView ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"}`}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md bg-gradient-to-r from-red-500/25 to-orange-500/25 border border-red-500/40 mb-8 transition-all duration-700 shadow-[0_0_30px_rgba(255,59,59,0.3)] ${isInView ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"}`}
         >
-          <img src={luveroLogo} alt="Luvero" className="h-10 w-10 object-contain" />
-          <span className="text-xl md:text-2xl font-bold text-white animate-vip-shine">
+          <img src={luveroLogo} alt="Luvero" className="h-5 w-5 object-contain" />
+          <span className="text-lg font-bold text-white animate-vip-shine leading-none">
             Lorbit AI
           </span>
         </div>
@@ -325,7 +325,7 @@ export const ExclusiveProgram = () => {
               style={{ transitionDelay: "700ms" }}
             >
               <Button
-                onClick={handleApplyClick}
+                onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
                 size="lg"
                 className="relative overflow-hidden bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold px-8 py-6 rounded-xl shadow-[0_0_30px_rgba(255,59,59,0.3)] hover:shadow-[0_0_40px_rgba(255,59,59,0.5)] transition-all duration-300 group"
               >
