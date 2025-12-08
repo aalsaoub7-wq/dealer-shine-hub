@@ -375,8 +375,8 @@ const Documentation = () => {
                     support@luvero.se
                   </a>{" "}
                   eller ring{" "}
-                  <a href="tel:0762123786" className="text-primary hover:underline">
-                    076-212 37 86
+                  <a className="text-primary hover:underline" href="tel:0793436810">
+                    079-343 68 10  
                   </a>
                   .
                 </p>
