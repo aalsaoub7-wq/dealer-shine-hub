@@ -389,8 +389,8 @@ const Documentation = () => {
           <h3 className="text-lg font-semibold text-foreground mb-2">Behöver du mer hjälp?</h3>
           <p className="text-muted-foreground">
             Kontakta oss gärna på{" "}
-            <a href="mailto:admin@luvero.se" className="text-primary hover:underline">
-              admin@luvero.se
+            <a className="text-primary hover:underline" href="mailto:support@luvero.se">
+              support@luvero.se
             </a>{" "}
             eller ring{" "}
             <a href="tel:0762123786" className="text-primary hover:underline">
