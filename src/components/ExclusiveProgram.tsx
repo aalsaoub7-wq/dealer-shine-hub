@@ -284,7 +284,7 @@ export const ExclusiveProgram = () => {
               className={`text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
               style={{ transitionDelay: "300ms" }}
             >
-              Utvalt program:{" "}
+              Lorbit AI:{" "}
               <span className="bg-gradient-to-r from-red-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
                 Automatiska deal-alerts
               </span>{" "}
