@@ -329,8 +329,8 @@ export const ExclusiveProgram = () => {
                 size="lg"
                 className="relative overflow-hidden bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold px-8 py-6 rounded-xl shadow-[0_0_30px_rgba(255,59,59,0.3)] hover:shadow-[0_0_40px_rgba(255,59,59,0.5)] transition-all duration-300 group"
               >
-                <Lock className="h-5 w-5 mr-2" />
-                Ansök om plats
+              <Lock className="h-5 w-5 mr-2" />
+                Prova gratis i 21 dagar*
                 {/* Sheen effect */}
                 <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
               </Button>
@@ -344,7 +344,7 @@ export const ExclusiveProgram = () => {
           className={`mt-8 text-xs text-gray-500 text-center max-w-md transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
           style={{ transitionDelay: "900ms" }}
         >
-          Beta. Endast inbjudna handlare. Vi väljer 1 ny kund per månad bland aktiva Luvero-kunder.
+          * Endast en ny befintlig Luvero kund får köpa denna exklusiva AI varje månad. Prenumerera till Luvero för att få chansen att testa den.
         </p>
 
         {/* Scroll hint */}
