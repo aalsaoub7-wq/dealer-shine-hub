@@ -109,7 +109,7 @@ export default {
         },
         "vip-float": {
           "0%, 100%": { transform: "translateY(0px)" },
-          "50%": { transform: "translateY(-8px)" },
+          "50%": { transform: "translateY(-6px)" },
         },
         "vip-particle": {
           "0%": { transform: "translateX(0) translateY(0)", opacity: "0.3" },
@@ -141,7 +141,7 @@ export default {
         // VIP Section animations
         "vip-pulse-glow": "vip-pulse-glow 4s ease-in-out infinite",
         "vip-breathing": "vip-breathing 3s ease-in-out infinite",
-        "vip-float": "vip-float 4s ease-in-out infinite",
+        "vip-float": "vip-float 8s ease-in-out infinite",
         "vip-particle": "vip-particle 15s linear infinite",
         "vip-neon-pulse": "vip-neon-pulse 3s ease-in-out infinite",
         "vip-shine": "vip-shine 3s linear infinite",
