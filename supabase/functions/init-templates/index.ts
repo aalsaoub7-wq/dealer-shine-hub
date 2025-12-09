@@ -6,6 +6,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Allowlist of trusted domains for fetching template images
+// Only URLs from these domains are permitted to prevent SSRF attacks
+const ALLOWED_DOMAINS = [
+  'luvero.se',
+  'www.luvero.se',
+  'luvero.lovable.app',
+  'lovable.app',
+  'localhost',
+];
+
 // Template definitions with their public URLs (from Lovable deployment)
 const TEMPLATES = [
   {
@@ -17,6 +27,25 @@ const TEMPLATES = [
     filename: 'templates/luxury-studio.jpg',
   }
 ];
+
+/**
+ * Validates that the provided URL is from an allowed domain
+ * Prevents SSRF attacks by restricting fetch targets
+ */
+function isAllowedUrl(urlString: string): boolean {
+  try {
+    const url = new URL(urlString);
+    const hostname = url.hostname.toLowerCase();
+    
+    // Check if hostname matches or is a subdomain of allowed domains
+    return ALLOWED_DOMAINS.some(domain => {
+      return hostname === domain || hostname.endsWith(`.${domain}`);
+    });
+  } catch {
+    // Invalid URL format
+    return false;
+  }
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -36,12 +65,30 @@ serve(async (req) => {
       throw new Error('baseUrl is required');
     }
 
+    // Security: Validate baseUrl against allowlist to prevent SSRF
+    if (!isAllowedUrl(baseUrl)) {
+      console.error(`Rejected baseUrl: ${baseUrl} - not in allowed domains`);
+      return new Response(
+        JSON.stringify({ error: 'Invalid baseUrl: domain not allowed' }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     const results: Array<{ id: string; success: boolean; error?: string }> = [];
 
     for (const template of TEMPLATES) {
       try {
         // Fetch the image from the public URL
         const imageUrl = `${baseUrl}/${template.filename}`;
+        
+        // Double-check the constructed URL is still allowed
+        if (!isAllowedUrl(imageUrl)) {
+          throw new Error('Constructed URL not allowed');
+        }
+        
         console.log(`Fetching template image from: ${imageUrl}`);
         
         const response = await fetch(imageUrl);
