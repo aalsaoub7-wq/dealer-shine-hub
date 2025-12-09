@@ -73,26 +73,23 @@ serve(async (req) => {
     // Alternative approach: Create an invoice item for the metered usage
     // This is a simpler approach that works without the new meter system
     
-    // Get the metered price based on plan
-    const meteredPriceIds: Record<string, string> = {
-      start: 'price_1SaGraRrATtOsqxE9qIFXSax',
-      pro: 'price_1SaGsbRrATtOsqxEj14M7j1A',
-      elit: 'price_1SaGsvRrATtOsqxEtH1fjQmG',
+    // Get the unit amount based on plan (in öre/cents)
+    const planPricing: Record<string, number> = {
+      start: 495,  // 4.95 SEK
+      pro: 195,    // 1.95 SEK
+      elit: 99,    // 0.99 SEK
     };
     
     const plan = subscription.plan || 'start';
-    const priceId = meteredPriceIds[plan] || meteredPriceIds.start;
+    const unitAmount = planPricing[plan] || planPricing.start;
     
-    console.log(`[REPORT-USAGE] Using price ID: ${priceId} for plan: ${plan}`);
+    console.log(`[REPORT-USAGE] Plan: ${plan}, unit amount: ${unitAmount} öre`);
     
-    // Get price details to calculate amount
-    const price = await stripe.prices.retrieve(priceId);
-    const unitAmount = price.unit_amount || 495; // Default to 4.95 SEK in öre
-    
-    // Create invoice item for the usage
+    // Create invoice item for the usage with amount directly
     const invoiceItem = await stripe.invoiceItems.create({
       customer: subscription.stripe_customer_id,
-      price: priceId,
+      unit_amount: unitAmount,
+      currency: 'sek',
       quantity: quantity,
       description: `AI bildredigering (${quantity} ${quantity === 1 ? 'bild' : 'bilder'})`,
     });
