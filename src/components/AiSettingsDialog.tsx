@@ -576,7 +576,7 @@ export const AiSettingsDialog = () => {
 
   return <div className="flex gap-2">
     <Button variant="outline" size="icon" onClick={handleGuideClick}>
-      <HelpCircle className="h-4 w-4" />
+      <span className="text-lg font-bold">?</span>
     </Button>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
