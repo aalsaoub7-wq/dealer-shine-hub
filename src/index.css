@@ -143,7 +143,7 @@ All colors MUST be HSL.
   overscroll-behavior: contain;
   background-color: hsl(var(--background));
   padding-top: 20px;
-  padding-bottom: 20px;
+  padding-bottom: 40px;
 }
 
 /* iOS Safe Area Support */
