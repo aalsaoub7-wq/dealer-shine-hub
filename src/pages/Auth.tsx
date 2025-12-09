@@ -144,13 +144,11 @@ const Auth = () => {
       } else {
         // If invite code provided, validate it first
         if (inviteCode) {
-          const { data: companyData, error: companyError } = await supabase
-            .from("companies")
-            .select("id, employee_invite_code")
-            .eq("employee_invite_code", inviteCode.toUpperCase())
-            .single();
+          // Use the secure validate_invite_code function instead of querying companies directly
+          const { data: companyId, error: validateError } = await supabase
+            .rpc("validate_invite_code", { code: inviteCode.toUpperCase() });
 
-          if (companyError || !companyData) {
+          if (validateError || !companyId) {
             toast({
               title: "Ogiltig kod",
               description: "Inbjudningskoden är ogiltig.",
