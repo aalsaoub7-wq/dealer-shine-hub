@@ -29,7 +29,7 @@ const PrivacyPolicy = () => {
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold text-foreground">2. Personuppgiftsansvarig</h2>
             <p className="text-muted-foreground">
-              Luvero är personuppgiftsansvarig för behandlingen av dina personuppgifter. För frågor om denna policy, kontakta oss på: admin@luvero.se
+              Luvero är personuppgiftsansvarig för behandlingen av dina personuppgifter. För frågor om denna policy, kontakta oss på: support@luvero.se
             </p>
           </section>
 
