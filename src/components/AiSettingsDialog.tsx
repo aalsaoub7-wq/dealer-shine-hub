@@ -117,6 +117,7 @@ export const AiSettingsDialog = () => {
   const [landingPageHeaderFit, setLandingPageHeaderFit] = useState<"cover" | "contain" | "fill">("cover");
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingLandingLogo, setUploadingLandingLogo] = useState(false);
+  const [removingLandingLogoBg, setRemovingLandingLogoBg] = useState(false);
   const [uploadingHeaderImage, setUploadingHeaderImage] = useState(false);
   const [loading, setLoading] = useState(false);
   const [translating, setTranslating] = useState(false);
@@ -301,6 +302,34 @@ export const AiSettingsDialog = () => {
       setRemovingLogoBg(false);
     }
   };
+
+  const handleRemoveLandingLogoBackground = async () => {
+    if (!landingPageLogoUrl) return;
+    setRemovingLandingLogoBg(true);
+    try {
+      const response = await supabase.functions.invoke('remove-logo-background', {
+        body: { imageUrl: landingPageLogoUrl }
+      });
+      if (response.error) throw response.error;
+      if (response.data?.error) throw new Error(response.data.error);
+      
+      setLandingPageLogoUrl(response.data.newUrl);
+      toast({ 
+        title: "Bakgrund borttagen", 
+        description: "Logotypens bakgrund har tagits bort" 
+      });
+    } catch (error: any) {
+      console.error("Error removing landing logo background:", error);
+      toast({ 
+        title: "Fel", 
+        description: "Kunde inte ta bort bakgrunden: " + error.message, 
+        variant: "destructive" 
+      });
+    } finally {
+      setRemovingLandingLogoBg(false);
+    }
+  };
+
   const handleLandingLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -692,10 +721,19 @@ export const AiSettingsDialog = () => {
               {/* Logo upload */}
               <div className="space-y-2">
                 <Label htmlFor="landing-logo-upload">Logotyp</Label>
-                {landingPageLogoUrl ? <div className="flex items-center gap-4 p-3 border rounded-lg bg-muted/30">
-                    <img src={landingPageLogoUrl} alt="Logo" className="h-12 w-auto max-w-[120px] object-contain" />
-                    <Button variant="destructive" size="sm" onClick={() => setLandingPageLogoUrl("")}>
-                      <X className="h-4 w-4 mr-1" />
+                {landingPageLogoUrl ? <div className="flex flex-wrap items-center gap-2 p-2 border rounded-lg bg-muted/30">
+                    <img src={landingPageLogoUrl} alt="Logo" className="h-10 w-auto max-w-[80px] object-contain" />
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleRemoveLandingLogoBackground}
+                      disabled={removingLandingLogoBg}
+                      className="text-xs px-2 h-8"
+                    >
+                      {removingLandingLogoBg ? "..." : "Ta bort bg"}
+                    </Button>
+                    <Button variant="destructive" size="sm" onClick={() => setLandingPageLogoUrl("")} className="text-xs px-2 h-8">
+                      <X className="h-3 w-3 mr-1" />
                       Ta bort
                     </Button>
                   </div> : <Input id="landing-logo-upload" type="file" accept="image/*" onChange={handleLandingLogoUpload} disabled={uploadingLandingLogo} className="text-base" />}
