@@ -580,7 +580,7 @@ export const AiSettingsDialog = () => {
             </TabsTrigger>
             <TabsTrigger value="watermark" className="flex items-center gap-1 min-w-0">
               <Stamp className="h-4 w-4 md:hidden flex-shrink-0" />
-              <span className="hidden md:inline truncate">Vattenmärke</span>
+              <span className="hidden md:inline truncate">Logo</span>
             </TabsTrigger>
             <TabsTrigger value="landing" className="flex items-center gap-1">
               <Globe className="h-4 w-4 md:hidden" />
