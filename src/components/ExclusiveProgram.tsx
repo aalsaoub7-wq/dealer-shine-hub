@@ -47,10 +47,12 @@ export const ExclusiveProgram = () => {
   // Smooth mouse position with interpolation for natural feel
   const targetPosition = useRef({ x: 0, y: 0 });
   const animationRef = useRef<number>();
+  const hasMouseMoved = useRef(false);
 
   // Mouse tracking for 3D parallax (desktop only)
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (prefersReducedMotion || !sectionRef.current) return;
+    hasMouseMoved.current = true;
     const rect = sectionRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
     const y = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
@@ -63,10 +65,14 @@ export const ExclusiveProgram = () => {
     if (prefersReducedMotion) return;
     
     const animate = () => {
-      setMousePosition(prev => ({
-        x: prev.x + (targetPosition.current.x - prev.x) * 0.08,
-        y: prev.y + (targetPosition.current.y - prev.y) * 0.08
-      }));
+      setMousePosition(prev => {
+        // Only interpolate if mouse has moved, otherwise stay at 0,0 (neutral)
+        if (!hasMouseMoved.current) return prev;
+        return {
+          x: prev.x + (targetPosition.current.x - prev.x) * 0.08,
+          y: prev.y + (targetPosition.current.y - prev.y) * 0.08
+        };
+      });
       animationRef.current = requestAnimationFrame(animate);
     };
     
