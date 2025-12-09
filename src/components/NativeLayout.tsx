@@ -1,30 +1,17 @@
 import { isNativeApp } from "@/lib/utils";
 import { ReactNode, useEffect } from "react";
-import { Capacitor } from "@capacitor/core";
-import { StatusBar, Style } from "@capacitor/status-bar";
 
 interface NativeLayoutProps {
   children: ReactNode;
 }
 
 export const NativeLayout = ({ children }: NativeLayoutProps) => {
-  const isNative = isNativeApp();
-  const platform = isNative ? Capacitor.getPlatform() : "web";
-  const isAndroid = platform === "android";
-
   useEffect(() => {
-    if (!isNative) return;
+    if (!isNativeApp()) return;
 
-    if (isAndroid) {
-      // Android: försök lägga webview under statusbaren + snygg statusbar
-      StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
-      StatusBar.setBackgroundColor({ color: "#050816" }).catch(() => {});
-      StatusBar.setStyle({ style: Style.Light }).catch(() => {});
-      return;
-    }
-
-    // iOS: behåll ditt befintliga viewport-fix exakt som innan
+    // Trick iOS into recalculating viewport by briefly focusing a hidden password field
     const triggerIOSViewportFix = () => {
+      // Create a hidden password input
       const hiddenInput = document.createElement("input");
       hiddenInput.type = "password";
       hiddenInput.style.cssText = `
@@ -38,29 +25,30 @@ export const NativeLayout = ({ children }: NativeLayoutProps) => {
       `;
 
       document.body.appendChild(hiddenInput);
+
+      // Focus the input to trigger iOS secure text entry mode
+      // This forces iOS to recalculate the viewport
       hiddenInput.focus();
 
+      // Immediately blur and remove
       setTimeout(() => {
         hiddenInput.blur();
         document.body.removeChild(hiddenInput);
+
+        // Additional scroll to ensure layout is settled
         window.scrollTo(0, 0);
       }, 50);
     };
 
+    // Run after a short delay to ensure the app has rendered
     const timeout = setTimeout(triggerIOSViewportFix, 300);
-    return () => clearTimeout(timeout);
-  }, [isNative, isAndroid]);
 
-  if (!isNative) {
+    return () => clearTimeout(timeout);
+  }, []);
+
+  if (!isNativeApp()) {
     return <>{children}</>;
   }
 
-  return (
-    <div
-      className="native-layout bg-background"
-      style={isAndroid ? { paddingTop: 16 } : undefined} // ~16px “safe area” på Android
-    >
-      {children}
-    </div>
-  );
+  return <div className="native-layout bg-background">{children}</div>;
 };
