@@ -544,7 +544,7 @@ export const AiSettingsDialog = () => {
         </DialogHeader>
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-          <TabsList className={`grid w-full ${userRole === "admin" ? "grid-cols-5" : "grid-cols-3"}`}>
+          <TabsList className={`grid w-full overflow-hidden ${userRole === "admin" ? "grid-cols-5" : "grid-cols-3"}`}>
             <TabsTrigger value="background" className="flex items-center gap-1">
               <Palette className="h-4 w-4 md:hidden" />
               <span className="hidden md:inline">Bakgrund</span>
