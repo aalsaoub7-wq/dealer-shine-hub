@@ -202,7 +202,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-foreground">AI redigerar automatiskt</h3>
               <p className="text-muted-foreground">
-                Vårt AI tar bort bakgrunden och skapar perfekt studiomiljö
+                Vår AI tar bort bakgrunden och skapar perfekt studiomiljö
               </p>
             </div>
 
