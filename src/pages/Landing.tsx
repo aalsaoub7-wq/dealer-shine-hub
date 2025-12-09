@@ -649,10 +649,7 @@ const Landing = () => {
 
           {/* Break-even info */}
           <div className="mt-12 text-center">
-            <p className="text-muted-foreground text-sm max-w-2xl mx-auto">
-              <strong>Räkneexempel:</strong> Redigerar du under 100 bilder/månad? Välj Start. 
-              100-500 bilder/månad? Pro är billigast. Över 500 bilder? Elit sparar mest.
-            </p>
+            
             <p className="text-muted-foreground text-sm mt-4 font-medium">
               ✓ Inget kort behövs för testperioden (21 dagar eller 50 bilder)
             </p>
