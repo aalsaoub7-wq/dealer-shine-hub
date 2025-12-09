@@ -3,6 +3,16 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Trash2, Check, Download, GripVertical, Maximize2, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -170,7 +180,14 @@ const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionCh
   const { toast } = useToast();
   const [items, setItems] = useState(photos);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [regenerateConfirmId, setRegenerateConfirmId] = useState<string | null>(null);
 
+  const handleRegenerateConfirm = () => {
+    if (regenerateConfirmId && onRegenerate) {
+      onRegenerate(regenerateConfirmId);
+    }
+    setRegenerateConfirmId(null);
+  };
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -265,7 +282,7 @@ const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionCh
                     onSelectionChange(selectedPhotos.filter(id => id !== photoId));
                   }
                 }}
-                onRegenerate={onRegenerate}
+                onRegenerate={(photoId) => setRegenerateConfirmId(photoId)}
               />
             ))}
           </div>
@@ -278,6 +295,20 @@ const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionCh
           onClose={() => setLightboxUrl(null)}
         />
       )}
+      <AlertDialog open={!!regenerateConfirmId} onOpenChange={(open) => !open && setRegenerateConfirmId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bekräfta regenerering</AlertDialogTitle>
+            <AlertDialogDescription>
+              Är du säker på att du vill göra om bakgrunden på denna bild?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRegenerateConfirm}>Ja, gör om</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
