@@ -111,33 +111,33 @@ export const WatermarkPreview = ({
     // Draw selection frame if selected
     if (isSelected) {
       ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = 4;
+      ctx.lineWidth = 12;
       ctx.strokeRect(localX, localY, logoWidth, logoHeight);
       
       // Draw resize handle (red circle in bottom-right corner)
-      const handleSize = 45;
+      const handleSize = 70;
       const handleX = localX + logoWidth;
       const handleY = localY + logoHeight;
       
-      // Draw white circle background for better visibility
-      ctx.fillStyle = '#ffffff';
+      // Draw red circle background
+      ctx.fillStyle = '#ef4444';
       ctx.beginPath();
       ctx.arc(handleX, handleY, handleSize, 0, 2 * Math.PI);
       ctx.fill();
       
-      // Draw red circle border
-      ctx.strokeStyle = '#ef4444';
+      // Draw white circle border
+      ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 4;
       ctx.beginPath();
       ctx.arc(handleX, handleY, handleSize, 0, 2 * Math.PI);
       ctx.stroke();
       
-      // Draw diagonal double arrow inside the circle
-      ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = 3.5;
+      // Draw diagonal double arrow inside the circle (white)
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 5;
       ctx.lineCap = 'round';
       
-      const arrowSize = 18;
+      const arrowSize = 28;
       const arrowOffset = arrowSize / Math.sqrt(2);
       
       // Main diagonal line
@@ -149,17 +149,17 @@ export const WatermarkPreview = ({
       // Top-left arrow head
       ctx.beginPath();
       ctx.moveTo(handleX - arrowOffset, handleY - arrowOffset);
-      ctx.lineTo(handleX - arrowOffset + 7, handleY - arrowOffset);
+      ctx.lineTo(handleX - arrowOffset + 10, handleY - arrowOffset);
       ctx.moveTo(handleX - arrowOffset, handleY - arrowOffset);
-      ctx.lineTo(handleX - arrowOffset, handleY - arrowOffset + 7);
+      ctx.lineTo(handleX - arrowOffset, handleY - arrowOffset + 10);
       ctx.stroke();
       
       // Bottom-right arrow head
       ctx.beginPath();
       ctx.moveTo(handleX + arrowOffset, handleY + arrowOffset);
-      ctx.lineTo(handleX + arrowOffset - 7, handleY + arrowOffset);
+      ctx.lineTo(handleX + arrowOffset - 10, handleY + arrowOffset);
       ctx.moveTo(handleX + arrowOffset, handleY + arrowOffset);
-      ctx.lineTo(handleX + arrowOffset, handleY + arrowOffset - 7);
+      ctx.lineTo(handleX + arrowOffset, handleY + arrowOffset - 10);
       ctx.stroke();
     }
   }, [localX, localY, localSize, localOpacity, isSelected]);
@@ -182,7 +182,7 @@ export const WatermarkPreview = ({
     const mouseX = (e.clientX - rect.left) * scaleX;
     const mouseY = (e.clientY - rect.top) * scaleY;
 
-    const handleSize = 45;
+    const handleSize = 70;
     const handleX = localX + logoSize.width;
     const handleY = localY + logoSize.height;
     
@@ -279,6 +279,19 @@ export const WatermarkPreview = ({
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              const touch = e.touches[0];
+              const syntheticEvent = { clientX: touch.clientX, clientY: touch.clientY } as React.MouseEvent<HTMLCanvasElement>;
+              handleMouseDown(syntheticEvent);
+            }}
+            onTouchMove={(e) => {
+              e.preventDefault();
+              const touch = e.touches[0];
+              const syntheticEvent = { clientX: touch.clientX, clientY: touch.clientY } as React.MouseEvent<HTMLCanvasElement>;
+              handleMouseMove(syntheticEvent);
+            }}
+            onTouchEnd={handleMouseUp}
             style={{ imageRendering: 'auto' }}
           />
         </Card>
