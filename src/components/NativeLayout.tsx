@@ -8,13 +8,15 @@ interface NativeLayoutProps {
 }
 
 export const NativeLayout = ({ children }: NativeLayoutProps) => {
+  const isNative = isNativeApp();
+  const platform = isNative ? Capacitor.getPlatform() : "web";
+  const isAndroid = platform === "android";
+
   useEffect(() => {
-    if (!isNativeApp()) return;
+    if (!isNative) return;
 
-    const platform = Capacitor.getPlatform();
-
-    if (platform === "android") {
-      // Android: lägg webview under statusbaren + sätt färg/stil
+    if (isAndroid) {
+      // Android: försök lägga webview under statusbaren + snygg statusbar
       StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
       StatusBar.setBackgroundColor({ color: "#050816" }).catch(() => {});
       StatusBar.setStyle({ style: Style.Light }).catch(() => {});
@@ -47,11 +49,18 @@ export const NativeLayout = ({ children }: NativeLayoutProps) => {
 
     const timeout = setTimeout(triggerIOSViewportFix, 300);
     return () => clearTimeout(timeout);
-  }, []);
+  }, [isNative, isAndroid]);
 
-  if (!isNativeApp()) {
+  if (!isNative) {
     return <>{children}</>;
   }
 
-  return <div className="native-layout bg-background">{children}</div>;
+  return (
+    <div
+      className="native-layout bg-background"
+      style={isAndroid ? { paddingTop: 16 } : undefined} // ~16px “safe area” på Android
+    >
+      {children}
+    </div>
+  );
 };
