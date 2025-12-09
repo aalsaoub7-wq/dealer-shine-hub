@@ -61,49 +61,50 @@ serve(async (req) => {
     }
 
     console.log(`[REPORT-USAGE] Subscription plan: ${subscription.plan || 'start'}`);
-
-    // Get the subscription from Stripe to find the metered subscription item ID
-    const stripeSubscription = await stripe.subscriptions.retrieve(
-      subscription.stripe_subscription_id
-    );
-
-    if (!stripeSubscription.items.data.length) {
-      throw new Error("No subscription items found");
-    }
-
-    // Find the metered subscription item (not the fixed monthly one)
-    const meteredItem = stripeSubscription.items.data.find(
-      (item: any) => item.price.recurring?.usage_type === 'metered'
-    );
-
-    if (!meteredItem) {
-      console.error("No metered subscription item found");
-      throw new Error("No metered subscription item found");
-    }
-
-    const subscriptionItemId = meteredItem.id;
-    console.log(`[REPORT-USAGE] Using metered subscription item: ${subscriptionItemId}`);
+    console.log(`[REPORT-USAGE] Stripe customer ID: ${subscription.stripe_customer_id}`);
 
     // Parse request body
     const { quantity = 1 } = await req.json();
 
-    // Report usage to Stripe
-    const usageRecord = await stripe.subscriptionItems.createUsageRecord(
-      subscriptionItemId,
-      {
-        quantity,
-        timestamp: Math.floor(Date.now() / 1000),
-        action: 'increment',
-      }
-    );
+    // Use the new Billing Meter Events API
+    // First, we need to get the meter ID for our usage tracking
+    // For now, we'll track usage in the database and report via invoice item approach
+    
+    // Alternative approach: Create an invoice item for the metered usage
+    // This is a simpler approach that works without the new meter system
+    
+    // Get the metered price based on plan
+    const meteredPriceIds: Record<string, string> = {
+      start: 'price_1SaGraRrATtOsqxE9qIFXSax',
+      pro: 'price_1SaGsbRrATtOsqxEj14M7j1A',
+      elit: 'price_1SaGsvRrATtOsqxEtH1fjQmG',
+    };
+    
+    const plan = subscription.plan || 'start';
+    const priceId = meteredPriceIds[plan] || meteredPriceIds.start;
+    
+    console.log(`[REPORT-USAGE] Using price ID: ${priceId} for plan: ${plan}`);
+    
+    // Get price details to calculate amount
+    const price = await stripe.prices.retrieve(priceId);
+    const unitAmount = price.unit_amount || 495; // Default to 4.95 SEK in öre
+    
+    // Create invoice item for the usage
+    const invoiceItem = await stripe.invoiceItems.create({
+      customer: subscription.stripe_customer_id,
+      price: priceId,
+      quantity: quantity,
+      description: `AI bildredigering (${quantity} ${quantity === 1 ? 'bild' : 'bilder'})`,
+    });
 
-    console.log(`[REPORT-USAGE] Reported ${quantity} usage to Stripe for plan ${subscription.plan || 'start'}:`, usageRecord.id);
+    console.log(`[REPORT-USAGE] Created invoice item for ${quantity} image(s):`, invoiceItem.id);
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        usageRecordId: usageRecord.id,
-        plan: subscription.plan || 'start'
+        invoiceItemId: invoiceItem.id,
+        plan: plan,
+        quantity: quantity
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
