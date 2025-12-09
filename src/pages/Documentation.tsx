@@ -249,6 +249,20 @@ const Documentation = () => {
                   När ett vattenmärke är applicerat kan det inte tas bort.
                 </p>
               </div>
+              <div>
+                <h4 className="font-medium text-foreground mb-2">Video på hur man gör</h4>
+                <div className="aspect-video rounded-lg overflow-hidden">
+                  <iframe 
+                    width="100%" 
+                    height="100%" 
+                    src="https://www.youtube.com/embed/wt5jPwTrkXI" 
+                    title="Video på hur man gör"
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                  />
+                </div>
+              </div>
             </AccordionContent>
           </AccordionItem>
 
