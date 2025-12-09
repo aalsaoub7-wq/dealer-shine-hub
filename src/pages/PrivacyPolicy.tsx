@@ -177,7 +177,7 @@ const PrivacyPolicy = () => {
               För frågor om denna integritetspolicy eller hur vi hanterar dina personuppgifter, kontakta oss:
             </p>
             <ul className="list-none space-y-2 text-muted-foreground">
-              <li><strong>E-post:</strong>E-post: admin@luvero.se</li>
+              <li><strong>E-post:</strong>E-post: support@luvero.se</li>
               <li><strong>Webbplats:</strong> www.luvero.se</li>
             </ul>
           </section>
