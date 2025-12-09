@@ -6,7 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Settings, Upload, X, Languages, Palette, Stamp, Globe, CreditCard, Users, Check, Pencil } from "lucide-react";
+import { Settings, Upload, X, Languages, Palette, Stamp, Globe, CreditCard, Users, Check, Pencil, HelpCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
+import { openExternalUrl } from "@/lib/nativeCapabilities";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { WatermarkPreview } from "./WatermarkPreview";
@@ -561,7 +564,21 @@ export const AiSettingsDialog = () => {
       delete (window as any).openSettingsDialog;
     };
   }, []);
-  return <Dialog open={open} onOpenChange={setOpen}>
+  const navigate = useNavigate();
+
+  const handleGuideClick = async () => {
+    if (Capacitor.isNativePlatform()) {
+      await openExternalUrl("https://luvero.se/guide");
+    } else {
+      navigate("/guide");
+    }
+  };
+
+  return <div className="flex gap-2">
+    <Button variant="outline" size="icon" onClick={handleGuideClick}>
+      <HelpCircle className="h-4 w-4" />
+    </Button>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="icon">
           <Settings className="h-4 w-4" />
@@ -903,5 +920,6 @@ export const AiSettingsDialog = () => {
           </Button>
         </div>
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+  </div>;
 };
