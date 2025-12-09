@@ -105,7 +105,7 @@ const SortablePhotoCard = ({
           <Checkbox 
             checked={isSelected}
             onCheckedChange={(checked) => onSelect(photo.id, checked === true)}
-            className="bg-background/80 border-2"
+            className="bg-background/80 border-2 h-6 w-6 sm:h-4 sm:w-4"
           />
         </div>
         <img
@@ -138,27 +138,27 @@ const SortablePhotoCard = ({
               size="icon"
               variant="secondary"
               onClick={() => onRegenerate(photo.id)}
-              className="h-8 w-8 hover:scale-110 transition-transform duration-300"
+              className="h-12 w-12 sm:h-8 sm:w-8 hover:scale-110 transition-transform duration-300"
               title="Regenerera med ny bakgrund"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-6 h-6 sm:w-4 sm:h-4" />
             </Button>
           )}
           <Button
             size="icon"
             variant="secondary"
             onClick={() => onImageClick(photo.url)}
-            className="h-8 w-8 hover:scale-110 transition-transform duration-300"
+            className="h-12 w-12 sm:h-8 sm:w-8 hover:scale-110 transition-transform duration-300"
           >
-            <Maximize2 className="w-4 h-4" />
+            <Maximize2 className="w-6 h-6 sm:w-4 sm:h-4" />
           </Button>
           <Button
             size="icon"
             variant="destructive"
             onClick={() => onDelete(photo.id)}
-            className="h-8 w-8 hover:scale-110 transition-transform duration-300"
+            className="h-12 w-12 sm:h-8 sm:w-8 hover:scale-110 transition-transform duration-300"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-6 h-6 sm:w-4 sm:h-4" />
           </Button>
         </div>
       </div>
