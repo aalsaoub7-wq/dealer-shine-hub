@@ -121,7 +121,7 @@ export const AiSettingsDialog = () => {
   const [loading, setLoading] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [removingLogoBg, setRemovingLogoBg] = useState(false);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
+  
   const {
     toast
   } = useToast();
@@ -142,27 +142,6 @@ export const AiSettingsDialog = () => {
       return data?.role;
     }
   });
-  const tabs = userRole === "admin" ? ["background", "watermark", "landing", "payment", "team"] : ["background", "watermark", "landing"];
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.touches[0].clientX);
-  };
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStart) return;
-    const touchEnd = e.changedTouches[0].clientX;
-    const diff = touchStart - touchEnd;
-    const minSwipeDistance = 50;
-    if (Math.abs(diff) > minSwipeDistance) {
-      const currentIndex = tabs.indexOf(currentTab);
-      if (diff > 0 && currentIndex < tabs.length - 1) {
-        // Swipe left - next tab
-        setCurrentTab(tabs[currentIndex + 1]);
-      } else if (diff < 0 && currentIndex > 0) {
-        // Swipe right - previous tab
-        setCurrentTab(tabs[currentIndex - 1]);
-      }
-    }
-    setTouchStart(null);
-  };
   useEffect(() => {
     if (open) {
       loadSettings();
@@ -559,7 +538,7 @@ export const AiSettingsDialog = () => {
           <Settings className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Inställningar</DialogTitle>
         </DialogHeader>
@@ -570,9 +549,9 @@ export const AiSettingsDialog = () => {
               <Palette className="h-4 w-4 md:hidden" />
               <span className="hidden md:inline">Bakgrund</span>
             </TabsTrigger>
-            <TabsTrigger value="watermark" className="flex items-center gap-1">
-              <Stamp className="h-4 w-4 md:hidden" />
-              <span className="hidden md:inline">Vattenmärke</span>
+            <TabsTrigger value="watermark" className="flex items-center gap-1 min-w-0">
+              <Stamp className="h-4 w-4 md:hidden flex-shrink-0" />
+              <span className="hidden md:inline truncate">Vattenmärke</span>
             </TabsTrigger>
             <TabsTrigger value="landing" className="flex items-center gap-1">
               <Globe className="h-4 w-4 md:hidden" />
