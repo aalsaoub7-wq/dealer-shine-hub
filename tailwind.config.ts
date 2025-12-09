@@ -128,6 +128,10 @@ export default {
           "0%, 100%": { opacity: "0.3" },
           "50%": { opacity: "0.8" },
         },
+        "rainbow-text": {
+          "0%": { backgroundPosition: "0% center" },
+          "100%": { backgroundPosition: "200% center" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -146,6 +150,7 @@ export default {
         "vip-neon-pulse": "vip-neon-pulse 3s ease-in-out infinite",
         "vip-shine": "vip-shine 3s linear infinite",
         "vip-blink": "vip-blink 3s ease-in-out infinite",
+        "rainbow-text": "rainbow-text 3s linear infinite",
       },
     },
   },
