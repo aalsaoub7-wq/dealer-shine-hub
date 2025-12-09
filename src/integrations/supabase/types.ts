@@ -110,6 +110,13 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "ai_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "public_invite_codes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       blocket_ad_sync: {
@@ -235,6 +242,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cars_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_invite_codes"
             referencedColumns: ["id"]
           },
         ]
@@ -487,6 +501,13 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "subscriptions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_invite_codes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       usage_stats: {
@@ -552,6 +573,13 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_companies_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_invite_codes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_roles: {
@@ -584,10 +612,32 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_roles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_invite_codes"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
     Views: {
+      public_invite_codes: {
+        Row: {
+          employee_invite_code: string | null
+          id: string | null
+        }
+        Insert: {
+          employee_invite_code?: string | null
+          id?: string | null
+        }
+        Update: {
+          employee_invite_code?: string | null
+          id?: string | null
+        }
+        Relationships: []
+      }
       public_photos: {
         Row: {
           id: string | null
@@ -690,6 +740,7 @@ export type Database = {
         Args: { company_uuid: string }
         Returns: boolean
       }
+      validate_invite_code: { Args: { code: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "employee"
