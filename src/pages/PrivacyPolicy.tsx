@@ -189,9 +189,9 @@ const PrivacyPolicy = () => {
               lämna in ett klagomål till Integritetsskyddsmyndigheten (IMY):
             </p>
             <ul className="list-none space-y-2 text-muted-foreground">
-              <li><strong>Webbplats:</strong>Webbplats: www.luvero.se</li>
-              <li><strong>E-post:</strong> admin@luvero.se</li>
-              <li><strong>Telefon:</strong>Telefon: 076-212 37 86</li>
+              <li><strong>Webbplats:</strong> www.luvero.se</li>
+              <li><strong>E-post:</strong> support@luvero.se</li>
+              <li><strong>Telefon:</strong>Telefon: 079-343 68 10 </li>
             </ul>
           </section>
         </div>
