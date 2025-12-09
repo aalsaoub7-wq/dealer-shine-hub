@@ -13,7 +13,7 @@ const Documentation = () => {
 
         <div className="flex items-center gap-3 mb-8">
           <BookOpen className="w-8 h-8 text-primary" />
-          <h1 className="text-4xl font-bold text-foreground">Hjälpcenter</h1>
+          <h1 className="text-4xl font-bold text-foreground">Guide för Luvero </h1>
         </div>
 
         <p className="text-lg text-muted-foreground mb-8">
