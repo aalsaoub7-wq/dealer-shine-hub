@@ -4,7 +4,7 @@ project_id = "abepwxatllszoapfmccl"
 verify_jwt = true
 
 [functions.blocket-sync]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-car-description]
 verify_jwt = true
