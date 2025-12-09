@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { useIsMobile } from "@/hooks/use-mobile";
 import testImage from "@/assets/watermark-test.jpg";
 
 interface WatermarkPreviewProps {
@@ -23,6 +24,7 @@ export const WatermarkPreview = ({
   onPositionChange,
   onSizeChange,
 }: WatermarkPreviewProps) => {
+  const isMobile = useIsMobile();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const testImgRef = useRef<HTMLImageElement | null>(null);
   const logoImgRef = useRef<HTMLImageElement | null>(null);
@@ -115,7 +117,7 @@ export const WatermarkPreview = ({
       ctx.strokeRect(localX, localY, logoWidth, logoHeight);
       
       // Draw resize handle (red circle in bottom-right corner)
-      const handleSize = 70;
+      const handleSize = isMobile ? 100 : 70;
       const handleX = localX + logoWidth;
       const handleY = localY + logoHeight;
       
