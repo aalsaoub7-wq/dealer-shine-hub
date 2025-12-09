@@ -538,7 +538,7 @@ export const AiSettingsDialog = () => {
           <Settings className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle>Inställningar</DialogTitle>
         </DialogHeader>
@@ -633,18 +633,19 @@ export const AiSettingsDialog = () => {
                   Ladda upp en logotyp som kommer att läggas till på dina redigerade bilder
                 </p>
 
-                {logoUrl ? <div className="flex items-center gap-4 p-3 border rounded-lg bg-muted/30">
-                    <img src={logoUrl} alt="Logo" className="h-12 w-auto max-w-[120px] object-contain" />
+                {logoUrl ? <div className="flex flex-wrap items-center gap-2 p-2 border rounded-lg bg-muted/30">
+                    <img src={logoUrl} alt="Logo" className="h-10 w-auto max-w-[80px] object-contain" />
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={handleRemoveLogoBackground}
                       disabled={removingLogoBg}
+                      className="text-xs px-2 h-8"
                     >
-                      {removingLogoBg ? "Bearbetar..." : "Ta bort bakgrund"}
+                      {removingLogoBg ? "..." : "Ta bort bg"}
                     </Button>
-                    <Button variant="destructive" size="sm" onClick={handleRemoveLogo}>
-                      <X className="h-4 w-4 mr-1" />
+                    <Button variant="destructive" size="sm" onClick={handleRemoveLogo} className="text-xs px-2 h-8">
+                      <X className="h-3 w-3 mr-1" />
                       Ta bort
                     </Button>
                   </div> : <div className="flex items-center gap-2">
