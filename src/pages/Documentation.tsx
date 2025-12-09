@@ -144,6 +144,20 @@ const Documentation = () => {
                   <li>Du måste ha en betalmetod registrerad efter testperioden</li>
                 </ul>
               </div>
+              <div>
+                <h4 className="font-medium text-foreground mb-2">Video på hur man gör</h4>
+                <div className="aspect-video rounded-lg overflow-hidden">
+                  <iframe 
+                    width="100%" 
+                    height="100%" 
+                    src="https://www.youtube.com/embed/8JOnqNLX5ww" 
+                    title="Video på hur man gör"
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                  />
+                </div>
+              </div>
             </AccordionContent>
           </AccordionItem>
 
@@ -184,6 +198,20 @@ const Documentation = () => {
                   Gå till Inställningar → Bakgrund för att välja din bakgrundsmall. 
                   Vald mall används för alla framtida AI-redigeringar i ditt företag.
                 </p>
+              </div>
+              <div>
+                <h4 className="font-medium text-foreground mb-2">Video på hur man gör</h4>
+                <div className="aspect-video rounded-lg overflow-hidden">
+                  <iframe 
+                    width="100%" 
+                    height="100%" 
+                    src="https://www.youtube.com/embed/8JOnqNLX5ww" 
+                    title="Video på hur man gör"
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                  />
+                </div>
               </div>
             </AccordionContent>
           </AccordionItem>
