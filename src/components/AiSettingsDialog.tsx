@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Settings, Upload, X, Languages, Palette, Stamp, Globe, CreditCard, Users, Check, Pencil, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Capacitor } from "@capacitor/core";
+import { isNativeApp } from "@/lib/utils";
 import { openExternalUrl } from "@/lib/nativeCapabilities";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -567,7 +567,7 @@ export const AiSettingsDialog = () => {
   const navigate = useNavigate();
 
   const handleGuideClick = async () => {
-    if (Capacitor.isNativePlatform()) {
+    if (isNativeApp()) {
       await openExternalUrl("https://luvero.se/guide");
     } else {
       navigate("/guide");
