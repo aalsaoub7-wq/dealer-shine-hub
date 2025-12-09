@@ -319,7 +319,7 @@ const Documentation = () => {
                   <li><strong>Start:</strong> 239 kr/månad + 4,95 kr per AI-redigerad bild</li>
                   <li><strong>Pro:</strong> 449 kr/månad + 1,95 kr per AI-redigerad bild</li>
                   <li><strong>Elit:</strong> 995 kr/månad + 0,99 kr per AI-redigerad bild</li>
-                  <li><strong>Extra teammedlem:</strong> 299 kr/månad per person</li>
+                  <li><strong>Extra teammedlem:</strong> Helt Gratis </li>
                 </ul>
               </div>
               <div>
