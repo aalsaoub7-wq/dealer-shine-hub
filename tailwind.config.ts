@@ -132,6 +132,24 @@ export default {
           "0%": { backgroundPosition: "0% center" },
           "100%": { backgroundPosition: "200% center" },
         },
+        // Stats parallax section animations
+        "stats-draw-line": {
+          "0%": { strokeDashoffset: "200" },
+          "100%": { strokeDashoffset: "0" },
+        },
+        "stats-glow-green": {
+          "0%, 100%": { filter: "drop-shadow(0 0 15px rgba(34, 197, 94, 0.4))" },
+          "50%": { filter: "drop-shadow(0 0 30px rgba(34, 197, 94, 0.8))" },
+        },
+        "stats-particle": {
+          "0%": { transform: "translateY(0) scale(1)", opacity: "0" },
+          "20%": { opacity: "0.8" },
+          "100%": { transform: "translateY(-120px) scale(0)", opacity: "0" },
+        },
+        "stats-float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-8px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -151,6 +169,11 @@ export default {
         "vip-shine": "vip-shine 3s linear infinite",
         "vip-blink": "vip-blink 3s ease-in-out infinite",
         "rainbow-text": "rainbow-text 3s linear infinite",
+        // Stats parallax section animations
+        "stats-draw-line": "stats-draw-line 1.5s ease-out forwards",
+        "stats-glow-green": "stats-glow-green 3s ease-in-out infinite",
+        "stats-particle": "stats-particle 4s ease-out infinite",
+        "stats-float": "stats-float 4s ease-in-out infinite",
       },
     },
   },

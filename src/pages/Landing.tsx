@@ -9,6 +9,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { TypewriterText } from "@/components/TypewriterText";
 import { ExclusiveProgram } from "@/components/ExclusiveProgram";
+import { StatsParallaxSection } from "@/components/StatsParallaxSection";
 const Landing = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -222,6 +223,9 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
+      {/* Stats Parallax Section */}
+      <StatsParallaxSection />
 
       {/* Features Grid */}
       <section id="features" className="py-20 md:py-32 scroll-animate">
