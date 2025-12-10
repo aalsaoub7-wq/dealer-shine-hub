@@ -16,14 +16,14 @@ serve(async (req: Request) => {
     const forwardedFor = req.headers.get("x-forwarded-for");
     const realIp = req.headers.get("x-real-ip");
     const cfConnectingIp = req.headers.get("cf-connecting-ip");
-    
+
     const ipAddress = cfConnectingIp || realIp || forwardedFor?.split(",")[0]?.trim() || "unknown";
-    
+
     console.log("Checking IP:", ipAddress);
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
     // Check if this IP has already registered an admin account
@@ -44,13 +44,13 @@ serve(async (req: Request) => {
       return new Response(
         JSON.stringify({
           allowed: false,
-          message: "Ett admin-konto har redan registrerats från denna IP-adress.",
+          message: "Du har redan ett admin konto",
           ip: ipAddress,
         }),
         {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -63,16 +63,13 @@ serve(async (req: Request) => {
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      },
     );
   } catch (error: any) {
     console.error("Error in check-admin-ip:", error);
-    return new Response(
-      JSON.stringify({ error: error?.message || "Unknown error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: error?.message || "Unknown error" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
