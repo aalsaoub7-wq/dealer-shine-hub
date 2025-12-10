@@ -128,9 +128,7 @@ const Landing = () => {
                 </span>
               </h1>
 
-              <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
-                Fungerar både som självständig lagerhantering eller som komplement till ditt befintliga system. Hantera bilder och dokumentation enkelt med smidig integration där du behöver.
-              </p>
+              <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">Fungerar även som självständig lagerhantering eller som komplement till ditt befintliga system!</p>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" className="text-lg px-8 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => scrollToSection('pricing')}>
