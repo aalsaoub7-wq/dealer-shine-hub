@@ -247,7 +247,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">AI Bakgrundsredigering</h3>
               <p className="text-muted-foreground">
-                Automatisk studiobakgrund på alla bilder med ett knapptryck. Betala endast 4,95 kr per redigerad bild.
+                Automatisk studiobakgrund på alla bilder med ett knapptryck. Du kan alltid göra om ifall du inte tycker om bakgrunden.             
               </p>
             </div>
 
@@ -258,7 +258,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">Lagerhantering & Dokumentation</h3>
               <p className="text-muted-foreground">
-                Helt gratis lager- och dokumenthantering. Använd som din huvudsakliga lagerhantering eller som komplement till ditt befintliga system. Perfekt för att hantera bilder och dokumentation med smidig integration.
+                Använd som din huvudsakliga lagerhantering eller som komplement till ditt befintliga system.   
               </p>
             </div>
 
@@ -272,7 +272,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">Vattenmärken</h3>
               <p className="text-muted-foreground">
-                Lägg till ditt varumärke automatiskt på alla bilder
+                Lägg till din logga med ett knapptryck på alla dina bilder för att särskilja dig på blocket.              
               </p>
             </div>
 
@@ -283,7 +283,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">Delningsbara Landningssidor</h3>
               <p className="text-muted-foreground">
-                Skapa unika länkar för varje bil att dela med kunder med bilder på bilar och dokument      
+                Skapa unika länkar för varje bil att dela med kunder med bilder på bilar och dokument.      
               </p>
             </div>
 
@@ -294,7 +294,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">Team Collaboration</h3>
               <p className="text-muted-foreground">
-                Bjud in anställda och arbeta tillsammans i realtid
+                Bjud in oändligt många anställda/partners och arbeta tillsammans i realtid. 
               </p>
             </div>
 
@@ -305,7 +305,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">Transparent Prissättning</h3>
               <p className="text-muted-foreground">
-                239 kr/månad + 4,95 kr per AI-redigerad bild. Förutsägbar månadskostnad med flexibel användning. Lagerhantering och dokumentation ingår i månadsavgiften.
+                Inga dolda avgifter, betala för det du använder. Inget mer.           
               </p>
             </div>
           </div>
