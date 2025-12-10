@@ -67,6 +67,27 @@ serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    // Check if phone number is already verified by another user
+    const { data: existingPhone } = await supabaseAdmin
+      .from("user_verifications")
+      .select("user_id")
+      .eq("phone_number", formattedPhone)
+      .eq("phone_verified", true)
+      .neq("user_id", userId)
+      .maybeSingle();
+
+    if (existingPhone) {
+      return new Response(
+        JSON.stringify({ 
+          error: "Detta telefonnummer är redan registrerat på ett annat konto." 
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     // Generate 6-digit code
     const code = generateCode();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
