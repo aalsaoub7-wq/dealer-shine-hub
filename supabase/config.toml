@@ -35,3 +35,21 @@ verify_jwt = false
 
 [functions.reset-password]
 verify_jwt = false
+
+[functions.check-admin-ip]
+verify_jwt = false
+
+[functions.send-email-verification]
+verify_jwt = false
+
+[functions.send-phone-otp]
+verify_jwt = false
+
+[functions.verify-code]
+verify_jwt = false
+
+[functions.save-admin-ip]
+verify_jwt = false
+
+[functions.get-verification-status]
+verify_jwt = false

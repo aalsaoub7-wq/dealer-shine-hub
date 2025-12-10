@@ -60,7 +60,8 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          // Redirect to verify page for phone verification
+          redirectTo: `${window.location.origin}/verify`,
         },
       });
       if (error) throw error;
@@ -140,8 +141,25 @@ const Auth = () => {
         });
         if (error) throw error;
         toast({ title: "Välkommen tillbaka!" });
-        navigate("/dashboard");
+        // Redirect to verify to check verification status
+        navigate("/verify");
       } else {
+        // For admin signup (no invite code), check IP first
+        if (!inviteCode) {
+          const { data: ipCheck, error: ipError } = await supabase.functions.invoke("check-admin-ip");
+          
+          if (ipError) {
+            console.error("IP check error:", ipError);
+          } else if (ipCheck && !ipCheck.allowed) {
+            toast({
+              title: "Registrering blockerad",
+              description: ipCheck.message || "Ett admin-konto har redan registrerats från denna IP-adress.",
+              variant: "destructive",
+            });
+            setLoading(false);
+            return;
+          }
+        }
         // If invite code provided, validate it first
         if (inviteCode) {
           // Use the secure validate_invite_code function instead of querying companies directly
@@ -173,9 +191,17 @@ const Auth = () => {
         
         if (error) throw error;
 
-        // If admin signup (no invite code), trigger auto Stripe customer creation
+        // If admin signup (no invite code), save IP and trigger Stripe
         if (!inviteCode && authData.user) {
           try {
+            // Save the admin IP
+            const { data: ipData } = await supabase.functions.invoke("check-admin-ip");
+            if (ipData?.ip) {
+              await supabase.functions.invoke("save-admin-ip", {
+                body: { userId: authData.user.id, ipAddress: ipData.ip },
+              });
+            }
+
             // Get the user's newly created company_id
             const { data: userCompany } = await supabase
               .from("user_companies")
@@ -198,14 +224,27 @@ const Auth = () => {
               });
             }
           } catch (err) {
-            console.error("Error in auto Stripe customer creation:", err);
+            console.error("Error in admin signup post-processing:", err);
             // Don't fail the signup if this fails
           }
         }
 
-        // Trigger handles linking user to company automatically
-        toast({ title: "Konto skapat! Vänligen logga in." });
-        setIsLogin(true);
+        // Send email verification
+        if (authData.user) {
+          try {
+            await supabase.functions.invoke("send-email-verification", {
+              body: { userId: authData.user.id, email: validation.data.email },
+            });
+          } catch (err) {
+            console.error("Error sending verification email:", err);
+          }
+        }
+
+        toast({ 
+          title: "Konto skapat!", 
+          description: "Verifiera din e-post och telefon för att fortsätta.",
+        });
+        navigate("/verify");
       }
     } catch (error: any) {
       toast({
