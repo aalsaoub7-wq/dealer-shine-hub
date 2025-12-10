@@ -308,7 +308,7 @@ const CarDetail = () => {
       // Try native share first
       const shared = await nativeShare(
         `${car.make} ${car.model} ${car.year}`,
-        "Kolla in dessa bilder!",
+        "",
         shareUrl
       );
 
