@@ -128,5 +128,4 @@ serve(async (req: Request) => {
       }
     );
   }
-  }
 });

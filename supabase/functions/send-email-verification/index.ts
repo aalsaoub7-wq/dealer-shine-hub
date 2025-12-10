@@ -113,5 +113,4 @@ serve(async (req: Request) => {
       }
     );
   }
-  }
 });
