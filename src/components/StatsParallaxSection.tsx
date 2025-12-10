@@ -74,51 +74,23 @@ export const StatsParallaxSection = () => {
       className="relative py-28 md:py-40 overflow-hidden"
       style={{ perspective: "1200px" }}
     >
-      {/* Premium dark gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-background" />
-      
-      {/* Subtle grid pattern */}
+      {/* Subtle green aurora glow - no background, just accent */}
       <div 
-        className="absolute inset-0 opacity-[0.03]"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-15 pointer-events-none"
         style={{
-          backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-          `,
-          backgroundSize: "60px 60px"
-        }}
-      />
-
-      {/* Massive green aurora glow */}
-      <div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full opacity-20"
-        style={{
-          background: "radial-gradient(circle, hsl(142 76% 40%) 0%, hsl(142 76% 30%) 30%, transparent 70%)",
+          background: "radial-gradient(circle, hsl(142 76% 40%) 0%, transparent 70%)",
           filter: "blur(100px)"
         }}
       />
 
-      {/* Secondary glow orbs */}
+      {/* Secondary accent glow */}
       <div 
-        className="absolute top-1/4 right-1/4 w-[400px] h-[400px] rounded-full opacity-10"
+        className="absolute top-1/4 right-1/4 w-[300px] h-[300px] rounded-full opacity-10 pointer-events-none"
         style={{
           background: "radial-gradient(circle, hsl(84 81% 50%) 0%, transparent 70%)",
           filter: "blur(80px)"
         }}
       />
-
-      {/* Animated scan lines */}
-      {!prefersReducedMotion && isInView && (
-        <>
-          <div 
-            className="absolute left-0 right-0 h-[1px] opacity-20"
-            style={{
-              background: "linear-gradient(90deg, transparent, hsl(142 76% 50%), transparent)",
-              animation: "stats-scanline 4s ease-in-out infinite"
-            }}
-          />
-        </>
-      )}
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div 
@@ -189,7 +161,7 @@ export const StatsParallaxSection = () => {
                     >
                       {/* Main arrow body with sharp angles */}
                       <path
-                        d="M 20 160 L 50 140 L 70 150 L 100 110 L 125 120 L 155 60 L 175 40"
+                        d="M 20 160 L 50 140 L 70 150 L 100 110 L 125 120 L 155 60 L 180 35"
                         fill="none"
                         stroke="url(#premiumGreenGradient)"
                         strokeWidth="8"
@@ -202,14 +174,14 @@ export const StatsParallaxSection = () => {
                         }}
                       />
                       
-                      {/* Arrow head - larger and more prominent */}
+                      {/* Arrow head - positioned at end of line */}
                       <polygon
-                        points="160,30 185,25 178,50"
+                        points="170,22 192,28 175,45"
                         fill="url(#arrowFillGradient)"
                         className={`transition-all duration-700 ${isInView ? "opacity-100 scale-100" : "opacity-0 scale-0"}`}
                         style={{ 
                           transitionDelay: "1.5s",
-                          transformOrigin: "175px 38px"
+                          transformOrigin: "178px 35px"
                         }}
                       />
 
