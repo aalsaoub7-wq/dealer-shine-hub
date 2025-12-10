@@ -302,10 +302,10 @@ export const ExclusiveProgram = () => {
 
         {/* Footnote */}
         <p
-          className={`mt-8 text-xs text-gray-500 text-center max-w-md transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+          className={`mt-8 text-sm text-gray-300 text-center max-w-md transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
           style={{ transitionDelay: "900ms" }}
         >
-          * Endast en ny befintlig Luvero kund får köpa denna exklusiva AI varje månad. Prenumerera till Luvero för att få chansen att testa den.
+          * Endast en ny befintlig Luvero kund får köpa denna exklusiva AI varje månad. Prenumerera till Luvero för chansen att testa den.
         </p>
 
         {/* Scroll hint */}
