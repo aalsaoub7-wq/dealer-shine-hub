@@ -78,6 +78,29 @@ serve(async (req: Request) => {
       );
     }
 
+    // For phone verification: final check that no other user has this phone verified
+    if (type === "phone") {
+      const phoneNumber = verification.phone_number;
+      
+      const { data: existingVerified } = await supabaseAdmin
+        .from("user_verifications")
+        .select("user_id")
+        .eq("phone_number", phoneNumber)
+        .eq("phone_verified", true)
+        .neq("user_id", userId)
+        .maybeSingle();
+        
+      if (existingVerified) {
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: "Detta telefonnummer har redan verifierats av ett annat konto." 
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     // Mark as verified and clear code
     const updateData: Record<string, unknown> = {
       [verifiedField]: true,
