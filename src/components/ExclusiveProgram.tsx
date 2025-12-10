@@ -116,10 +116,10 @@ export const ExclusiveProgram = () => {
     }
   };
 
-  // Parallax style with smooth transitions
+  // Parallax style with smooth transitions - Y-axis (rotateX) heavily restricted
   const getParallaxStyle = (depth: number) => {
     if (prefersReducedMotion) return {};
-    const rotateX = mousePosition.y * (depth * 0.04);
+    const rotateX = mousePosition.y * (depth * 0.008); // Heavily restricted Y-axis tilt
     const rotateY = mousePosition.x * (depth * 0.04);
     return {
       transform: `translateZ(${depth * 0.5}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`
@@ -142,52 +142,7 @@ export const ExclusiveProgram = () => {
     >
       {/* No custom background - uses page background */}
 
-      {/* Neon Car Outline Layer */}
-      <div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none"
-        style={getParallaxStyle(-20)}
-        aria-hidden="true"
-      >
-        <svg
-          viewBox="0 0 400 150"
-          className="w-full max-w-3xl h-auto opacity-30"
-          style={{ filter: "drop-shadow(0 0 20px rgba(59, 130, 246, 0.5))" }}
-        >
-          {/* Simplified car wireframe */}
-          <path
-            d="M40 100 L60 100 L80 80 L140 70 L180 50 L260 50 L300 70 L340 80 L360 100 L380 100"
-            fill="none"
-            stroke="url(#neonGradient)"
-            strokeWidth="1.5"
-            className="animate-vip-neon-pulse"
-          />
-          <path
-            d="M80 100 L80 80 M340 100 L340 80"
-            fill="none"
-            stroke="url(#neonGradient)"
-            strokeWidth="1"
-            opacity="0.6"
-          />
-          {/* Wheels */}
-          <circle cx="100" cy="100" r="20" fill="none" stroke="url(#neonGradient)" strokeWidth="1.5" className="animate-vip-neon-pulse" style={{ animationDelay: "0.5s" }} />
-          <circle cx="320" cy="100" r="20" fill="none" stroke="url(#neonGradient)" strokeWidth="1.5" className="animate-vip-neon-pulse" style={{ animationDelay: "1s" }} />
-          {/* Windows */}
-          <path
-            d="M145 70 L175 52 L255 52 L295 70"
-            fill="none"
-            stroke="url(#neonGradient)"
-            strokeWidth="1"
-            opacity="0.7"
-          />
-          <defs>
-            <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#ff3b3b" />
-              <stop offset="50%" stopColor="#3b82f6" />
-              <stop offset="100%" stopColor="#ff3b3b" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
+      {/* Car doodle removed */}
 
       {/* HUD Glass Chips Layer - In front of main card */}
       <div
