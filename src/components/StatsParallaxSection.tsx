@@ -125,98 +125,59 @@ export const StatsParallaxSection = () => {
                   }}
                 />
 
-                {/* Premium graph with sharp zigzag arrow */}
+                {/* Clean zigzag arrow graph */}
                 <div 
-                  className="absolute -top-4 -right-4 md:top-0 md:right-0 w-56 h-56 md:w-80 md:h-80"
+                  className="absolute -top-8 -right-8 md:-top-4 md:-right-4 w-64 h-64 md:w-96 md:h-96"
                   style={parallaxStyle(80)}
                 >
                   <svg 
-                    viewBox="0 0 200 200" 
+                    viewBox="0 0 100 100" 
                     className="w-full h-full"
-                    style={{ filter: "drop-shadow(0 0 30px rgba(34, 197, 94, 0.6))" }}
+                    style={{ filter: "drop-shadow(0 0 20px rgba(34, 197, 94, 0.5))" }}
                   >
                     <defs>
-                      <linearGradient id="premiumGreenGradient" x1="0%" y1="100%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="hsl(142 76% 30%)" />
-                        <stop offset="50%" stopColor="hsl(142 76% 46%)" />
-                        <stop offset="100%" stopColor="hsl(84 81% 55%)" />
+                      <linearGradient id="arrowGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="hsl(142 70% 35%)" />
+                        <stop offset="100%" stopColor="hsl(142 70% 50%)" />
                       </linearGradient>
-                      <linearGradient id="arrowFillGradient" x1="0%" y1="100%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="hsl(142 76% 36%)" />
-                        <stop offset="100%" stopColor="hsl(142 76% 50%)" />
-                      </linearGradient>
-                      <filter id="glowFilter">
-                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                        <feMerge>
-                          <feMergeNode in="coloredBlur"/>
-                          <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                      </filter>
                     </defs>
 
-                    {/* Sharp zigzag arrow - like reference image */}
-                    <g 
-                      className={`transition-all duration-[2000ms] ${isInView ? "opacity-100" : "opacity-0"}`}
-                      filter="url(#glowFilter)"
-                    >
-                      {/* Main arrow body with sharp angles */}
-                      <path
-                        d="M 20 160 L 50 140 L 70 150 L 100 110 L 125 120 L 155 60 L 180 35"
-                        fill="none"
-                        stroke="url(#premiumGreenGradient)"
-                        strokeWidth="8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+                    {/* Clean zigzag arrow shape - filled polygon like reference */}
+                    <g className={`transition-all duration-1000 ${isInView ? "opacity-100" : "opacity-0"}`}>
+                      <polygon
+                        points="
+                          8,72
+                          20,58
+                          18,56
+                          32,48
+                          30,46
+                          48,36
+                          46,34
+                          62,28
+                          60,26
+                          85,12
+                          92,18
+                          68,32
+                          70,34
+                          54,42
+                          56,44
+                          38,52
+                          40,54
+                          24,62
+                          26,64
+                          12,76
+                        "
+                        fill="url(#arrowGradient)"
                         className={isInView ? "animate-stats-draw-line" : ""}
-                        style={{
-                          strokeDasharray: 400,
-                          strokeDashoffset: isInView ? 0 : 400
-                        }}
                       />
                       
-                      {/* Arrow head - positioned at end of line */}
+                      {/* Arrow head */}
                       <polygon
-                        points="170,22 192,28 175,45"
-                        fill="url(#arrowFillGradient)"
-                        className={`transition-all duration-700 ${isInView ? "opacity-100 scale-100" : "opacity-0 scale-0"}`}
-                        style={{ 
-                          transitionDelay: "1.5s",
-                          transformOrigin: "178px 35px"
-                        }}
+                        points="80,6 96,10 86,24"
+                        fill="url(#arrowGradient)"
+                        className={`transition-all duration-500 ${isInView ? "opacity-100" : "opacity-0"}`}
+                        style={{ transitionDelay: "0.5s" }}
                       />
-
-                      {/* Glow dots at each vertex */}
-                      {[
-                        { cx: 20, cy: 160 },
-                        { cx: 50, cy: 140 },
-                        { cx: 70, cy: 150 },
-                        { cx: 100, cy: 110 },
-                        { cx: 125, cy: 120 },
-                        { cx: 155, cy: 60 }
-                      ].map((dot, i) => (
-                        <circle
-                          key={i}
-                          cx={dot.cx}
-                          cy={dot.cy}
-                          r="5"
-                          fill="hsl(142 76% 60%)"
-                          className={`transition-all duration-500 ${isInView ? "opacity-100" : "opacity-0"}`}
-                          style={{ 
-                            transitionDelay: `${600 + i * 150}ms`,
-                            filter: "drop-shadow(0 0 12px rgba(74, 222, 128, 1))"
-                          }}
-                        />
-                      ))}
-                    </g>
-
-                    {/* Subtle grid behind */}
-                    <g className="opacity-10">
-                      {[40, 80, 120, 160].map(y => (
-                        <line key={y} x1="10" y1={y} x2="190" y2={y} stroke="white" strokeWidth="0.5" strokeDasharray="4,4" />
-                      ))}
-                      {[40, 80, 120, 160].map(x => (
-                        <line key={x} x1={x} y1="20" x2={x} y2="180" stroke="white" strokeWidth="0.5" strokeDasharray="4,4" />
-                      ))}
                     </g>
                   </svg>
                 </div>
@@ -246,7 +207,7 @@ export const StatsParallaxSection = () => {
                         filter: "drop-shadow(0 0 60px rgba(34, 197, 94, 0.4))"
                       }}
                     >
-                      42%
+                      32%
                     </span>
                   </div>
                   
@@ -261,7 +222,7 @@ export const StatsParallaxSection = () => {
                     className={`text-base md:text-lg text-muted-foreground leading-relaxed max-w-sm transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
                     style={{ transitionDelay: "700ms" }}
                   >
-                    Blocket-annonser med professionellt redigerade bilder säljer i genomsnitt 42% snabbare.
+                    Blocket-annonser med professionellt redigerade bilder säljer i genomsnitt 32% snabbare.
                   </p>
 
                   {/* Stats pills */}
