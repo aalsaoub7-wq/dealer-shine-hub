@@ -94,7 +94,7 @@ export const StatsParallaxSection = () => {
   const parallaxStyle = (depth: number) => ({
     transform: prefersReducedMotion 
       ? "none" 
-      : `perspective(1200px) rotateX(${mousePosition.y * 0.5}deg) rotateY(${mousePosition.x * 0.5}deg) translateZ(${depth}px)`,
+      : `perspective(1200px) rotateX(${mousePosition.y * 0.1}deg) rotateY(${mousePosition.x * 0.5}deg) translateZ(${depth}px)`,
     transition: "transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
   });
 
