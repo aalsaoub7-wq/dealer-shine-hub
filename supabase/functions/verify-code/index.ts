@@ -12,22 +12,46 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { userId, type, code } = await req.json();
+    // Extract and validate JWT token
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Authorization header krävs" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    if (!userId || !type || !code) {
-      throw new Error("userId, type och code krävs");
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    // Verify the JWT and get the user
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+
+    if (authError || !user) {
+      console.error("Auth error:", authError);
+      return new Response(
+        JSON.stringify({ error: "Ogiltig eller utgången token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Use the authenticated user's ID - ignore any userId from request body
+    const userId = user.id;
+
+    const { type, code } = await req.json();
+
+    if (!type || !code) {
+      throw new Error("type och code krävs");
     }
 
     if (type !== "email" && type !== "phone") {
       throw new Error("type måste vara 'email' eller 'phone'");
     }
 
-    console.log(`Verifying ${type} code for user:`, userId);
-
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
+    console.log(`Verifying ${type} code for authenticated user:`, userId);
 
     // Get user verification record
     const { data: verification, error: fetchError } = await supabaseAdmin
