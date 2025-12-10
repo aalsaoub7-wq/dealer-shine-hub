@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -6,14 +6,49 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
+const VERIFICATION_TIMEOUT_MS = 5000;
+
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
+    isMountedRef.current = true;
+
+    const checkVerificationWithTimeout = async (userId: string, isGoogle: boolean): Promise<boolean> => {
+      try {
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), VERIFICATION_TIMEOUT_MS)
+        );
+
+        const verificationPromise = supabase.functions.invoke("get-verification-status", {
+          body: { userId },
+        });
+
+        const { data, error } = await Promise.race([verificationPromise, timeoutPromise]);
+
+        if (error) {
+          console.error("Error checking verification:", error);
+          return true; // Fallback to allow access
+        }
+
+        if (isGoogle) {
+          return data?.phoneVerified === true;
+        } else {
+          return data?.emailVerified === true && data?.phoneVerified === true;
+        }
+      } catch (err) {
+        console.error("Verification check timeout or error:", err);
+        return true; // Fallback to allow access on timeout
+      }
+    };
+
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
+      if (!isMountedRef.current) return;
+
       if (!session) {
         setIsAuthenticated(false);
         setIsVerified(null);
@@ -22,37 +57,19 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
       setIsAuthenticated(true);
 
-      // Check verification status
-      try {
-        const { data, error } = await supabase.functions.invoke("get-verification-status", {
-          body: { userId: session.user.id },
-        });
-
-        if (error) {
-          console.error("Error checking verification:", error);
-          // If error checking, allow access (fallback)
-          setIsVerified(true);
-          return;
-        }
-
-        // Google users only need phone verification
-        const isGoogle = session.user.app_metadata?.provider === "google";
-        
-        if (isGoogle) {
-          setIsVerified(data?.phoneVerified === true);
-        } else {
-          setIsVerified(data?.emailVerified === true && data?.phoneVerified === true);
-        }
-      } catch (err) {
-        console.error("Error in verification check:", err);
-        // Fallback to allow access
-        setIsVerified(true);
+      const isGoogle = session.user.app_metadata?.provider === "google";
+      const verified = await checkVerificationWithTimeout(session.user.id, isGoogle);
+      
+      if (isMountedRef.current) {
+        setIsVerified(verified);
       }
     };
 
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!isMountedRef.current) return;
+
       if (!session) {
         setIsAuthenticated(false);
         setIsVerified(null);
@@ -61,25 +78,18 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
       setIsAuthenticated(true);
 
-      // Check verification status on auth change
-      try {
-        const { data } = await supabase.functions.invoke("get-verification-status", {
-          body: { userId: session.user.id },
-        });
-
-        const isGoogle = session.user.app_metadata?.provider === "google";
-        
-        if (isGoogle) {
-          setIsVerified(data?.phoneVerified === true);
-        } else {
-          setIsVerified(data?.emailVerified === true && data?.phoneVerified === true);
-        }
-      } catch {
-        setIsVerified(true);
+      const isGoogle = session.user.app_metadata?.provider === "google";
+      const verified = await checkVerificationWithTimeout(session.user.id, isGoogle);
+      
+      if (isMountedRef.current) {
+        setIsVerified(verified);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMountedRef.current = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Loading state
