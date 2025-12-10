@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_registration_ips: {
+        Row: {
+          created_at: string | null
+          id: string
+          ip_address: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          ip_address: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          ip_address?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ai_settings: {
         Row: {
           background_prompt: string
@@ -620,6 +641,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_verifications: {
+        Row: {
+          created_at: string | null
+          email_code_expires_at: string | null
+          email_verification_code: string | null
+          email_verified: boolean | null
+          id: string
+          phone_code_expires_at: string | null
+          phone_number: string | null
+          phone_verification_code: string | null
+          phone_verified: boolean | null
+          registration_ip: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email_code_expires_at?: string | null
+          email_verification_code?: string | null
+          email_verified?: boolean | null
+          id?: string
+          phone_code_expires_at?: string | null
+          phone_number?: string | null
+          phone_verification_code?: string | null
+          phone_verified?: boolean | null
+          registration_ip?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email_code_expires_at?: string | null
+          email_verification_code?: string | null
+          email_verified?: boolean | null
+          id?: string
+          phone_code_expires_at?: string | null
+          phone_number?: string | null
+          phone_verification_code?: string | null
+          phone_verified?: boolean | null
+          registration_ip?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
