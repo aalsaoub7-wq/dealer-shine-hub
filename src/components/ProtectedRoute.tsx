@@ -6,7 +6,7 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
-const VERIFICATION_TIMEOUT_MS = 5000;
+const VERIFICATION_TIMEOUT_MS = 3000;
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -19,7 +19,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     const checkVerificationWithTimeout = async (userId: string, isGoogle: boolean): Promise<boolean> => {
       try {
         const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('timeout')), VERIFICATION_TIMEOUT_MS)
+          setTimeout(() => reject(new Error("timeout")), VERIFICATION_TIMEOUT_MS),
         );
 
         const verificationPromise = supabase.functions.invoke("get-verification-status", {
@@ -45,8 +45,10 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     };
 
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (!isMountedRef.current) return;
 
       if (!session) {
@@ -59,7 +61,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
       const isGoogle = session.user.app_metadata?.provider === "google";
       const verified = await checkVerificationWithTimeout(session.user.id, isGoogle);
-      
+
       if (isMountedRef.current) {
         setIsVerified(verified);
       }
@@ -67,7 +69,9 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
     checkAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!isMountedRef.current) return;
 
       if (!session) {
@@ -80,7 +84,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
       const isGoogle = session.user.app_metadata?.provider === "google";
       const verified = await checkVerificationWithTimeout(session.user.id, isGoogle);
-      
+
       if (isMountedRef.current) {
         setIsVerified(verified);
       }
