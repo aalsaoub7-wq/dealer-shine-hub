@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { TrendingUp, Eye, Clock, Zap } from "lucide-react";
 
 export const StatsParallaxSection = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -10,7 +9,6 @@ export const StatsParallaxSection = () => {
   const animationRef = useRef<number>();
   const hasMouseMoved = useRef(false);
 
-  // Check for reduced motion preference
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReducedMotion(mediaQuery.matches);
@@ -19,7 +17,6 @@ export const StatsParallaxSection = () => {
     return () => mediaQuery.removeEventListener("change", handler);
   }, []);
 
-  // Intersection observer for animations
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => setIsInView(entry.isIntersecting),
@@ -29,17 +26,15 @@ export const StatsParallaxSection = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Mouse tracking for 3D parallax
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (prefersReducedMotion || !sectionRef.current) return;
     hasMouseMoved.current = true;
     const rect = sectionRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
     const y = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
-    targetPosition.current = { x: x * 4, y: y * -4 };
+    targetPosition.current = { x: x * 8, y: y * -8 };
   }, [prefersReducedMotion]);
 
-  // Smooth interpolation animation
   useEffect(() => {
     if (prefersReducedMotion) return;
     
@@ -47,8 +42,8 @@ export const StatsParallaxSection = () => {
       setMousePosition(prev => {
         if (!hasMouseMoved.current) return prev;
         return {
-          x: prev.x + (targetPosition.current.x - prev.x) * 0.06,
-          y: prev.y + (targetPosition.current.y - prev.y) * 0.06
+          x: prev.x + (targetPosition.current.x - prev.x) * 0.04,
+          y: prev.y + (targetPosition.current.y - prev.y) * 0.04
         };
       });
       animationRef.current = requestAnimationFrame(animate);
@@ -69,203 +64,298 @@ export const StatsParallaxSection = () => {
   const parallaxStyle = (depth: number) => ({
     transform: prefersReducedMotion 
       ? "none" 
-      : `perspective(1000px) rotateX(${mousePosition.y * 0.3}deg) rotateY(${mousePosition.x * 0.3}deg) translateZ(${depth}px)`,
-    transition: "transform 0.3s ease-out"
+      : `perspective(1200px) rotateX(${mousePosition.y * 0.5}deg) rotateY(${mousePosition.x * 0.5}deg) translateZ(${depth}px)`,
+    transition: "transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
   });
 
   return (
     <section
       ref={sectionRef}
-      className="relative py-20 md:py-32 overflow-hidden"
-      style={{ perspective: "1000px" }}
+      className="relative py-28 md:py-40 overflow-hidden"
+      style={{ perspective: "1200px" }}
     >
-      {/* Animated green gradient background */}
+      {/* Premium dark gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-background" />
+      
+      {/* Subtle grid pattern */}
       <div 
-        className="absolute inset-0 opacity-30"
+        className="absolute inset-0 opacity-[0.03]"
         style={{
-          background: "radial-gradient(ellipse at center, hsl(142 76% 36% / 0.3) 0%, transparent 70%)"
+          backgroundImage: `
+            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: "60px 60px"
         }}
       />
-      
-      {/* Floating particles */}
+
+      {/* Massive green aurora glow */}
+      <div 
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full opacity-20"
+        style={{
+          background: "radial-gradient(circle, hsl(142 76% 40%) 0%, hsl(142 76% 30%) 30%, transparent 70%)",
+          filter: "blur(100px)"
+        }}
+      />
+
+      {/* Secondary glow orbs */}
+      <div 
+        className="absolute top-1/4 right-1/4 w-[400px] h-[400px] rounded-full opacity-10"
+        style={{
+          background: "radial-gradient(circle, hsl(84 81% 50%) 0%, transparent 70%)",
+          filter: "blur(80px)"
+        }}
+      />
+
+      {/* Animated scan lines */}
       {!prefersReducedMotion && isInView && (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(12)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 rounded-full bg-emerald-400/60 animate-stats-particle"
-              style={{
-                left: `${15 + (i % 4) * 25}%`,
-                bottom: "20%",
-                animationDelay: `${i * 0.8}s`,
-                animationDuration: `${3 + (i % 3)}s`
-              }}
-            />
-          ))}
-        </div>
+        <>
+          <div 
+            className="absolute left-0 right-0 h-[1px] opacity-20"
+            style={{
+              background: "linear-gradient(90deg, transparent, hsl(142 76% 50%), transparent)",
+              animation: "stats-scanline 4s ease-in-out infinite"
+            }}
+          />
+        </>
       )}
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div 
-          className={`relative transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
+          className={`relative transition-all duration-1000 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-16"}`}
           style={parallaxStyle(0)}
         >
-          {/* 3D Container */}
           <div 
-            className="relative flex flex-col items-center justify-center"
+            className="relative flex flex-col items-center justify-center min-h-[500px]"
             style={{ transformStyle: "preserve-3d" }}
           >
-            {/* Background glow layer */}
+            {/* Premium Main Card */}
             <div 
-              className="absolute inset-0 -z-10"
-              style={{
-                ...parallaxStyle(-40),
-                background: "radial-gradient(ellipse at center, hsl(142 76% 36% / 0.15) 0%, transparent 60%)",
-                filter: "blur(60px)",
-                transform: prefersReducedMotion ? "none" : `translateZ(-40px) scale(1.5)`
-              }}
-            />
-
-            {/* Floating HUD chips - left */}
-            <div 
-              className={`absolute left-4 md:left-20 top-1/4 transition-all duration-500 ${isInView ? "opacity-100" : "opacity-0"}`}
-              style={{
-                ...parallaxStyle(60),
-                transitionDelay: "200ms"
-              }}
+              className={`relative z-10 transition-all duration-1000 ${isInView ? "opacity-100 scale-100" : "opacity-0 scale-90"}`}
+              style={{ ...parallaxStyle(40), transitionDelay: "200ms" }}
             >
-              <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm animate-stats-float">
-                <Eye className="w-4 h-4 text-emerald-400" />
-                <span className="text-sm font-medium text-emerald-300">+67% visningar</span>
-              </div>
-            </div>
+              {/* Card outer glow */}
+              <div 
+                className="absolute -inset-1 rounded-[2.5rem] opacity-60"
+                style={{
+                  background: "linear-gradient(135deg, hsl(142 76% 40% / 0.3), hsl(84 81% 50% / 0.1), hsl(142 76% 40% / 0.3))",
+                  filter: "blur(20px)"
+                }}
+              />
+              
+              {/* Card */}
+              <div className="relative p-10 md:p-16 rounded-[2rem] bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-white/[0.02] backdrop-blur-2xl border border-white/10 shadow-2xl overflow-hidden">
+                {/* Inner highlight */}
+                <div 
+                  className="absolute inset-0 rounded-[2rem]"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%, transparent 100%)"
+                  }}
+                />
 
-            {/* Floating HUD chips - right */}
-            <div 
-              className={`absolute right-4 md:right-20 top-1/3 transition-all duration-500 ${isInView ? "opacity-100" : "opacity-0"}`}
-              style={{
-                ...parallaxStyle(50),
-                transitionDelay: "400ms"
-              }}
-            >
-              <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm animate-stats-float" style={{ animationDelay: "1s" }}>
-                <Clock className="w-4 h-4 text-emerald-400" />
-                <span className="text-sm font-medium text-emerald-300">Snabbare affärer</span>
-              </div>
-            </div>
-
-            {/* Bottom left chip */}
-            <div 
-              className={`absolute left-8 md:left-32 bottom-1/4 transition-all duration-500 ${isInView ? "opacity-100" : "opacity-0"}`}
-              style={{
-                ...parallaxStyle(40),
-                transitionDelay: "600ms"
-              }}
-            >
-              <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm animate-stats-float" style={{ animationDelay: "2s" }}>
-                <Zap className="w-4 h-4 text-emerald-400" />
-                <span className="text-sm font-medium text-emerald-300">AI-optimerat</span>
-              </div>
-            </div>
-
-            {/* Main stats card */}
-            <div 
-              className={`relative z-10 transition-all duration-700 ${isInView ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
-              style={parallaxStyle(30)}
-            >
-              <div className="relative p-8 md:p-12 rounded-3xl bg-background/5 backdrop-blur-xl border border-emerald-500/20 shadow-[0_0_80px_rgba(34,197,94,0.15)]">
-                {/* Animated arrow/graph SVG */}
-                <div className="absolute -top-8 -right-8 md:-top-12 md:-right-12 w-32 h-32 md:w-48 md:h-48">
+                {/* Premium graph with sharp zigzag arrow */}
+                <div 
+                  className="absolute -top-4 -right-4 md:top-0 md:right-0 w-56 h-56 md:w-80 md:h-80"
+                  style={parallaxStyle(80)}
+                >
                   <svg 
-                    viewBox="0 0 100 100" 
-                    className={`w-full h-full ${isInView ? "animate-stats-glow-green" : ""}`}
-                    style={{ filter: "drop-shadow(0 0 20px rgba(34, 197, 94, 0.5))" }}
+                    viewBox="0 0 200 200" 
+                    className="w-full h-full"
+                    style={{ filter: "drop-shadow(0 0 30px rgba(34, 197, 94, 0.6))" }}
                   >
-                    {/* Graph line */}
-                    <path
-                      d="M 10 80 Q 30 75 40 60 T 60 40 T 90 15"
-                      fill="none"
-                      stroke="url(#greenGradient)"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      className={isInView ? "animate-stats-draw-line" : ""}
-                      style={{
-                        strokeDasharray: 200,
-                        strokeDashoffset: isInView ? 0 : 200
-                      }}
-                    />
-                    {/* Arrow head */}
-                    <polygon
-                      points="85,20 95,12 88,25"
-                      fill="hsl(142 76% 46%)"
-                      className={`transition-all duration-1000 delay-700 ${isInView ? "opacity-100" : "opacity-0"}`}
-                    />
-                    {/* Glow dots along path */}
-                    {[
-                      { cx: 25, cy: 72 },
-                      { cx: 45, cy: 55 },
-                      { cx: 65, cy: 35 },
-                      { cx: 85, cy: 18 }
-                    ].map((dot, i) => (
-                      <circle
-                        key={i}
-                        cx={dot.cx}
-                        cy={dot.cy}
-                        r="4"
-                        fill="hsl(142 76% 56%)"
-                        className={`transition-all duration-500 ${isInView ? "opacity-100" : "opacity-0"}`}
-                        style={{ 
-                          transitionDelay: `${800 + i * 200}ms`,
-                          filter: "drop-shadow(0 0 8px rgba(34, 197, 94, 0.8))"
+                    <defs>
+                      <linearGradient id="premiumGreenGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="hsl(142 76% 30%)" />
+                        <stop offset="50%" stopColor="hsl(142 76% 46%)" />
+                        <stop offset="100%" stopColor="hsl(84 81% 55%)" />
+                      </linearGradient>
+                      <linearGradient id="arrowFillGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="hsl(142 76% 36%)" />
+                        <stop offset="100%" stopColor="hsl(142 76% 50%)" />
+                      </linearGradient>
+                      <filter id="glowFilter">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                        <feMerge>
+                          <feMergeNode in="coloredBlur"/>
+                          <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                      </filter>
+                    </defs>
+
+                    {/* Sharp zigzag arrow - like reference image */}
+                    <g 
+                      className={`transition-all duration-[2000ms] ${isInView ? "opacity-100" : "opacity-0"}`}
+                      filter="url(#glowFilter)"
+                    >
+                      {/* Main arrow body with sharp angles */}
+                      <path
+                        d="M 20 160 L 50 140 L 70 150 L 100 110 L 125 120 L 155 60 L 175 40"
+                        fill="none"
+                        stroke="url(#premiumGreenGradient)"
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={isInView ? "animate-stats-draw-line" : ""}
+                        style={{
+                          strokeDasharray: 400,
+                          strokeDashoffset: isInView ? 0 : 400
                         }}
                       />
-                    ))}
-                    <defs>
-                      <linearGradient id="greenGradient" x1="0%" y1="100%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="hsl(142 76% 36%)" />
-                        <stop offset="100%" stopColor="hsl(84 81% 50%)" />
-                      </linearGradient>
-                    </defs>
+                      
+                      {/* Arrow head - larger and more prominent */}
+                      <polygon
+                        points="160,30 185,25 178,50"
+                        fill="url(#arrowFillGradient)"
+                        className={`transition-all duration-700 ${isInView ? "opacity-100 scale-100" : "opacity-0 scale-0"}`}
+                        style={{ 
+                          transitionDelay: "1.5s",
+                          transformOrigin: "175px 38px"
+                        }}
+                      />
+
+                      {/* Glow dots at each vertex */}
+                      {[
+                        { cx: 20, cy: 160 },
+                        { cx: 50, cy: 140 },
+                        { cx: 70, cy: 150 },
+                        { cx: 100, cy: 110 },
+                        { cx: 125, cy: 120 },
+                        { cx: 155, cy: 60 }
+                      ].map((dot, i) => (
+                        <circle
+                          key={i}
+                          cx={dot.cx}
+                          cy={dot.cy}
+                          r="5"
+                          fill="hsl(142 76% 60%)"
+                          className={`transition-all duration-500 ${isInView ? "opacity-100" : "opacity-0"}`}
+                          style={{ 
+                            transitionDelay: `${600 + i * 150}ms`,
+                            filter: "drop-shadow(0 0 12px rgba(74, 222, 128, 1))"
+                          }}
+                        />
+                      ))}
+                    </g>
+
+                    {/* Subtle grid behind */}
+                    <g className="opacity-10">
+                      {[40, 80, 120, 160].map(y => (
+                        <line key={y} x1="10" y1={y} x2="190" y2={y} stroke="white" strokeWidth="0.5" strokeDasharray="4,4" />
+                      ))}
+                      {[40, 80, 120, 160].map(x => (
+                        <line key={x} x1={x} y1="20" x2={x} y2="180" stroke="white" strokeWidth="0.5" strokeDasharray="4,4" />
+                      ))}
+                    </g>
                   </svg>
                 </div>
 
-                {/* Trending icon */}
-                <div className="flex justify-center mb-6">
-                  <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-lime-500/10 border border-emerald-500/30">
-                    <TrendingUp className="w-10 h-10 md:w-12 md:h-12 text-emerald-400" />
-                  </div>
-                </div>
-
-                {/* Big stat number */}
-                <div className="text-center space-y-4">
+                {/* Content */}
+                <div className="relative text-center md:text-left md:max-w-md space-y-6">
+                  {/* Premium badge */}
                   <div 
-                    className={`text-6xl md:text-8xl font-black bg-gradient-to-r from-emerald-400 via-lime-400 to-emerald-400 bg-clip-text text-transparent transition-all duration-1000 ${isInView ? "opacity-100 scale-100" : "opacity-0 scale-90"}`}
-                    style={{ 
-                      textShadow: "0 0 60px rgba(34, 197, 94, 0.3)",
-                      transitionDelay: "300ms"
-                    }}
+                    className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
+                    style={{ transitionDelay: "400ms" }}
                   >
-                    42%
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-xs font-semibold text-emerald-400 tracking-wider uppercase">Verifierad statistik</span>
+                  </div>
+
+                  {/* Hero number */}
+                  <div 
+                    className={`transition-all duration-1000 ${isInView ? "opacity-100" : "opacity-0"}`}
+                    style={{ transitionDelay: "500ms" }}
+                  >
+                    <span 
+                      className="text-7xl md:text-9xl font-black tracking-tighter"
+                      style={{
+                        background: "linear-gradient(135deg, hsl(142 76% 55%) 0%, hsl(84 81% 60%) 50%, hsl(142 76% 45%) 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        filter: "drop-shadow(0 0 60px rgba(34, 197, 94, 0.4))"
+                      }}
+                    >
+                      42%
+                    </span>
                   </div>
                   
-                  <p className="text-lg md:text-xl text-foreground/90 font-medium max-w-lg">
+                  <h3 
+                    className={`text-2xl md:text-3xl font-bold text-foreground transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
+                    style={{ transitionDelay: "600ms" }}
+                  >
                     snabbare försäljning
-                  </p>
+                  </h3>
                   
-                  <p className="text-sm md:text-base text-muted-foreground max-w-md mx-auto leading-relaxed">
-                    Blocket-annonser med professionellt redigerade bilder säljer i genomsnitt 42% snabbare än annonser med vanliga mobilfoton.
+                  <p 
+                    className={`text-base md:text-lg text-muted-foreground leading-relaxed max-w-sm transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
+                    style={{ transitionDelay: "700ms" }}
+                  >
+                    Blocket-annonser med professionellt redigerade bilder säljer i genomsnitt 42% snabbare.
                   </p>
+
+                  {/* Stats pills */}
+                  <div 
+                    className={`flex flex-wrap gap-3 pt-4 justify-center md:justify-start transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
+                    style={{ transitionDelay: "800ms" }}
+                  >
+                    {[
+                      { label: "+67% visningar", icon: "👁️" },
+                      { label: "Fler leads", icon: "📈" },
+                      { label: "Högre pris", icon: "💰" }
+                    ].map((stat, i) => (
+                      <div 
+                        key={stat.label}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm"
+                        style={{ animationDelay: `${i * 100}ms` }}
+                      >
+                        <span className="text-sm">{stat.icon}</span>
+                        <span className="text-sm font-medium text-foreground/80">{stat.label}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Subtle bottom glow line */}
+                {/* Bottom accent line */}
                 <div 
-                  className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-px"
+                  className="absolute bottom-0 left-0 right-0 h-[2px]"
                   style={{
-                    background: "linear-gradient(90deg, transparent, hsl(142 76% 46% / 0.5), transparent)"
+                    background: "linear-gradient(90deg, transparent, hsl(142 76% 50% / 0.6), hsl(84 81% 55% / 0.4), transparent)"
                   }}
                 />
               </div>
             </div>
+
+            {/* Floating accent elements */}
+            <div 
+              className={`absolute -left-4 md:left-8 top-1/3 transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
+              style={{ ...parallaxStyle(100), transitionDelay: "900ms" }}
+            >
+              <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-transparent border border-emerald-500/20 backdrop-blur-sm rotate-12" />
+            </div>
+
+            <div 
+              className={`absolute -right-4 md:right-16 bottom-1/4 transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
+              style={{ ...parallaxStyle(70), transitionDelay: "1000ms" }}
+            >
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-lime-500/15 to-transparent border border-lime-500/15 backdrop-blur-sm" />
+            </div>
+
+            {/* Small floating particles */}
+            {!prefersReducedMotion && isInView && (
+              <div className="absolute inset-0 pointer-events-none">
+                {[...Array(8)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute w-1.5 h-1.5 rounded-full bg-emerald-400/40 animate-stats-particle"
+                    style={{
+                      left: `${20 + (i % 4) * 20}%`,
+                      top: `${60 + (i % 2) * 20}%`,
+                      animationDelay: `${i * 0.5}s`,
+                      animationDuration: `${4 + (i % 3)}s`
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

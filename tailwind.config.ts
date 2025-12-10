@@ -133,6 +133,12 @@ export default {
           "100%": { backgroundPosition: "200% center" },
         },
         // Stats parallax section animations
+        "stats-scanline": {
+          "0%": { top: "20%", opacity: "0" },
+          "10%": { opacity: "0.3" },
+          "90%": { opacity: "0.3" },
+          "100%": { top: "80%", opacity: "0" }
+        },
         "stats-draw-line": {
           "0%": { strokeDashoffset: "200" },
           "100%": { strokeDashoffset: "0" },
