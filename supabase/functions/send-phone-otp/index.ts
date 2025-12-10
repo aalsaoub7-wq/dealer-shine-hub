@@ -139,5 +139,4 @@ serve(async (req: Request) => {
       }
     );
   }
-  }
 });
