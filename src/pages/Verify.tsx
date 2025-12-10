@@ -14,6 +14,7 @@ export default function Verify() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("email");
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [emailCode, setEmailCode] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -56,13 +57,13 @@ export default function Verify() {
 
     if (data?.fullyVerified) {
       navigate("/dashboard");
-      return;
+      return; // Don't set initialLoading false - we're navigating away
     }
 
     // Google users skip email verification
     if (isGoogle && data?.phoneVerified) {
       navigate("/dashboard");
-      return;
+      return; // Don't set initialLoading false - we're navigating away
     }
 
     if (isGoogle) {
@@ -73,6 +74,8 @@ export default function Verify() {
       // Send initial email verification
       sendEmailVerification();
     }
+    
+    setInitialLoading(false);
   };
 
   const sendEmailVerification = async () => {
@@ -237,6 +240,14 @@ export default function Verify() {
     
     return digits.substring(0, 13); // Max length
   };
+
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
