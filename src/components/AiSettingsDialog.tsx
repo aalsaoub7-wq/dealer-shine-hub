@@ -592,31 +592,25 @@ export const AiSettingsDialog = () => {
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
           <TabsList className={`grid w-full overflow-hidden ${userRole === "admin" ? "grid-cols-6" : "grid-cols-4"}`}>
-            <TabsTrigger value="background" className="flex items-center gap-1">
-              <Palette className="h-4 w-4 md:hidden" />
-              <span className="hidden md:inline">Bakgrund</span>
+            <TabsTrigger value="background" className="flex items-center justify-center">
+              <Palette className="h-4 w-4" />
             </TabsTrigger>
-            <TabsTrigger value="watermark" className="flex items-center gap-1 min-w-0">
-              <Stamp className="h-4 w-4 md:hidden flex-shrink-0" />
-              <span className="hidden md:inline truncate">Logo</span>
+            <TabsTrigger value="watermark" className="flex items-center justify-center">
+              <Stamp className="h-4 w-4" />
             </TabsTrigger>
-            <TabsTrigger value="landing" className="flex items-center gap-1">
-              <Globe className="h-4 w-4 md:hidden" />
-              <span className="hidden md:inline">Landningssida</span>
+            <TabsTrigger value="landing" className="flex items-center justify-center">
+              <Globe className="h-4 w-4" />
             </TabsTrigger>
             {userRole === "admin" && <>
-                <TabsTrigger value="payment" className="flex items-center gap-1">
-                  <CreditCard className="h-4 w-4 md:hidden" />
-                  <span className="hidden md:inline">Betalning</span>
+                <TabsTrigger value="payment" className="flex items-center justify-center">
+                  <CreditCard className="h-4 w-4" />
                 </TabsTrigger>
-                <TabsTrigger value="team" className="flex items-center gap-1">
-                  <Users className="h-4 w-4 md:hidden" />
-                  <span className="hidden md:inline">Anställda</span>
+                <TabsTrigger value="team" className="flex items-center justify-center">
+                  <Users className="h-4 w-4" />
                 </TabsTrigger>
               </>}
-            <TabsTrigger value="account" className="flex items-center gap-1">
-              <User className="h-4 w-4 md:hidden" />
-              <span className="hidden md:inline">Konto</span>
+            <TabsTrigger value="account" className="flex items-center justify-center">
+              <User className="h-4 w-4" />
             </TabsTrigger>
           </TabsList>
 
