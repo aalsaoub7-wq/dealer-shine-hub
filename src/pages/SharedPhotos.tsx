@@ -53,9 +53,15 @@ const SharedPhotos = () => {
         .from("shared_collections")
         .select("*")
         .eq("share_token", token)
-        .single();
+        .maybeSingle();
 
       if (collectionError) throw collectionError;
+
+      if (!collectionData) {
+        setCollection(null);
+        setLoading(false);
+        return;
+      }
 
       // Check if collection has expired
       if (collectionData.expires_at) {
