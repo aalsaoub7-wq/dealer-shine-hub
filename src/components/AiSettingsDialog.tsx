@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Settings, Upload, X, Languages, Palette, Stamp, Globe, CreditCard, Users, Check, Pencil, HelpCircle } from "lucide-react";
+import { Settings, Upload, X, Languages, Palette, Stamp, Globe, CreditCard, Users, Check, Pencil, HelpCircle, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { isNativeApp } from "@/lib/utils";
 import { openExternalUrl } from "@/lib/nativeCapabilities";
@@ -17,6 +17,7 @@ import { LandingPagePreview } from "./LandingPagePreview";
 import { Input } from "@/components/ui/input";
 import { PaymentSettings } from "./PaymentSettings";
 import { TeamManagement } from "./TeamManagement";
+import { AccountSettings } from "./AccountSettings";
 import { useQuery } from "@tanstack/react-query";
 
 // Import background template images
@@ -590,7 +591,7 @@ export const AiSettingsDialog = () => {
         </DialogHeader>
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-          <TabsList className={`grid w-full overflow-hidden ${userRole === "admin" ? "grid-cols-5" : "grid-cols-3"}`}>
+          <TabsList className={`grid w-full overflow-hidden ${userRole === "admin" ? "grid-cols-6" : "grid-cols-4"}`}>
             <TabsTrigger value="background" className="flex items-center gap-1">
               <Palette className="h-4 w-4 md:hidden" />
               <span className="hidden md:inline">Bakgrund</span>
@@ -613,6 +614,10 @@ export const AiSettingsDialog = () => {
                   <span className="hidden md:inline">Anställda</span>
                 </TabsTrigger>
               </>}
+            <TabsTrigger value="account" className="flex items-center gap-1">
+              <User className="h-4 w-4 md:hidden" />
+              <span className="hidden md:inline">Konto</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="background" className="space-y-6 mt-6">
@@ -909,6 +914,10 @@ export const AiSettingsDialog = () => {
           {userRole === "admin" && <TabsContent value="team" className="mt-6">
               <TeamManagement />
             </TabsContent>}
+
+          <TabsContent value="account" className="mt-6">
+            <AccountSettings />
+          </TabsContent>
         </Tabs>
 
         <div className="flex justify-end gap-3 pt-4 border-t">
