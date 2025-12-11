@@ -304,9 +304,9 @@ const Landing = () => {
               <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 mb-4">
                 <DollarSign className="h-8 w-8 text-accent" />
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">Transparent Prissättning</h3>
+              <h3 className="text-xl font-bold text-foreground mb-3">​Finns där appar finns </h3>
               <p className="text-muted-foreground">
-                Inga dolda avgifter, betala för det du använder. Inget mer.           
+                Vi finns på både Play Store och App Store!                     
               </p>
             </div>
           </div>
