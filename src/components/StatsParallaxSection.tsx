@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-export const StatsParallaxSection = () => {
+interface StatsParallaxSectionProps {
+  className?: string;
+}
+
+export const StatsParallaxSection = ({ className }: StatsParallaxSectionProps) => {
   const [mousePosition, setMousePosition] = useState({
     x: 0,
     y: 0
@@ -90,7 +94,7 @@ export const StatsParallaxSection = () => {
     transform: prefersReducedMotion ? "none" : `perspective(1200px) rotateX(${mousePosition.y * 0.1}deg) rotateY(${mousePosition.x * 0.5}deg) translateZ(${depth}px)`,
     transition: "transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
   });
-  return <section ref={sectionRef} className="relative py-28 md:py-40 overflow-hidden" style={{
+  return <section ref={sectionRef} className={`relative py-28 md:py-40 overflow-hidden ${className || ''}`} style={{
     perspective: "1200px"
   }}>
       {/* Subtle green aurora glow */}
