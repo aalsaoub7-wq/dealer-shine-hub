@@ -171,56 +171,21 @@ const Landing = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 relative">
-            {/* Connector line */}
-            <div className="hidden md:block absolute top-16 left-[16.666%] right-[16.666%] h-0.5 bg-gradient-to-r from-primary via-accent to-primary opacity-30" />
-
-            {/* Step 1 */}
-            <div className="relative text-center space-y-4 p-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary text-primary-foreground text-2xl font-bold shadow-lg shadow-primary/20">
-                1
-              </div>
-              <div className="flex justify-center">
-                <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20">
-                  <Upload className="h-8 w-8 text-primary" />
-                </div>
-              </div>
-              <h3 className="text-xl font-bold text-foreground">Ladda upp bilder</h3>
-              <p className="text-muted-foreground">
-                Ladda upp bilder från din telefon eller dator
-              </p>
-            </div>
-
-            {/* Step 2 */}
-            <div className="relative text-center space-y-4 p-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-accent to-accent text-accent-foreground text-2xl font-bold shadow-lg shadow-accent/20">
-                2
-              </div>
-              <div className="flex justify-center">
-                <div className="p-4 rounded-2xl bg-accent/10 border border-accent/20">
-                  <Wand2 className="h-8 w-8 text-accent" />
-                </div>
-              </div>
-              <h3 className="text-xl font-bold text-foreground">AI redigerar automatiskt</h3>
-              <p className="text-muted-foreground">
-                Vår AI tar bort bakgrunden och skapar perfekt studiomiljö
-              </p>
-            </div>
-
-            {/* Step 3 */}
-            <div className="relative text-center space-y-4 p-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary text-primary-foreground text-2xl font-bold shadow-lg shadow-primary/20">
-                3
-              </div>
-              <div className="flex justify-center">
-                <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20">
-                  <Download className="h-8 w-8 text-primary" />
-                </div>
-              </div>
-              <h3 className="text-xl font-bold text-foreground">Ladda ner och synka    </h3>
-              <p className="text-muted-foreground">
-                Ladda ner och dela direkt till dina andra verktyg                          
-              </p>
+          {/* YouTube Video Embed with Glow */}
+          <div className="relative max-w-4xl mx-auto">
+            {/* Glow effect */}
+            <div className="absolute -inset-4 bg-gradient-to-r from-primary/40 via-accent/30 to-primary/40 rounded-3xl blur-2xl opacity-60" />
+            <div className="absolute -inset-2 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl blur-xl" />
+            
+            {/* Video container */}
+            <div className="relative aspect-video rounded-2xl overflow-hidden border border-primary/20 shadow-2xl shadow-primary/20">
+              <iframe
+                src="https://www.youtube.com/embed/8JOnqNLX5ww"
+                title="Luvero Demo"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+              />
             </div>
           </div>
         </div>
