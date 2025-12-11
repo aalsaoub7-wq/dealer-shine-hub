@@ -141,10 +141,7 @@ const Landing = () => {
                 </Button>
               </div>
 
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Check className="h-5 w-5 text-primary" />
-                <span className="font-medium">Betrodd av 150+ bilhandlare i Sverige</span>
-              </div>
+              
             </div>
 
             {/* Right Column - Before/After Demo */}
