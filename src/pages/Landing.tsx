@@ -341,11 +341,11 @@ const Landing = () => {
                   <div className="text-xs font-medium">Lagerhantering</div>
                   <div className="flex flex-col items-center gap-1">
                     <Check className="w-4 h-4 text-emerald-500" />
-                    <span className="text-xs font-bold text-emerald-600">Ingår</span>
+                    <span className="text-xs font-bold text-emerald-600 text-center">fr. 239kr/mån (ingår)</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
-                    <span className="text-xs">599kr/mån</span>
+                    <span className="text-xs">599kr/månad</span>
                   </div>
                 </div>
 
@@ -369,11 +369,11 @@ const Landing = () => {
                   <div className="text-xs font-medium">Extra användare</div>
                   <div className="flex flex-col items-center gap-1">
                     <Check className="w-4 h-4 text-emerald-500" />
-                    <span className="text-xs font-bold text-emerald-600 text-center">Gratis</span>
+                    <span className="text-xs font-bold text-emerald-600 text-center">Oändligt många gratis</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
-                    <span className="text-xs">299kr/mån</span>
+                    <span className="text-xs">299kr/användare/månad</span>
                   </div>
                 </div>
 
@@ -397,7 +397,7 @@ const Landing = () => {
                   <div className="text-xs font-medium">Pris/bild</div>
                   <div className="flex flex-col items-center gap-1">
                     <Check className="w-4 h-4 text-emerald-500" />
-                    <span className="text-xs font-bold text-emerald-600">4,95kr</span>
+                    <span className="text-xs font-bold text-emerald-600">fr. 0.99kr</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
@@ -425,11 +425,11 @@ const Landing = () => {
                   <div className="text-xs font-medium">Tid</div>
                   <div className="flex flex-col items-center gap-1">
                     <Check className="w-4 h-4 text-emerald-500" />
-                    <span className="text-xs font-bold text-emerald-600">10-15 sek</span>
+                    <span className="text-xs font-bold text-emerald-600">20-30 sekunder</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
-                    <span className="text-xs">2-12+ tim</span>
+                    <span className="text-xs">2-12+ timmar</span>
                   </div>
                 </div>
 
@@ -453,11 +453,11 @@ const Landing = () => {
                   <div className="text-xs font-medium">Bakgrund</div>
                   <div className="flex flex-col items-center gap-1">
                     <Check className="w-4 h-4 text-emerald-500" />
-                    <span className="text-xs font-bold text-emerald-600 text-center">Omedelbar</span>
+                    <span className="text-xs font-bold text-emerald-600 text-center">Omedelbar anpassning</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
-                    <span className="text-xs text-center">2-12+ tim</span>
+                    <span className="text-xs text-center">2-12+ timmar väntetid</span>
                   </div>
                 </div>
 
@@ -481,11 +481,11 @@ const Landing = () => {
                   <div className="text-xs font-medium">Integration</div>
                   <div className="flex flex-col items-center gap-1">
                     <Check className="w-4 h-4 text-emerald-500" />
-                    <span className="text-xs font-bold text-emerald-600 text-center">Ja</span>
+                    <span className="text-xs font-bold text-emerald-600 text-center">Fixas vid behov</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
-                    <span className="text-xs text-center">Nej</span>
+                    <span className="text-xs text-center">Ej möjlig</span>
                   </div>
                 </div>
               </div>
