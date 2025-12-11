@@ -380,7 +380,8 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
-                    <span className="text-xs">299kr/användare/månad</span>
+                    <span className="text-xs text-center">299kr
+/användare/mån</span>
                   </div>
                 </div>
 
@@ -432,7 +433,7 @@ const Landing = () => {
                   <div className="text-xs font-medium">Tid</div>
                   <div className="flex flex-col items-center gap-1">
                     <Check className="w-4 h-4 text-emerald-500" />
-                    <span className="text-xs font-bold text-emerald-600">20-30 sekunder</span>
+                    <span className="text-xs font-bold text-emerald-600 text-center">20-30 sekunder</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
