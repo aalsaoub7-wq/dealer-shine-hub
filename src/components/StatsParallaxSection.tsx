@@ -2,8 +2,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 interface StatsParallaxSectionProps {
   className?: string;
 }
-
-export const StatsParallaxSection = ({ className }: StatsParallaxSectionProps) => {
+export const StatsParallaxSection = ({
+  className
+}: StatsParallaxSectionProps) => {
   const [mousePosition, setMousePosition] = useState({
     x: 0,
     y: 0
@@ -103,7 +104,7 @@ export const StatsParallaxSection = ({ className }: StatsParallaxSectionProps) =
       filter: "blur(100px)"
     }} />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 mt-0">
         <div className={`relative transition-all duration-1000 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-16"}`} style={parallaxStyle(0)}>
           <div className="relative flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 min-h-[400px]" style={{
           transformStyle: "preserve-3d"
