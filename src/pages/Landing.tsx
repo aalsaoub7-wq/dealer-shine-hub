@@ -147,9 +147,9 @@ const Landing = () => {
             </div>
 
             {/* Right Column - Before/After Demo */}
-            <div className="relative animate-fade-in">
+            <div className="relative animate-fade-in overflow-visible pb-8">
               {/* Soft glow effect */}
-              <div className="absolute -inset-8 bg-gradient-to-r from-red-500/40 via-orange-500/30 to-red-500/40 rounded-3xl blur-3xl opacity-80" />
+              <div className="absolute -inset-8 bg-gradient-to-r from-red-500/40 via-orange-500/30 to-red-500/40 rounded-3xl blur-3xl opacity-80 pointer-events-none" />
               <div className="relative">
                 <BeforeAfterSlider />
               </div>
@@ -157,6 +157,9 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
+      {/* Spacer to allow glow to show */}
+      <div className="h-8" />
 
       {/* Stats Parallax Section */}
       <StatsParallaxSection />
