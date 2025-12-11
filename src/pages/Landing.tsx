@@ -301,8 +301,9 @@ const Landing = () => {
 
             {/* Feature 6 */}
             <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
-              <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 mb-4">
-                <DollarSign className="h-8 w-8 text-accent" />
+              <div className="flex gap-2 mb-4">
+                <img src="/assets/app-store-badge.webp" alt="Download on App Store" className="h-10 w-auto" />
+                <img src="/assets/google-play-badge.webp" alt="Get it on Google Play" className="h-10 w-auto" />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">​Finns där appar finns </h3>
               <p className="text-muted-foreground">
