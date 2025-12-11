@@ -4,6 +4,7 @@ export const StatsParallaxSection = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isInView, setIsInView] = useState(false);
   const [count, setCount] = useState(0);
+  const [countPrice, setCountPrice] = useState(0);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
   const targetPosition = useRef({ x: 0, y: 0 });
@@ -33,7 +34,6 @@ export const StatsParallaxSection = () => {
     if (!isInView || hasAnimated.current) return;
     hasAnimated.current = true;
     
-    const target = 32;
     const duration = 2000; // 2 seconds
     const startTime = performance.now();
     
@@ -44,12 +44,14 @@ export const StatsParallaxSection = () => {
       const progress = Math.min(elapsed / duration, 1);
       const easedProgress = easeOutQuart(progress);
       
-      setCount(Math.floor(easedProgress * target));
+      setCount(Math.floor(easedProgress * 32));
+      setCountPrice(Math.floor(easedProgress * 11));
       
       if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
-        setCount(target);
+        setCount(32);
+        setCountPrice(11);
       }
     };
     
@@ -263,7 +265,7 @@ export const StatsParallaxSection = () => {
                         filter: "drop-shadow(0 0 60px rgba(245, 158, 11, 0.4))"
                       }}
                     >
-                      +11%
+                      +{countPrice}%
                     </span>
                   </div>
                   
