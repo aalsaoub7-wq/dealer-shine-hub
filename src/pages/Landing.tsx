@@ -162,7 +162,7 @@ const Landing = () => {
       <div className="h-8" />
 
       {/* Stats Parallax Section */}
-      <StatsParallaxSection className="pt-[20px]" />
+      <StatsParallaxSection className="pt-[80px] pb-[100px]" />
 
       {/* How It Works */}
       <section id="how-it-works" className="py-20 md:py-32 scroll-animate">
