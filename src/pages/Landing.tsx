@@ -307,7 +307,7 @@ const Landing = () => {
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">​Finns där appar finns </h3>
               <p className="text-muted-foreground">
-                Vi finns på både Play Store och App Store!                     
+                 Luvero finns på både Play Store och App Store!                     
               </p>
             </div>
           </div>
