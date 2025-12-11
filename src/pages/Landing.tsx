@@ -726,9 +726,11 @@ const Landing = () => {
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                 Börja gratis idag. Inget kreditkort krävs.
               </p>
-              <Button size="lg" className="text-lg px-12 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => scrollToSection('pricing')}>
-                Prova gratis i 21 dagar
-              </Button>
+              <div className="flex justify-center">
+                <Button size="lg" className="text-lg px-12 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => scrollToSection('pricing')}>
+                  Prova gratis i 21 dagar
+                </Button>
+              </div>
             </div>
           </div>
         </div>
