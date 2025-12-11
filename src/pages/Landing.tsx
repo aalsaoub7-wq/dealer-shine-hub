@@ -328,7 +328,9 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Check className="w-5 h-5 text-emerald-500" />
-                    <p className="text-sm font-bold text-emerald-600">Ingår (239kr/mån)</p>
+                    <p className="text-sm font-bold text-emerald-600">fr. 239kr/mån
+(ingår)
+ </p>
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <X className="w-5 h-5 text-destructive" />
@@ -384,7 +386,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Check className="w-5 h-5 text-emerald-500" />
-                    <p className="text-sm font-bold text-emerald-600">4,95kr</p>
+                    <p className="text-sm font-bold text-emerald-600">fr. 0.99kr </p>
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <X className="w-5 h-5 text-destructive" />
