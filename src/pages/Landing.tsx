@@ -155,6 +155,9 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Stats Parallax Section */}
+      <StatsParallaxSection />
+
       {/* How It Works */}
       <section id="how-it-works" className="py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -223,9 +226,6 @@ const Landing = () => {
           </div>
         </div>
       </section>
-
-      {/* Stats Parallax Section */}
-      <StatsParallaxSection />
 
       {/* Features Grid */}
       <section id="features" className="py-20 md:py-32 scroll-animate">
