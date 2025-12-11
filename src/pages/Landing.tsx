@@ -167,7 +167,7 @@ const Landing = () => {
               </span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Från uppladdning till publicering på 3 enkla steg
+              Frå nya bakgrunder på några sekunder       
             </p>
           </div>
 
@@ -179,13 +179,7 @@ const Landing = () => {
             
             {/* Video container */}
             <div className="relative aspect-video rounded-2xl overflow-hidden border border-primary/20 shadow-2xl shadow-primary/20">
-              <iframe
-                src="https://www.youtube.com/embed/8JOnqNLX5ww"
-                title="Luvero Demo"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full"
-              />
+              <iframe src="https://www.youtube.com/embed/8JOnqNLX5ww" title="Luvero Demo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="w-full h-full" />
             </div>
           </div>
         </div>
