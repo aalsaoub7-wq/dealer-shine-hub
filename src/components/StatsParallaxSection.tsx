@@ -119,10 +119,10 @@ export const StatsParallaxSection = () => {
           style={parallaxStyle(0)}
         >
           <div 
-            className="relative flex flex-col items-center justify-center min-h-[400px]"
+            className="relative flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 min-h-[400px]"
             style={{ transformStyle: "preserve-3d" }}
           >
-            {/* Main Card */}
+            {/* Main Card - 32% faster sales */}
             <div 
               className={`relative z-10 transition-all duration-1000 ${isInView ? "opacity-100 scale-100" : "opacity-0 scale-90"}`}
               style={{ ...parallaxStyle(40), transitionDelay: "200ms" }}
@@ -137,7 +137,7 @@ export const StatsParallaxSection = () => {
               />
               
               {/* Card */}
-              <div className="relative p-10 md:p-16 rounded-[2rem] bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-white/[0.02] backdrop-blur-2xl border border-white/10 shadow-2xl overflow-hidden">
+              <div className="relative p-8 md:p-12 rounded-[2rem] bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-white/[0.02] backdrop-blur-2xl border border-white/10 shadow-2xl overflow-hidden">
                 {/* Inner highlight */}
                 <div 
                   className="absolute inset-0 rounded-[2rem]"
@@ -147,7 +147,7 @@ export const StatsParallaxSection = () => {
                 />
 
                 {/* Content */}
-                <div className="relative text-center space-y-6">
+                <div className="relative text-center space-y-4">
                   {/* Premium badge */}
                   <div 
                     className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
@@ -160,7 +160,7 @@ export const StatsParallaxSection = () => {
                   {/* Hero number with count-up */}
                   <div>
                     <span 
-                      className="text-8xl md:text-[10rem] font-black tracking-tighter"
+                      className="text-7xl md:text-8xl font-black tracking-tighter"
                       style={{
                         background: "linear-gradient(135deg, hsl(142 76% 55%) 0%, hsl(84 81% 60%) 50%, hsl(142 76% 45%) 100%)",
                         WebkitBackgroundClip: "text",
@@ -173,14 +173,14 @@ export const StatsParallaxSection = () => {
                   </div>
                   
                   <h3 
-                    className={`text-2xl md:text-3xl font-bold text-foreground transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
+                    className={`text-xl md:text-2xl font-bold text-foreground transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
                     style={{ transitionDelay: "300ms" }}
                   >
                     snabbare försäljning
                   </h3>
                   
                   <p 
-                    className={`text-base md:text-lg text-muted-foreground leading-relaxed max-w-lg mx-auto transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
+                    className={`text-sm md:text-base text-muted-foreground leading-relaxed max-w-sm mx-auto transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
                     style={{ transitionDelay: "400ms" }}
                   >
                     Blocket-annonser med professionellt redigerade bilder säljer i genomsnitt 32% snabbare.
@@ -188,7 +188,7 @@ export const StatsParallaxSection = () => {
 
                   {/* Stats pills */}
                   <div 
-                    className={`flex flex-wrap gap-3 pt-4 justify-center transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
+                    className={`flex flex-wrap gap-2 pt-2 justify-center transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
                     style={{ transitionDelay: "500ms" }}
                   >
                     {[
@@ -198,10 +198,10 @@ export const StatsParallaxSection = () => {
                     ].map((stat) => (
                       <div 
                         key={stat.label}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm"
                       >
                         <span className="text-sm">{stat.icon}</span>
-                        <span className="text-sm font-medium text-foreground/80">{stat.label}</span>
+                        <span className="text-xs font-medium text-foreground/80">{stat.label}</span>
                       </div>
                     ))}
                   </div>
@@ -212,6 +212,101 @@ export const StatsParallaxSection = () => {
                   className="absolute bottom-0 left-0 right-0 h-[2px]"
                   style={{
                     background: "linear-gradient(90deg, transparent, hsl(142 76% 50% / 0.6), hsl(84 81% 55% / 0.4), transparent)"
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Second Card - 11% higher prices */}
+            <div 
+              className={`relative z-10 transition-all duration-1000 ${isInView ? "opacity-100 scale-100" : "opacity-0 scale-90"}`}
+              style={{ ...parallaxStyle(40), transitionDelay: "400ms" }}
+            >
+              {/* Card outer glow */}
+              <div 
+                className="absolute -inset-1 rounded-[2.5rem] opacity-60"
+                style={{
+                  background: "linear-gradient(135deg, hsl(45 93% 47% / 0.3), hsl(38 92% 50% / 0.1), hsl(45 93% 47% / 0.3))",
+                  filter: "blur(20px)"
+                }}
+              />
+              
+              {/* Card */}
+              <div className="relative p-8 md:p-12 rounded-[2rem] bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-white/[0.02] backdrop-blur-2xl border border-white/10 shadow-2xl overflow-hidden">
+                {/* Inner highlight */}
+                <div 
+                  className="absolute inset-0 rounded-[2rem]"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%, transparent 100%)"
+                  }}
+                />
+
+                {/* Content */}
+                <div className="relative text-center space-y-4">
+                  {/* Premium badge */}
+                  <div 
+                    className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
+                    style={{ transitionDelay: "600ms" }}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="text-xs font-semibold text-amber-400 tracking-wider uppercase">Ökad lönsamhet</span>
+                  </div>
+
+                  {/* Hero number */}
+                  <div>
+                    <span 
+                      className="text-7xl md:text-8xl font-black tracking-tighter"
+                      style={{
+                        background: "linear-gradient(135deg, hsl(45 93% 55%) 0%, hsl(38 92% 60%) 50%, hsl(45 93% 45%) 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        filter: "drop-shadow(0 0 60px rgba(245, 158, 11, 0.4))"
+                      }}
+                    >
+                      +11%
+                    </span>
+                  </div>
+                  
+                  <h3 
+                    className={`text-xl md:text-2xl font-bold text-foreground transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
+                    style={{ transitionDelay: "500ms" }}
+                  >
+                    högre slutpris
+                  </h3>
+                  
+                  <p 
+                    className={`text-sm md:text-base text-muted-foreground leading-relaxed max-w-sm mx-auto transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
+                    style={{ transitionDelay: "600ms" }}
+                  >
+                    Bilar med professionella bilder uppnår i genomsnitt 11% högre försäljningspris.
+                  </p>
+
+                  {/* Stats pills */}
+                  <div 
+                    className={`flex flex-wrap gap-2 pt-2 justify-center transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
+                    style={{ transitionDelay: "700ms" }}
+                  >
+                    {[
+                      { label: "Fler budgivare", icon: "🔥" },
+                      { label: "Bättre marginal", icon: "📊" },
+                      { label: "Premium-känsla", icon: "✨" }
+                    ].map((stat) => (
+                      <div 
+                        key={stat.label}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm"
+                      >
+                        <span className="text-sm">{stat.icon}</span>
+                        <span className="text-xs font-medium text-foreground/80">{stat.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Bottom accent line */}
+                <div 
+                  className="absolute bottom-0 left-0 right-0 h-[2px]"
+                  style={{
+                    background: "linear-gradient(90deg, transparent, hsl(45 93% 50% / 0.6), hsl(38 92% 55% / 0.4), transparent)"
                   }}
                 />
               </div>
