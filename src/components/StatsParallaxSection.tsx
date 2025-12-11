@@ -228,7 +228,7 @@ export const StatsParallaxSection = () => {
               <div 
                 className="absolute -inset-1 rounded-[2.5rem] opacity-60"
                 style={{
-                  background: "linear-gradient(135deg, hsl(45 93% 47% / 0.3), hsl(38 92% 50% / 0.1), hsl(45 93% 47% / 0.3))",
+                  background: "linear-gradient(135deg, hsl(142 76% 40% / 0.3), hsl(84 81% 50% / 0.1), hsl(142 76% 40% / 0.3))",
                   filter: "blur(20px)"
                 }}
               />
@@ -247,11 +247,11 @@ export const StatsParallaxSection = () => {
                 <div className="relative text-center space-y-4">
                   {/* Premium badge */}
                   <div 
-                    className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
+                    className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`}
                     style={{ transitionDelay: "600ms" }}
                   >
-                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                    <span className="text-xs font-semibold text-amber-400 tracking-wider uppercase">Ökad lönsamhet</span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-xs font-semibold text-emerald-400 tracking-wider uppercase">Ökad lönsamhet</span>
                   </div>
 
                   {/* Hero number */}
@@ -259,10 +259,10 @@ export const StatsParallaxSection = () => {
                     <span 
                       className="text-7xl md:text-8xl font-black tracking-tighter"
                       style={{
-                        background: "linear-gradient(135deg, hsl(45 93% 55%) 0%, hsl(38 92% 60%) 50%, hsl(45 93% 45%) 100%)",
+                        background: "linear-gradient(135deg, hsl(142 76% 55%) 0%, hsl(84 81% 60%) 50%, hsl(142 76% 45%) 100%)",
                         WebkitBackgroundClip: "text",
                         WebkitTextFillColor: "transparent",
-                        filter: "drop-shadow(0 0 60px rgba(245, 158, 11, 0.4))"
+                        filter: "drop-shadow(0 0 60px rgba(34, 197, 94, 0.4))"
                       }}
                     >
                       +{countPrice}%
@@ -308,7 +308,7 @@ export const StatsParallaxSection = () => {
                 <div 
                   className="absolute bottom-0 left-0 right-0 h-[2px]"
                   style={{
-                    background: "linear-gradient(90deg, transparent, hsl(45 93% 50% / 0.6), hsl(38 92% 55% / 0.4), transparent)"
+                    background: "linear-gradient(90deg, transparent, hsl(142 76% 50% / 0.6), hsl(84 81% 55% / 0.4), transparent)"
                   }}
                 />
               </div>
