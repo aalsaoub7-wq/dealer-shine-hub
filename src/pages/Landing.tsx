@@ -42,7 +42,9 @@ const Landing = () => {
     });
     setMobileMenuOpen(false);
   };
-  return <div className="min-h-screen" style={{ background: 'linear-gradient(to right, #050814 0%, #111322 50%, #1b0f16 100%)' }}>
+  return <div className="min-h-screen" style={{
+    background: 'linear-gradient(to right, #050814 0%, #111322 50%, #1b0f16 100%)'
+  }}>
       {/* Sticky Navigation Header */}
       <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -129,7 +131,7 @@ const Landing = () => {
                 </span>
               </h1>
 
-              <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">Fungerar även som självständig lagerhantering eller som komplement till ditt befintliga system!</p>
+              <p className="text-xl md:text-2xl leading-relaxed text-gray-200">Fungerar även som självständig lagerhantering eller som komplement till ditt befintliga system!</p>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" className="text-lg px-8 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => scrollToSection('pricing')}>
