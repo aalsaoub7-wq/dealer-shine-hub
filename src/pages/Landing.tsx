@@ -148,7 +148,11 @@ const Landing = () => {
 
             {/* Right Column - Before/After Demo */}
             <div className="relative animate-fade-in">
-              <BeforeAfterSlider />
+              {/* Soft glow effect */}
+              <div className="absolute -inset-4 bg-gradient-to-r from-red-500/20 via-orange-500/15 to-red-500/20 rounded-3xl blur-2xl opacity-60" />
+              <div className="relative">
+                <BeforeAfterSlider />
+              </div>
             </div>
           </div>
         </div>
