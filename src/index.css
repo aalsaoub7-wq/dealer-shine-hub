@@ -142,7 +142,7 @@ All colors MUST be HSL.
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   background-color: hsl(var(--background));
-  padding-top: 20px;
+  padding-top: 25px;
   padding-bottom: 40px;
 }
 
