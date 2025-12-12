@@ -10,6 +10,7 @@ import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { TypewriterText } from "@/components/TypewriterText";
 import { ExclusiveProgram } from "@/components/ExclusiveProgram";
 import { StatsParallaxSection } from "@/components/StatsParallaxSection";
+import LogoMarquee from "@/components/LogoMarquee";
 const Landing = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -158,8 +159,8 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Spacer to allow glow to show */}
-      <div className="h-8" />
+      {/* Logo Marquee */}
+      <LogoMarquee />
 
       {/* Stats Parallax Section */}
       <StatsParallaxSection className="pb-[100px] pt-[40px]" />
