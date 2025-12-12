@@ -105,14 +105,13 @@ export const StatsParallaxSection = ({
     }} />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 mt-0">
-        <div className={`relative transition-all duration-1000 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-16"}`} style={parallaxStyle(0)}>
+        <div className="relative" style={parallaxStyle(0)}>
           <div className="relative flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 min-h-[400px]" style={{
           transformStyle: "preserve-3d"
         }}>
             {/* Main Card - 32% faster sales */}
-            <div className={`relative z-10 transition-all duration-1000 ${isInView ? "opacity-100 scale-100" : "opacity-0 scale-90"}`} style={{
-            ...parallaxStyle(40),
-            transitionDelay: "200ms"
+            <div className="relative z-10" style={{
+            ...parallaxStyle(40)
           }}>
               {/* Card outer glow */}
               <div className="absolute -inset-1 rounded-[2.5rem] opacity-40" style={{
@@ -173,9 +172,8 @@ export const StatsParallaxSection = ({
             </div>
 
             {/* Second Card - 11% higher prices */}
-            <div className={`relative z-10 transition-all duration-1000 ${isInView ? "opacity-100 scale-100" : "opacity-0 scale-90"}`} style={{
-            ...parallaxStyle(40),
-            transitionDelay: "400ms"
+            <div className="relative z-10" style={{
+            ...parallaxStyle(40)
           }}>
               {/* Card outer glow */}
               <div className="absolute -inset-1 rounded-[2.5rem] opacity-40" style={{
