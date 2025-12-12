@@ -133,7 +133,7 @@ export const StatsParallaxSection = ({
                   <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/20 transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`} style={{
                   transitionDelay: "400ms"
                 }}>
-                    <span className="w-2 h-2 rounded-full bg-white/60 animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                     <span className="text-xs font-semibold text-white/70 tracking-wider uppercase">Verifierad statistik</span>
                   </div>
 
@@ -196,7 +196,7 @@ export const StatsParallaxSection = ({
                   <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/20 transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`} style={{
                   transitionDelay: "600ms"
                 }}>
-                    <span className="w-2 h-2 rounded-full bg-white/60 animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                     <span className="text-xs font-semibold text-white/70 tracking-wider uppercase">Ökad lönsamhet</span>
                   </div>
 
