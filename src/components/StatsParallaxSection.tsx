@@ -139,7 +139,7 @@ export const StatsParallaxSection = ({
 
                   {/* Hero number with count-up */}
                   <div>
-                    <span className="text-7xl md:text-8xl font-black tracking-tighter" style={{
+                    <span className="text-7xl md:text-8xl font-black tracking-tighter inline-block min-w-[180px] md:min-w-[220px] whitespace-nowrap" style={{
                     background: "linear-gradient(135deg, hsl(142 76% 55%) 0%, hsl(84 81% 60%) 50%, hsl(142 76% 45%) 100%)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
@@ -202,7 +202,7 @@ export const StatsParallaxSection = ({
 
                   {/* Hero number */}
                   <div>
-                    <span className="text-7xl md:text-8xl font-black tracking-tighter" style={{
+                    <span className="text-7xl md:text-8xl font-black tracking-tighter inline-block min-w-[180px] md:min-w-[220px] whitespace-nowrap" style={{
                     background: "linear-gradient(135deg, hsl(142 76% 55%) 0%, hsl(84 81% 60%) 50%, hsl(142 76% 45%) 100%)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
