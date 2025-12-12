@@ -86,6 +86,16 @@ serve(async (req) => {
       ? userCompany.companies[0]
       : userCompany.companies;
 
+    // Check if user is admin
+    const { data: userRole } = await supabaseClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("company_id", company.id)
+      .maybeSingle();
+    
+    const isAdmin = userRole?.role === "admin";
+
     // Calculate trial status
     const now = new Date();
     const trialEndDate = company.trial_end_date 
@@ -129,6 +139,7 @@ serve(async (req) => {
         JSON.stringify({
           hasCustomer: false,
           hasPaymentMethod: false,
+          isAdmin,
           plan: currentPlan,
           planConfig,
           trial: {
@@ -244,6 +255,7 @@ serve(async (req) => {
         hasCustomer: true,
         customerId: company.stripe_customer_id,
         hasPaymentMethod,
+        isAdmin,
         plan: currentPlan,
         planConfig,
         subscription: subscription ? {
