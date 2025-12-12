@@ -92,7 +92,7 @@ export const StatsParallaxSection = ({
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [handleMouseMove, prefersReducedMotion]);
   const parallaxStyle = (depth: number) => ({
-    transform: prefersReducedMotion ? "none" : `perspective(1200px) rotateX(${mousePosition.y * 0.1}deg) rotateY(${mousePosition.x * 0.5}deg) translateZ(${depth}px)`,
+    transform: prefersReducedMotion ? "none" : `perspective(1200px) rotateX(${mousePosition.y * 0.02}deg) rotateY(${mousePosition.x * 0.5}deg) translateZ(${depth}px)`,
     transition: "transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
   });
   return <section ref={sectionRef} className={`relative pt-8 pb-28 md:pt-12 md:pb-40 overflow-hidden ${className || ''}`} style={{
