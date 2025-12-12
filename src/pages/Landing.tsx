@@ -4,7 +4,6 @@ import luveroLogo from "@/assets/luvero-logo-new.png";
 import luveroLogoText from "@/assets/luvero-logo-text.png";
 import adstuffLogo from "@/assets/adstuff-logo.png";
 import { Brain, Link2, Shield, Globe, Users, DollarSign, Upload, Wand2, Download, Check, ChevronDown, Menu, X, Package, Phone, Mail } from "lucide-react";
-import { Rotating3DIcon } from "@/components/Rotating3DIcon";
 import { useState, useEffect } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
@@ -211,7 +210,7 @@ const Landing = () => {
             {/* Feature 1 */}
             <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
               <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 mb-4">
-                <Rotating3DIcon icon={Brain} color="primary" />
+                <Brain className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">AI Bakgrundsredigering</h3>
               <p className="text-muted-foreground">
@@ -222,7 +221,7 @@ const Landing = () => {
             {/* Feature - FREE Lagerhantering */}
             <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
               <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 mb-4">
-                <Rotating3DIcon icon={Package} color="primary" />
+                <Package className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">Lagerhantering & Dokumentation</h3>
               <p className="text-muted-foreground">
@@ -236,7 +235,7 @@ const Landing = () => {
             {/* Feature 3 */}
             <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
               <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 mb-4">
-                <Rotating3DIcon icon={Shield} color="primary" />
+                <Shield className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">Vattenmärken</h3>
               <p className="text-muted-foreground">
@@ -247,7 +246,7 @@ const Landing = () => {
             {/* Feature 4 */}
             <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
               <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 mb-4">
-                <Rotating3DIcon icon={Globe} color="accent" />
+                <Globe className="h-8 w-8 text-accent" />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">Delningsbara Landningssidor</h3>
               <p className="text-muted-foreground">
@@ -258,7 +257,7 @@ const Landing = () => {
             {/* Feature 5 */}
             <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
               <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 mb-4">
-                <Rotating3DIcon icon={Users} color="primary" />
+                <Users className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">Team Collaboration</h3>
               <p className="text-muted-foreground">

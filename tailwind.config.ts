@@ -156,10 +156,6 @@ export default {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-8px)" },
         },
-        "spin-slow-y": {
-          "0%": { transform: "rotateY(0deg)" },
-          "100%": { transform: "rotateY(360deg)" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -184,7 +180,6 @@ export default {
         "stats-glow-green": "stats-glow-green 3s ease-in-out infinite",
         "stats-particle": "stats-particle 4s ease-out infinite",
         "stats-float": "stats-float 4s ease-in-out infinite",
-        "spin-slow-y": "spin-slow-y 6s linear infinite",
       },
     },
   },
