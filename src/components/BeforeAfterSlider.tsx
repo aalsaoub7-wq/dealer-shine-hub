@@ -62,7 +62,10 @@ export const BeforeAfterSlider = () => {
       clearTimeout(inactivityTimerRef.current);
     }
     inactivityTimerRef.current = setTimeout(() => {
-      setIsAnimating(true);
+      // Only restart animation if not currently dragging
+      if (!isDragging) {
+        setIsAnimating(true);
+      }
     }, 3000);
   };
 
