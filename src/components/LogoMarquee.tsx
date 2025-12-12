@@ -8,26 +8,28 @@ const logos = [
 
 const LogoMarquee = () => {
   return (
-    <div className="py-12">
-      <p className="text-center text-sm text-muted-foreground mb-8 uppercase tracking-widest">
+    <div className="pt-4 pb-8">
+      <p className="text-center text-sm text-muted-foreground mb-6 uppercase tracking-widest">
         Företag som använder Luvero
       </p>
       <div className="relative overflow-hidden">
-        {/* Fade edges */}
-        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+        {/* Fade edges - transparent fades */}
+        <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-[#050814] to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-[#1b0f16] to-transparent z-10 pointer-events-none" />
         
-        {/* Scrolling track */}
+        {/* Scrolling track - two identical sets for seamless loop */}
         <div className="flex animate-marquee">
-          {[...Array(6)].map((_, setIndex) => (
-            <div key={setIndex} className="flex shrink-0 items-center gap-16 px-8">
-              {logos.map((logo, i) => (
-                <img
-                  key={`${setIndex}-${i}`}
-                  src={logo.src}
-                  alt={logo.alt}
-                  className="h-10 md:h-12 w-auto opacity-70 hover:opacity-100 transition-opacity"
-                />
+          {[0, 1].map((trackIndex) => (
+            <div key={trackIndex} className="flex shrink-0 items-center gap-20 px-10">
+              {[...Array(4)].map((_, setIndex) => (
+                logos.map((logo, i) => (
+                  <img
+                    key={`${trackIndex}-${setIndex}-${i}`}
+                    src={logo.src}
+                    alt={logo.alt}
+                    className="h-10 md:h-12 w-auto opacity-60 hover:opacity-100 transition-opacity"
+                  />
+                ))
               ))}
             </div>
           ))}
