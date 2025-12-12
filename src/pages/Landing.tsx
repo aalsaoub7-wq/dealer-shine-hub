@@ -174,7 +174,7 @@ const Landing = () => {
               </span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Frå nya bakgrunder på några sekunder       
+              Få nya bakgrunder på några sekunder       
             </p>
           </div>
 
