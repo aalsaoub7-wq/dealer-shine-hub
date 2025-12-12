@@ -115,8 +115,8 @@ export const StatsParallaxSection = ({
             transitionDelay: "200ms"
           }}>
               {/* Card outer glow */}
-              <div className="absolute -inset-1 rounded-[2.5rem] opacity-60" style={{
-              background: "linear-gradient(135deg, hsl(142 76% 40% / 0.3), hsl(84 81% 50% / 0.1), hsl(142 76% 40% / 0.3))",
+              <div className="absolute -inset-1 rounded-[2.5rem] opacity-40" style={{
+              background: "linear-gradient(135deg, hsl(0 0% 50% / 0.3), hsl(0 0% 40% / 0.1), hsl(0 0% 50% / 0.3))",
               filter: "blur(20px)"
             }} />
               
@@ -130,11 +130,11 @@ export const StatsParallaxSection = ({
                 {/* Content */}
                 <div className="relative text-center space-y-4">
                   {/* Premium badge */}
-                  <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`} style={{
+                  <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/20 transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`} style={{
                   transitionDelay: "400ms"
                 }}>
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-xs font-semibold text-emerald-400 tracking-wider uppercase">Verifierad statistik</span>
+                    <span className="w-2 h-2 rounded-full bg-white/60 animate-pulse" />
+                    <span className="text-xs font-semibold text-white/70 tracking-wider uppercase">Verifierad statistik</span>
                   </div>
 
                   {/* Hero number with count-up */}
@@ -167,7 +167,7 @@ export const StatsParallaxSection = ({
 
                 {/* Bottom accent line */}
                 <div className="absolute bottom-0 left-0 right-0 h-[2px]" style={{
-                background: "linear-gradient(90deg, transparent, hsl(142 76% 50% / 0.6), hsl(84 81% 55% / 0.4), transparent)"
+                background: "linear-gradient(90deg, transparent, hsl(0 0% 60% / 0.4), hsl(0 0% 50% / 0.3), transparent)"
               }} />
               </div>
             </div>
@@ -178,8 +178,8 @@ export const StatsParallaxSection = ({
             transitionDelay: "400ms"
           }}>
               {/* Card outer glow */}
-              <div className="absolute -inset-1 rounded-[2.5rem] opacity-60" style={{
-              background: "linear-gradient(135deg, hsl(142 76% 40% / 0.3), hsl(84 81% 50% / 0.1), hsl(142 76% 40% / 0.3))",
+              <div className="absolute -inset-1 rounded-[2.5rem] opacity-40" style={{
+              background: "linear-gradient(135deg, hsl(0 0% 50% / 0.3), hsl(0 0% 40% / 0.1), hsl(0 0% 50% / 0.3))",
               filter: "blur(20px)"
             }} />
               
@@ -193,11 +193,11 @@ export const StatsParallaxSection = ({
                 {/* Content */}
                 <div className="relative text-center space-y-4">
                   {/* Premium badge */}
-                  <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`} style={{
+                  <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/20 transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`} style={{
                   transitionDelay: "600ms"
                 }}>
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-xs font-semibold text-emerald-400 tracking-wider uppercase">Ökad lönsamhet</span>
+                    <span className="w-2 h-2 rounded-full bg-white/60 animate-pulse" />
+                    <span className="text-xs font-semibold text-white/70 tracking-wider uppercase">Ökad lönsamhet</span>
                   </div>
 
                   {/* Hero number */}
@@ -230,7 +230,7 @@ export const StatsParallaxSection = ({
 
                 {/* Bottom accent line */}
                 <div className="absolute bottom-0 left-0 right-0 h-[2px]" style={{
-                background: "linear-gradient(90deg, transparent, hsl(142 76% 50% / 0.6), hsl(84 81% 55% / 0.4), transparent)"
+                background: "linear-gradient(90deg, transparent, hsl(0 0% 60% / 0.4), hsl(0 0% 50% / 0.3), transparent)"
               }} />
               </div>
             </div>
@@ -240,14 +240,14 @@ export const StatsParallaxSection = ({
             ...parallaxStyle(100),
             transitionDelay: "600ms"
           }}>
-              <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-transparent border border-emerald-500/20 backdrop-blur-sm rotate-12" />
+              <div className="w-20 h-20 md:w-28 md:h-28 rounded-2xl bg-gradient-to-br from-white/10 to-transparent border border-white/10 backdrop-blur-sm rotate-12" />
             </div>
 
             <div className={`absolute -right-4 md:right-16 bottom-1/4 transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`} style={{
             ...parallaxStyle(70),
             transitionDelay: "700ms"
           }}>
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-lime-500/15 to-transparent border border-lime-500/15 backdrop-blur-sm" />
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-white/10 to-transparent border border-white/10 backdrop-blur-sm" />
             </div>
           </div>
         </div>
