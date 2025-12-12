@@ -15,6 +15,7 @@ import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import { useHaptics } from "@/hooks/useHaptics";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { isNativeApp } from "@/lib/utils";
+import { openExternalUrl } from "@/lib/nativeCapabilities";
 interface CarData {
   id: string;
   make: string;
@@ -113,6 +114,30 @@ const Dashboard = () => {
         (window as any).openSettingsDialog(tab);
       }
     }, 100);
+  };
+
+  const openCustomerPortal = async () => {
+    if (isNativeApp()) {
+      // Native app: Open website in external browser (Apple IAP rules)
+      await openExternalUrl("https://luvero.se/dashboard");
+      return;
+    }
+
+    // Web app: Open Stripe Customer Portal directly
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal");
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (error: any) {
+      console.error("Error opening customer portal:", error);
+      toast({
+        title: "Fel",
+        description: "Kunde inte öppna betalningssidan. Försök igen.",
+        variant: "destructive",
+      });
+    }
   };
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -215,7 +240,7 @@ const Dashboard = () => {
                   {trialInfo.imagesRemaining} av 50 gratis bilder kvar
                 </p>
               </div>
-              {!trialInfo.hasPaymentMethod && <Button variant="secondary" onClick={() => openSettingsDialog("payment")} className="whitespace-nowrap">
+              {!trialInfo.hasPaymentMethod && <Button variant="secondary" onClick={openCustomerPortal} className="whitespace-nowrap">
                   Lägg till Betalmetod redan nu
                 </Button>}
             </div>

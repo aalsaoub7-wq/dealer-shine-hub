@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { TrialExpiredPaywall } from "@/components/TrialExpiredPaywall";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,6 +12,8 @@ const VERIFICATION_TIMEOUT_MS = 500;
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  const [showPaywall, setShowPaywall] = useState<boolean>(false);
+  const [paywallChecked, setPaywallChecked] = useState<boolean>(false);
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -44,6 +47,31 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       }
     };
 
+    const checkTrialAndPayment = async (): Promise<boolean> => {
+      try {
+        const { data, error } = await supabase.functions.invoke("get-billing-info");
+        if (error) {
+          console.error("Error checking billing info:", error);
+          return false; // Fallback: don't show paywall on error
+        }
+
+        // Only show paywall if: trial is over AND no payment method
+        const isInTrial = data?.trial?.isInTrial ?? true;
+        const hasPaymentMethod = data?.hasPaymentMethod ?? false;
+        const isAdmin = data?.isAdmin ?? true;
+
+        // Only block admins - employees should still have access (admin's responsibility)
+        if (!isInTrial && !hasPaymentMethod && isAdmin) {
+          return true; // Show paywall
+        }
+
+        return false;
+      } catch (err) {
+        console.error("Error checking trial/payment:", err);
+        return false; // Fallback: don't show paywall on error
+      }
+    };
+
     const checkAuth = async () => {
       const {
         data: { session },
@@ -54,6 +82,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       if (!session) {
         setIsAuthenticated(false);
         setIsVerified(null);
+        setPaywallChecked(true);
         return;
       }
 
@@ -64,6 +93,17 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
       if (isMountedRef.current) {
         setIsVerified(verified);
+      }
+
+      // Only check paywall if verified
+      if (verified && isMountedRef.current) {
+        const needsPaywall = await checkTrialAndPayment();
+        if (isMountedRef.current) {
+          setShowPaywall(needsPaywall);
+          setPaywallChecked(true);
+        }
+      } else {
+        setPaywallChecked(true);
       }
     };
 
@@ -77,6 +117,8 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       if (!session) {
         setIsAuthenticated(false);
         setIsVerified(null);
+        setShowPaywall(false);
+        setPaywallChecked(true);
         return;
       }
 
@@ -88,6 +130,17 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       if (isMountedRef.current) {
         setIsVerified(verified);
       }
+
+      // Only check paywall if verified
+      if (verified && isMountedRef.current) {
+        const needsPaywall = await checkTrialAndPayment();
+        if (isMountedRef.current) {
+          setShowPaywall(needsPaywall);
+          setPaywallChecked(true);
+        }
+      } else {
+        setPaywallChecked(true);
+      }
     });
 
     return () => {
@@ -97,7 +150,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }, []);
 
   // Loading state
-  if (isAuthenticated === null || (isAuthenticated && isVerified === null)) {
+  if (isAuthenticated === null || (isAuthenticated && isVerified === null) || (isAuthenticated && isVerified && !paywallChecked)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="animate-pulse text-muted-foreground">Loading...</div>
@@ -113,6 +166,11 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   // Logged in but not verified
   if (!isVerified) {
     return <Navigate to="/verify" replace />;
+  }
+
+  // Trial expired and no payment method (admin only)
+  if (showPaywall) {
+    return <TrialExpiredPaywall />;
   }
 
   return <>{children}</>;
