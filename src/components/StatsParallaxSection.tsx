@@ -121,7 +121,7 @@ export const StatsParallaxSection = ({
             }} />
               
               {/* Card */}
-              <div className="relative p-8 md:p-12 rounded-[2rem] bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-white/[0.02] backdrop-blur-2xl border border-white/10 shadow-2xl overflow-hidden">
+              <div className="relative p-8 pr-10 md:p-12 md:pr-16 rounded-[2rem] bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-white/[0.02] backdrop-blur-2xl border border-white/10 shadow-2xl overflow-hidden">
                 {/* Inner highlight */}
                 <div className="absolute inset-0 rounded-[2rem]" style={{
                 background: "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%, transparent 100%)"
@@ -184,7 +184,7 @@ export const StatsParallaxSection = ({
             }} />
               
               {/* Card */}
-              <div className="relative p-8 md:p-12 rounded-[2rem] bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-white/[0.02] backdrop-blur-2xl border border-white/10 shadow-2xl overflow-hidden">
+              <div className="relative p-8 pr-10 md:p-12 md:pr-16 rounded-[2rem] bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-white/[0.02] backdrop-blur-2xl border border-white/10 shadow-2xl overflow-hidden">
                 {/* Inner highlight */}
                 <div className="absolute inset-0 rounded-[2rem]" style={{
                 background: "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%, transparent 100%)"
