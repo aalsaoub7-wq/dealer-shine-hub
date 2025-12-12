@@ -527,9 +527,7 @@ const Landing = () => {
             {/* Start Plan */}
             <div className="relative p-6 md:p-8 rounded-3xl bg-card border-2 border-green-500/50 shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="px-3 py-1 text-xs font-semibold bg-green-500 text-white rounded-full">
-                  Billigast &lt; 100 bilder
-                </span>
+                
               </div>
               
               <div className="text-center space-y-4 mt-4">
@@ -589,9 +587,7 @@ const Landing = () => {
             {/* Elit Plan */}
             <div className="relative p-6 md:p-8 rounded-3xl bg-card border-2 border-purple-500/50 shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="px-3 py-1 text-xs font-semibold bg-purple-500 text-white rounded-full">
-                  Bäst för 500+ bilder
-                </span>
+                
               </div>
               
               <div className="text-center space-y-4 mt-4">
