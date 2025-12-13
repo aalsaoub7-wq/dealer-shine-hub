@@ -8,7 +8,10 @@ const logos = [{
   alt: "Joels Bil Lidköping"
 }];
 const LogoMarquee = () => {
-  return <div className="pt-4 pb-8">
+  return <div className="py-8">
+      {/* Top divider */}
+      <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent mb-8" />
+      
       <p className="text-center text-sm text-muted-foreground mb-6 uppercase tracking-widest">
         Bilhandlare som använder Luvero
       </p>
@@ -24,6 +27,9 @@ const LogoMarquee = () => {
             </div>)}
         </div>
       </div>
+      
+      {/* Bottom divider */}
+      <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent mt-8" />
     </div>;
 };
 export default LogoMarquee;
