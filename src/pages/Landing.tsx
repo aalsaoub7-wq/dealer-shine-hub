@@ -166,6 +166,7 @@ const Landing = () => {
       <StatsParallaxSection className="pb-[100px] pt-[40px]" />
 
       {/* How It Works */}
+      <div className="h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
       <section id="how-it-works" className="py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
