@@ -119,7 +119,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       if (!isMountedRef.current) return;
       
       // Skip if already checked - prevents re-triggering on tab switch
-      if (hasCheckedRef.current && isAuthenticated !== null) return;
+      if (hasCheckedRef.current) return;
 
       if (!session) {
         setIsAuthenticated(false);
