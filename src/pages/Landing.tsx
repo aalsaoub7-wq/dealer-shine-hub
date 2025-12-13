@@ -163,7 +163,7 @@ const Landing = () => {
       <LogoMarquee />
 
       {/* Stats Parallax Section */}
-      <StatsParallaxSection className="pb-[100px] pt-[40px]" />
+      <StatsParallaxSection className="pt-[40px] pb-[40px]" />
 
       {/* How It Works */}
       <div className="h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
