@@ -115,7 +115,6 @@ const Dashboard = () => {
       }
     }, 100);
   };
-
   const openCustomerPortal = async () => {
     if (isNativeApp()) {
       // Native app: Open website in external browser (Apple IAP rules)
@@ -125,7 +124,10 @@ const Dashboard = () => {
 
     // Web app: Open Stripe Customer Portal directly
     try {
-      const { data, error } = await supabase.functions.invoke("customer-portal");
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke("customer-portal");
       if (error) throw error;
       if (data?.url) {
         window.open(data.url, "_blank");
@@ -135,7 +137,7 @@ const Dashboard = () => {
       toast({
         title: "Fel",
         description: "Kunde inte öppna betalningssidan. Försök igen.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
@@ -249,7 +251,7 @@ const Dashboard = () => {
         <div className="flex flex-col md:flex-row gap-2 md:gap-4 mb-4 md:mb-8">
           <div className="relative flex-1 group animate-slide-in-right">
             <Search className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-muted-foreground group-focus-within:text-primary transition-colors duration-300" />
-            <Input placeholder="Sök på märke, modell, reg. nr..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-8 md:pl-10 text-base h-9 md:h-10 bg-secondary border-border focus:border-primary focus:shadow-glow transition-all duration-300" />
+            <Input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-8 md:pl-10 text-base h-9 md:h-10 bg-secondary border-border focus:border-primary focus:shadow-glow transition-all duration-300" placeholder="S\xF6k p\xE5 eller reg. nr..." />
           </div>
           <Button onClick={() => setIsAddDialogOpen(true)} className="w-full md:w-auto bg-gradient-button hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300 animate-scale-in h-9 md:h-10 text-sm md:text-base">
             <Plus className="w-4 h-4 md:w-5 md:h-5 mr-1.5 md:mr-2" />
