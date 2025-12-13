@@ -8,28 +8,30 @@ const logos = [{
   alt: "Joels Bil Lidköping"
 }];
 const LogoMarquee = () => {
-  return <div className="py-8">
-      {/* Top divider */}
+  return <div className="bg-card/50 backdrop-blur-sm border-y border-border/50">
+      {/* Top divider accent */}
+      <div className="h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
       
-      
-      <p className="text-center text-sm text-muted-foreground mb-6 uppercase tracking-widest">
-        Bilhandlare som använder Luvero
-      </p>
-      <div className="relative overflow-hidden">
-        {/* Fade edges using mask instead of solid color gradients */}
-        <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
-        
-        {/* Scrolling track - two identical sets for seamless loop */}
-        <div className="flex animate-marquee">
-          {[0, 1].map(trackIndex => <div key={trackIndex} className="flex shrink-0 items-center gap-20 px-10">
-              {[...Array(4)].map((_, setIndex) => logos.map((logo, i) => <img key={`${trackIndex}-${setIndex}-${i}`} src={logo.src} alt={logo.alt} className="h-10 md:h-12 w-auto opacity-60 hover:opacity-100 transition-opacity" />))}
-            </div>)}
+      <div className="py-10">
+        <p className="text-center text-sm text-muted-foreground mb-6 uppercase tracking-widest">
+          Bilhandlare som använder Luvero
+        </p>
+        <div className="relative overflow-hidden">
+          {/* Fade edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-card/50 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-card/50 to-transparent z-10 pointer-events-none" />
+          
+          {/* Scrolling track */}
+          <div className="flex animate-marquee">
+            {[0, 1].map(trackIndex => <div key={trackIndex} className="flex shrink-0 items-center gap-20 px-10">
+                {[...Array(4)].map((_, setIndex) => logos.map((logo, i) => <img key={`${trackIndex}-${setIndex}-${i}`} src={logo.src} alt={logo.alt} className="h-10 md:h-12 w-auto opacity-60 hover:opacity-100 transition-opacity" />))}
+              </div>)}
+          </div>
         </div>
       </div>
       
-      {/* Bottom divider */}
-      
+      {/* Bottom divider accent */}
+      <div className="h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
     </div>;
 };
 export default LogoMarquee;
