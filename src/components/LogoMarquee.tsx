@@ -8,7 +8,7 @@ const logos = [{
   alt: "Joels Bil Lidköping"
 }];
 const LogoMarquee = () => {
-  return <div className="py-8">
+  return <div className="pt-8">
       {/* Top divider */}
       <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent mb-8" />
       
