@@ -16,9 +16,9 @@ const LogoMarquee = () => {
         Bilhandlare som använder Luvero
       </p>
       <div className="relative overflow-hidden">
-        {/* Fade edges - transparent fades */}
-        <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-[#050814] to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-[#1b0f16] to-transparent z-10 pointer-events-none" />
+        {/* Fade edges using mask instead of solid color gradients */}
+        <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
         
         {/* Scrolling track - two identical sets for seamless loop */}
         <div className="flex animate-marquee">
