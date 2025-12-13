@@ -187,7 +187,7 @@ const Landing = () => {
             
             {/* Video container */}
             <div className="relative aspect-video rounded-2xl overflow-hidden border border-primary/20 shadow-2xl shadow-primary/20">
-              <iframe src="https://www.youtube.com/embed/SsquryiiiW0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="w-full h-full" title="Luvero Demo" />
+              <iframe src="https://www.youtube.com/embed/AbeJ7Dp0hXM" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="w-full h-full" title="Luvero Demo" />
             </div>
           </div>
         </div>
