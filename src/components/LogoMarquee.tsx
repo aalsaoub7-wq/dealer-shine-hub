@@ -29,7 +29,7 @@ const LogoMarquee = () => {
       </div>
       
       {/* Bottom divider */}
-      <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent mt-8" />
+      <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
     </div>;
 };
 export default LogoMarquee;
