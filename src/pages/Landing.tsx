@@ -187,12 +187,7 @@ const Landing = () => {
             
             {/* Video container */}
             <div className="relative aspect-video rounded-2xl overflow-hidden border border-primary/20 shadow-2xl shadow-primary/20">
-              <iframe 
-                src="https://player.vimeo.com/video/1146209059" 
-                allow="autoplay; fullscreen; picture-in-picture" 
-                allowFullScreen
-                className="w-full h-full"
-              />
+              <iframe src="https://player.vimeo.com/video/1146209059" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen className="w-full h-full" />
             </div>
           </div>
         </div>
@@ -296,7 +291,7 @@ const Landing = () => {
               </span>
             </h2>
             <p className="text-xl text-muted-foreground">
-              Se hur vi jämför med Adstuff
+              Se hur vi jämför med dagens standard      
             </p>
           </div>
 
@@ -315,7 +310,7 @@ const Landing = () => {
                   <img src={luveroLogo} alt="Luvero" className="h-16 w-auto object-contain" />
                 </div>
                 <div className="flex flex-col items-center justify-center gap-2">
-                  <img src={adstuffLogo} alt="Adstuff" className="h-16 w-auto object-contain" />
+                  <img alt="Adstuff" className="h-16 w-auto object-contain" src="/lovable-uploads/af4294b5-36f0-48ad-9303-2905f4491b19.png" />
                 </div>
               </div>
 
