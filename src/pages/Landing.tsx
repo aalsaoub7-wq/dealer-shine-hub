@@ -448,7 +448,7 @@ const Landing = () => {
                 gridTemplateColumns: '45% 27.5% 27.5%'
               }}>
                   <div className="flex items-center">
-                    <p className="text-base font-medium text-foreground">Kontroll av bakgrunden</p>
+                    <p className="text-base font-medium text-foreground">Byte av bakgrund</p>
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Check className="w-5 h-5 text-emerald-500" />
