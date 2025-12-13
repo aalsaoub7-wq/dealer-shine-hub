@@ -342,7 +342,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <X className="w-5 h-5 text-destructive" />
-                    <p className="text-sm text-muted-foreground">599kr/månad</p>
+                    <p className="text-sm text-muted-foreground">600kr/månad</p>
                   </div>
                 </div>
                 <div className="md:hidden grid grid-cols-3 gap-3 p-4">
@@ -370,7 +370,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <X className="w-5 h-5 text-destructive" />
-                    <p className="text-sm text-muted-foreground">299kr/användare/månad</p>
+                    <p className="text-sm text-muted-foreground">300kr/användare/månad</p>
                   </div>
                 </div>
                 <div className="md:hidden grid grid-cols-3 gap-3 p-4">
@@ -399,7 +399,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <X className="w-5 h-5 text-destructive" />
-                    <p className="text-sm text-muted-foreground">18,74kr</p>
+                    <p className="text-sm text-muted-foreground">20-100kr</p>
                   </div>
                 </div>
                 <div className="md:hidden grid grid-cols-3 gap-3 p-4">
@@ -427,7 +427,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <X className="w-5 h-5 text-destructive" />
-                    <p className="text-sm text-muted-foreground">2-12+ timmar</p>
+                    <p className="text-sm text-muted-foreground">24h+ </p>
                   </div>
                 </div>
                 <div className="md:hidden grid grid-cols-3 gap-3 p-4">
@@ -455,7 +455,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <X className="w-5 h-5 text-destructive" />
-                    <p className="text-sm text-muted-foreground text-center">2-12+ timmar väntetid</p>
+                    <p className="text-sm text-muted-foreground text-center">Lång väntetid </p>
                   </div>
                 </div>
                 <div className="md:hidden grid grid-cols-3 gap-3 p-4">
@@ -483,7 +483,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <X className="w-5 h-5 text-destructive" />
-                    <p className="text-sm text-muted-foreground text-center">Ej möjlig</p>
+                    <p className="text-sm text-muted-foreground text-center">Ej säkert </p>
                   </div>
                 </div>
                 <div className="md:hidden grid grid-cols-3 gap-3 p-4">
