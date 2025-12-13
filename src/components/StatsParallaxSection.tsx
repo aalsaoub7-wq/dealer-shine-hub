@@ -106,7 +106,7 @@ export const StatsParallaxSection = ({
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 mt-0">
         <div className="relative" style={parallaxStyle(0)}>
-          <div className="relative flex flex-col lg:flex-row items-center justify-center gap-2 lg:gap-4 min-h-[400px]" style={{
+          <div className="relative flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-6 min-h-[400px]" style={{
           transformStyle: "preserve-3d"
         }}>
             {/* Main Card - 32% faster sales */}
