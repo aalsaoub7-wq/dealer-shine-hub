@@ -13,7 +13,7 @@ const LogoMarquee = () => {
       <div className="h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
       
       <div className="py-10">
-        <p className="text-center text-sm text-muted-foreground mb-6 uppercase tracking-widest">
+        <p className="text-center text-sm text-muted-foreground mb-6 uppercase tracking-widest pb-[10px]">
           Bilhandlare som använder Luvero
         </p>
         <div className="relative overflow-hidden">
