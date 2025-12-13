@@ -172,9 +172,9 @@ export const StatsParallaxSection = ({
             </div>
 
             {/* Second Card - 11% higher prices */}
-            <div className="relative z-10" style={{
+            <div style={{
             ...parallaxStyle(40)
-          }}>
+          }} className="relative z-10 pb-0">
               {/* Card outer glow */}
               <div className="absolute -inset-1 rounded-[2.5rem] opacity-40" style={{
               background: "linear-gradient(135deg, hsl(0 0% 50% / 0.3), hsl(0 0% 40% / 0.1), hsl(0 0% 50% / 0.3))",
