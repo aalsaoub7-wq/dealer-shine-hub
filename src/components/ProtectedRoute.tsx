@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
-const VERIFICATION_TIMEOUT_MS = 500;
+const VERIFICATION_TIMEOUT_MS = 5000;
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -15,6 +15,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [showPaywall, setShowPaywall] = useState<boolean>(false);
   const [paywallChecked, setPaywallChecked] = useState<boolean>(false);
   const isMountedRef = useRef(true);
+  const hasCheckedRef = useRef(false);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -73,6 +74,9 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     };
 
     const checkAuth = async () => {
+      if (hasCheckedRef.current) return;
+      hasCheckedRef.current = true;
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -113,6 +117,9 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!isMountedRef.current) return;
+      
+      // Skip if already checked - prevents re-triggering on tab switch
+      if (hasCheckedRef.current && isAuthenticated !== null) return;
 
       if (!session) {
         setIsAuthenticated(false);
@@ -121,6 +128,9 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         setPaywallChecked(true);
         return;
       }
+
+      // Only recheck if not already authenticated
+      if (isAuthenticated) return;
 
       setIsAuthenticated(true);
 
