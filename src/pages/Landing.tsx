@@ -187,11 +187,11 @@ const Landing = () => {
             
             {/* Video container */}
             <div className="relative aspect-video rounded-2xl overflow-hidden border border-primary/20 shadow-2xl shadow-primary/20">
-              <video 
-                src="/videos/area-demo.mp4" 
-                controls 
-                playsInline
-                className="w-full h-full object-cover"
+              <iframe 
+                src="https://player.vimeo.com/video/1146209059" 
+                allow="autoplay; fullscreen; picture-in-picture" 
+                allowFullScreen
+                className="w-full h-full"
               />
             </div>
           </div>
