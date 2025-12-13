@@ -10,7 +10,7 @@ const logos = [{
 const LogoMarquee = () => {
   return <div className="py-8">
       {/* Top divider */}
-      <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent mb-8" />
+      
       
       <p className="text-center text-sm text-muted-foreground mb-6 uppercase tracking-widest">
         Bilhandlare som använder Luvero
@@ -29,7 +29,7 @@ const LogoMarquee = () => {
       </div>
       
       {/* Bottom divider */}
-      <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent mt-8" />
+      
     </div>;
 };
 export default LogoMarquee;
