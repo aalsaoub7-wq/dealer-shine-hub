@@ -184,7 +184,7 @@ export default {
         "stats-glow-green": "stats-glow-green 3s ease-in-out infinite",
         "stats-particle": "stats-particle 4s ease-out infinite",
         "stats-float": "stats-float 4s ease-in-out infinite",
-        "marquee": "marquee 20s linear infinite",
+        "marquee": "marquee 40s linear infinite",
       },
     },
   },
