@@ -15,16 +15,16 @@ const corsHeaders = {
 // Plan price IDs - both monthly and metered for each tier
 const PLAN_PRICES = {
   start: {
-    monthly: "price_1SaG7tRrATtOsqxE8nAWiFuY",
-    metered: "price_1SaGraRrATtOsqxE9qIFXSax",
+    monthly: "price_1SeML8RrATtOsqxESHwTPKKX",
+    metered: "price_1SeML8RrATtOsqxE0BprZ0kP",
   },
   pro: {
-    monthly: "price_1SaG85RrATtOsqxEFU109fpS",
-    metered: "price_1SaGsbRrATtOsqxEj14M7j1A",
+    monthly: "price_1SeML4RrATtOsqxEq6gwz4Kz",
+    metered: "price_1SeML4RrATtOsqxEkgED2l0y",
   },
   elit: {
-    monthly: "price_1SaG86RrATtOsqxEYMD9EfdF",
-    metered: "price_1SaGsvRrATtOsqxEtH1fjQmG",
+    monthly: "price_1SeMKzRrATtOsqxEZzSMjJTs",
+    metered: "price_1SeMKzRrATtOsqxEgmRSvWVa",
   },
 };
 
