@@ -3,7 +3,6 @@ import joelsBilLogo from "@/assets/joels-bil-logo.png";
 import autoPerformanceLogo from "@/assets/auto-performance-logo.png";
 import eliteMotorworksLogo from "@/assets/elite-motorworks-logo.png";
 import vastronAutoLogo from "@/assets/vastron-auto-logo.png";
-
 const logos = [{
   src: arenaBilLogo,
   alt: "Arena Bil"
@@ -26,9 +25,7 @@ const LogoMarquee = () => {
       <div className="h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
       
       <div className="py-10">
-        <p className="text-center text-sm text-muted-foreground mb-6 uppercase tracking-widest pb-[10px]">
-          Bilhandlare som använder Luvero
-        </p>
+        <p className="text-center text-sm text-muted-foreground mb-6 uppercase tracking-widest pb-[10px]">LUVERO ANVÄNDS VÄRLDEN ÖVER </p>
         <div className="relative overflow-hidden">
           {/* Scrolling track */}
           <div className="flex animate-marquee">
