@@ -12,19 +12,19 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-// Plan pricing configuration
+// Plan pricing configuration - LIVE MODE
 const PLAN_PRICES = {
   start: {
-    monthly: "price_1SaG7tRrATtOsqxE8nAWiFuY", // 239 kr/month
-    metered: "price_1SaGraRrATtOsqxE9qIFXSax", // 4.95 kr per image
+    monthly: "price_1SeML8RrATtOsqxESHwTPKKX", // 239 kr/month
+    metered: "price_1SeML8RrATtOsqxE0BprZ0kP", // 4.95 kr per image
   },
   pro: {
-    monthly: "price_1SaG85RrATtOsqxEFU109fpS", // 449 kr/month
-    metered: "price_1SaGsbRrATtOsqxEj14M7j1A", // 1.95 kr per image
+    monthly: "price_1SeML4RrATtOsqxEq6gwz4Kz", // 449 kr/month
+    metered: "price_1SeML4RrATtOsqxEkgED2l0y", // 1.95 kr per image
   },
   elit: {
-    monthly: "price_1SaG86RrATtOsqxEYMD9EfdF", // 995 kr/month
-    metered: "price_1SaGsvRrATtOsqxEtH1fjQmG", // 0.99 kr per image
+    monthly: "price_1SeMKzRrATtOsqxEZzSMjJTs", // 995 kr/month
+    metered: "price_1SeMKzRrATtOsqxEgmRSvWVa", // 0.99 kr per image
   },
 };
 

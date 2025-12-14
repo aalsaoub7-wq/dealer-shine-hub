@@ -14,8 +14,8 @@ export const PLANS = {
     borderClass: 'border-green-500/50',
     isPopular: false,
     stripePrices: {
-      monthly: 'price_1SaG7tRrATtOsqxE8nAWiFuY',
-      metered: 'price_1SaGraRrATtOsqxE9qIFXSax'
+      monthly: 'price_1SeML8RrATtOsqxESHwTPKKX',
+      metered: 'price_1SeML8RrATtOsqxE0BprZ0kP'
     },
     recommended: '< 100 bilder/månad',
     breakEvenImages: 100,
@@ -31,8 +31,8 @@ export const PLANS = {
     borderClass: 'border-blue-500/50',
     isPopular: true,
     stripePrices: {
-      monthly: 'price_1SaG85RrATtOsqxEFU109fpS',
-      metered: 'price_1SaGsbRrATtOsqxEj14M7j1A'
+      monthly: 'price_1SeML4RrATtOsqxEq6gwz4Kz',
+      metered: 'price_1SeML4RrATtOsqxEkgED2l0y'
     },
     recommended: '100-500 bilder/månad',
     breakEvenImages: 500,
@@ -48,8 +48,8 @@ export const PLANS = {
     borderClass: 'border-purple-500/50',
     isPopular: false,
     stripePrices: {
-      monthly: 'price_1SaG86RrATtOsqxEYMD9EfdF',
-      metered: 'price_1SaGsvRrATtOsqxEtH1fjQmG'
+      monthly: 'price_1SeMKzRrATtOsqxEZzSMjJTs',
+      metered: 'price_1SeMKzRrATtOsqxEgmRSvWVa'
     },
     recommended: '500+ bilder/månad',
     breakEvenImages: Infinity,
