@@ -331,7 +331,7 @@ const Landing = () => {
                   <img src={luveroLogo} alt="Luvero" className="h-8 object-contain" />
                 </div>
                 <div className="flex flex-col items-center gap-1">
-                  <img src={adstuffLogo} alt="Adstuff" className="h-8 object-contain" />
+                  <img alt="Adstuff" className="h-8 object-contain" src="/lovable-uploads/2a3ed9d3-1bed-4810-b938-f29e7449b79c.png" />
                 </div>
               </div>
 
