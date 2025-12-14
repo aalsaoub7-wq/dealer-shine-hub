@@ -1,11 +1,24 @@
 import arenaBilLogo from "@/assets/arena-bil-logo.png";
 import joelsBilLogo from "@/assets/joels-bil-logo.png";
+import autoPerformanceLogo from "@/assets/auto-performance-logo.png";
+import eliteMotorworksLogo from "@/assets/elite-motorworks-logo.png";
+import vastronAutoLogo from "@/assets/vastron-auto-logo.png";
+
 const logos = [{
   src: arenaBilLogo,
   alt: "Arena Bil"
 }, {
   src: joelsBilLogo,
   alt: "Joels Bil Lidköping"
+}, {
+  src: autoPerformanceLogo,
+  alt: "Auto Performance"
+}, {
+  src: eliteMotorworksLogo,
+  alt: "Elite Motorworks"
+}, {
+  src: vastronAutoLogo,
+  alt: "Vastron Auto"
 }];
 const LogoMarquee = () => {
   return <div className="bg-card/50 backdrop-blur-sm border-y border-border/50">
