@@ -361,7 +361,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
-                    <span className="text-xs">599kr/månad</span>
+                    <span className="text-xs">600kr+/månad</span>
                   </div>
                 </div>
 
@@ -389,8 +389,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
-                    <span className="text-xs text-center">299kr
-/användare/mån</span>
+                    <span className="text-xs text-center">300kr+/användare/månad</span>
                   </div>
                 </div>
 
@@ -418,7 +417,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
-                    <span className="text-xs">18,74kr</span>
+                    <span className="text-xs">20-100kr</span>
                   </div>
                 </div>
 
@@ -446,7 +445,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
-                    <span className="text-xs">2-12+ timmar</span>
+                    <span className="text-xs">24h+</span>
                   </div>
                 </div>
 
@@ -474,7 +473,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
-                    <span className="text-xs text-center">2-12+ timmar väntetid</span>
+                    <span className="text-xs text-center">Lång väntetid</span>
                   </div>
                 </div>
 
@@ -502,7 +501,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
-                    <span className="text-xs text-center">Ej möjlig</span>
+                    <span className="text-xs text-center">Ej säkert</span>
                   </div>
                 </div>
               </div>
