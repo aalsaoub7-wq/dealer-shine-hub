@@ -662,11 +662,11 @@ const Landing = () => {
             </AccordionItem>
 
             <AccordionItem value="item-2" className="bg-card border border-border rounded-lg px-6">
-              <AccordionTrigger className="text-left font-semibold hover:no-underline">
+            <AccordionTrigger className="text-left font-semibold hover:no-underline">
                 Kan jag redigera obegränsat antal bilder?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Ja! Det finns ingen begränsning på antal bilder du kan redigera. Du betalar endast 4,95 kr per redigerad bild.
+                Ja! Det finns ingen begränsning på antal bilder du kan redigera.
               </AccordionContent>
             </AccordionItem>
 
@@ -706,14 +706,6 @@ const Landing = () => {
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="item-7" className="bg-card border border-border rounded-lg px-6">
-              <AccordionTrigger className="text-left font-semibold hover:no-underline">
-                Vad är gratis och vad kostar pengar?
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">
-                Appen kostar 239 kr/månad och inkluderar fullständig lagerhantering och dokumentation utan begränsningar. Du kan använda Luvero som din huvudsakliga lagerhantering eller som ett komplement till ditt befintliga system (t.ex. Smart365, Bytbil) vid behov. När du använder AI-redigeringsfunktionen tillkommer 4,95 kr per bild utöver månadsavgiften. Integrationer med befintliga system kan ordnas vid behov.
-              </AccordionContent>
-            </AccordionItem>
           </Accordion>
         </div>
       </section>
