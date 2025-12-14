@@ -30,10 +30,6 @@ const LogoMarquee = () => {
           Bilhandlare som använder Luvero
         </p>
         <div className="relative overflow-hidden">
-          {/* Fade edges */}
-          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-card/50 to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-card/50 to-transparent z-10 pointer-events-none" />
-          
           {/* Scrolling track */}
           <div className="flex animate-marquee">
             {[0, 1].map(trackIndex => <div key={trackIndex} className="flex shrink-0 items-center gap-20 px-10">
