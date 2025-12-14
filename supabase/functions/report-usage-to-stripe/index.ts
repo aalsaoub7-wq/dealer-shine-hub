@@ -55,9 +55,20 @@ serve(async (req) => {
       .eq("status", "active")
       .single();
 
+    // If no active subscription, user is in trial - skip Stripe usage reporting
     if (subError || !subscription) {
-      console.error("No active subscription found:", subError);
-      throw new Error("No active subscription found");
+      console.log("[REPORT-USAGE] No active subscription found - user likely in trial period, skipping Stripe usage report");
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          skipped: true,
+          reason: "No active subscription - trial period"
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
     }
 
     console.log(`[REPORT-USAGE] Subscription plan: ${subscription.plan || 'start'}`);
