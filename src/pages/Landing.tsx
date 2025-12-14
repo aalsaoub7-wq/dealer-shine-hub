@@ -320,7 +320,7 @@ const Landing = () => {
                   <img src={luveroLogo} alt="Luvero" className="h-16 w-auto object-contain" />
                 </div>
                 <div className="flex flex-col items-center justify-center gap-2">
-                  <img alt="Adstuff" className="h-16 w-auto object-contain" src="/lovable-uploads/af4294b5-36f0-48ad-9303-2905f4491b19.png" />
+                  <img alt="Adstuff" className="h-16 w-auto object-contain" src="/lovable-uploads/d55ff891-abe9-49b9-8998-689e97634ff1.png" />
                 </div>
               </div>
 
@@ -331,7 +331,7 @@ const Landing = () => {
                   <img src={luveroLogo} alt="Luvero" className="h-8 object-contain" />
                 </div>
                 <div className="flex flex-col items-center gap-1">
-                  <img alt="Adstuff" className="h-8 object-contain" src="/lovable-uploads/2a3ed9d3-1bed-4810-b938-f29e7449b79c.png" />
+                  <img alt="Adstuff" className="h-8 object-contain" src="/lovable-uploads/dbac4fbf-0459-4356-a5d7-8c0f1643129b.png" />
                 </div>
               </div>
 
