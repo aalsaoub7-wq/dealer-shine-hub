@@ -108,9 +108,6 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
           <DialogTitle className="text-2xl bg-gradient-primary bg-clip-text text-transparent">
             Lägg till ny bil
           </DialogTitle>
-          <DialogDescription>
-            Ange registreringsnummer för att automatiskt hämta biluppgifter
-          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
