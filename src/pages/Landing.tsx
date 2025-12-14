@@ -187,15 +187,17 @@ const Landing = () => {
             <div className="absolute -inset-2 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl blur-xl" />
             
             {/* Video container */}
-            <div className="relative rounded-2xl overflow-hidden border border-primary/20 shadow-2xl shadow-primary/20" style={{ padding: '56.25% 0 0 0', position: 'relative' }}>
-              <iframe 
-                src="https://player.vimeo.com/video/1146349280?badge=0&autopause=0&player_id=0&app_id=58479" 
-                frameBorder="0" 
-                allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" 
-                referrerPolicy="strict-origin-when-cross-origin" 
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} 
-                title="Luvero Demo" 
-              />
+            <div className="relative rounded-2xl overflow-hidden border border-primary/20 shadow-2xl shadow-primary/20" style={{
+            padding: '56.25% 0 0 0',
+            position: 'relative'
+          }}>
+              <iframe src="https://player.vimeo.com/video/1146349280?badge=0&autopause=0&player_id=0&app_id=58479" frameBorder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" referrerPolicy="strict-origin-when-cross-origin" style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%'
+            }} title="Luvero Demo" />
             </div>
           </div>
         </div>
@@ -389,7 +391,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
-                    <span className="text-xs text-center">300kr+/användare/månad</span>
+                    <span className="text-xs text-center">300kr+/användare</span>
                   </div>
                 </div>
 
