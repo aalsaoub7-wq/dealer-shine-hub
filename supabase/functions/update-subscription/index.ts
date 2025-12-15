@@ -184,46 +184,13 @@ serve(async (req) => {
 
     } else {
       // DOWNGRADE: Schedule for next billing period
-      logStep("Processing downgrade - scheduled for next billing period");
+      // We don't change Stripe immediately - we store the scheduled change
+      // and the stripe-webhook will apply it when the period ends
+      logStep("Processing downgrade - scheduling for next billing period");
 
       const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
       
-      // Use Stripe's subscription schedule to handle the downgrade
-      // First, check if there's already a schedule
-      let schedule = subscription.schedule;
-      
-      if (schedule) {
-        // Cancel existing schedule first
-        await stripe.subscriptionSchedules.cancel(schedule as string);
-      }
-
-      // Create a new schedule from the existing subscription
-      const newSchedule = await stripe.subscriptionSchedules.create({
-        from_subscription: subscription.id,
-      });
-
-      // Update the schedule to change plan at next billing period
-      await stripe.subscriptionSchedules.update(newSchedule.id, {
-        phases: [
-          {
-            items: [
-              { price: monthlyItem.price.id, quantity: 1 },
-              { price: meteredItem.price.id },
-            ],
-            start_date: subscription.current_period_start,
-            end_date: subscription.current_period_end,
-          },
-          {
-            items: [
-              { price: newPrices.monthly, quantity: 1 },
-              { price: newPrices.metered },
-            ],
-            start_date: subscription.current_period_end,
-          },
-        ],
-      });
-
-      // Update database with scheduled change
+      // Update database with scheduled change (Stripe subscription unchanged for now)
       await supabaseClient
         .from("subscriptions")
         .update({ 
@@ -233,7 +200,7 @@ serve(async (req) => {
         })
         .eq("stripe_subscription_id", subscription.id);
 
-      logStep("Downgrade scheduled", { newPlan, effectiveDate: currentPeriodEnd.toISOString() });
+      logStep("Downgrade scheduled in database", { newPlan, effectiveDate: currentPeriodEnd.toISOString() });
 
       return new Response(
         JSON.stringify({ 
