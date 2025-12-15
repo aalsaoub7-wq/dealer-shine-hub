@@ -134,11 +134,15 @@ serve(async (req) => {
     currentPlan = currentPlan || 'start';
     const planConfig = PLAN_PRICING[currentPlan as keyof typeof PLAN_PRICING] || PLAN_PRICING.start;
 
+    // Check if there's an active subscription in database
+    const hasActiveSubscription = !!(subscription && ["active", "trialing"].includes(subscription.status));
+
     if (!company.stripe_customer_id) {
       return new Response(
         JSON.stringify({
           hasCustomer: false,
           hasPaymentMethod: false,
+          hasActiveSubscription,
           isAdmin,
           plan: currentPlan,
           planConfig,
@@ -146,7 +150,7 @@ serve(async (req) => {
             isInTrial,
             daysLeft: daysLeftInTrial,
             endDate: trialEndDate?.toISOString(),
-          imagesRemaining: Math.min(company.trial_images_remaining || 0, 50),
+            imagesRemaining: Math.min(company.trial_images_remaining || 0, 50),
             imagesUsed: company.trial_images_used || 0,
           }
         }),
@@ -255,6 +259,7 @@ serve(async (req) => {
         hasCustomer: true,
         customerId: company.stripe_customer_id,
         hasPaymentMethod,
+        hasActiveSubscription,
         isAdmin,
         plan: currentPlan,
         planConfig,
