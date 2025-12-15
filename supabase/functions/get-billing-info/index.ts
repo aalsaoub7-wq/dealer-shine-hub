@@ -106,12 +106,12 @@ serve(async (req) => {
       ? Math.max(0, Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
       : 0;
 
-    // Get subscription info including plan
+    // Get subscription info including plan (accept both active and trialing statuses)
     const { data: subscription } = await supabaseClient
       .from("subscriptions")
       .select("*, plan")
       .eq("company_id", company.id)
-      .eq("status", "active")
+      .in("status", ["active", "trialing"])
       .maybeSingle();
 
     // Get current plan - check subscription first, then Stripe customer metadata as fallback
