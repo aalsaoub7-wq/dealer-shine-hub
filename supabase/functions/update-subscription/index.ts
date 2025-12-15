@@ -23,6 +23,9 @@ const PLAN_PRICES = {
   }
 };
 
+// Plan tier order for determining upgrade vs downgrade
+const PLAN_TIERS = { start: 1, pro: 2, elit: 3 };
+
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[UPDATE-SUBSCRIPTION] ${step}${detailsStr}`);
@@ -100,6 +103,28 @@ serve(async (req) => {
     const subscription = subscriptions.data[0];
     logStep("Found subscription", { subscriptionId: subscription.id });
 
+    // Get current plan from database
+    const { data: currentSub } = await supabaseClient
+      .from("subscriptions")
+      .select("plan")
+      .eq("stripe_subscription_id", subscription.id)
+      .single();
+
+    const currentPlan = currentSub?.plan || 'start';
+    const currentTier = PLAN_TIERS[currentPlan as keyof typeof PLAN_TIERS] || 1;
+    const newTier = PLAN_TIERS[newPlan as keyof typeof PLAN_TIERS];
+    const isUpgrade = newTier > currentTier;
+    const isDowngrade = newTier < currentTier;
+
+    logStep("Plan change type", { currentPlan, newPlan, isUpgrade, isDowngrade });
+
+    if (!isUpgrade && !isDowngrade) {
+      return new Response(
+        JSON.stringify({ success: true, message: "Samma plan, ingen ändring behövs" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
+
     // Get current subscription items
     const monthlyItem = subscription.items.data.find((item: any) => {
       const price = item.price;
@@ -120,43 +145,106 @@ serve(async (req) => {
 
     const newPrices = PLAN_PRICES[newPlan as keyof typeof PLAN_PRICES];
 
-    // Update subscription with new prices
-    // Delete old items and add new ones
-    const updatedSubscription = await stripe.subscriptions.update(subscription.id, {
-      items: [
-        // Remove old items
-        { id: monthlyItem.id, deleted: true },
-        { id: meteredItem.id, deleted: true },
-        // Add new items
-        { price: newPrices.monthly },
-        { price: newPrices.metered },
-      ],
-      proration_behavior: 'create_prorations', // Credit for unused time
-    });
+    if (isUpgrade) {
+      // UPGRADE: Apply immediately with proration
+      logStep("Processing upgrade - immediate effect");
+      
+      await stripe.subscriptions.update(subscription.id, {
+        items: [
+          { id: monthlyItem.id, deleted: true },
+          { id: meteredItem.id, deleted: true },
+          { price: newPrices.monthly },
+          { price: newPrices.metered },
+        ],
+        proration_behavior: 'create_prorations',
+      });
 
-    logStep("Subscription updated", { 
-      subscriptionId: updatedSubscription.id, 
-      newPlan 
-    });
+      // Update subscription plan in database immediately
+      await supabaseClient
+        .from("subscriptions")
+        .update({ 
+          plan: newPlan, 
+          scheduled_plan: null,
+          scheduled_plan_date: null,
+          updated_at: new Date().toISOString() 
+        })
+        .eq("stripe_subscription_id", subscription.id);
 
-    // Update subscription plan in database
-    const { error: updateError } = await supabaseClient
-      .from("subscriptions")
-      .update({ plan: newPlan, updated_at: new Date().toISOString() })
-      .eq("stripe_subscription_id", subscription.id);
+      logStep("Upgrade completed immediately", { newPlan });
 
-    if (updateError) {
-      console.error("Error updating subscription in database:", updateError);
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: `Uppgraderad till ${newPlan}`,
+          effectiveDate: 'immediate',
+          subscriptionId: subscription.id
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+
+    } else {
+      // DOWNGRADE: Schedule for next billing period
+      logStep("Processing downgrade - scheduled for next billing period");
+
+      const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+      
+      // Use Stripe's subscription schedule to handle the downgrade
+      // First, check if there's already a schedule
+      let schedule = subscription.schedule;
+      
+      if (schedule) {
+        // Cancel existing schedule first
+        await stripe.subscriptionSchedules.cancel(schedule as string);
+      }
+
+      // Create a new schedule from the existing subscription
+      const newSchedule = await stripe.subscriptionSchedules.create({
+        from_subscription: subscription.id,
+      });
+
+      // Update the schedule to change plan at next billing period
+      await stripe.subscriptionSchedules.update(newSchedule.id, {
+        phases: [
+          {
+            items: [
+              { price: monthlyItem.price.id, quantity: 1 },
+              { price: meteredItem.price.id },
+            ],
+            start_date: subscription.current_period_start,
+            end_date: subscription.current_period_end,
+          },
+          {
+            items: [
+              { price: newPrices.monthly, quantity: 1 },
+              { price: newPrices.metered },
+            ],
+            start_date: subscription.current_period_end,
+          },
+        ],
+      });
+
+      // Update database with scheduled change
+      await supabaseClient
+        .from("subscriptions")
+        .update({ 
+          scheduled_plan: newPlan,
+          scheduled_plan_date: currentPeriodEnd.toISOString(),
+          updated_at: new Date().toISOString() 
+        })
+        .eq("stripe_subscription_id", subscription.id);
+
+      logStep("Downgrade scheduled", { newPlan, effectiveDate: currentPeriodEnd.toISOString() });
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: `Plan ändras till ${newPlan} den ${currentPeriodEnd.toLocaleDateString('sv-SE')}`,
+          effectiveDate: currentPeriodEnd.toISOString(),
+          subscriptionId: subscription.id
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
     }
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: `Plan updated to ${newPlan}`,
-        subscriptionId: updatedSubscription.id
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-    );
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
