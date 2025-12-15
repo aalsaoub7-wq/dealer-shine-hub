@@ -188,17 +188,32 @@ serve(async (req) => {
       // and the stripe-webhook will apply it when the period ends
       logStep("Processing downgrade - scheduling for next billing period");
 
-      const currentPeriodEndTimestamp = subscription.current_period_end;
+      let currentPeriodEndTimestamp: any = subscription.current_period_end;
+
+      // Defensive: Stripe should always provide current_period_end, but if it's missing/invalid
+      // we re-fetch the subscription to avoid "Invalid time value".
+      if (typeof currentPeriodEndTimestamp !== "number" || !Number.isFinite(currentPeriodEndTimestamp)) {
+        logStep("current_period_end missing/invalid on list result, retrieving subscription", {
+          current_period_end: currentPeriodEndTimestamp,
+        });
+        const retrieved = await stripe.subscriptions.retrieve(subscription.id);
+        currentPeriodEndTimestamp = (retrieved as any).current_period_end;
+      }
+
+      if (typeof currentPeriodEndTimestamp !== "number" || !Number.isFinite(currentPeriodEndTimestamp)) {
+        throw new Error(`Invalid current_period_end: ${String(currentPeriodEndTimestamp)}`);
+      }
+
       const currentPeriodEnd = new Date(currentPeriodEndTimestamp * 1000);
       const formattedDate = `${currentPeriodEnd.getFullYear()}-${String(currentPeriodEnd.getMonth() + 1).padStart(2, '0')}-${String(currentPeriodEnd.getDate()).padStart(2, '0')}`;
-      
+
       // Update database with scheduled change (Stripe subscription unchanged for now)
       await supabaseClient
         .from("subscriptions")
-        .update({ 
+        .update({
           scheduled_plan: newPlan,
           scheduled_plan_date: currentPeriodEnd.toISOString(),
-          updated_at: new Date().toISOString() 
+          updated_at: new Date().toISOString(),
         })
         .eq("stripe_subscription_id", subscription.id);
 
