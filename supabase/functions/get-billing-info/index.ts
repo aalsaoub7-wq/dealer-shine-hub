@@ -188,7 +188,7 @@ serve(async (req) => {
       .select("id, email")
       .in("id", userIds);
 
-    // Create per-user breakdown with plan-specific pricing
+    // Create per-user breakdown using stored costs (correct for plan changes mid-month)
     const userUsageStats = (companyUsers || []).map((uc) => {
       const profile = profiles?.find((p) => p.id === uc.user_id);
       const stats = usageStats?.find((s) => s.user_id === uc.user_id);
@@ -198,19 +198,23 @@ serve(async (req) => {
         userId: uc.user_id,
         email: profile?.email || "Okänd användare",
         editedImages,
-        cost: editedImages * planConfig.pricePerImage,
+        cost: stats?.edited_images_cost || 0,
       };
     });
 
-    // Calculate total company usage with plan-specific pricing
+    // Calculate total company usage using stored costs
     const totalEditedImages = (usageStats || []).reduce(
       (acc, stat) => acc + stat.edited_images_count,
+      0
+    );
+    const totalCost = (usageStats || []).reduce(
+      (acc, stat) => acc + (stat.edited_images_cost || 0),
       0
     );
     
     const totalUsage = {
       editedImages: totalEditedImages,
-      cost: totalEditedImages * planConfig.pricePerImage,
+      cost: totalCost,
     };
 
     // Check if user has payment method by listing all payment methods for customer

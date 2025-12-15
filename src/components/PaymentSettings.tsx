@@ -434,7 +434,7 @@ export const PaymentSettings = () => {
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border/30">
                 <span className="text-sm font-medium text-muted-foreground">
-                  Kostnad ({planConfig.pricePerImage} kr/bild):
+                  Kostnad:
                 </span>
                 <span className={`text-base font-semibold ${billingInfo?.trial?.isInTrial ? "text-green-500" : "text-foreground"}`}>
                   {billingInfo?.trial?.isInTrial ? "0.00" : userStat.cost.toFixed(2)} kr
