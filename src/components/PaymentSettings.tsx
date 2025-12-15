@@ -301,7 +301,13 @@ export const PaymentSettings = () => {
       </Card>
 
       {/* Change Plan Dialog */}
-      <ChangePlanDialog open={changePlanDialogOpen} onOpenChange={setChangePlanDialogOpen} currentPlan={currentPlan} onPlanChanged={fetchBillingInfo} />
+      <ChangePlanDialog 
+        open={changePlanDialogOpen} 
+        onOpenChange={setChangePlanDialogOpen} 
+        currentPlan={currentPlan} 
+        currentPeriodEnd={billingInfo?.subscription?.current_period_end}
+        onPlanChanged={fetchBillingInfo} 
+      />
 
       {/* Trial Status */}
       {billingInfo?.trial?.isInTrial && <Card className="border-primary/20 bg-card">
