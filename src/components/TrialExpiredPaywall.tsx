@@ -22,13 +22,12 @@ const PLANS = [{
   name: "Pro",
   monthlyPrice: "449",
   perImagePrice: "1,95",
-  description: "Bäst för de flesta",
+  description: "Mest populär",
   icon: Crown,
-  color: "text-primary",
-  borderColor: "border-primary",
-  bgColor: "bg-primary/20",
-  popular: true,
-  recommended: true
+  color: "text-blue-500",
+  borderColor: "border-blue-500/50",
+  bgColor: "bg-blue-500/10",
+  popular: true
 }, {
   id: "elit" as Plan,
   name: "Elit",
@@ -102,43 +101,25 @@ export const TrialExpiredPaywall = () => {
           {PLANS.map(plan => {
           const Icon = plan.icon;
           const isSelected = selectedPlan === plan.id;
-          const isRecommended = 'recommended' in plan && plan.recommended;
-          return <button 
-            key={plan.id} 
-            onClick={() => setSelectedPlan(plan.id)} 
-            className={`relative p-4 rounded-lg border-2 transition-all text-left ${
-              isRecommended 
-                ? `${isSelected ? 'border-primary bg-primary/20 ring-2 ring-primary ring-offset-2 ring-offset-background scale-105' : 'border-primary/70 bg-primary/10 hover:bg-primary/15'}` 
-                : `${isSelected ? `${plan.borderColor} ${plan.bgColor}` : "border-border bg-card hover:border-muted-foreground/50"}`
-            }`}
-          >
-                {isRecommended && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                    ⭐ Rekommenderad
-                  </span>
-                )}
-                {plan.popular && !isRecommended && <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
+          return <button key={plan.id} onClick={() => setSelectedPlan(plan.id)} className={`relative p-4 rounded-lg border-2 transition-all text-left ${isSelected ? `${plan.borderColor} ${plan.bgColor}` : "border-border bg-card hover:border-muted-foreground/50"}`}>
+                {plan.popular && <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
                     Populär
                   </span>}
                 
-                <div className="flex items-center gap-2 mb-2 mt-1">
+                <div className="flex items-center gap-2 mb-2">
                   <Icon className={`w-5 h-5 ${plan.color}`} />
-                  <span className={`font-semibold ${isRecommended ? 'text-primary' : 'text-foreground'}`}>{plan.name}</span>
+                  <span className="font-semibold text-foreground">{plan.name}</span>
                   {isSelected && <Check className="w-4 h-4 text-primary ml-auto" />}
                 </div>
                 
                 <div className="space-y-1">
-                  <p className={`text-lg font-bold ${isRecommended ? 'text-primary' : 'text-foreground'}`}>
+                  <p className="text-lg font-bold text-foreground">
                     {plan.monthlyPrice} kr<span className="text-sm font-normal text-muted-foreground">/mån</span>
                   </p>
                   <p className="text-sm text-muted-foreground">
                     + {plan.perImagePrice} kr/bild
                   </p>
-                  {isRecommended && (
-                    <p className="text-xs text-primary font-medium mt-2">
-                      {plan.description}
-                    </p>
-                  )}
+                  
                 </div>
               </button>;
         })}
