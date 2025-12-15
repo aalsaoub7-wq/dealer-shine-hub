@@ -56,13 +56,15 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
           return false; // Fallback: don't show paywall on error
         }
 
-        // Only show paywall if: trial is over AND no payment method
+        // Only show paywall if: trial is over AND no payment method AND no active subscription
         const isInTrial = data?.trial?.isInTrial ?? true;
         const hasPaymentMethod = data?.hasPaymentMethod ?? false;
+        const hasActiveSubscription = data?.hasActiveSubscription ?? false;
         const isAdmin = data?.isAdmin ?? true;
 
         // Only block admins - employees should still have access (admin's responsibility)
-        if (!isInTrial && !hasPaymentMethod && isAdmin) {
+        // Also allow through if user has an active subscription (even if hasPaymentMethod is false)
+        if (!isInTrial && !hasPaymentMethod && !hasActiveSubscription && isAdmin) {
           return true; // Show paywall
         }
 
