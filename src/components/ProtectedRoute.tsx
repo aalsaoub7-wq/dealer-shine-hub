@@ -56,15 +56,20 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         return true; // Fallback: show paywall on error (safer default)
       }
 
-        // Only show paywall if: trial is over AND no payment method AND no active subscription
+        // Only show paywall if: trial is over AND no payment method AND no *valid* active subscription
         const isInTrial = data?.trial?.isInTrial ?? true;
         const hasPaymentMethod = data?.hasPaymentMethod ?? false;
         const hasActiveSubscription = data?.hasActiveSubscription ?? false;
+        const subscriptionPeriodEnd = data?.subscription?.current_period_end as string | null | undefined;
+        const subscriptionEndMs = subscriptionPeriodEnd ? new Date(subscriptionPeriodEnd).getTime() : null;
+        const activeSubscriptionStillValid =
+          subscriptionEndMs === null || Number.isNaN(subscriptionEndMs) || subscriptionEndMs > Date.now();
+        const hasValidActiveSubscription = hasActiveSubscription && activeSubscriptionStillValid;
         const isAdmin = data?.isAdmin ?? true;
 
         // Only block admins - employees should still have access (admin's responsibility)
-        // Also allow through if user has an active subscription (even if hasPaymentMethod is false)
-        if (!isInTrial && !hasPaymentMethod && !hasActiveSubscription && isAdmin) {
+        // Allow through if user has an active subscription that hasn't expired
+        if (!isInTrial && !hasPaymentMethod && !hasValidActiveSubscription && isAdmin) {
           return true; // Show paywall
         }
 
