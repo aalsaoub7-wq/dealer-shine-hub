@@ -54,14 +54,21 @@ serve(async (req) => {
     const user = userData.user;
     console.log("User authenticated:", user.email);
 
+    // Use service role to bypass RLS for company lookup
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
     // Get user's company
-    const { data: userCompany, error: companyError } = await supabaseClient
+    const { data: userCompany, error: companyError } = await supabaseAdmin
       .from("user_companies")
       .select("company_id, companies(id, stripe_customer_id, name)")
       .eq("user_id", user.id)
       .maybeSingle();
 
     if (companyError || !userCompany) {
+      console.error("Company lookup error:", companyError);
       throw new Error("Could not find user's company");
     }
 
@@ -89,12 +96,6 @@ serve(async (req) => {
       
       customerId = customer.id;
       console.log("Created Stripe customer:", customerId);
-
-      // Save the customer ID using service role
-      const supabaseAdmin = createClient(
-        Deno.env.get("SUPABASE_URL") ?? "",
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-      );
 
       await supabaseAdmin
         .from("companies")
