@@ -39,6 +39,46 @@ serve(async (req) => {
     console.log("Webhook event:", event.type);
 
     switch (event.type) {
+      case "customer.subscription.created": {
+        const subscription = event.data.object as Stripe.Subscription;
+        console.log("Subscription created:", subscription.id, "Customer:", subscription.customer);
+
+        // Find company based on Stripe customer ID
+        const { data: company, error: companyError } = await supabaseClient
+          .from("companies")
+          .select("id")
+          .eq("stripe_customer_id", subscription.customer)
+          .single();
+
+        if (companyError || !company) {
+          console.error("Could not find company for customer:", subscription.customer);
+          break;
+        }
+
+        // Extract plan from subscription metadata
+        const plan = subscription.metadata?.plan || "start";
+
+        // Insert new subscription row
+        const { error: insertError } = await supabaseClient
+          .from("subscriptions")
+          .insert({
+            company_id: company.id,
+            stripe_subscription_id: subscription.id,
+            stripe_customer_id: subscription.customer as string,
+            status: subscription.status,
+            plan: plan,
+            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+          });
+
+        if (insertError) {
+          console.error("Error inserting subscription:", insertError);
+        } else {
+          console.log("Subscription inserted for company:", company.id, "Plan:", plan);
+        }
+        break;
+      }
+
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
         console.log("Payment succeeded for invoice:", invoice.id);
