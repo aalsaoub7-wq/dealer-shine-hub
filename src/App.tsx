@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Documentation from "./pages/Documentation";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { NativeRouter } from "./components/NativeRouter";
@@ -76,6 +77,7 @@ const App = () => {
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/car/:id" element={<ProtectedRoute><CarDetail /></ProtectedRoute>} />
                   <Route path="/shared/:token" element={<SharedPhotos />} />
+                  <Route path="/payment-success" element={<PaymentSuccess />} />
                   <Route path="/integritetspolicy" element={<PrivacyPolicy />} />
                   <Route path="/användarvillkor" element={<TermsOfService />} />
                   <Route path="/guide" element={<Documentation />} />
