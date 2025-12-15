@@ -12,22 +12,6 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-// Plan price IDs - both monthly and metered for each tier
-const PLAN_PRICES = {
-  start: {
-    monthly: "price_1SeML8RrATtOsqxESHwTPKKX",
-    metered: "price_1SeML8RrATtOsqxE0BprZ0kP",
-  },
-  pro: {
-    monthly: "price_1SeML4RrATtOsqxEq6gwz4Kz",
-    metered: "price_1SeML4RrATtOsqxEkgED2l0y",
-  },
-  elit: {
-    monthly: "price_1SeMKzRrATtOsqxEZzSMjJTs",
-    metered: "price_1SeMKzRrATtOsqxEgmRSvWVa",
-  },
-};
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -41,14 +25,13 @@ serve(async (req) => {
 
     const { company_id, user_email, company_name, plan } = await req.json();
     const selectedPlan = plan || "start";
-    const planPrices = PLAN_PRICES[selectedPlan as keyof typeof PLAN_PRICES] || PLAN_PRICES.start;
 
     console.log(`[AUTO-STRIPE] Creating customer for company: ${company_id}, plan: ${selectedPlan}`);
 
     // Check if customer already exists
     const { data: company } = await supabaseAdmin
       .from("companies")
-      .select("stripe_customer_id, trial_end_date")
+      .select("stripe_customer_id")
       .eq("id", company_id)
       .single();
 
@@ -64,7 +47,7 @@ serve(async (req) => {
       );
     }
 
-    // Create Stripe customer with plan metadata
+    // Create Stripe customer with plan metadata (NO subscription - that happens when user adds payment method)
     const customer = await stripe.customers.create({
       email: user_email,
       name: company_name,
@@ -87,73 +70,14 @@ serve(async (req) => {
       throw updateError;
     }
 
-    console.log(`[AUTO-STRIPE] Company updated with customer ID`);
-
-    // Calculate trial end timestamp for Stripe (21 days from now or use existing trial_end_date)
-    let trialEndTimestamp: number;
-    if (company?.trial_end_date) {
-      trialEndTimestamp = Math.floor(new Date(company.trial_end_date).getTime() / 1000);
-    } else {
-      trialEndTimestamp = Math.floor(Date.now() / 1000) + (21 * 24 * 60 * 60);
-    }
-
-    // Create subscription with both monthly and metered prices
-    console.log(`[AUTO-STRIPE] Creating subscription with plan: ${selectedPlan}, trial_end: ${trialEndTimestamp}`);
-    
-    const subscription = await stripe.subscriptions.create({
-      customer: customer.id,
-      items: [
-        { price: planPrices.monthly },
-        { price: planPrices.metered },
-      ],
-      trial_end: trialEndTimestamp,
-      payment_behavior: "default_incomplete",
-      payment_settings: {
-        save_default_payment_method: "on_subscription",
-      },
-      metadata: {
-        company_id: company_id,
-        plan: selectedPlan,
-      },
-    });
-
-    console.log(`[AUTO-STRIPE] Subscription created: ${subscription.id}`);
-
-    // Save subscription to database
-    // Handle null period dates (can happen with incomplete subscriptions during trial)
-    const periodStart = subscription.current_period_start 
-      ? new Date(subscription.current_period_start * 1000).toISOString() 
-      : null;
-    const periodEnd = subscription.current_period_end 
-      ? new Date(subscription.current_period_end * 1000).toISOString() 
-      : null;
-
-    const { error: subError } = await supabaseAdmin
-      .from("subscriptions")
-      .insert({
-        company_id: company_id,
-        stripe_customer_id: customer.id,
-        stripe_subscription_id: subscription.id,
-        status: subscription.status,
-        plan: selectedPlan,
-        current_period_start: periodStart,
-        current_period_end: periodEnd,
-      });
-
-    if (subError) {
-      console.error("[AUTO-STRIPE] Error saving subscription:", subError);
-      // Don't throw - customer and Stripe subscription are created, DB record is secondary
-    } else {
-      console.log(`[AUTO-STRIPE] Subscription saved to database`);
-    }
+    console.log(`[AUTO-STRIPE] Company updated with customer ID - no subscription created (trial managed by app)`);
 
     return new Response(
       JSON.stringify({
         success: true,
         customerId: customer.id,
-        subscriptionId: subscription.id,
         plan: selectedPlan,
-        message: "Stripe customer and subscription created successfully",
+        message: "Stripe customer created successfully (subscription will be created when payment method is added)",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
