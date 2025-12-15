@@ -107,10 +107,10 @@ serve(async (req) => {
       currentPeriodEnd: subscription.current_period_end 
     });
 
-    // Get current plan from database
+    // Get current plan from database (and period end as fallback for scheduled downgrades)
     const { data: currentSub } = await supabaseClient
       .from("subscriptions")
-      .select("plan")
+      .select("plan, current_period_end")
       .eq("stripe_subscription_id", subscription.id)
       .single();
 
@@ -192,13 +192,31 @@ serve(async (req) => {
       // and the stripe-webhook will apply it when the period ends
       logStep("Processing downgrade - scheduling for next billing period");
 
-      const currentPeriodEndTimestamp = subscription.current_period_end;
-      
-      if (typeof currentPeriodEndTimestamp !== "number" || !Number.isFinite(currentPeriodEndTimestamp)) {
-        throw new Error(`Invalid current_period_end: ${String(currentPeriodEndTimestamp)}`);
+      // Stripe should provide this, but in some cases it can be missing in the response.
+      // Fallback to the backend's stored period end (kept in sync by the webhook).
+      let currentPeriodEnd: Date | null = null;
+
+      const stripePeriodEnd = (subscription as any).current_period_end;
+      if (typeof stripePeriodEnd === "number" && Number.isFinite(stripePeriodEnd)) {
+        currentPeriodEnd = new Date(stripePeriodEnd * 1000);
       }
 
-      const currentPeriodEnd = new Date(currentPeriodEndTimestamp * 1000);
+      if (!currentPeriodEnd && currentSub?.current_period_end) {
+        const fromDb = new Date(currentSub.current_period_end);
+        if (!Number.isNaN(fromDb.getTime())) {
+          currentPeriodEnd = fromDb;
+        }
+      }
+
+      if (!currentPeriodEnd) {
+        logStep("Missing current_period_end", {
+          subscriptionId: subscription.id,
+          stripe_current_period_end: stripePeriodEnd,
+          db_current_period_end: currentSub?.current_period_end ?? null,
+        });
+        throw new Error(`Invalid current_period_end: ${String(stripePeriodEnd)}`);
+      }
+
       const formattedDate = `${currentPeriodEnd.getFullYear()}-${String(currentPeriodEnd.getMonth() + 1).padStart(2, '0')}-${String(currentPeriodEnd.getDate()).padStart(2, '0')}`;
 
       // Update database with scheduled change (Stripe subscription unchanged for now)
