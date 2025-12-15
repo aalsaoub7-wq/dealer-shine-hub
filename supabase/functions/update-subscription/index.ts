@@ -188,7 +188,9 @@ serve(async (req) => {
       // and the stripe-webhook will apply it when the period ends
       logStep("Processing downgrade - scheduling for next billing period");
 
-      const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+      const currentPeriodEndTimestamp = subscription.current_period_end;
+      const currentPeriodEnd = new Date(currentPeriodEndTimestamp * 1000);
+      const formattedDate = `${currentPeriodEnd.getFullYear()}-${String(currentPeriodEnd.getMonth() + 1).padStart(2, '0')}-${String(currentPeriodEnd.getDate()).padStart(2, '0')}`;
       
       // Update database with scheduled change (Stripe subscription unchanged for now)
       await supabaseClient
@@ -205,7 +207,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: `Plan ändras till ${newPlan} den ${currentPeriodEnd.toLocaleDateString('sv-SE')}`,
+          message: `Plan ändras till ${newPlan} den ${formattedDate}`,
           effectiveDate: currentPeriodEnd.toISOString(),
           subscriptionId: subscription.id
         }),
