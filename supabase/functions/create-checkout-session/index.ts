@@ -109,9 +109,6 @@ serve(async (req) => {
     // Create checkout session with subscription mode
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      customer_update: {
-        payment_method: "auto",
-      },
       line_items: [
         {
           price: planPrices.monthly,
