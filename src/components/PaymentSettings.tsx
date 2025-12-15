@@ -33,6 +33,8 @@ interface BillingInfo {
     status: string;
     current_period_end?: string;
     plan?: string;
+    scheduled_plan?: string;
+    scheduled_plan_date?: string;
   };
   currentUsage?: {
     editedImages: number;
@@ -299,6 +301,23 @@ export const PaymentSettings = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Scheduled Plan Change Notice */}
+      {billingInfo?.subscription?.scheduled_plan && (
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center gap-2 text-amber-500">
+              <AlertCircle className="h-5 w-5" />
+              <span className="text-sm">
+                Schemalagd planändring: <strong>{PLANS[billingInfo.subscription.scheduled_plan as PlanType]?.name || billingInfo.subscription.scheduled_plan}</strong> från{' '}
+                {billingInfo.subscription.scheduled_plan_date 
+                  ? new Date(billingInfo.subscription.scheduled_plan_date).toLocaleDateString("sv-SE")
+                  : 'nästa faktureringsperiod'}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Change Plan Dialog */}
       <ChangePlanDialog 
