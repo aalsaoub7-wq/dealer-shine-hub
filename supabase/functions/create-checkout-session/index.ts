@@ -109,6 +109,9 @@ serve(async (req) => {
     // Create checkout session with subscription mode
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
+      customer_update: {
+        payment_method: "auto",
+      },
       line_items: [
         {
           price: planPrices.monthly,
@@ -119,6 +122,7 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
+      payment_method_collection: "always",
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/dashboard`,
       metadata: {
