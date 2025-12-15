@@ -51,10 +51,10 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     const checkTrialAndPayment = async (): Promise<boolean> => {
       try {
         const { data, error } = await supabase.functions.invoke("get-billing-info");
-        if (error) {
-          console.error("Error checking billing info:", error);
-          return false; // Fallback: don't show paywall on error
-        }
+      if (error) {
+        console.error("Error checking billing info:", error);
+        return true; // Fallback: show paywall on error (safer default)
+      }
 
         // Only show paywall if: trial is over AND no payment method AND no active subscription
         const isInTrial = data?.trial?.isInTrial ?? true;
