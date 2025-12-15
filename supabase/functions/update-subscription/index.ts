@@ -89,7 +89,7 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
-    // Get current subscription
+    // Get current subscription - first list to find ID, then retrieve for full data
     const subscriptions = await stripe.subscriptions.list({
       customer: company.stripe_customer_id,
       status: "active",
@@ -100,8 +100,12 @@ serve(async (req) => {
       throw new Error("No active subscription found");
     }
 
-    const subscription = subscriptions.data[0];
-    logStep("Found subscription", { subscriptionId: subscription.id });
+    // Always retrieve full subscription to ensure we have all fields
+    const subscription = await stripe.subscriptions.retrieve(subscriptions.data[0].id);
+    logStep("Found subscription", { 
+      subscriptionId: subscription.id,
+      currentPeriodEnd: subscription.current_period_end 
+    });
 
     // Get current plan from database
     const { data: currentSub } = await supabaseClient
@@ -188,18 +192,8 @@ serve(async (req) => {
       // and the stripe-webhook will apply it when the period ends
       logStep("Processing downgrade - scheduling for next billing period");
 
-      let currentPeriodEndTimestamp: any = subscription.current_period_end;
-
-      // Defensive: Stripe should always provide current_period_end, but if it's missing/invalid
-      // we re-fetch the subscription to avoid "Invalid time value".
-      if (typeof currentPeriodEndTimestamp !== "number" || !Number.isFinite(currentPeriodEndTimestamp)) {
-        logStep("current_period_end missing/invalid on list result, retrieving subscription", {
-          current_period_end: currentPeriodEndTimestamp,
-        });
-        const retrieved = await stripe.subscriptions.retrieve(subscription.id);
-        currentPeriodEndTimestamp = (retrieved as any).current_period_end;
-      }
-
+      const currentPeriodEndTimestamp = subscription.current_period_end;
+      
       if (typeof currentPeriodEndTimestamp !== "number" || !Number.isFinite(currentPeriodEndTimestamp)) {
         throw new Error(`Invalid current_period_end: ${String(currentPeriodEndTimestamp)}`);
       }
