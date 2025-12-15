@@ -109,7 +109,7 @@ serve(async (req) => {
     // Get subscription info including plan (accept both active and trialing statuses)
     const { data: subscription } = await supabaseClient
       .from("subscriptions")
-      .select("*, plan")
+      .select("*, plan, scheduled_plan, scheduled_plan_date")
       .eq("company_id", company.id)
       .in("status", ["active", "trialing"])
       .maybeSingle();
@@ -267,6 +267,8 @@ serve(async (req) => {
           status: subscription.status,
           current_period_end: subscription.current_period_end,
           plan: subscription.plan,
+          scheduled_plan: subscription.scheduled_plan,
+          scheduled_plan_date: subscription.scheduled_plan_date,
         } : undefined,
         currentUsage: totalUsage,
         userUsageStats: userUsageStats,
