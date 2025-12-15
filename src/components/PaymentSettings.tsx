@@ -280,17 +280,10 @@ export const PaymentSettings = () => {
               <Crown className={`h-5 w-5 ${planConfig.colorClass}`} />
               Aktuell plan: {planConfig.name}
             </div>
-            {billingInfo?.hasPaymentMethod && !isNativeApp() && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setChangePlanDialogOpen(true)}
-                className="flex items-center gap-1"
-              >
+            {billingInfo?.hasPaymentMethod && !isNativeApp() && <Button variant="outline" size="sm" onClick={() => setChangePlanDialogOpen(true)} className="flex items-center gap-1">
                 <RefreshCw className="h-4 w-4" />
                 Byt plan
-              </Button>
-            )}
+              </Button>}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -308,12 +301,7 @@ export const PaymentSettings = () => {
       </Card>
 
       {/* Change Plan Dialog */}
-      <ChangePlanDialog
-        open={changePlanDialogOpen}
-        onOpenChange={setChangePlanDialogOpen}
-        currentPlan={currentPlan}
-        onPlanChanged={fetchBillingInfo}
-      />
+      <ChangePlanDialog open={changePlanDialogOpen} onOpenChange={setChangePlanDialogOpen} currentPlan={currentPlan} onPlanChanged={fetchBillingInfo} />
 
       {/* Trial Status */}
       {billingInfo?.trial?.isInTrial && <Card className="border-primary/20 bg-card">
@@ -455,8 +443,7 @@ export const PaymentSettings = () => {
 
       {/* Manage Billing */}
       <div className="space-y-2">
-        <h3 className="font-medium text-xl">​Betalning, Plan och Fakturahistorik    
- </h3>
+        <h3 className="font-medium text-xl">​Betalning och Fakturahistorik</h3>
         <Card>
           <CardContent className="pt-6">
             {isNativeApp() ? <div className="text-center space-y-3">
@@ -473,9 +460,7 @@ export const PaymentSettings = () => {
                   Öppna Stripe-portal
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Hantera dina betalningsmetoder, byt plan, se fakturor och uppdatera betalningsinformation
-                </p>
+                <p className="text-xs text-muted-foreground mt-2">Hantera dina betalningsmetoder, se fakturor och uppdatera betalningsinformation</p>
               </>}
           </CardContent>
         </Card>
