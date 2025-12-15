@@ -107,17 +107,87 @@ serve(async (req) => {
         const subscription = event.data.object as Stripe.Subscription;
         console.log("Subscription updated:", subscription.id);
 
-        // Update subscription in database
+        // Check if there's a scheduled downgrade to apply
+        const { data: existingSub } = await supabaseClient
+          .from("subscriptions")
+          .select("scheduled_plan, scheduled_plan_date")
+          .eq("stripe_subscription_id", subscription.id)
+          .single();
+
+        // If there's a scheduled plan and the period has changed (new billing period started)
+        if (existingSub?.scheduled_plan && existingSub?.scheduled_plan_date) {
+          const scheduledDate = new Date(existingSub.scheduled_plan_date);
+          const newPeriodStart = new Date(subscription.current_period_start * 1000);
+          
+          // If we've entered a new period that's at or after the scheduled date
+          if (newPeriodStart >= scheduledDate) {
+            console.log("Applying scheduled downgrade:", existingSub.scheduled_plan);
+            
+            // Plan pricing configuration
+            const PLAN_PRICES: Record<string, { monthly: string; metered: string }> = {
+              start: {
+                monthly: 'price_1SeML8RrATtOsqxESHwTPKKX',
+                metered: 'price_1SeML8RrATtOsqxE0BprZ0kP'
+              },
+              pro: {
+                monthly: 'price_1SeML4RrATtOsqxEq6gwz4Kz',
+                metered: 'price_1SeML4RrATtOsqxEkgED2l0y'
+              },
+              elit: {
+                monthly: 'price_1SeMKzRrATtOsqxEZzSMjJTs',
+                metered: 'price_1SeMKzRrATtOsqxEgmRSvWVa'
+              }
+            };
+
+            const newPrices = PLAN_PRICES[existingSub.scheduled_plan];
+            if (newPrices) {
+              // Get current subscription items
+              const monthlyItem = subscription.items.data.find((item: any) => 
+                item.price.recurring?.usage_type !== 'metered'
+              );
+              const meteredItem = subscription.items.data.find((item: any) => 
+                item.price.recurring?.usage_type === 'metered'
+              );
+
+              if (monthlyItem && meteredItem) {
+                // Apply the plan change now
+                await stripe.subscriptions.update(subscription.id, {
+                  items: [
+                    { id: monthlyItem.id, deleted: true },
+                    { id: meteredItem.id, deleted: true },
+                    { price: newPrices.monthly },
+                    { price: newPrices.metered },
+                  ],
+                  proration_behavior: 'none', // No proration for scheduled downgrades
+                });
+
+                // Update database with new plan and clear scheduled change
+                await supabaseClient
+                  .from("subscriptions")
+                  .update({
+                    plan: existingSub.scheduled_plan,
+                    scheduled_plan: null,
+                    scheduled_plan_date: null,
+                    status: subscription.status,
+                    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+                    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+                  })
+                  .eq("stripe_subscription_id", subscription.id);
+
+                console.log("Scheduled downgrade applied:", existingSub.scheduled_plan);
+                break;
+              }
+            }
+          }
+        }
+
+        // Normal update - just sync status and period dates
         const { error } = await supabaseClient
           .from("subscriptions")
           .update({
             status: subscription.status,
-            current_period_start: new Date(
-              subscription.current_period_start * 1000
-            ).toISOString(),
-            current_period_end: new Date(
-              subscription.current_period_end * 1000
-            ).toISOString(),
+            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
           })
           .eq("stripe_subscription_id", subscription.id);
 
