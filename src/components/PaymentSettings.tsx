@@ -250,7 +250,7 @@ export const PaymentSettings = () => {
                               Populär
                             </span>}
                         </div>
-                        <p className="text-sm text-muted-foreground">{plan.recommended}</p>
+                        
                       </div>
                     </div>
                     <div className="text-right">
