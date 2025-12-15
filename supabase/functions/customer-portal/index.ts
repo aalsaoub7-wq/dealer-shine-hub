@@ -47,17 +47,41 @@ serve(async (req) => {
       ? userCompany.companies[0]
       : userCompany.companies;
 
-    if (!company.stripe_customer_id) {
-      throw new Error("No Stripe customer found for this company");
-    }
-
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") as string, {
       apiVersion: "2023-10-16",
     });
 
+    let customerId = company.stripe_customer_id;
+
+    // If no Stripe customer exists, create one
+    if (!customerId) {
+      console.log("No Stripe customer found, creating one...");
+      
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: {
+          company_id: company.id,
+        },
+      });
+      
+      customerId = customer.id;
+      console.log("Created Stripe customer:", customerId);
+
+      // Save the customer ID to the company using service role
+      const supabaseAdmin = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      );
+
+      await supabaseAdmin
+        .from("companies")
+        .update({ stripe_customer_id: customerId })
+        .eq("id", company.id);
+    }
+
     const origin = req.headers.get("origin") || "https://luflow.lovable.app";
     const portalSession = await stripe.billingPortal.sessions.create({
-      customer: company.stripe_customer_id,
+      customer: customerId,
       return_url: `${origin}/`,
     });
 
