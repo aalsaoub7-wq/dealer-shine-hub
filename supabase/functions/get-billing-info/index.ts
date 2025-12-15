@@ -213,30 +213,30 @@ serve(async (req) => {
       cost: totalEditedImages * planConfig.pricePerImage,
     };
 
-    // Check if user has payment method by retrieving customer from Stripe
+    // Check if user has payment method by listing all payment methods for customer
     let hasPaymentMethod = false;
     if (company.stripe_customer_id) {
       try {
-        console.log(`[BILLING-INFO] Checking payment method for customer: ${company.stripe_customer_id}`);
+        console.log(`[BILLING-INFO] Checking payment methods for customer: ${company.stripe_customer_id}`);
         
-        // Retrieve full customer object from Stripe
-        const customer = await stripe.customers.retrieve(company.stripe_customer_id) as any;
-        
-        console.log(`[BILLING-INFO] Customer retrieved:`, {
-          id: customer.id,
-          email: customer.email,
-          default_source: customer.default_source,
-          invoice_settings_default_payment_method: customer.invoice_settings?.default_payment_method,
+        // List all payment methods attached to the customer (cards)
+        const paymentMethods = await stripe.paymentMethods.list({
+          customer: company.stripe_customer_id,
+          type: 'card',
+          limit: 1,
         });
         
-        // Check multiple sources for payment method
-        hasPaymentMethod = !!(
-          customer.invoice_settings?.default_payment_method ||
-          customer.default_source ||
-          (subscription && subscription.default_payment_method)
-        );
+        hasPaymentMethod = paymentMethods.data.length > 0;
         
-        console.log(`[BILLING-INFO] Payment method status: ${hasPaymentMethod}`);
+        console.log(`[BILLING-INFO] Payment methods found: ${paymentMethods.data.length}, hasPaymentMethod: ${hasPaymentMethod}`);
+        
+        if (paymentMethods.data.length > 0) {
+          console.log(`[BILLING-INFO] First payment method:`, {
+            id: paymentMethods.data[0].id,
+            brand: paymentMethods.data[0].card?.brand,
+            last4: paymentMethods.data[0].card?.last4,
+          });
+        }
       } catch (error) {
         console.error("[BILLING-INFO] Error checking payment methods:", error);
       }
