@@ -2,13 +2,14 @@ import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
-import { Loader2, ExternalLink, Image, TrendingUp, User, Sparkles, AlertCircle, CheckCircle2, CreditCard, Crown } from "lucide-react";
+import { Loader2, ExternalLink, Image, TrendingUp, User, Sparkles, AlertCircle, CheckCircle2, CreditCard, Crown, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { PaymentSettingsSkeleton } from "./PaymentSettingsSkeleton";
 import { PLANS, PlanType } from "@/lib/usageTracking";
 import { openExternalUrl } from "@/lib/nativeCapabilities";
 import { isNativeApp } from "@/lib/utils";
+import { ChangePlanDialog } from "./ChangePlanDialog";
 interface PlanConfig {
   name: string;
   monthlyFee: number;
@@ -64,6 +65,7 @@ export const PaymentSettings = () => {
     cost: 0
   });
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [changePlanDialogOpen, setChangePlanDialogOpen] = useState(false);
   const {
     toast
   } = useToast();
@@ -273,9 +275,22 @@ export const PaymentSettings = () => {
       {/* Current Plan Card */}
       <Card className={`${planConfig.borderClass} ${planConfig.bgClass}`}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Crown className={`h-5 w-5 ${planConfig.colorClass}`} />
-            Aktuell plan: {planConfig.name}
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Crown className={`h-5 w-5 ${planConfig.colorClass}`} />
+              Aktuell plan: {planConfig.name}
+            </div>
+            {billingInfo?.hasPaymentMethod && !isNativeApp() && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setChangePlanDialogOpen(true)}
+                className="flex items-center gap-1"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Byt plan
+              </Button>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -291,6 +306,14 @@ export const PaymentSettings = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Change Plan Dialog */}
+      <ChangePlanDialog
+        open={changePlanDialogOpen}
+        onOpenChange={setChangePlanDialogOpen}
+        currentPlan={currentPlan}
+        onPlanChanged={fetchBillingInfo}
+      />
 
       {/* Trial Status */}
       {billingInfo?.trial?.isInTrial && <Card className="border-primary/20 bg-card">
