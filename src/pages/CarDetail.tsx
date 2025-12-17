@@ -29,6 +29,7 @@ import { trackUsage } from "@/lib/usageTracking";
 import { CarDetailSkeleton } from "@/components/CarDetailSkeleton";
 import { useHaptics } from "@/hooks/useHaptics";
 import { nativeShare } from "@/lib/nativeCapabilities";
+import { analytics } from "@/lib/analytics";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -501,6 +502,17 @@ const CarDetail = () => {
           // Track usage for this edited image
           try {
             await trackUsage("edited_image", car!.id);
+            
+            // Track analytics - check if first edited image
+            const { count } = await supabase
+              .from("photos")
+              .select("*", { count: "exact", head: true })
+              .eq("is_edited", true);
+            
+            if (count === 1) {
+              analytics.firstImageEdited();
+            }
+            analytics.imageEdited(car!.id);
           } catch (error) {
             console.error("Error tracking usage:", error);
           }
@@ -608,6 +620,7 @@ const CarDetail = () => {
         // Track usage for this regenerated image (counts as billable edit)
         try {
           await trackUsage("edited_image", car!.id);
+          analytics.imageRegenerated(car!.id);
         } catch (error) {
           console.error("Error tracking usage for regeneration:", error);
         }

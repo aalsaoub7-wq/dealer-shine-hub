@@ -5,6 +5,7 @@ import { Loader2, Crown, ArrowRight, ArrowUp, ArrowDown, Calendar } from "lucide
 import { PLANS, PlanType } from "@/lib/usageTracking";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { analytics } from "@/lib/analytics";
 
 // Plan tier order for determining upgrade vs downgrade
 const PLAN_TIERS: Record<PlanType, number> = { start: 1, pro: 2, elit: 3 };
@@ -54,6 +55,9 @@ export const ChangePlanDialog = ({
       });
 
       if (error) throw error;
+
+      // Track analytics
+      analytics.planChanged(currentPlan, selectedPlan, changeType === 'upgrade');
 
       const message = changeType === 'upgrade' 
         ? `Din plan har uppgraderats till ${PLANS[selectedPlan].name}`
