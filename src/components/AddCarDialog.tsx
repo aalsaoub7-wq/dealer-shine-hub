@@ -14,6 +14,7 @@ import { trackUsage } from "@/lib/usageTracking";
 import LicensePlateInput from "./LicensePlateInput";
 import { addCarSchema, type AddCarFormData } from "@/lib/validation";
 import { Input } from "@/components/ui/input";
+import { analytics } from "@/lib/analytics";
 
 interface AddCarDialogProps {
   open: boolean;
@@ -77,15 +78,26 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
       if (companyError) throw companyError;
 
       // Insert car with registration number and name
-      const { error: insertError } = await supabase.from("cars").insert({
+      const { data: newCar, error: insertError } = await supabase.from("cars").insert({
         make: carName,
         model: "",
         year: new Date().getFullYear(),
         registration_number: registrationNumber,
         company_id: userCompany.company_id,
-      });
+      }).select().single();
 
       if (insertError) throw insertError;
+
+      // Track analytics - check if first car
+      const { count } = await supabase
+        .from("cars")
+        .select("*", { count: "exact", head: true })
+        .eq("company_id", userCompany.company_id);
+      
+      if (count === 1) {
+        analytics.firstCarAdded();
+      }
+      analytics.carAdded(newCar.id);
 
       toast({ title: "Bil skapad!" });
       onCarAdded();

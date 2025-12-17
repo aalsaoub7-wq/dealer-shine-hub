@@ -10,6 +10,7 @@ import { PLANS, PlanType } from "@/lib/usageTracking";
 import { openExternalUrl } from "@/lib/nativeCapabilities";
 import { isNativeApp } from "@/lib/utils";
 import { ChangePlanDialog } from "./ChangePlanDialog";
+import { analytics } from "@/lib/analytics";
 interface PlanConfig {
   name: string;
   monthlyFee: number;
@@ -88,6 +89,8 @@ export const PaymentSettings = () => {
       return data?.role;
     }
   });
+  const previousPaymentMethodRef = useRef<boolean | null>(null);
+  
   const fetchBillingInfo = async () => {
     try {
       setLoading(true);
@@ -98,6 +101,13 @@ export const PaymentSettings = () => {
         error
       } = await supabase.functions.invoke("get-billing-info");
       if (error) throw error;
+      
+      // Track payment method added event
+      if (data.hasPaymentMethod && previousPaymentMethodRef.current === false) {
+        analytics.paymentMethodAdded();
+      }
+      previousPaymentMethodRef.current = data.hasPaymentMethod ?? null;
+      
       setBillingInfo(data);
 
       // Set selected plan from billing info
@@ -133,6 +143,10 @@ export const PaymentSettings = () => {
   const createStripeCustomer = async (plan: PlanType = 'start') => {
     try {
       setCreatingCustomer(true);
+      
+      // Track plan selection
+      analytics.planSelected(plan);
+      
       const {
         data,
         error

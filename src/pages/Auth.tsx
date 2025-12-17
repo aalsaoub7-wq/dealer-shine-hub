@@ -11,6 +11,7 @@ import { z } from "zod";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { analytics, identifyUser } from "@/lib/analytics";
 
 const authSchema = z.object({
   email: z
@@ -134,11 +135,18 @@ const Auth = () => {
       }
 
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: loginData, error } = await supabase.auth.signInWithPassword({
           email: validation.data.email,
           password: validation.data.password,
         });
         if (error) throw error;
+        
+        // Track login
+        if (loginData.user) {
+          identifyUser(loginData.user.id, { email: validation.data.email });
+          analytics.userLoggedIn('email');
+        }
+        
         toast({ title: "Välkommen tillbaka!" });
         // Redirect to verify to check verification status
         navigate("/verify");
@@ -240,6 +248,15 @@ const Auth = () => {
             });
           } catch (err) {
             console.error("Error sending verification email:", err);
+          }
+        }
+
+        // Track signup
+        if (authData.user) {
+          identifyUser(authData.user.id, { email: validation.data.email });
+          analytics.userSignedUp('email', selectedPlan, !!inviteCode);
+          if (!inviteCode) {
+            analytics.trialStarted(selectedPlan);
           }
         }
 

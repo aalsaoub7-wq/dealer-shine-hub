@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { TrialExpiredPaywall } from "@/components/TrialExpiredPaywall";
+import { identifyUser, resetAnalytics, analytics } from "@/lib/analytics";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -98,6 +99,9 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       }
 
       setIsAuthenticated(true);
+      
+      // Identify user in PostHog
+      identifyUser(session.user.id, { email: session.user.email });
 
       const isGoogle = session.user.app_metadata?.provider === "google";
       const verified = await checkVerificationWithTimeout(session.user.id, isGoogle);
@@ -112,6 +116,10 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         if (isMountedRef.current) {
           setShowPaywall(needsPaywall);
           setPaywallChecked(true);
+          // Track trial expired if showing paywall
+          if (needsPaywall) {
+            analytics.trialExpired();
+          }
         }
       } else {
         setPaywallChecked(true);
@@ -133,6 +141,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         setIsVerified(null);
         setShowPaywall(false);
         setPaywallChecked(true);
+        resetAnalytics();
         return;
       }
 
