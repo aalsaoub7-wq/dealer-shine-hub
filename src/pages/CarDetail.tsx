@@ -244,6 +244,8 @@ const CarDetail = () => {
       title: "Nedladdning klar",
       description: `${photosToDownload.length} bild(er) laddades ned`,
     });
+    
+    analytics.imageDownloaded(car!.id, photosToDownload.length, 'car_detail');
   };
 
   const handleSharePhotos = async (photoIds: string[]) => {

@@ -11,10 +11,15 @@ import { TypewriterText } from "@/components/TypewriterText";
 import { ExclusiveProgram } from "@/components/ExclusiveProgram";
 import { StatsParallaxSection } from "@/components/StatsParallaxSection";
 import LogoMarquee from "@/components/LogoMarquee";
+import { analytics } from "@/lib/analytics";
 const Landing = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    analytics.landingPageVisited();
+  }, []);
+  
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);

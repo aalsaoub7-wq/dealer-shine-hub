@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import Masonry from "react-masonry-css";
 import ImageLightbox from "@/components/ImageLightbox";
 import { getOptimizedImageUrl } from "@/lib/imageOptimization";
+import { analytics } from "@/lib/analytics";
 
 interface Photo {
   id: string;
@@ -127,6 +128,8 @@ const SharedPhotos = () => {
       a.click();
       window.URL.revokeObjectURL(downloadUrl);
       document.body.removeChild(a);
+      
+      analytics.imageDownloaded(collection?.title || 'shared', 1, 'shared_photos');
     } catch (error) {
       toast({
         title: "Fel vid nedladdning",
