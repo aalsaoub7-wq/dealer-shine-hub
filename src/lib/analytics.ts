@@ -104,4 +104,14 @@ export const analytics = {
   vipDemoOpened: () => {
     trackEvent('vip_demo_opened');
   },
+  
+  // Download tracking
+  imageDownloaded: (carId: string, count: number, source: 'car_detail' | 'shared_photos') => {
+    trackEvent('image_downloaded', { car_id: carId, count, source });
+  },
+  
+  // Landing page conversion tracking
+  landingPageVisited: () => {
+    trackEvent('landing_page_visited');
+  },
 };
