@@ -2,7 +2,7 @@ import posthog from 'posthog-js';
 
 // Initialize PostHog
 export const initPostHog = () => {
-  posthog.init('phx_iPlU8wLVzmvZSLI14aUICwijlP2WcrtkzO7FrXVjE6VbUOI', {
+  posthog.init('phc_8e2BJSmj50Z826jGPid31LZG6BqWHSRtOW5Ehu9lb3I', {
     api_host: 'https://eu.i.posthog.com',
     person_profiles: 'identified_only',
     capture_pageview: true,
