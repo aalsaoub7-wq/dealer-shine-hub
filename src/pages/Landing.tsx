@@ -18,8 +18,6 @@ const Landing = () => {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     analytics.landingPageVisited();
-    // TEMPORÄRT: Skicka alla test-events till PostHog
-    analytics.sendAllTestEvents();
   }, []);
   
   useEffect(() => {
