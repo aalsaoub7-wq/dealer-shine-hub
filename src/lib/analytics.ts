@@ -114,4 +114,25 @@ export const analytics = {
   landingPageVisited: () => {
     trackEvent('landing_page_visited');
   },
+  
+  // Test function to register all events in PostHog
+  sendAllTestEvents: () => {
+    trackEvent('user_signed_up', { method: 'test' });
+    trackEvent('user_logged_in', { method: 'test' });
+    trackEvent('trial_started', { plan: 'test_plan' });
+    trackEvent('trial_expired', { _test: true });
+    trackEvent('first_car_added', { car_id: 'test_car_id' });
+    trackEvent('car_added', { car_id: 'test_car_id' });
+    trackEvent('first_image_edited', { car_id: 'test_car_id' });
+    trackEvent('image_edited', { car_id: 'test_car_id', edit_type: 'test' });
+    trackEvent('image_regenerated', { car_id: 'test_car_id', photo_id: 'test_photo_id' });
+    trackEvent('image_downloaded', { car_id: 'test_car_id', count: 1, source: 'car_detail' });
+    trackEvent('payment_method_added', { _test: true });
+    trackEvent('plan_selected', { plan: 'test_plan' });
+    trackEvent('plan_changed', { from_plan: 'test_old', to_plan: 'test_new' });
+    trackEvent('landing_page_visited', { _test: true });
+    trackEvent('vip_apply_clicked', { _test: true });
+    trackEvent('vip_demo_opened', { _test: true });
+    console.log('✅ All 16 test events sent to PostHog');
+  },
 };
