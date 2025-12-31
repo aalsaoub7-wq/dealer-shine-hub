@@ -98,8 +98,27 @@ serve(async (req) => {
 
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
-        console.log("Payment failed for invoice:", invoice.id);
-        // Handle failed payment (e.g., notify user, suspend service)
+        console.log("Payment failed for invoice:", invoice.id, "Customer:", invoice.customer);
+
+        // Find subscription for this customer and mark payment as failed
+        if (invoice.subscription) {
+          const { error: updateError } = await supabaseClient
+            .from("subscriptions")
+            .update({ 
+              status: "past_due",
+              updated_at: new Date().toISOString()
+            })
+            .eq("stripe_subscription_id", invoice.subscription as string);
+
+          if (updateError) {
+            console.error("Error updating subscription to past_due:", updateError);
+          } else {
+            console.log("Subscription marked as past_due:", invoice.subscription);
+          }
+        }
+
+        // TODO: Send email notification to user about failed payment
+        // Could use Resend API here with RESEND_API_KEY secret
         break;
       }
 
