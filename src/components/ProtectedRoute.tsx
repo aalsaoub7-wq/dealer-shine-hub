@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { TrialExpiredPaywall } from "@/components/TrialExpiredPaywall";
+import { PaymentFailedPaywall } from "@/components/PaymentFailedPaywall";
 import { identifyUser, resetAnalytics, analytics } from "@/lib/analytics";
 
 interface ProtectedRouteProps {
@@ -14,6 +15,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [showPaywall, setShowPaywall] = useState<boolean>(false);
+  const [paymentFailed, setPaymentFailed] = useState<boolean>(false);
   const [paywallChecked, setPaywallChecked] = useState<boolean>(false);
   const isMountedRef = useRef(true);
   const hasCheckedRef = useRef(false);
@@ -49,13 +51,21 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       }
     };
 
-    const checkTrialAndPayment = async (): Promise<boolean> => {
+    const checkTrialAndPayment = async (): Promise<{ showPaywall: boolean; paymentFailed: boolean }> => {
       try {
         const { data, error } = await supabase.functions.invoke("get-billing-info");
-      if (error) {
-        console.error("Error checking billing info:", error);
-        return true; // Fallback: show paywall on error (safer default)
-      }
+        if (error) {
+          console.error("Error checking billing info:", error);
+          return { showPaywall: true, paymentFailed: false };
+        }
+
+        const isAdmin = data?.isAdmin ?? true;
+        
+        // Check if payment failed (past_due status) - block immediately for admins
+        const subscriptionStatus = data?.subscription?.status;
+        if (subscriptionStatus === "past_due" && isAdmin) {
+          return { showPaywall: false, paymentFailed: true };
+        }
 
         // Only show paywall if: trial is over AND no payment method AND no *valid* subscription
         const isInTrial = data?.trial?.isInTrial ?? true;
@@ -64,21 +74,18 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         const subscriptionEndMs = subscriptionPeriodEnd ? new Date(subscriptionPeriodEnd).getTime() : null;
         
         // CRITICAL: null subscriptionEndMs means NO subscription - this should NOT allow access
-        // Only allow access if there's a valid end date that hasn't passed yet
         const subscriptionStillValid =
           subscriptionEndMs !== null && !Number.isNaN(subscriptionEndMs) && subscriptionEndMs > Date.now();
-        const isAdmin = data?.isAdmin ?? true;
 
-        // Only block admins - employees should still have access (admin's responsibility)
-        // Allow through if user has valid subscription that hasn't expired OR has payment method
+        // Only block admins - employees should still have access
         if (!isInTrial && !hasPaymentMethod && !subscriptionStillValid && isAdmin) {
-          return true; // Show paywall
+          return { showPaywall: true, paymentFailed: false };
         }
 
-        return false;
+        return { showPaywall: false, paymentFailed: false };
       } catch (err) {
         console.error("Error checking trial/payment:", err);
-        return false; // Fallback: don't show paywall on error
+        return { showPaywall: false, paymentFailed: false };
       }
     };
 
@@ -113,12 +120,12 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
       // Only check paywall if verified
       if (verified && isMountedRef.current) {
-        const needsPaywall = await checkTrialAndPayment();
+        const result = await checkTrialAndPayment();
         if (isMountedRef.current) {
-          setShowPaywall(needsPaywall);
+          setShowPaywall(result.showPaywall);
+          setPaymentFailed(result.paymentFailed);
           setPaywallChecked(true);
-          // Track trial expired if showing paywall
-          if (needsPaywall) {
+          if (result.showPaywall) {
             analytics.trialExpired();
           }
         }
@@ -141,6 +148,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         setIsAuthenticated(false);
         setIsVerified(null);
         setShowPaywall(false);
+        setPaymentFailed(false);
         setPaywallChecked(true);
         resetAnalytics();
         return;
@@ -160,9 +168,10 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
       // Only check paywall if verified
       if (verified && isMountedRef.current) {
-        const needsPaywall = await checkTrialAndPayment();
+        const result = await checkTrialAndPayment();
         if (isMountedRef.current) {
-          setShowPaywall(needsPaywall);
+          setShowPaywall(result.showPaywall);
+          setPaymentFailed(result.paymentFailed);
           setPaywallChecked(true);
         }
       } else {
@@ -193,6 +202,11 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   // Logged in but not verified
   if (!isVerified) {
     return <Navigate to="/verify" replace />;
+  }
+
+  // Payment failed - immediate block (admin only)
+  if (paymentFailed) {
+    return <PaymentFailedPaywall />;
   }
 
   // Trial expired and no payment method (admin only)
