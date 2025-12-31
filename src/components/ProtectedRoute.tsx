@@ -194,11 +194,6 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  // ⚠️ TEMPORARY: Remove this block after testing PaymentFailedPaywall
-  // START TEMPORARY CODE
-  return <PaymentFailedPaywall />;
-  // END TEMPORARY CODE
-
   // Not logged in
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
