@@ -19,7 +19,6 @@ const Landing = () => {
   useEffect(() => {
     analytics.landingPageVisited();
   }, []);
-  
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -808,7 +807,7 @@ const Landing = () => {
           </div>
 
           <div className="pt-8 border-t border-border/50 text-center text-sm text-muted-foreground">
-            <p>© 2025 Luvero. Alla rättigheter förbehållna.</p>
+            <p>© 2026 Luvero. Alla rättigheter förbehållna.</p>
           </div>
         </div>
       </footer>
