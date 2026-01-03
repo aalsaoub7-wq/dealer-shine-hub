@@ -492,7 +492,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Check className="w-5 h-5 text-emerald-500" />
-                    <p className="text-sm font-bold text-emerald-600 text-center">Fixas vid behov</p>
+                    <p className="text-sm font-bold text-emerald-600 text-center">Kommer snart </p>
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <X className="w-5 h-5 text-destructive" />
