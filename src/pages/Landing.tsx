@@ -286,7 +286,7 @@ const Landing = () => {
                 <img src="/assets/app-store-badge.webp" alt="Download on App Store" className="h-10 w-auto" />
                 <img src="/assets/google-play-badge.webp" alt="Get it on Google Play" className="h-10 w-auto" />
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">Beta (Kommer Snart)   <span className="ml-1 inline-flex items-center rounded-full bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">Beta</span></h3>
+              <h3 className="text-xl font-bold text-foreground mb-3">​Finns där appar finns <span className="ml-1 inline-flex items-center rounded-full bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">Beta</span></h3>
               <p className="text-muted-foreground">
                  Luvero finns på både Play Store, App Store och Online!                        
               </p>
