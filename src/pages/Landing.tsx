@@ -634,7 +634,7 @@ const Landing = () => {
           {/* Break-even info */}
           <div className="mt-12 text-center">
             
-            <p className="text-muted-foreground text-sm mt-4 font-medium">
+            <p className="text-white/90 text-sm mt-4 font-medium">
               ✓ Prova gratis i 21 dagar eller tills du når 50 redigerade bilder
             </p>
           </div>
