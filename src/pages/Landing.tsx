@@ -635,7 +635,7 @@ const Landing = () => {
           <div className="mt-12 text-center">
             
             <p className="text-white/90 text-sm mt-4 font-medium">
-              ✓ Prova gratis i 21 dagar eller tills du når 50 redigerade bilder
+              ✓ Prova gratis i 21 dagar eller tills du når 50 bilderedigeringar
             </p>
           </div>
         </div>
