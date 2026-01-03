@@ -632,7 +632,7 @@ const Landing = () => {
           <div className="mt-12 text-center">
             
             <p className="text-muted-foreground text-sm mt-4 font-medium">
-              ✓ Inget kort behövs för testperioden (21 dagar eller 50 bilder)
+              ✓ Prova gratis i 21 dagar eller tills du når 50 redigerade bilder
             </p>
           </div>
         </div>
