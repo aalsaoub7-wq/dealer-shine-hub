@@ -561,8 +561,9 @@ const Landing = () => {
                     </div>)}
                 </div>
 
-                <Button size="lg" variant="outline" className="w-full border-green-500/50 text-green-500 hover:bg-green-500/10" onClick={() => navigate("/auth?mode=signup&plan=start")}>
-                  Prova gratis i 21 dagar
+                <Button size="lg" variant="outline" className="w-full border-green-500/50 text-green-500 hover:bg-green-500/10 flex flex-col gap-0.5 h-auto py-3" onClick={() => navigate("/auth?mode=signup&plan=start")}>
+                  <span>Prova gratis i 21 dagar</span>
+                  <span className="text-xs font-normal opacity-80">Inget kreditkort krävs.</span>
                 </Button>
               </div>
             </div>
@@ -592,8 +593,9 @@ const Landing = () => {
                     </div>)}
                 </div>
 
-                <Button size="lg" className="w-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30" onClick={() => navigate("/auth?mode=signup&plan=pro")}>
-                  Prova gratis i 21 dagar
+                <Button size="lg" className="w-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30 flex flex-col gap-0.5 h-auto py-3" onClick={() => navigate("/auth?mode=signup&plan=pro")}>
+                  <span>Prova gratis i 21 dagar</span>
+                  <span className="text-xs font-normal opacity-80">Inget kreditkort krävs.</span>
                 </Button>
               </div>
             </div>
@@ -621,8 +623,9 @@ const Landing = () => {
                     </div>)}
                 </div>
 
-                <Button size="lg" variant="outline" className="w-full border-purple-500/50 text-purple-500 hover:bg-purple-500/10" onClick={() => navigate("/auth?mode=signup&plan=elit")}>
-                  Prova gratis i 21 dagar
+                <Button size="lg" variant="outline" className="w-full border-purple-500/50 text-purple-500 hover:bg-purple-500/10 flex flex-col gap-0.5 h-auto py-3" onClick={() => navigate("/auth?mode=signup&plan=elit")}>
+                  <span>Prova gratis i 21 dagar</span>
+                  <span className="text-xs font-normal opacity-80">Inget kreditkort krävs.</span>
                 </Button>
               </div>
             </div>
