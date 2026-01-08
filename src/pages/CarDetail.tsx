@@ -455,6 +455,11 @@ const CarDetail = () => {
       // Process each photo independently without blocking
       (async () => {
         try {
+          // Fetch the static background image
+          const backgroundResponse = await fetch('/backgrounds/studio-background.jpg');
+          const backgroundBlob = await backgroundResponse.blob();
+          const backgroundFile = new File([backgroundBlob], 'studio-background.jpg', { type: 'image/jpeg' });
+
           // Call edit-photo edge function
           const response = await fetch(photo.url);
           const blob = await response.blob();
@@ -462,6 +467,7 @@ const CarDetail = () => {
 
           const formData = new FormData();
           formData.append("image_file", file);
+          formData.append("background_file", backgroundFile);
 
           const { data, error } = await supabase.functions.invoke("edit-photo", {
             body: formData,
@@ -571,8 +577,10 @@ const CarDetail = () => {
     // Process in background
     (async () => {
       try {
-        // Generate random 9-digit seed
-        const randomSeed = Math.floor(100000000 + Math.random() * 900000000).toString();
+        // Fetch the static background image
+        const backgroundResponse = await fetch('/backgrounds/studio-background.jpg');
+        const backgroundBlob = await backgroundResponse.blob();
+        const backgroundFile = new File([backgroundBlob], 'studio-background.jpg', { type: 'image/jpeg' });
 
         // Fetch ORIGINAL image
         const response = await fetch(photo.original_url!);
@@ -581,7 +589,7 @@ const CarDetail = () => {
 
         const formData = new FormData();
         formData.append("image_file", file);
-        formData.append("override_seed", randomSeed);
+        formData.append("background_file", backgroundFile);
 
         const { data, error } = await supabase.functions.invoke("edit-photo", {
           body: formData,

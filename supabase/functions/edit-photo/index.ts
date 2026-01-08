@@ -38,31 +38,22 @@ serve(async (req) => {
 
     const formData = await req.formData();
     const imageFile = formData.get("image_file");
+    const backgroundImageFile = formData.get("background_file");
 
     if (!imageFile || !(imageFile instanceof File)) {
       throw new Error("No image file provided");
     }
 
-    console.log("Processing image with PhotoRoom API:", imageFile.name);
-
-    // Fetch the static background image from public assets
-    const staticBackgroundUrl = "https://abepwxatllszoapfmccl.lovable.app/backgrounds/studio-background.jpg";
-    console.log("Fetching static background from:", staticBackgroundUrl);
-    
-    const backgroundResponse = await fetch(staticBackgroundUrl);
-    if (!backgroundResponse.ok) {
-      console.error("Failed to fetch static background:", backgroundResponse.status);
-      throw new Error("Failed to fetch static background image");
+    if (!backgroundImageFile || !(backgroundImageFile instanceof File)) {
+      throw new Error("No background file provided");
     }
-    
-    const backgroundBlob = await backgroundResponse.blob();
-    const backgroundFile = new File([backgroundBlob], "studio-background.jpg", { type: "image/jpeg" });
-    console.log("Static background fetched, size:", backgroundBlob.size);
 
-    // Create FormData for PhotoRoom API with static background
+    console.log("Processing image with PhotoRoom API:", imageFile.name);
+    console.log("Using background image:", backgroundImageFile.name, "size:", backgroundImageFile.size);
+
     const photoroomFormData = new FormData();
     photoroomFormData.append("imageFile", imageFile);
-    photoroomFormData.append("background.imageFile", backgroundFile);
+    photoroomFormData.append("background.imageFile", backgroundImageFile);
     photoroomFormData.append("background.scaling", "fill");
     photoroomFormData.append("shadow.mode", "ai.soft");
     photoroomFormData.append("outputSize", "3840x2880");
