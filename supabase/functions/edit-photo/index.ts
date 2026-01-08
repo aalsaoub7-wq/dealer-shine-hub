@@ -57,7 +57,10 @@ serve(async (req) => {
     photoroomFormData.append("background.scaling", "fill");
     photoroomFormData.append("shadow.mode", "ai.soft");
     photoroomFormData.append("outputSize", "3840x2880");
-    photoroomFormData.append("padding", "0.10");
+    photoroomFormData.append("paddingLeft", "0.10");
+    photoroomFormData.append("paddingRight", "0.10");
+    photoroomFormData.append("paddingTop", "0.15");
+    photoroomFormData.append("paddingBottom", "0.05");
     photoroomFormData.append("horizontalAlignment", "center");
     photoroomFormData.append("verticalAlignment", "center");
 
