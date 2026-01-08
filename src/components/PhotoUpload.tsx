@@ -79,8 +79,14 @@ const PhotoUpload = ({
   };
 
   const editPhotoWithAPI = async (file: File): Promise<Blob> => {
+    // Fetch the static background image
+    const backgroundResponse = await fetch('/backgrounds/studio-background.jpg');
+    const backgroundBlob = await backgroundResponse.blob();
+    const backgroundFile = new File([backgroundBlob], 'studio-background.jpg', { type: 'image/jpeg' });
+
     const formData = new FormData();
     formData.append('image_file', file);
+    formData.append('background_file', backgroundFile);
 
     const { data, error } = await supabase.functions.invoke('edit-photo', {
       body: formData,
