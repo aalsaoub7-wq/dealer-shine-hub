@@ -19,8 +19,8 @@ const defaultOptions: Required<CompositingOptions> = {
   outputHeight: 1440,  // Reduced from 2880 (maintains 4:3 ratio)
   paddingLeft: 0.10,   // 10% left margin
   paddingRight: 0.10,  // 10% right margin
-  paddingTop: 0.12,    // 12% top margin
-  paddingBottom: 0.08, // 8% bottom margin (car sits on "floor")
+  paddingTop: 0.08,    // 8% top margin
+  paddingBottom: 0.12, // 12% bottom margin (car sits on "floor")
   quality: 0.85,       // JPEG quality for smaller file size
 };
 
