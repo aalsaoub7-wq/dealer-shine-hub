@@ -11,15 +11,17 @@ export interface CompositingOptions {
   paddingRight?: number;
   paddingTop?: number;
   paddingBottom?: number;
+  quality?: number; // 0-1 for JPEG quality
 }
 
 const defaultOptions: Required<CompositingOptions> = {
-  outputWidth: 3840,
-  outputHeight: 2880,
+  outputWidth: 1920,   // Reduced from 3840 to prevent memory issues
+  outputHeight: 1440,  // Reduced from 2880 (maintains 4:3 ratio)
   paddingLeft: 0.10,   // 10%
   paddingRight: 0.10,  // 10%
   paddingTop: 0.15,    // 15%
   paddingBottom: 0.05, // 5%
+  quality: 0.85,       // JPEG quality for smaller file size
 };
 
 /**
@@ -77,18 +79,19 @@ export const compositeCarOnBackground = async (
   // Step 5: Draw transparent car on top of background
   ctx.drawImage(carImg, carX, carY, carWidth, carHeight);
 
-  // Convert canvas to PNG blob
+  // Convert canvas to JPEG blob (smaller file size than PNG)
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
         if (blob) {
+          console.log(`Composited image size: ${(blob.size / 1024).toFixed(0)}KB`);
           resolve(blob);
         } else {
           reject(new Error('Failed to create blob from canvas'));
         }
       },
-      'image/png',
-      1.0
+      'image/jpeg',
+      opts.quality
     );
   });
 };
