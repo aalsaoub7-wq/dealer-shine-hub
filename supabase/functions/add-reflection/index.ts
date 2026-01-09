@@ -44,17 +44,17 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-pro-image-preview",
+        model: "google/gemini-2.5-flash-image-preview",
         messages: [{
           role: "user",
           content: [
             {
               type: "text",
-              text: "Add a realistic hard reflection of the car on the floor. The reflection should be visible on the floor/ground surface below the car, like a mirror reflection on a polished showroom floor. Do not change anything else in the image. Keep the car, background, and lighting exactly as they are. Only add the floor reflection."
+              text: "This is a professional car dealership photo. Add a subtle mirror-like reflection of the vehicle on the polished showroom floor beneath it. Keep all other elements unchanged - maintain the exact same car, background, and lighting. Only add the floor reflection effect."
             },
             {
               type: "image_url",
-              image_url: { url: `data:image/png;base64,${imageBase64}` }
+              image_url: { url: `data:image/jpeg;base64,${imageBase64}` }
             }
           ]
         }],
