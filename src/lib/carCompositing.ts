@@ -17,8 +17,8 @@ export interface CompositingOptions {
 const defaultOptions: Required<CompositingOptions> = {
   outputWidth: 1920,   // Reduced from 3840 to prevent memory issues
   outputHeight: 1440,  // Reduced from 2880 (maintains 4:3 ratio)
-  paddingLeft: 0.05,   // 5% left margin
-  paddingRight: 0.05,  // 5% right margin
+  paddingLeft: 0.10,   // 10% left margin
+  paddingRight: 0.10,  // 10% right margin
   paddingTop: 0.15,    // 15% top margin
   paddingBottom: 0.05, // 5% bottom margin (car sits on "floor")
   quality: 0.85,       // JPEG quality for smaller file size
