@@ -483,7 +483,7 @@ const CarDetail = () => {
           // STEP 3: Add reflection using Gemini
           console.log("Step 3: Adding reflection with Gemini...");
           const reflectionFormData = new FormData();
-          reflectionFormData.append("image_file", new File([compositedBlob], "composited.png", { type: "image/png" }));
+          reflectionFormData.append("image_file", new File([compositedBlob], "composited.jpg", { type: "image/jpeg" }));
 
           const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
             body: reflectionFormData,
@@ -621,7 +621,7 @@ const CarDetail = () => {
         // STEP 3: Add reflection using Gemini
         console.log("Regenerate Step 3: Adding reflection with Gemini...");
         const reflectionFormData = new FormData();
-        reflectionFormData.append("image_file", new File([compositedBlob], "composited.png", { type: "image/png" }));
+        reflectionFormData.append("image_file", new File([compositedBlob], "composited.jpg", { type: "image/jpeg" }));
 
         const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
           body: reflectionFormData,
