@@ -3,6 +3,12 @@ project_id = "abepwxatllszoapfmccl"
 [functions.edit-photo]
 verify_jwt = true
 
+[functions.segment-car]
+verify_jwt = true
+
+[functions.add-reflection]
+verify_jwt = true
+
 [functions.blocket-sync]
 verify_jwt = true
 
@@ -55,4 +61,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.create-checkout-session]
+verify_jwt = true
+
+[functions.remove-logo-background]
 verify_jwt = true

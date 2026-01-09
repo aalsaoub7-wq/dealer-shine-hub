@@ -25,6 +25,7 @@ import PhotoGalleryDraggable from "@/components/PhotoGalleryDraggable";
 import { PlatformSyncDialog } from "@/components/PlatformSyncDialog";
 import EditCarDialog from "@/components/EditCarDialog";
 import { applyWatermark } from "@/lib/watermark";
+import { compositeCarOnBackground } from "@/lib/carCompositing";
 import { trackUsage } from "@/lib/usageTracking";
 import { CarDetailSkeleton } from "@/components/CarDetailSkeleton";
 import { useHaptics } from "@/hooks/useHaptics";
@@ -455,28 +456,44 @@ const CarDetail = () => {
       // Process each photo independently without blocking
       (async () => {
         try {
-          // Fetch the static background image
-          const backgroundResponse = await fetch('/backgrounds/studio-background.jpg');
-          const backgroundBlob = await backgroundResponse.blob();
-          const backgroundFile = new File([backgroundBlob], 'studio-background.jpg', { type: 'image/jpeg' });
-
-          // Call edit-photo edge function
+          // STEP 1: Segment - Remove background using PhotoRoom
           const response = await fetch(photo.url);
           const blob = await response.blob();
           const file = new File([blob], "photo.jpg", { type: blob.type });
 
-          const formData = new FormData();
-          formData.append("image_file", file);
-          formData.append("background_file", backgroundFile);
+          const segmentFormData = new FormData();
+          segmentFormData.append("image_file", file);
 
-          const { data, error } = await supabase.functions.invoke("edit-photo", {
-            body: formData,
+          console.log("Step 1: Calling segment-car API...");
+          const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
+            body: segmentFormData,
           });
 
-          if (error) throw error;
+          if (segmentError) throw segmentError;
+          if (!segmentData?.image) throw new Error("No image returned from segment-car");
+
+          // STEP 2: Canvas compositing - Place car on background (deterministic, free)
+          console.log("Step 2: Compositing car on background...");
+          const transparentCarUrl = `data:image/png;base64,${segmentData.image}`;
+          const compositedBlob = await compositeCarOnBackground(
+            transparentCarUrl,
+            '/backgrounds/studio-background.jpg'
+          );
+
+          // STEP 3: Add reflection using Gemini
+          console.log("Step 3: Adding reflection with Gemini...");
+          const reflectionFormData = new FormData();
+          reflectionFormData.append("image_file", new File([compositedBlob], "composited.png", { type: "image/png" }));
+
+          const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
+            body: reflectionFormData,
+          });
+
+          if (reflectionError) throw reflectionError;
+          if (!reflectionData?.image) throw new Error("No image returned from add-reflection");
 
           // Convert base64 to blob
-          const base64 = data.image;
+          const base64 = reflectionData.image;
           const binaryString = atob(base64);
           const bytes = new Uint8Array(binaryString.length);
           for (let i = 0; i < binaryString.length; i++) {
@@ -577,28 +594,44 @@ const CarDetail = () => {
     // Process in background
     (async () => {
       try {
-        // Fetch the static background image
-        const backgroundResponse = await fetch('/backgrounds/studio-background.jpg');
-        const backgroundBlob = await backgroundResponse.blob();
-        const backgroundFile = new File([backgroundBlob], 'studio-background.jpg', { type: 'image/jpeg' });
-
-        // Fetch ORIGINAL image
+        // STEP 1: Segment - Remove background using PhotoRoom
         const response = await fetch(photo.original_url!);
         const blob = await response.blob();
         const file = new File([blob], "photo.jpg", { type: blob.type });
 
-        const formData = new FormData();
-        formData.append("image_file", file);
-        formData.append("background_file", backgroundFile);
+        const segmentFormData = new FormData();
+        segmentFormData.append("image_file", file);
 
-        const { data, error } = await supabase.functions.invoke("edit-photo", {
-          body: formData,
+        console.log("Regenerate Step 1: Calling segment-car API...");
+        const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
+          body: segmentFormData,
         });
 
-        if (error) throw error;
+        if (segmentError) throw segmentError;
+        if (!segmentData?.image) throw new Error("No image returned from segment-car");
+
+        // STEP 2: Canvas compositing - Place car on background (deterministic, free)
+        console.log("Regenerate Step 2: Compositing car on background...");
+        const transparentCarUrl = `data:image/png;base64,${segmentData.image}`;
+        const compositedBlob = await compositeCarOnBackground(
+          transparentCarUrl,
+          '/backgrounds/studio-background.jpg'
+        );
+
+        // STEP 3: Add reflection using Gemini
+        console.log("Regenerate Step 3: Adding reflection with Gemini...");
+        const reflectionFormData = new FormData();
+        reflectionFormData.append("image_file", new File([compositedBlob], "composited.png", { type: "image/png" }));
+
+        const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
+          body: reflectionFormData,
+        });
+
+        if (reflectionError) throw reflectionError;
+        if (!reflectionData?.image) throw new Error("No image returned from add-reflection");
 
         // Convert base64 to blob
-        const base64 = data.image;
+        const base64 = reflectionData.image;
         const binaryString = atob(base64);
         const bytes = new Uint8Array(binaryString.length);
         for (let i = 0; i < binaryString.length; i++) {
