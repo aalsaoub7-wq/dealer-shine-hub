@@ -17,10 +17,10 @@ export interface CompositingOptions {
 const defaultOptions: Required<CompositingOptions> = {
   outputWidth: 1920,   // Reduced from 3840 to prevent memory issues
   outputHeight: 1440,  // Reduced from 2880 (maintains 4:3 ratio)
-  paddingLeft: 0.02,   // 2%
-  paddingRight: 0.02,  // 2%
-  paddingTop: 0.08,    // 8%
-  paddingBottom: 0.02, // 2%
+  paddingLeft: 0.01,   // 1% - minimal side padding
+  paddingRight: 0.01,  // 1% - minimal side padding
+  paddingTop: 0.03,    // 3% - symmetric vertical padding
+  paddingBottom: 0.03, // 3% - symmetric vertical padding
   quality: 0.85,       // JPEG quality for smaller file size
 };
 
