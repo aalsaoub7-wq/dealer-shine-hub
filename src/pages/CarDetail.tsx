@@ -638,12 +638,7 @@ const CarDetail = () => {
       return;
     }
 
-    toast({
-      title: "Regenererar bild",
-      description: photo.transparent_url 
-        ? "Bilden bearbetas med ny bakgrund..." 
-        : "Tar bort bakgrund och bearbetar...",
-    });
+    console.log("Regenerating photo:", photoId);
 
     // Mark photo as processing
     await supabase
@@ -800,10 +795,7 @@ const CarDetail = () => {
       return;
     }
 
-    toast({
-      title: "Genererar ny reflektion",
-      description: "Bilden skickas genom AI för ny reflektion...",
-    });
+    console.log("Regenerating reflection for photo:", photoId);
 
     // Mark photo as processing
     await supabase
