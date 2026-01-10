@@ -350,7 +350,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Check className="w-5 h-5 text-emerald-500" />
-                    <p className="text-sm font-bold text-emerald-600">fr. 239kr/mån
+                    <p className="text-sm font-bold text-emerald-600">fr. 349kr/mån
 (ingår)
  </p>
                   </div>
@@ -363,7 +363,7 @@ const Landing = () => {
                   <div className="text-xs font-medium">Lagerhantering</div>
                   <div className="flex flex-col items-center gap-1">
                     <Check className="w-4 h-4 text-emerald-500" />
-                    <span className="text-xs font-bold text-emerald-600 text-center">fr. 239kr/mån (ingår)</span>
+                    <span className="text-xs font-bold text-emerald-600 text-center">fr. 349kr/mån (ingår)</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
@@ -408,7 +408,7 @@ const Landing = () => {
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Check className="w-5 h-5 text-emerald-500" />
-                    <p className="text-sm font-bold text-emerald-600">fr. 0.99kr </p>
+                    <p className="text-sm font-bold text-emerald-600">fr. 1,95kr </p>
                   </div>
                   <div className="flex flex-col items-center justify-center gap-2">
                     <X className="w-5 h-5 text-destructive" />
@@ -419,7 +419,7 @@ const Landing = () => {
                   <div className="text-xs font-medium">Pris/bild</div>
                   <div className="flex flex-col items-center gap-1">
                     <Check className="w-4 h-4 text-emerald-500" />
-                    <span className="text-xs font-bold text-emerald-600">fr. 0.99kr</span>
+                    <span className="text-xs font-bold text-emerald-600">fr. 1,95kr</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <X className="w-4 h-4 text-destructive" />
@@ -548,10 +548,10 @@ const Landing = () => {
                 <h3 className="text-2xl font-bold text-green-500">Start</h3>
                 <div className="flex flex-col items-center gap-1">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-extrabold text-green-500">239 kr</span>
+                    <span className="text-4xl font-extrabold text-green-500">349 kr</span>
                     <span className="text-muted-foreground">/mån</span>
                   </div>
-                  <p className="text-lg text-muted-foreground">+ 4,95 kr per bild</p>
+                  <p className="text-lg text-muted-foreground">+ 5,95 kr per bild</p>
                 </div>
 
                 <div className="py-4 space-y-3">
@@ -583,7 +583,7 @@ const Landing = () => {
                     <span className="text-4xl font-extrabold text-blue-500">449 kr</span>
                     <span className="text-muted-foreground">/mån</span>
                   </div>
-                  <p className="text-lg text-muted-foreground">+ 1,95 kr per bild</p>
+                  <p className="text-lg text-muted-foreground">+ 2,95 kr per bild</p>
                 </div>
 
                 <div className="py-4 space-y-3">
@@ -613,7 +613,7 @@ const Landing = () => {
                     <span className="text-4xl font-extrabold text-purple-500">995 kr</span>
                     <span className="text-muted-foreground">/mån</span>
                   </div>
-                  <p className="text-lg text-muted-foreground">+ 0,99 kr per bild</p>
+                  <p className="text-lg text-muted-foreground">+ 1,95 kr per bild</p>
                 </div>
 
                 <div className="py-4 space-y-3">

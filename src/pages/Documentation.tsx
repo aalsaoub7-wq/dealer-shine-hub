@@ -140,7 +140,7 @@ const Documentation = () => {
                 <ul className="list-disc list-inside space-y-1">
                   <li>Endast huvudbilder kan AI-redigeras (inte dokumentationsbilder)</li>
                   <li>Redigerade bilder går att generera om ifall du inte tycker om de </li>
-                  <li>Varje redigerad bild kostar 4,95 kr (gratis under testperioden)</li>
+                  <li>Varje redigerad bild kostar 5,95 kr (gratis under testperioden)</li>
                   <li>Du måste ha en betalmetod registrerad efter testperioden</li>
                 </ul>
               </div>
@@ -334,9 +334,9 @@ const Documentation = () => {
               <div>
                 <h4 className="font-medium text-foreground mb-2">Prissättning</h4>
                 <ul className="list-disc list-inside space-y-1">
-                  <li><strong>Start:</strong> 239 kr/månad + 4,95 kr per AI-redigerad bild</li>
-                  <li><strong>Pro:</strong> 449 kr/månad + 1,95 kr per AI-redigerad bild</li>
-                  <li><strong>Elit:</strong> 995 kr/månad + 0,99 kr per AI-redigerad bild</li>
+                  <li><strong>Start:</strong> 349 kr/månad + 5,95 kr per AI-redigerad bild</li>
+                  <li><strong>Pro:</strong> 449 kr/månad + 2,95 kr per AI-redigerad bild</li>
+                  <li><strong>Elit:</strong> 995 kr/månad + 1,95 kr per AI-redigerad bild</li>
                   <li><strong>Extra teammedlem:</strong> Helt Gratis </li>
                 </ul>
               </div>

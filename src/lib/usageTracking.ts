@@ -6,16 +6,16 @@ export const PLANS = {
   start: {
     id: 'start',
     name: 'Start',
-    monthlyFee: 239,
-    pricePerImage: 4.95,
+    monthlyFee: 349,
+    pricePerImage: 5.95,
     color: 'green',
     colorClass: 'text-green-500',
     bgClass: 'bg-green-500/10',
     borderClass: 'border-green-500/50',
     isPopular: false,
     stripePrices: {
-      monthly: 'price_1SeML8RrATtOsqxESHwTPKKX',
-      metered: 'price_1SeML8RrATtOsqxE0BprZ0kP'
+      monthly: 'price_1So6e7RrATtOsqxEBhJWCmr1',
+      metered: 'price_1So6irRrATtOsqxE37JO8Jzh'
     },
     recommended: '< 100 bilder/månad',
     breakEvenImages: 100,
@@ -24,15 +24,15 @@ export const PLANS = {
     id: 'pro',
     name: 'Pro',
     monthlyFee: 449,
-    pricePerImage: 1.95,
+    pricePerImage: 2.95,
     color: 'blue',
     colorClass: 'text-blue-500',
     bgClass: 'bg-blue-500/10',
     borderClass: 'border-blue-500/50',
     isPopular: true,
     stripePrices: {
-      monthly: 'price_1SeML4RrATtOsqxEq6gwz4Kz',
-      metered: 'price_1SeML4RrATtOsqxEkgED2l0y'
+      monthly: 'price_1So6gdRrATtOsqxE1IpvCDQD',
+      metered: 'price_1So6jxRrATtOsqxEBuNnwcpa'
     },
     recommended: '100-500 bilder/månad',
     breakEvenImages: 500,
@@ -41,15 +41,15 @@ export const PLANS = {
     id: 'elit',
     name: 'Elit',
     monthlyFee: 995,
-    pricePerImage: 0.99,
+    pricePerImage: 1.95,
     color: 'purple',
     colorClass: 'text-purple-500',
     bgClass: 'bg-purple-500/10',
     borderClass: 'border-purple-500/50',
     isPopular: false,
     stripePrices: {
-      monthly: 'price_1SeMKzRrATtOsqxEZzSMjJTs',
-      metered: 'price_1SeMKzRrATtOsqxEgmRSvWVa'
+      monthly: 'price_1So6hGRrATtOsqxE4w8y3VPE',
+      metered: 'price_1So6lARrATtOsqxEHvYXCjbt'
     },
     recommended: '500+ bilder/månad',
     breakEvenImages: Infinity,
@@ -58,8 +58,8 @@ export const PLANS = {
 
 // Legacy export for backward compatibility
 export const PRICES = {
-  MONTHLY_FEE: 239,
-  EDITED_IMAGE: 4.95,
+  MONTHLY_FEE: 349,
+  EDITED_IMAGE: 5.95,
 };
 
 export const getPlanPricing = (plan: PlanType) => {
