@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { X, Download } from "lucide-react";
+import { X, Download, Loader2 } from "lucide-react";
+import { getOptimizedImageUrl } from "@/lib/imageOptimization";
 
 interface ImageLightboxProps {
   imageUrl: string;
@@ -9,8 +11,18 @@ interface ImageLightboxProps {
 }
 
 const ImageLightbox = ({ imageUrl, isOpen, onClose }: ImageLightboxProps) => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Optimize Supabase images for faster loading
+  const optimizedUrl = getOptimizedImageUrl(imageUrl, { 
+    width: 1920, 
+    quality: 85,
+    resize: 'contain'
+  });
+
   const handleDownload = async () => {
     try {
+      // Download original quality image
       const response = await fetch(imageUrl);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -26,10 +38,18 @@ const ImageLightbox = ({ imageUrl, isOpen, onClose }: ImageLightboxProps) => {
     }
   };
 
+  // Reset loading state when dialog opens with new image
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose();
+    }
+    setIsLoading(true);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-background/95 backdrop-blur">
-        <div className="relative w-full h-full flex items-center justify-center">
+        <div className="relative w-full h-full flex items-center justify-center min-h-[50vh]">
           <Button
             variant="ghost"
             size="icon"
@@ -46,10 +66,21 @@ const ImageLightbox = ({ imageUrl, isOpen, onClose }: ImageLightboxProps) => {
           >
             <Download className="w-5 h-5" />
           </Button>
+          
+          {/* Loading spinner */}
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          )}
+          
           <img
-            src={imageUrl}
+            src={optimizedUrl}
             alt="Förstorad bild"
-            className="max-w-full max-h-[90vh] object-contain"
+            className={`max-w-full max-h-[90vh] object-contain transition-opacity duration-300 ${
+              isLoading ? 'opacity-0' : 'opacity-100'
+            }`}
+            onLoad={() => setIsLoading(false)}
           />
         </div>
       </DialogContent>
