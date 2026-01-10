@@ -145,16 +145,16 @@ serve(async (req) => {
             // Plan pricing configuration
             const PLAN_PRICES: Record<string, { monthly: string; metered: string }> = {
               start: {
-                monthly: 'price_1SeML8RrATtOsqxESHwTPKKX',
-                metered: 'price_1SeML8RrATtOsqxE0BprZ0kP'
+                monthly: 'price_1So6e7RrATtOsqxEBhJWCmr1',
+                metered: 'price_1So6irRrATtOsqxE37JO8Jzh'
               },
               pro: {
-                monthly: 'price_1SeML4RrATtOsqxEq6gwz4Kz',
-                metered: 'price_1SeML4RrATtOsqxEkgED2l0y'
+                monthly: 'price_1So6gdRrATtOsqxE1IpvCDQD',
+                metered: 'price_1So6jxRrATtOsqxEBuNnwcpa'
               },
               elit: {
-                monthly: 'price_1SeMKzRrATtOsqxEZzSMjJTs',
-                metered: 'price_1SeMKzRrATtOsqxEgmRSvWVa'
+                monthly: 'price_1So6hGRrATtOsqxE4w8y3VPE',
+                metered: 'price_1So6lARrATtOsqxEHvYXCjbt'
               }
             };
 
