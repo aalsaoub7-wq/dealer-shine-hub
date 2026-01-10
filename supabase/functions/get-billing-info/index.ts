@@ -16,20 +16,20 @@ const corsHeaders = {
 const PLAN_PRICING = {
   start: {
     name: 'Start',
-    monthlyFee: 239,
-    pricePerImage: 4.95,
+    monthlyFee: 349,
+    pricePerImage: 5.95,
     color: 'green',
   },
   pro: {
     name: 'Pro',
     monthlyFee: 449,
-    pricePerImage: 1.95,
+    pricePerImage: 2.95,
     color: 'blue',
   },
   elit: {
     name: 'Elit',
     monthlyFee: 995,
-    pricePerImage: 0.99,
+    pricePerImage: 1.95,
     color: 'purple',
   },
 };
