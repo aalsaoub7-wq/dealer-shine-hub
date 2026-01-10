@@ -20,15 +20,15 @@ import { TeamManagement } from "./TeamManagement";
 import { AccountSettings } from "./AccountSettings";
 import { useQuery } from "@tanstack/react-query";
 
-// Static background templates
+// Static background templates with optimized thumbnails
 const STATIC_BACKGROUNDS = [
-  { id: 'studio-background', name: 'Standard Studio', description: 'Vit vägg, grått golv', image: '/backgrounds/studio-background.jpg' },
-  { id: 'curved-studio', name: 'Böjd Studio', description: 'Mjukt böjd vägg', image: '/backgrounds/curved-studio.jpg' },
-  { id: 'ceiling-lights', name: 'Taklampor', description: 'Studio med taklampor', image: '/backgrounds/ceiling-lights.jpg' },
-  { id: 'dark-studio', name: 'Mörk Studio', description: 'Helt mörk miljö', image: '/backgrounds/dark-studio.jpg' },
-  { id: 'dark-walls-light-floor', name: 'Mörka Väggar', description: 'Mörka väggar, ljust golv', image: '/backgrounds/dark-walls-light-floor.jpg' },
-  { id: 'gallery', name: 'Galleri', description: 'Galleri-stil med paneler', image: '/backgrounds/gallery.jpg' },
-  { id: 'panel-wall', name: 'Panelvägg', description: 'Rak panelvägg', image: '/backgrounds/panel-wall.jpg' },
+  { id: 'studio-background', name: 'Standard Studio', description: 'Vit vägg, grått golv', image: '/backgrounds/studio-background.jpg', thumbnail: '/backgrounds/thumbnails/studio-background-thumb.jpg' },
+  { id: 'curved-studio', name: 'Böjd Studio', description: 'Mjukt böjd vägg', image: '/backgrounds/curved-studio.jpg', thumbnail: '/backgrounds/thumbnails/curved-studio-thumb.jpg' },
+  { id: 'ceiling-lights', name: 'Taklampor', description: 'Studio med taklampor', image: '/backgrounds/ceiling-lights.jpg', thumbnail: '/backgrounds/thumbnails/ceiling-lights-thumb.jpg' },
+  { id: 'dark-studio', name: 'Mörk Studio', description: 'Helt mörk miljö', image: '/backgrounds/dark-studio.jpg', thumbnail: '/backgrounds/thumbnails/dark-studio-thumb.jpg' },
+  { id: 'dark-walls-light-floor', name: 'Mörka Väggar', description: 'Mörka väggar, ljust golv', image: '/backgrounds/dark-walls-light-floor.jpg', thumbnail: '/backgrounds/thumbnails/dark-walls-light-floor-thumb.jpg' },
+  { id: 'gallery', name: 'Galleri', description: 'Galleri-stil med paneler', image: '/backgrounds/gallery.jpg', thumbnail: '/backgrounds/thumbnails/gallery-thumb.jpg' },
+  { id: 'panel-wall', name: 'Panelvägg', description: 'Rak panelvägg', image: '/backgrounds/panel-wall.jpg', thumbnail: '/backgrounds/thumbnails/panel-wall-thumb.jpg' },
 ];
 
 export const AiSettingsDialog = () => {
@@ -378,7 +378,7 @@ export const AiSettingsDialog = () => {
                       onClick={() => setSelectedBackgroundId(bg.id)}
                     >
                       <div className="aspect-video mb-2 overflow-hidden rounded-md bg-muted">
-                        <img src={bg.image} alt={bg.name} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                        <img src={bg.thumbnail} alt={bg.name} className="h-full w-full object-cover" loading="eager" decoding="async" />
                       </div>
                       <div className="flex items-start justify-between">
                         <div>
