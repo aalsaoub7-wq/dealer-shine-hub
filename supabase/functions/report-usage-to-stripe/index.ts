@@ -86,9 +86,9 @@ serve(async (req) => {
     
     // Get the unit amount based on plan (in öre/cents)
     const planPricing: Record<string, number> = {
-      start: 495,  // 4.95 SEK
-      pro: 195,    // 1.95 SEK
-      elit: 99,    // 0.99 SEK
+      start: 595,  // 5.95 SEK
+      pro: 295,    // 2.95 SEK
+      elit: 195,   // 1.95 SEK
     };
     
     const plan = subscription.plan || 'start';
