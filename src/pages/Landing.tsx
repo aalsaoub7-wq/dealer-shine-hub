@@ -55,8 +55,8 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => scrollToSection('hero')}>
-              <img src={luveroLogo} alt="Luvero" className="h-8 w-8" />
-              <img src={luveroLogoText} alt="Luvero" className="h-5" />
+              <img src={luveroLogo} alt="" className="h-8 w-8" />
+              <img src={luveroLogoText} alt="" className="h-5" />
             </div>
 
             {/* Desktop Navigation */}
@@ -283,8 +283,8 @@ const Landing = () => {
             {/* Feature 6 */}
             <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
               <div className="flex gap-2 mb-4">
-                <img src="/assets/app-store-badge.webp" alt="Download on App Store" className="h-10 w-auto" />
-                <img src="/assets/google-play-badge.webp" alt="Get it on Google Play" className="h-10 w-auto" />
+                <img src="/assets/app-store-badge.webp" alt="" className="h-10 w-auto" />
+                <img src="/assets/google-play-badge.webp" alt="" className="h-10 w-auto" />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">​Finns där appar finns <span className="ml-1 inline-flex items-center rounded-full bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">Beta (Kommer Snart)</span></h3>
               <p className="text-muted-foreground">
@@ -321,10 +321,10 @@ const Landing = () => {
                   </p>
                 </div>
                 <div className="flex flex-col items-center justify-center gap-2">
-                  <img src={luveroLogo} alt="Luvero" className="h-16 w-auto object-contain" />
+                  <img src={luveroLogo} alt="" className="h-16 w-auto object-contain" />
                 </div>
                 <div className="flex flex-col items-center justify-center gap-2">
-                  <img alt="Adstuff" className="h-16 w-auto object-contain" src="/lovable-uploads/d55ff891-abe9-49b9-8998-689e97634ff1.png" />
+                  <img alt="" className="h-16 w-auto object-contain" src="/lovable-uploads/d55ff891-abe9-49b9-8998-689e97634ff1.png" />
                 </div>
               </div>
 
@@ -332,7 +332,7 @@ const Landing = () => {
               <div className="md:hidden grid grid-cols-3 gap-3 p-4 border-b border-border/50">
                 <div className="text-xs font-semibold text-muted-foreground uppercase">Funktion</div>
                 <div className="flex flex-col items-center gap-1">
-                  <img src={luveroLogo} alt="Luvero" className="h-8 object-contain" />
+                  <img src={luveroLogo} alt="" className="h-8 object-contain" />
                 </div>
                 <div className="flex flex-col items-center gap-1">
                   <img alt="Adstuff" className="h-8 object-contain" src="/lovable-uploads/dbac4fbf-0459-4356-a5d7-8c0f1643129b.png" />
@@ -749,8 +749,8 @@ const Landing = () => {
             {/* Column 1 - Brand */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <img src={luveroLogo} alt="Luvero" className="h-6 w-6" />
-                <img src={luveroLogoText} alt="Luvero" className="h-4" />
+                <img src={luveroLogo} alt="" className="h-6 w-6" />
+                <img src={luveroLogoText} alt="" className="h-4" />
               </div>
               <p className="text-sm text-muted-foreground">
                 Professionell bildredigering för återförsäljare. Snabbt, enkelt, och prisvärt.
