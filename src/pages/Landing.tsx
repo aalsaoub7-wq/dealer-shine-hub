@@ -700,7 +700,7 @@ const Landing = () => {
                 Hur fungerar den kostnadsfria testperioden?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Du får prova alla funktioner gratis i 21 dagar eller tills du når 50 redigerade bilder (det som inträffar först). Ingen bindningstid och inget kreditkort krävs. Efter testperioden betalar du för din valda plan: Start (239 kr/mån + 4,95 kr/bild), Pro (449 kr/mån + 1,95 kr/bild) eller Elit (995 kr/mån + 0,99 kr/bild).
+                Du får prova alla funktioner gratis i 21 dagar eller tills du når 50 redigerade bilder (det som inträffar först). Ingen bindningstid och inget kreditkort krävs. Efter testperioden betalar du för din valda plan: Start (349 kr/mån + 5,95 kr/bild), Pro (449 kr/mån + 2,95 kr/bild) eller Elit (995 kr/mån + 1,95 kr/bild).
               </AccordionContent>
             </AccordionItem>
 

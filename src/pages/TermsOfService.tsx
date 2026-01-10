@@ -74,8 +74,8 @@ const TermsOfService = () => {
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
               <li><strong>Testperiod:</strong> 21 dagar gratis med 150 bildredigeringar inkluderade</li>
-              <li><strong>Månadsavgift:</strong> 239 kr per månad</li>
-              <li><strong>AI-redigering:</strong> 4,95 kr per redigerad bild</li>
+              <li><strong>Månadsavgift:</strong> Från 349 kr per månad (beroende på plan)</li>
+              <li><strong>AI-redigering:</strong> Från 1,95 kr per redigerad bild (beroende på plan)</li>
               <li><strong>Lagerhållning:</strong> Gratis och obegränsat</li>
               <li><strong>Teammedlemmar:</strong> Gratis och obegränsat</li>
             </ul>
