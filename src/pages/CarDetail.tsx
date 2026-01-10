@@ -111,6 +111,8 @@ const CarDetail = () => {
     transparentCarUrl: string;
   } | null>(null);
   const [positionEditorSaving, setPositionEditorSaving] = useState(false);
+  // Background template state
+  const [backgroundUrl, setBackgroundUrl] = useState<string>("/backgrounds/studio-background.jpg");
   const { toast } = useToast();
   const { lightImpact, successNotification } = useHaptics();
   const fetchDebounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -119,6 +121,7 @@ const CarDetail = () => {
     if (id) {
       fetchCarData();
       checkPaymentMethod();
+      fetchBackgroundSettings();
 
       // Set up realtime subscription for photo updates
       const channel = supabase
@@ -151,6 +154,33 @@ const CarDetail = () => {
       };
     }
   }, [id]);
+
+  const fetchBackgroundSettings = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: companyData } = await supabase
+        .from("user_companies")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!companyData) return;
+
+      const { data: settings } = await supabase
+        .from("ai_settings")
+        .select("background_template_id")
+        .eq("company_id", companyData.company_id)
+        .single();
+
+      if (settings?.background_template_id) {
+        setBackgroundUrl(`/backgrounds/${settings.background_template_id}.jpg`);
+      }
+    } catch (error) {
+      console.error("Error fetching background settings:", error);
+    }
+  };
 
   const checkPaymentMethod = async () => {
     try {
@@ -504,7 +534,7 @@ const CarDetail = () => {
           const transparentCarUrl = `data:image/png;base64,${segmentData.image}`;
           const compositedBlob = await compositeCarOnBackground(
             transparentCarUrl,
-            '/backgrounds/studio-background.jpg'
+            backgroundUrl
           );
 
           // STEP 3: Add reflection using Gemini
@@ -678,7 +708,7 @@ const CarDetail = () => {
         console.log("Regenerate Step 2: Compositing car on background...");
         const compositedBlob = await compositeCarOnBackground(
           transparentCarUrl,
-          '/backgrounds/studio-background.jpg'
+          backgroundUrl
         );
 
         // STEP 3: Add reflection using Gemini
@@ -1420,7 +1450,7 @@ const CarDetail = () => {
         open={!!positionEditorPhoto}
         onOpenChange={(open) => !open && setPositionEditorPhoto(null)}
         transparentCarUrl={positionEditorPhoto?.transparentCarUrl || ""}
-        backgroundUrl="/backgrounds/studio-background.jpg"
+        backgroundUrl={backgroundUrl}
         onSave={handlePositionEditorSave}
         isSaving={positionEditorSaving}
       />
