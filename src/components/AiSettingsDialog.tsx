@@ -19,16 +19,25 @@ import { PaymentSettings } from "./PaymentSettings";
 import { TeamManagement } from "./TeamManagement";
 import { AccountSettings } from "./AccountSettings";
 import { useQuery } from "@tanstack/react-query";
+import { CustomStudioDialog } from "./CustomStudioDialog";
 
 // Static background templates with optimized thumbnails
-const STATIC_BACKGROUNDS = [
-  { id: 'studio-background', name: 'Standard Studio', description: 'Vit vägg, grått golv', image: '/backgrounds/studio-background.jpg', thumbnail: '/backgrounds/thumbnails/studio-background-thumb.jpg' },
+const STATIC_BACKGROUNDS: Array<{
+  id: string;
+  name: string;
+  description: string;
+  image?: string;
+  thumbnail?: string;
+  isCustom?: boolean;
+}> = [
   { id: 'curved-studio', name: 'Böjd Studio', description: 'Mjukt böjd vägg', image: '/backgrounds/curved-studio.jpg', thumbnail: '/backgrounds/thumbnails/curved-studio-thumb.jpg' },
   { id: 'ceiling-lights', name: 'Taklampor', description: 'Studio med taklampor', image: '/backgrounds/ceiling-lights.jpg', thumbnail: '/backgrounds/thumbnails/ceiling-lights-thumb.jpg' },
   { id: 'dark-studio', name: 'Mörk Studio', description: 'Helt mörk miljö', image: '/backgrounds/dark-studio.jpg', thumbnail: '/backgrounds/thumbnails/dark-studio-thumb.jpg' },
   { id: 'dark-walls-light-floor', name: 'Mörka Väggar', description: 'Mörka väggar, ljust golv', image: '/backgrounds/dark-walls-light-floor.jpg', thumbnail: '/backgrounds/thumbnails/dark-walls-light-floor-thumb.jpg' },
   { id: 'gallery', name: 'Galleri', description: 'Galleri-stil med paneler', image: '/backgrounds/gallery.jpg', thumbnail: '/backgrounds/thumbnails/gallery-thumb.jpg' },
   { id: 'panel-wall', name: 'Panelvägg', description: 'Rak panelvägg', image: '/backgrounds/panel-wall.jpg', thumbnail: '/backgrounds/thumbnails/panel-wall-thumb.jpg' },
+  { id: 'studio-background', name: 'Standard Studio', description: 'Vit vägg, grått golv', image: '/backgrounds/studio-background.jpg', thumbnail: '/backgrounds/thumbnails/studio-background-thumb.jpg' },
+  { id: 'custom-studio', name: 'Custom Studio', description: 'Skräddarsydd studio', isCustom: true },
 ];
 
 export const AiSettingsDialog = () => {
@@ -60,6 +69,7 @@ export const AiSettingsDialog = () => {
   const [uploadingHeaderImage, setUploadingHeaderImage] = useState(false);
   const [loading, setLoading] = useState(false);
   const [removingLogoBg, setRemovingLogoBg] = useState(false);
+  const [customStudioDialogOpen, setCustomStudioDialogOpen] = useState(false);
   
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -367,23 +377,42 @@ export const AiSettingsDialog = () => {
                     <div
                       key={bg.id}
                       className={`relative cursor-pointer rounded-lg border-2 p-3 transition-all hover:border-primary ${
-                        selectedBackgroundId === bg.id ? "border-primary bg-primary/5" : "border-border"
-                      }`}
-                      onClick={() => setSelectedBackgroundId(bg.id)}
+                        selectedBackgroundId === bg.id && !bg.isCustom ? "border-primary bg-primary/5" : "border-border"
+                      } ${bg.isCustom ? "border-dashed" : ""}`}
+                      onClick={() => {
+                        if (bg.isCustom) {
+                          setCustomStudioDialogOpen(true);
+                        } else {
+                          setSelectedBackgroundId(bg.id);
+                        }
+                      }}
                     >
-                      <div className="aspect-video mb-2 overflow-hidden rounded-md bg-muted">
-                        <img src={bg.thumbnail} alt={bg.name} className="h-full w-full object-cover" loading="eager" decoding="async" />
-                      </div>
+                      {bg.isCustom ? (
+                        <div className="aspect-video mb-2 overflow-hidden rounded-md bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                          <span className="text-white font-medium text-sm">Din logotyp här</span>
+                        </div>
+                      ) : (
+                        <div className="aspect-video mb-2 overflow-hidden rounded-md bg-muted">
+                          <img src={bg.thumbnail} alt={bg.name} className="h-full w-full object-cover" loading="eager" decoding="async" />
+                        </div>
+                      )}
                       <div className="flex items-start justify-between">
                         <div>
                           <h4 className="font-medium text-sm">{bg.name}</h4>
-                          <p className="text-xs text-muted-foreground">{bg.description}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {bg.isCustom ? "Från 299 kr" : bg.description}
+                          </p>
                         </div>
-                        {selectedBackgroundId === bg.id && <Check className="h-5 w-5 text-primary flex-shrink-0" />}
+                        {selectedBackgroundId === bg.id && !bg.isCustom && <Check className="h-5 w-5 text-primary flex-shrink-0" />}
                       </div>
                     </div>
                   ))}
                 </div>
+
+                <CustomStudioDialog 
+                  open={customStudioDialogOpen} 
+                  onOpenChange={setCustomStudioDialogOpen} 
+                />
               </div>
             </TabsContent>
 
