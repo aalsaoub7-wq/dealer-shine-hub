@@ -36,7 +36,6 @@ const STATIC_BACKGROUNDS: Array<{
   { id: 'dark-walls-light-floor', name: 'Mörka Väggar', description: 'Mörka väggar, ljust golv', image: '/backgrounds/dark-walls-light-floor.jpg', thumbnail: '/backgrounds/thumbnails/dark-walls-light-floor-thumb.jpg' },
   { id: 'gallery', name: 'Galleri', description: 'Galleri-stil med paneler', image: '/backgrounds/gallery.jpg', thumbnail: '/backgrounds/thumbnails/gallery-thumb.jpg' },
   { id: 'panel-wall', name: 'Panelvägg', description: 'Rak panelvägg', image: '/backgrounds/panel-wall.jpg', thumbnail: '/backgrounds/thumbnails/panel-wall-thumb.jpg' },
-  { id: 'studio-background', name: 'Standard Studio', description: 'Vit vägg, grått golv', image: '/backgrounds/studio-background.jpg', thumbnail: '/backgrounds/thumbnails/studio-background-thumb.jpg' },
   { id: 'custom-studio', name: 'Custom Studio', description: 'Skräddarsydd studio', isCustom: true },
 ];
 
