@@ -194,7 +194,7 @@ export const ExclusiveProgram = () => {
           className={`hidden md:block transition-all duration-1000 animate-vip-float ${isInView ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"}`} 
           style={{ transitionDelay: "600ms", animationDelay: "0.3s", filter: "drop-shadow(0 0 35px rgba(249,115,22,0.5))" }}
         >
-          <img src={blocketLogo} alt="Blocket" className="h-32 w-auto object-contain" />
+          <img src={blocketLogo} alt="" className="h-32 w-auto object-contain" />
         </div>
         
         {/* Facebook Marketplace logo - right, bigger, no frame, smooth float */}
@@ -202,7 +202,7 @@ export const ExclusiveProgram = () => {
           className={`hidden md:block transition-all duration-1000 animate-vip-float ${isInView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"}`} 
           style={{ transitionDelay: "800ms", animationDelay: "0.8s", filter: "drop-shadow(0 0 35px rgba(59,130,246,0.5))" }}
         >
-          <img src={fbmLogo} alt="Facebook Marketplace" className="h-32 w-auto object-contain" />
+          <img src={fbmLogo} alt="" className="h-32 w-auto object-contain" />
         </div>
       </div>
 
@@ -215,7 +215,7 @@ export const ExclusiveProgram = () => {
         <div
           className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md bg-gradient-to-r from-red-500/25 to-orange-500/25 border border-red-500/40 mb-8 transition-all duration-700 shadow-[0_0_30px_rgba(255,59,59,0.3)] ${isInView ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"}`}
         >
-          <img src={luveroLogo} alt="Luvero" className="h-5 w-5 object-contain" />
+          <img src={luveroLogo} alt="" className="h-5 w-5 object-contain" />
           <span className="text-lg font-bold text-white animate-vip-shine leading-none">
             Lorbit AI
           </span>
@@ -233,10 +233,10 @@ export const ExclusiveProgram = () => {
             {/* Mobile logos */}
             <div className="flex justify-center gap-4 mb-6 md:hidden">
               <div className="p-3 rounded-xl backdrop-blur-md bg-black/30 border border-orange-500/20">
-                <img src={blocketLogo} alt="Blocket" className="h-6 w-auto" />
+                <img src={blocketLogo} alt="" className="h-6 w-auto" />
               </div>
               <div className="p-3 rounded-xl backdrop-blur-md bg-black/30 border border-blue-500/20">
-                <img src={fbmLogo} alt="Facebook Marketplace" className="h-6 w-auto" />
+                <img src={fbmLogo} alt="" className="h-6 w-auto" />
               </div>
             </div>
 
@@ -323,7 +323,7 @@ export const ExclusiveProgram = () => {
         <DialogContent className="sm:max-w-md bg-[#0c1219]/95 backdrop-blur-xl border-white/10">
           <DialogHeader>
             <DialogTitle className="text-2xl text-white flex items-center gap-2">
-              <img src={luveroLogo} alt="Luvero" className="h-6 w-6 object-contain" />
+              <img src={luveroLogo} alt="" className="h-6 w-6 object-contain" />
               Ansök om plats
             </DialogTitle>
             <DialogDescription className="text-gray-400">

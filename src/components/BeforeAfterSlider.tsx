@@ -165,7 +165,7 @@ export const BeforeAfterSlider = () => {
       <div className="absolute inset-0">
         <img
           src={beforeImage}
-          alt="Före AI-redigering"
+          alt=""
           className="w-full h-full object-cover"
           draggable={false}
         />
@@ -183,9 +183,9 @@ export const BeforeAfterSlider = () => {
           willChange: 'clip-path',
         }}
       >
-        <img
-          src={afterImage}
-          alt="Efter AI-redigering"
+          <img
+            src={afterImage}
+            alt=""
           className="w-full h-full object-cover"
           draggable={false}
         />
