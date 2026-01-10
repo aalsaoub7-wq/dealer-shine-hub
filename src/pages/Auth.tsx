@@ -99,10 +99,6 @@ const Auth = () => {
       if (error) throw error;
 
       setResetEmailSent(true);
-      toast({
-        title: "E-post skickad",
-        description: "Om e-postadressen finns skickas ett återställningsmail.",
-      });
     } catch (error: any) {
       toast({
         title: "Fel",
@@ -147,7 +143,6 @@ const Auth = () => {
           analytics.userLoggedIn('email');
         }
         
-        toast({ title: "Välkommen tillbaka!" });
         // Redirect to verify to check verification status
         navigate("/verify");
       } else {
@@ -260,10 +255,6 @@ const Auth = () => {
           }
         }
 
-        toast({
-          title: "Konto skapat!",
-          description: "Verifiera din e-post och telefon för att fortsätta.",
-        });
         navigate("/verify");
       }
     } catch (error: any) {

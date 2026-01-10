@@ -99,7 +99,6 @@ const AddCarDialog = ({ open, onOpenChange, onCarAdded }: AddCarDialogProps) => 
       }
       analytics.carAdded(newCar.id);
 
-      toast({ title: "Bil skapad!" });
       onCarAdded();
       handleDialogChange(false);
     } catch (error: any) {

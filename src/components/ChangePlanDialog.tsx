@@ -59,15 +59,6 @@ export const ChangePlanDialog = ({
       // Track analytics
       analytics.planChanged(currentPlan, selectedPlan, changeType === 'upgrade');
 
-      const message = changeType === 'upgrade' 
-        ? `Din plan har uppgraderats till ${PLANS[selectedPlan].name}`
-        : `Din plan ändras till ${PLANS[selectedPlan].name} den ${effectiveDate}`;
-
-      toast({
-        title: changeType === 'upgrade' ? "Uppgraderad!" : "Planändring schemalagd",
-        description: message,
-      });
-
       onPlanChanged();
       onOpenChange(false);
     } catch (error: any) {

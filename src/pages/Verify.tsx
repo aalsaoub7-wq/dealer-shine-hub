@@ -89,10 +89,6 @@ export default function Verify() {
 
       if (error) throw error;
 
-      toast({
-        title: "Verifieringskod skickad",
-        description: `Vi har skickat en kod till ${user.email}`,
-      });
       setResendCooldown(60);
     } catch (error: any) {
       toast({
@@ -117,10 +113,6 @@ export default function Verify() {
       if (error) throw error;
 
       if (data.success) {
-        toast({
-          title: "E-post verifierad!",
-          description: "Nu behöver du verifiera ditt telefonnummer.",
-        });
         setStep("phone-input");
       } else {
         toast({
@@ -160,10 +152,6 @@ export default function Verify() {
         return;
       }
 
-      toast({
-        title: "SMS skickat",
-        description: `Vi har skickat en kod till ${data.phone}`,
-      });
       setStep("phone-verify");
       setResendCooldown(60);
     } catch (error: any) {
@@ -189,10 +177,6 @@ export default function Verify() {
       if (error) throw error;
 
       if (data.success) {
-        toast({
-          title: "Verifiering klar!",
-          description: "Ditt konto är nu fullständigt verifierat.",
-        });
         setStep("complete");
         setTimeout(() => navigate("/dashboard"), 1500);
       } else {
