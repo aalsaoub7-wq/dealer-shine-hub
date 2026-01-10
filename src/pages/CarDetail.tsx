@@ -72,6 +72,7 @@ interface Photo {
   is_edited: boolean;
   is_processing?: boolean;
   original_url: string | null;
+  transparent_url: string | null;
   display_order: number;
 }
 
@@ -479,6 +480,25 @@ const CarDetail = () => {
           if (segmentError) throw segmentError;
           if (!segmentData?.image) throw new Error("No image returned from segment-car");
 
+          // STEP 1.5: Cache transparent PNG to storage for future use
+          console.log("Step 1.5: Caching transparent PNG...");
+          const transparentBase64 = segmentData.image;
+          const transparentBinaryString = atob(transparentBase64);
+          const transparentBytes = new Uint8Array(transparentBinaryString.length);
+          for (let i = 0; i < transparentBinaryString.length; i++) {
+            transparentBytes[i] = transparentBinaryString.charCodeAt(i);
+          }
+          const transparentBlob = new Blob([transparentBytes], { type: "image/png" });
+          
+          const transparentFileName = `${car!.id}/transparent-${photo.id}.png`;
+          await supabase.storage
+            .from("car-photos")
+            .upload(transparentFileName, transparentBlob, { upsert: true });
+          
+          const { data: { publicUrl: transparentPublicUrl } } = supabase.storage
+            .from("car-photos")
+            .getPublicUrl(transparentFileName);
+
           // STEP 2: Canvas compositing - Place car on background (deterministic, free)
           console.log("Step 2: Compositing car on background...");
           const transparentCarUrl = `data:image/png;base64,${segmentData.image}`;
@@ -520,12 +540,13 @@ const CarDetail = () => {
             data: { publicUrl },
           } = supabase.storage.from("car-photos").getPublicUrl(editedFileName);
 
-          // Update photo - realtime will handle UI update
+          // Update photo with transparent_url cached - realtime will handle UI update
           await supabase
             .from("photos")
             .update({
               url: publicUrl,
               original_url: photo.url,
+              transparent_url: transparentPublicUrl,
               is_edited: true,
               is_processing: false,
             })
@@ -589,7 +610,9 @@ const CarDetail = () => {
 
     toast({
       title: "Regenererar bild",
-      description: "Bilden bearbetas med ny bakgrund...",
+      description: photo.transparent_url 
+        ? "Bilden bearbetas med ny bakgrund..." 
+        : "Tar bort bakgrund och bearbetar...",
     });
 
     // Mark photo as processing
@@ -601,25 +624,58 @@ const CarDetail = () => {
     // Process in background
     (async () => {
       try {
-        // STEP 1: Segment - Remove background using PhotoRoom
-        const response = await fetch(photo.original_url!);
-        const blob = await response.blob();
-        const file = new File([blob], "photo.jpg", { type: blob.type });
+        let transparentCarUrl: string;
 
-        const segmentFormData = new FormData();
-        segmentFormData.append("image_file", file);
+        // Check if we have cached transparent image
+        if (photo.transparent_url) {
+          console.log("Regenerate: Using cached transparent image");
+          transparentCarUrl = photo.transparent_url;
+        } else {
+          // STEP 1: Segment - Remove background using PhotoRoom
+          console.log("Regenerate Step 1: Calling segment-car API...");
+          const response = await fetch(photo.original_url!);
+          const blob = await response.blob();
+          const file = new File([blob], "photo.jpg", { type: blob.type });
 
-        console.log("Regenerate Step 1: Calling segment-car API...");
-        const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
-          body: segmentFormData,
-        });
+          const segmentFormData = new FormData();
+          segmentFormData.append("image_file", file);
 
-        if (segmentError) throw segmentError;
-        if (!segmentData?.image) throw new Error("No image returned from segment-car");
+          const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
+            body: segmentFormData,
+          });
+
+          if (segmentError) throw segmentError;
+          if (!segmentData?.image) throw new Error("No image returned from segment-car");
+
+          // Cache the transparent image for future use
+          const transparentBase64 = segmentData.image;
+          const transparentBinaryString = atob(transparentBase64);
+          const transparentBytes = new Uint8Array(transparentBinaryString.length);
+          for (let i = 0; i < transparentBinaryString.length; i++) {
+            transparentBytes[i] = transparentBinaryString.charCodeAt(i);
+          }
+          const transparentBlob = new Blob([transparentBytes], { type: "image/png" });
+          
+          const transparentFileName = `${car!.id}/transparent-${photo.id}.png`;
+          await supabase.storage
+            .from("car-photos")
+            .upload(transparentFileName, transparentBlob, { upsert: true });
+          
+          const { data: { publicUrl: transparentPublicUrl } } = supabase.storage
+            .from("car-photos")
+            .getPublicUrl(transparentFileName);
+
+          // Save transparent_url to database
+          await supabase
+            .from("photos")
+            .update({ transparent_url: transparentPublicUrl })
+            .eq("id", photoId);
+
+          transparentCarUrl = `data:image/png;base64,${segmentData.image}`;
+        }
 
         // STEP 2: Canvas compositing - Place car on background (deterministic, free)
         console.log("Regenerate Step 2: Compositing car on background...");
-        const transparentCarUrl = `data:image/png;base64,${segmentData.image}`;
         const compositedBlob = await compositeCarOnBackground(
           transparentCarUrl,
           '/backgrounds/studio-background.jpg'
@@ -821,29 +877,66 @@ const CarDetail = () => {
       return;
     }
 
-    toast({
-      title: "Laddar bildeditorn",
-      description: "Tar bort bakgrund från originalbild...",
-    });
-
     try {
-      // Fetch original image and run through segment-car
-      const response = await fetch(photo.original_url);
-      const blob = await response.blob();
-      const file = new File([blob], "photo.jpg", { type: blob.type });
+      let transparentCarUrl: string;
 
-      const segmentFormData = new FormData();
-      segmentFormData.append("image_file", file);
+      // Check if we have cached transparent image
+      if (photo.transparent_url) {
+        console.log("Position editor: Using cached transparent image");
+        toast({
+          title: "Laddar bildeditorn",
+          description: "Hämtar cachad bild...",
+        });
+        transparentCarUrl = photo.transparent_url;
+      } else {
+        // Need to call segment-car API
+        toast({
+          title: "Laddar bildeditorn",
+          description: "Tar bort bakgrund från originalbild...",
+        });
 
-      const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
-        body: segmentFormData,
-      });
+        const response = await fetch(photo.original_url);
+        const blob = await response.blob();
+        const file = new File([blob], "photo.jpg", { type: blob.type });
 
-      if (segmentError) throw segmentError;
-      if (!segmentData?.image) throw new Error("No image returned from segment-car");
+        const segmentFormData = new FormData();
+        segmentFormData.append("image_file", file);
+
+        const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
+          body: segmentFormData,
+        });
+
+        if (segmentError) throw segmentError;
+        if (!segmentData?.image) throw new Error("No image returned from segment-car");
+
+        // Cache the transparent image for future use
+        const transparentBase64 = segmentData.image;
+        const transparentBinaryString = atob(transparentBase64);
+        const transparentBytes = new Uint8Array(transparentBinaryString.length);
+        for (let i = 0; i < transparentBinaryString.length; i++) {
+          transparentBytes[i] = transparentBinaryString.charCodeAt(i);
+        }
+        const transparentBlob = new Blob([transparentBytes], { type: "image/png" });
+        
+        const transparentFileName = `${car!.id}/transparent-${photo.id}.png`;
+        await supabase.storage
+          .from("car-photos")
+          .upload(transparentFileName, transparentBlob, { upsert: true });
+        
+        const { data: { publicUrl: transparentPublicUrl } } = supabase.storage
+          .from("car-photos")
+          .getPublicUrl(transparentFileName);
+
+        // Save transparent_url to database
+        await supabase
+          .from("photos")
+          .update({ transparent_url: transparentPublicUrl })
+          .eq("id", photoId);
+
+        transparentCarUrl = `data:image/png;base64,${segmentData.image}`;
+      }
 
       // Open position editor with transparent car
-      const transparentCarUrl = `data:image/png;base64,${segmentData.image}`;
       setPositionEditorPhoto({
         id: photoId,
         transparentCarUrl,

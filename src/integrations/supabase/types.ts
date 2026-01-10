@@ -350,6 +350,7 @@ export type Database = {
           is_processing: boolean | null
           original_url: string | null
           photo_type: string
+          transparent_url: string | null
           updated_at: string | null
           url: string
         }
@@ -362,6 +363,7 @@ export type Database = {
           is_processing?: boolean | null
           original_url?: string | null
           photo_type: string
+          transparent_url?: string | null
           updated_at?: string | null
           url: string
         }
@@ -374,6 +376,7 @@ export type Database = {
           is_processing?: boolean | null
           original_url?: string | null
           photo_type?: string
+          transparent_url?: string | null
           updated_at?: string | null
           url?: string
         }
