@@ -913,17 +913,10 @@ const CarDetail = () => {
       // Check if we have cached transparent image
       if (photo.transparent_url) {
         console.log("Position editor: Using cached transparent image");
-        toast({
-          title: "Laddar bildeditorn",
-          description: "Hämtar cachad bild...",
-        });
         transparentCarUrl = photo.transparent_url;
       } else {
         // Need to call segment-car API
-        toast({
-          title: "Laddar bildeditorn",
-          description: "Tar bort bakgrund från originalbild...",
-        });
+        console.log("Position editor: Segmenting car from original image");
 
         const response = await fetch(photo.original_url);
         const blob = await response.blob();
