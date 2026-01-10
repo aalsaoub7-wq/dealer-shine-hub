@@ -31,6 +31,7 @@ import { CarDetailSkeleton } from "@/components/CarDetailSkeleton";
 import { useHaptics } from "@/hooks/useHaptics";
 import { nativeShare } from "@/lib/nativeCapabilities";
 import { analytics } from "@/lib/analytics";
+import { CarPositionEditor } from "@/components/CarPositionEditor";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -103,6 +104,12 @@ const CarDetail = () => {
     imagesRemaining: number;
     imagesUsed: number;
   } | null>(null);
+  // Position editor state
+  const [positionEditorPhoto, setPositionEditorPhoto] = useState<{
+    id: string;
+    transparentCarUrl: string;
+  } | null>(null);
+  const [positionEditorSaving, setPositionEditorSaving] = useState(false);
   const { toast } = useToast();
   const { lightImpact, successNotification } = useHaptics();
   const fetchDebounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -685,6 +692,266 @@ const CarDetail = () => {
     })();
   };
 
+  // Handler for "Generera ny skugga och reflektion" - sends existing composited image through Gemini again
+  const handleRegenerateReflection = async (photoId: string) => {
+    const photo = mainPhotos.find(p => p.id === photoId);
+    if (!photo) {
+      toast({
+        title: "Kan inte regenerera",
+        description: "Bilden hittades inte",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check payment/trial requirements
+    if (!hasPaymentMethod) {
+      toast({
+        title: "Betalmetod krävs",
+        description: "Du måste lägga till en betalmetod för att regenerera bilder.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Genererar ny reflektion",
+      description: "Bilden skickas genom AI för ny reflektion...",
+    });
+
+    // Mark photo as processing
+    await supabase
+      .from("photos")
+      .update({ is_processing: true })
+      .eq("id", photoId);
+
+    // Process in background
+    (async () => {
+      try {
+        // Fetch the current composited image
+        const response = await fetch(photo.url);
+        const blob = await response.blob();
+        const file = new File([blob], "composited.jpg", { type: blob.type });
+
+        // Send directly to add-reflection (skip segment and compositing)
+        console.log("Regenerate Reflection: Sending to Gemini...");
+        const reflectionFormData = new FormData();
+        reflectionFormData.append("image_file", file);
+
+        const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
+          body: reflectionFormData,
+        });
+
+        if (reflectionError) throw reflectionError;
+        if (!reflectionData?.image) throw new Error("No image returned from add-reflection");
+
+        // Convert base64 to blob
+        const base64 = reflectionData.image;
+        const binaryString = atob(base64);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const editedBlob = new Blob([bytes], { type: "image/png" });
+
+        // Upload regenerated image
+        const editedFileName = `${car!.id}/reflection-${Date.now()}-${Math.random()}.png`;
+        const { error: uploadError } = await supabase.storage
+          .from("car-photos")
+          .upload(editedFileName, editedBlob, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("car-photos").getPublicUrl(editedFileName);
+
+        // Update photo
+        await supabase
+          .from("photos")
+          .update({
+            url: publicUrl,
+            is_processing: false,
+          })
+          .eq("id", photoId);
+
+        // Track usage
+        try {
+          await trackUsage("edited_image", car!.id);
+        } catch (error) {
+          console.error("Error tracking usage:", error);
+        }
+
+        successNotification();
+      } catch (error) {
+        console.error(`Error regenerating reflection ${photoId}:`, error);
+        await supabase
+          .from("photos")
+          .update({ is_processing: false })
+          .eq("id", photoId);
+
+        toast({
+          title: "Fel vid regenerering av reflektion",
+          description: error instanceof Error ? error.message : "Okänt fel",
+          variant: "destructive",
+        });
+      }
+    })();
+  };
+
+  // Handler for "Justera bilens position" - opens position editor
+  const handleOpenPositionEditor = async (photoId: string) => {
+    const photo = mainPhotos.find(p => p.id === photoId);
+    if (!photo || !photo.original_url) {
+      toast({
+        title: "Kan inte justera position",
+        description: "Originalbild saknas",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check payment/trial requirements
+    if (!hasPaymentMethod) {
+      toast({
+        title: "Betalmetod krävs",
+        description: "Du måste lägga till en betalmetod för att redigera bilder.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Laddar bildeditorn",
+      description: "Tar bort bakgrund från originalbild...",
+    });
+
+    try {
+      // Fetch original image and run through segment-car
+      const response = await fetch(photo.original_url);
+      const blob = await response.blob();
+      const file = new File([blob], "photo.jpg", { type: blob.type });
+
+      const segmentFormData = new FormData();
+      segmentFormData.append("image_file", file);
+
+      const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
+        body: segmentFormData,
+      });
+
+      if (segmentError) throw segmentError;
+      if (!segmentData?.image) throw new Error("No image returned from segment-car");
+
+      // Open position editor with transparent car
+      const transparentCarUrl = `data:image/png;base64,${segmentData.image}`;
+      setPositionEditorPhoto({
+        id: photoId,
+        transparentCarUrl,
+      });
+    } catch (error) {
+      console.error("Error preparing position editor:", error);
+      toast({
+        title: "Fel vid laddning",
+        description: error instanceof Error ? error.message : "Okänt fel",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handler for position editor save - composites and sends to Gemini
+  const handlePositionEditorSave = async (compositionBlob: Blob) => {
+    if (!positionEditorPhoto || !car) return;
+
+    setPositionEditorSaving(true);
+
+    try {
+      // Mark photo as processing
+      await supabase
+        .from("photos")
+        .update({ is_processing: true })
+        .eq("id", positionEditorPhoto.id);
+
+      // Close editor
+      setPositionEditorPhoto(null);
+
+      toast({
+        title: "Lägger till reflektion",
+        description: "Skickar bilden till AI...",
+      });
+
+      // Send composition to add-reflection
+      const reflectionFormData = new FormData();
+      reflectionFormData.append("image_file", new File([compositionBlob], "composited.jpg", { type: "image/jpeg" }));
+
+      const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
+        body: reflectionFormData,
+      });
+
+      if (reflectionError) throw reflectionError;
+      if (!reflectionData?.image) throw new Error("No image returned from add-reflection");
+
+      // Convert base64 to blob
+      const base64 = reflectionData.image;
+      const binaryString = atob(base64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const editedBlob = new Blob([bytes], { type: "image/png" });
+
+      // Upload image
+      const editedFileName = `${car.id}/positioned-${Date.now()}-${Math.random()}.png`;
+      const { error: uploadError } = await supabase.storage
+        .from("car-photos")
+        .upload(editedFileName, editedBlob, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("car-photos").getPublicUrl(editedFileName);
+
+      // Update photo
+      await supabase
+        .from("photos")
+        .update({
+          url: publicUrl,
+          is_processing: false,
+        })
+        .eq("id", positionEditorPhoto.id);
+
+      // Track usage
+      try {
+        await trackUsage("edited_image", car.id);
+      } catch (error) {
+        console.error("Error tracking usage:", error);
+      }
+
+      successNotification();
+      toast({
+        title: "Bild uppdaterad",
+        description: "Bilden har sparats med ny position och reflektion",
+      });
+    } catch (error) {
+      console.error("Error saving positioned image:", error);
+      
+      if (positionEditorPhoto) {
+        await supabase
+          .from("photos")
+          .update({ is_processing: false })
+          .eq("id", positionEditorPhoto.id);
+      }
+
+      toast({
+        title: "Fel vid sparande",
+        description: error instanceof Error ? error.message : "Okänt fel",
+        variant: "destructive",
+      });
+    } finally {
+      setPositionEditorSaving(false);
+    }
+  };
+
   const handleApplyWatermark = async (photoIds: string[], photoType: "main" | "documentation") => {
     setApplyingWatermark(true);
     try {
@@ -999,7 +1266,8 @@ const CarDetail = () => {
               onUpdate={() => fetchCarData(true)}
               selectedPhotos={selectedMainPhotos}
               onSelectionChange={setSelectedMainPhotos}
-              onRegenerate={handleRegeneratePhoto}
+              onRegenerateReflection={handleRegenerateReflection}
+              onAdjustPosition={handleOpenPositionEditor}
             />
           </TabsContent>
 
@@ -1053,6 +1321,16 @@ const CarDetail = () => {
       )}
 
       {car && <PlatformSyncDialog open={syncDialogOpen} onOpenChange={setSyncDialogOpen} carId={car.id} car={car} photos={photos.filter(p => p.photo_type === "main")} />}
+      
+      {/* Car Position Editor */}
+      <CarPositionEditor
+        open={!!positionEditorPhoto}
+        onOpenChange={(open) => !open && setPositionEditorPhoto(null)}
+        transparentCarUrl={positionEditorPhoto?.transparentCarUrl || ""}
+        backgroundUrl="/backgrounds/studio-background.jpg"
+        onSave={handlePositionEditorSave}
+        isSaving={positionEditorSaving}
+      />
     </div>
   );
 };
