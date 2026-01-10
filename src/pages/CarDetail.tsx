@@ -248,7 +248,6 @@ const CarDetail = () => {
     try {
       const { error } = await supabase.from("cars").delete().eq("id", id);
       if (error) throw error;
-      toast({ title: "Bil raderad" });
       navigate("/");
     } catch (error: any) {
       toast({
@@ -278,11 +277,6 @@ const CarDetail = () => {
         console.error('Download error:', error);
       }
     }
-    
-    toast({
-      title: "Nedladdning klar",
-      description: `${photosToDownload.length} bild(er) laddades ned`,
-    });
     
     analytics.imageDownloaded(car!.id, photosToDownload.length, 'car_detail');
   };
@@ -360,10 +354,6 @@ const CarDetail = () => {
       }
       
       successNotification();
-      toast({
-        title: "Delningslänk skapad!",
-        description: shared ? "Delad framgångsrikt" : "Länken har kopierats till urklipp",
-      });
 
       // Clear selections
       setSelectedMainPhotos([]);
@@ -387,7 +377,6 @@ const CarDetail = () => {
       const { error } = await supabase.from("cars").update({ notes: editedNotes }).eq("id", id);
       if (error) throw error;
       setCar({ ...car, notes: editedNotes });
-      toast({ title: "Anteckningar sparade" });
     } catch (error: any) {
       toast({
         title: "Fel vid sparande av anteckningar",
@@ -456,13 +445,6 @@ const CarDetail = () => {
       return;
     }
 
-    // Show warning if close to limit
-    if (trialInfo?.isInTrial && (trialInfo?.imagesRemaining || 0) <= 10 && (trialInfo?.imagesRemaining || 0) > 0) {
-      toast({
-        title: "Få bilder kvar",
-        description: `Du har ${trialInfo.imagesRemaining} gratis bilder kvar i din testperiod.`,
-      });
-    }
 
     const photos = photoType === "main" ? mainPhotos : docPhotos;
 
@@ -472,12 +454,6 @@ const CarDetail = () => {
     } else {
       setSelectedDocPhotos([]);
     }
-
-    // Show toast immediately
-    toast({
-      title: "Bearbetar bilder",
-      description: "Dina bilder bearbetas i bakgrunden",
-    });
 
     // Mark photos as processing in database
     const photosToProcess = photos.filter((p) => photoIds.includes(p.id));
@@ -982,11 +958,6 @@ const CarDetail = () => {
       // Close editor
       setPositionEditorPhoto(null);
 
-      toast({
-        title: "Lägger till reflektion",
-        description: "Skickar bilden till AI...",
-      });
-
       // Send composition to add-reflection
       const reflectionFormData = new FormData();
       reflectionFormData.append("image_file", new File([compositionBlob], "composited.jpg", { type: "image/jpeg" }));
@@ -1036,10 +1007,6 @@ const CarDetail = () => {
       }
 
       successNotification();
-      toast({
-        title: "Bild uppdaterad",
-        description: "Bilden har sparats med ny position och reflektion",
-      });
     } catch (error) {
       console.error("Error saving positioned image:", error);
       
@@ -1137,11 +1104,6 @@ const CarDetail = () => {
           console.error(`Error processing photo ${photo.id}:`, error);
         }
       }
-
-      toast({
-        title: "Vattenmärke tillagt",
-        description: `${photosToProcess.length} bilder har uppdaterats`,
-      });
 
       // Clear selection and refresh
       if (photoType === "main") {

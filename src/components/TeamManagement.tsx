@@ -154,10 +154,6 @@ export const TeamManagement = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["companyInviteCode"] });
       setShowRegenerateDialog(false);
-      toast({
-        title: "Kod uppdaterad",
-        description: "En ny inbjudningskod har skapats.",
-      });
     },
     onError: () => {
       toast({
@@ -172,10 +168,6 @@ export const TeamManagement = () => {
     navigator.clipboard.writeText(code);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
-    toast({
-      title: "Kopierad",
-      description: "Inbjudningskoden har kopierats.",
-    });
   };
 
   if (userRole !== "admin") {

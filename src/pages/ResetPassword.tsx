@@ -78,11 +78,6 @@ const ResetPassword = () => {
         throw new Error(data.error);
       }
 
-      toast({
-        title: "Lösenord uppdaterat",
-        description: "Ditt lösenord har ändrats. Du kan nu logga in.",
-      });
-
       // Redirect to login
       navigate("/auth");
     } catch (error: any) {

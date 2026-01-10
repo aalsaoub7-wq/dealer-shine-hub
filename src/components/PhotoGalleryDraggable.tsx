@@ -188,7 +188,6 @@ const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionCh
     try {
       const { error } = await supabase.from("photos").delete().eq("id", photoId);
       if (error) throw error;
-      toast({ title: "Foto raderat" });
       onUpdate();
     } catch (error: any) {
       toast({
@@ -222,7 +221,6 @@ const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionCh
             .eq("id", update.id);
         }
 
-        toast({ title: "Ordning uppdaterad" });
         onUpdate();
       } catch (error: any) {
         toast({

@@ -32,10 +32,6 @@ export const AccountSettings = () => {
       const { error } = await supabase.functions.invoke("delete-account");
       if (error) throw error;
 
-      toast({
-        title: "Kontot raderat",
-        description: "Ditt konto har raderats permanent.",
-      });
       await supabase.auth.signOut();
       navigate("/");
     } catch (err: any) {

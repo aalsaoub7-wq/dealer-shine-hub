@@ -197,7 +197,6 @@ const PhotoUpload = ({
         if (dbError) throw dbError;
       }
 
-      toast({ title: "Foton uppladdade!" });
       onUploadComplete();
       onOpenChange(false);
       setSelectedFiles([]);

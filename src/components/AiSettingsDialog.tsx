@@ -156,7 +156,6 @@ export const AiSettingsDialog = () => {
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from("car-photos").getPublicUrl(filePath);
       setLogoUrl(publicUrl);
-      toast({ title: "Logotyp uppladdad", description: "Din logotyp har laddats upp" });
     } catch (error: any) {
       console.error("Error uploading logo:", error);
       toast({ title: "Fel vid uppladdning", description: error.message, variant: "destructive" });
@@ -177,7 +176,6 @@ export const AiSettingsDialog = () => {
       if (response.error) throw response.error;
       if (response.data?.error) throw new Error(response.data.error);
       setLogoUrl(response.data.newUrl);
-      toast({ title: "Bakgrund borttagen", description: "Logotypens bakgrund har tagits bort" });
     } catch (error: any) {
       console.error("Error removing logo background:", error);
       toast({ title: "Fel", description: "Kunde inte ta bort bakgrunden: " + error.message, variant: "destructive" });
@@ -194,7 +192,6 @@ export const AiSettingsDialog = () => {
       if (response.error) throw response.error;
       if (response.data?.error) throw new Error(response.data.error);
       setLandingPageLogoUrl(response.data.newUrl);
-      toast({ title: "Bakgrund borttagen", description: "Logotypens bakgrund har tagits bort" });
     } catch (error: any) {
       console.error("Error removing landing logo background:", error);
       toast({ title: "Fel", description: "Kunde inte ta bort bakgrunden: " + error.message, variant: "destructive" });
@@ -217,7 +214,6 @@ export const AiSettingsDialog = () => {
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from("car-photos").getPublicUrl(filePath);
       setLandingPageLogoUrl(publicUrl);
-      toast({ title: "Logotyp uppladdad", description: "Landningssidans logotyp har laddats upp" });
     } catch (error: any) {
       console.error("Error uploading landing logo:", error);
       toast({ title: "Fel vid uppladdning", description: error.message, variant: "destructive" });
@@ -240,7 +236,6 @@ export const AiSettingsDialog = () => {
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from("car-photos").getPublicUrl(filePath);
       setLandingPageHeaderImageUrl(publicUrl);
-      toast({ title: "Header-bild uppladdad", description: "Landningssidans header-bild har laddats upp" });
     } catch (error: any) {
       console.error("Error uploading header image:", error);
       toast({ title: "Fel vid uppladdning", description: error.message, variant: "destructive" });
@@ -288,7 +283,6 @@ export const AiSettingsDialog = () => {
       }, { onConflict: "company_id" });
 
       if (error) throw error;
-      toast({ title: "Inställningar sparade", description: "Dina inställningar har sparats" });
       setOpen(false);
     } catch (error: any) {
       console.error("Error saving AI settings:", error);
