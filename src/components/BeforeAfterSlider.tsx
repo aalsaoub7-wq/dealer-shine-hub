@@ -1,17 +1,31 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeftRight } from 'lucide-react';
+import { ArrowLeftRight, Loader2 } from 'lucide-react';
 import beforeImage from '@/assets/before-car.jpeg';
 import afterImage from '@/assets/after-car.jpeg';
 
 export const BeforeAfterSlider = () => {
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false); // Start false until images loaded
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [loadedCount, setLoadedCount] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const boundsRef = useRef<DOMRect | null>(null);
   const animationRef = useRef<number>(0);
   const rafRef = useRef<number>(0);
   const inactivityTimerRef = useRef<NodeJS.Timeout>();
+
+  // Track image loading
+  useEffect(() => {
+    if (loadedCount >= 2) {
+      setImagesLoaded(true);
+      setIsAnimating(true); // Start animation once images are loaded
+    }
+  }, [loadedCount]);
+
+  const handleImageLoad = () => {
+    setLoadedCount(prev => prev + 1);
+  };
 
   // Cache container bounds
   useEffect(() => {
@@ -161,8 +175,18 @@ export const BeforeAfterSlider = () => {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
+      {/* Loading Overlay */}
+      {!imagesLoaded && (
+        <div className="absolute inset-0 z-20 bg-muted flex items-center justify-center rounded-3xl">
+          <Loader2 className="w-10 h-10 text-muted-foreground animate-spin" />
+        </div>
+      )}
+
       {/* Before Image */}
-      <div className="absolute inset-0" style={{ transform: 'translateZ(0)' }}>
+      <div 
+        className={`absolute inset-0 transition-opacity duration-300 ${imagesLoaded ? 'opacity-100' : 'opacity-0'}`} 
+        style={{ transform: 'translateZ(0)' }}
+      >
         <img
           src={beforeImage}
           alt=""
@@ -171,6 +195,7 @@ export const BeforeAfterSlider = () => {
           loading="eager"
           decoding="async"
           fetchPriority="high"
+          onLoad={handleImageLoad}
         />
         {/* Before Label */}
         <div className="absolute top-4 left-4 px-3 py-1 rounded-lg bg-black/60 backdrop-blur-sm text-white text-sm font-medium">
@@ -180,7 +205,7 @@ export const BeforeAfterSlider = () => {
 
       {/* After Image (Clipped) */}
       <div
-        className="absolute inset-0"
+        className={`absolute inset-0 transition-opacity duration-300 ${imagesLoaded ? 'opacity-100' : 'opacity-0'}`}
         style={{
           clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`,
           willChange: 'clip-path',
@@ -195,6 +220,7 @@ export const BeforeAfterSlider = () => {
           loading="eager"
           decoding="async"
           fetchPriority="high"
+          onLoad={handleImageLoad}
         />
         {/* After Label */}
         <div className="absolute top-4 right-4 px-3 py-1 rounded-lg bg-black/60 backdrop-blur-sm text-white text-sm font-medium">
@@ -204,7 +230,7 @@ export const BeforeAfterSlider = () => {
 
       {/* Slider Handle */}
       <div
-        className="absolute top-0 bottom-0 w-1 cursor-ew-resize"
+        className={`absolute top-0 bottom-0 w-1 cursor-ew-resize transition-opacity duration-300 ${imagesLoaded ? 'opacity-100' : 'opacity-0'}`}
         style={{ 
           left: `${sliderPosition}%`,
           willChange: 'transform',
