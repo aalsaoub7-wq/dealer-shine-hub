@@ -162,12 +162,15 @@ export const BeforeAfterSlider = () => {
       onTouchEnd={handleTouchEnd}
     >
       {/* Before Image */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0" style={{ transform: 'translateZ(0)' }}>
         <img
           src={beforeImage}
           alt=""
           className="w-full h-full object-cover"
           draggable={false}
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
         />
         {/* Before Label */}
         <div className="absolute top-4 left-4 px-3 py-1 rounded-lg bg-black/60 backdrop-blur-sm text-white text-sm font-medium">
@@ -181,13 +184,17 @@ export const BeforeAfterSlider = () => {
         style={{
           clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`,
           willChange: 'clip-path',
+          transform: 'translateZ(0)',
         }}
       >
-          <img
-            src={afterImage}
-            alt=""
+        <img
+          src={afterImage}
+          alt=""
           className="w-full h-full object-cover"
           draggable={false}
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
         />
         {/* After Label */}
         <div className="absolute top-4 right-4 px-3 py-1 rounded-lg bg-black/60 backdrop-blur-sm text-white text-sm font-medium">
