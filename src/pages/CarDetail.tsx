@@ -1400,12 +1400,6 @@ const CarDetail = () => {
           </CardHeader>
           <CardContent className="p-4 md:p-6">
             <div className="space-y-4">
-              {car.registration_number && (
-                <div className="rounded-lg border bg-card p-4 shadow-sm">
-                  <p className="text-sm text-muted-foreground font-medium mb-2">🚗 Registreringsnummer</p>
-                  <p className="text-base">{car.registration_number}</p>
-                </div>
-              )}
               <div>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
                   <p className="text-sm md:text-base text-muted-foreground font-medium">
