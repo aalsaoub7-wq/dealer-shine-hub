@@ -168,7 +168,6 @@ All colors MUST be HSL.
   position: relative;
   background: hsl(var(--card));
   border-radius: 1.5rem;
-  overflow: hidden;
   box-shadow: 
     0 0 25px -5px hsla(280, 80%, 60%, 0.25),
     0 0 50px -10px hsla(200, 90%, 50%, 0.2),
