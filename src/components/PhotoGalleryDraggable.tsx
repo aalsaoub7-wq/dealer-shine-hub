@@ -3,8 +3,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trash2, Check, Download, GripVertical, Maximize2, RefreshCw } from "lucide-react";
+import { Trash2, Check, GripVertical, Maximize2, RefreshCw, Stamp } from "lucide-react";
 import { RegenerateOptionsDialog } from "./RegenerateOptionsDialog";
+import { WatermarkOptionsDialog } from "./WatermarkOptionsDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ImageLightbox from "./ImageLightbox";
@@ -34,6 +35,7 @@ interface Photo {
   is_processing?: boolean;
   original_url: string | null;
   display_order: number;
+  has_watermark?: boolean;
 }
 
 interface PhotoGalleryProps {
@@ -43,6 +45,8 @@ interface PhotoGalleryProps {
   onSelectionChange: (selectedIds: string[]) => void;
   onRegenerateReflection?: (photoId: string) => void;
   onAdjustPosition?: (photoId: string) => void;
+  onRemoveWatermark?: (photoId: string) => void;
+  onAdjustWatermark?: (photoId: string) => void;
 }
 
 interface SortablePhotoCardProps {
@@ -53,6 +57,7 @@ interface SortablePhotoCardProps {
   isSelected: boolean;
   onSelect: (photoId: string, selected: boolean) => void;
   onRegenerate?: (photoId: string) => void;
+  onWatermarkOptions?: (photoId: string) => void;
 }
 
 const SortablePhotoCard = ({
@@ -63,6 +68,7 @@ const SortablePhotoCard = ({
   isSelected,
   onSelect,
   onRegenerate,
+  onWatermarkOptions,
 }: SortablePhotoCardProps) => {
   const {
     attributes,
@@ -128,13 +134,36 @@ const SortablePhotoCard = ({
           }}
         />
         <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-20 transition-opacity duration-500" />
-        {photo.is_edited && (
-          <Badge className="absolute top-2 right-2 bg-green-500/50 backdrop-blur-sm border border-green-500/30 text-white shadow-lg animate-scale-in">
-            <Check className="w-3 h-3 mr-1" />
-            Redigerad
-          </Badge>
-        )}
+        
+        {/* Badges */}
+        <div className="absolute top-2 right-2 flex flex-col gap-1">
+          {photo.is_edited && (
+            <Badge className="bg-green-500/50 backdrop-blur-sm border border-green-500/30 text-white shadow-lg animate-scale-in">
+              <Check className="w-3 h-3 mr-1" />
+              Redigerad
+            </Badge>
+          )}
+          {photo.has_watermark && (
+            <Badge className="bg-blue-500/50 backdrop-blur-sm border border-blue-500/30 text-white shadow-lg animate-scale-in">
+              <Stamp className="w-3 h-3 mr-1" />
+              Vattenmärke
+            </Badge>
+          )}
+        </div>
+        
+        {/* Action buttons */}
         <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 flex gap-2">
+          {photo.has_watermark && onWatermarkOptions && (
+            <Button
+              size="icon"
+              variant="secondary"
+              onClick={() => onWatermarkOptions(photo.id)}
+              className="h-12 w-12 sm:h-8 sm:w-8 hover:scale-110 transition-transform duration-300"
+              title="Vattenmärkesalternativ"
+            >
+              <Stamp className="w-6 h-6 sm:w-4 sm:h-4" />
+            </Button>
+          )}
           {photo.is_edited && onRegenerate && (
             <Button
               size="icon"
@@ -168,11 +197,21 @@ const SortablePhotoCard = ({
   );
 };
 
-const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionChange, onRegenerateReflection, onAdjustPosition }: PhotoGalleryProps) => {
+const PhotoGalleryDraggable = ({ 
+  photos, 
+  onUpdate, 
+  selectedPhotos, 
+  onSelectionChange, 
+  onRegenerateReflection, 
+  onAdjustPosition,
+  onRemoveWatermark,
+  onAdjustWatermark,
+}: PhotoGalleryProps) => {
   const { toast } = useToast();
   const [items, setItems] = useState(photos);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [regenerateOptionsId, setRegenerateOptionsId] = useState<string | null>(null);
+  const [watermarkOptionsId, setWatermarkOptionsId] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -266,6 +305,7 @@ const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionCh
                   }
                 }}
                 onRegenerate={(photoId) => setRegenerateOptionsId(photoId)}
+                onWatermarkOptions={(photoId) => setWatermarkOptionsId(photoId)}
               />
             ))}
           </div>
@@ -289,6 +329,20 @@ const PhotoGalleryDraggable = ({ photos, onUpdate, selectedPhotos, onSelectionCh
         onAdjustPosition={() => {
           if (regenerateOptionsId && onAdjustPosition) {
             onAdjustPosition(regenerateOptionsId);
+          }
+        }}
+      />
+      <WatermarkOptionsDialog
+        open={!!watermarkOptionsId}
+        onOpenChange={(open) => !open && setWatermarkOptionsId(null)}
+        onRemoveWatermark={() => {
+          if (watermarkOptionsId && onRemoveWatermark) {
+            onRemoveWatermark(watermarkOptionsId);
+          }
+        }}
+        onAdjustPosition={() => {
+          if (watermarkOptionsId && onAdjustWatermark) {
+            onAdjustWatermark(watermarkOptionsId);
           }
         }}
       />

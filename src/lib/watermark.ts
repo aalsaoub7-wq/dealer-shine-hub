@@ -1,8 +1,8 @@
 export const applyWatermark = async (
   imageUrl: string,
   logoUrl: string,
-  x: number = 20,
-  y: number = 20,
+  xPercent: number = 2,
+  yPercent: number = 2,
   sizePercent: number = 15,
   opacity: number = 0.8
 ): Promise<Blob> => {
@@ -23,11 +23,15 @@ export const applyWatermark = async (
   // Draw original image
   ctx.drawImage(image, 0, 0);
 
-  // Calculate logo size based on sizePercent parameter
+  // Calculate logo size based on sizePercent parameter (relative to image width)
   const logoMaxWidth = image.width * (sizePercent / 100);
   const logoScale = logoMaxWidth / logo.width;
   const logoWidth = logo.width * logoScale;
   const logoHeight = logo.height * logoScale;
+
+  // Convert percentage coordinates to actual pixel positions
+  const x = image.width * (xPercent / 100);
+  const y = image.height * (yPercent / 100);
 
   // Draw logo with transparency
   ctx.globalAlpha = opacity;
