@@ -2,9 +2,16 @@ import { ArrowLeft, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { SEOHead } from "@/components/SEOHead";
+
 const Documentation = () => {
   const navigate = useNavigate();
   return <div className="min-h-screen bg-background">
+      <SEOHead 
+        title="Guide | Luvero - Kom igång med AI-bilredigering" 
+        description="Komplett guide för att komma igång med Luvero. Lär dig om AI-bakgrundsredigering, vattenstämplar, delningslänkar och mer."
+        canonicalPath="/guide"
+      />
       <div className="max-w-4xl mx-auto px-4 py-12">
         <Button variant="ghost" onClick={() => navigate("/")} className="mb-8 text-muted-foreground hover:text-foreground">
           <ArrowLeft className="w-4 h-4 mr-2" />

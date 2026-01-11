@@ -1,9 +1,16 @@
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { SEOHead } from "@/components/SEOHead";
+
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
   return <div className="min-h-screen bg-background">
+      <SEOHead 
+        title="Integritetspolicy | Luvero" 
+        description="Läs om hur Luvero samlar in, använder och skyddar dina personuppgifter. GDPR-kompatibel integritetspolicy för vår AI-drivna bilredigeringstjänst."
+        canonicalPath="/integritetspolicy"
+      />
       <div className="container mx-auto px-4 py-12 max-w-4xl">
         <Button variant="ghost" onClick={() => navigate("/")} className="mb-8">
           <ArrowLeft className="mr-2 h-4 w-4" />
