@@ -569,7 +569,7 @@ const Landing = () => {
             </div>
 
             {/* Pro Plan - Most Popular */}
-            <div className="shimmer-border relative p-6 md:p-8 shadow-2xl shadow-blue-500/20 scale-105 transition-all duration-300 hover:scale-110 overflow-visible">
+            <div className="shimmer-border relative p-6 md:p-8 shadow-2xl shadow-blue-500/20 md:scale-105 transition-all duration-300 md:hover:scale-110 overflow-visible">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                 <span className="px-4 py-1 text-xs font-semibold bg-blue-500 text-white rounded-full whitespace-nowrap">
                   Billigast för dem flesta
