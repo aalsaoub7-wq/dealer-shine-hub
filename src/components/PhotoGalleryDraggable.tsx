@@ -113,7 +113,7 @@ const SortablePhotoCard = ({
           <Checkbox 
             checked={isSelected}
             onCheckedChange={(checked) => onSelect(photo.id, checked === true)}
-            className="bg-background/80 border-2 h-16 w-16 md:h-5 md:w-5"
+            className="bg-background/80 border-2 h-12 w-12 md:h-6 md:w-6"
           />
         </div>
         <img
