@@ -154,6 +154,46 @@ All colors MUST be HSL.
   }
 }
 
+/* Animated shimmer border effect */
+@keyframes shimmer-border {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.shimmer-border {
+  position: relative;
+  background: hsl(var(--card));
+  border-radius: 1.5rem;
+  overflow: hidden;
+}
+
+.shimmer-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 1.5rem;
+  padding: 2px;
+  background: linear-gradient(
+    90deg,
+    hsl(217 91% 60% / 0.3) 0%,
+    hsl(217 91% 70% / 0.8) 25%,
+    hsl(200 100% 80% / 1) 50%,
+    hsl(217 91% 70% / 0.8) 75%,
+    hsl(217 91% 60% / 0.3) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-border 3s linear infinite;
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
 /* Förbättra touch targets ENDAST i native */
 @supports (-webkit-touch-callout: none) {
   /* Detta aktiveras ENDAST på iOS (native) */
