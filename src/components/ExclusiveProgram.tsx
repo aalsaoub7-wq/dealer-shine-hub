@@ -132,7 +132,7 @@ export const ExclusiveProgram = () => {
   }, {
     icon: Target,
     label: "Marginalmål",
-    desc: "beräknar hur mycket du kommer att tjäna på varje bil om du köper och säljer den",
+    desc: "beräknar din vinst på varje bil",
     color: "text-blue-400"
   }, {
     icon: Bell,
