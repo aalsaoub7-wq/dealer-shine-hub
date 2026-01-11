@@ -22,12 +22,24 @@ export const CustomStudioDialog = ({ open, onOpenChange }: CustomStudioDialogPro
         </p>
         
         {/* Exempelbilder */}
-        <div className="grid grid-cols-2 gap-3 my-4">
+        <div className="flex flex-col gap-3 my-4">
           <div className="aspect-video rounded-lg overflow-hidden">
-            <img src={customExample1} alt="Custom studio exempel 1" className="w-full h-full object-cover" />
+            <img 
+              src={customExample1} 
+              alt="" 
+              className="w-full h-full object-cover" 
+              loading="eager"
+              decoding="async"
+            />
           </div>
           <div className="aspect-video rounded-lg overflow-hidden">
-            <img src={customExample2} alt="Custom studio exempel 2" className="w-full h-full object-cover" />
+            <img 
+              src={customExample2} 
+              alt="" 
+              className="w-full h-full object-cover" 
+              loading="eager"
+              decoding="async"
+            />
           </div>
         </div>
         
