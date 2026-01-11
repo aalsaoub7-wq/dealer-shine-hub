@@ -1078,6 +1078,21 @@ const CarDetail = () => {
         return;
       }
 
+      // Migration logic: detect old pixel values (> 100) and convert to percentages
+      // Old canvas was 3840x2880, so values > 100 are definitely pixels
+      const rawX = settings.watermark_x ?? 5;
+      const rawY = settings.watermark_y ?? 5;
+      const needsMigration = rawX > 100 || rawY > 100;
+      
+      let watermarkX: number, watermarkY: number;
+      if (needsMigration) {
+        watermarkX = Math.max(0, Math.min(100, (rawX / 3840) * 100));
+        watermarkY = Math.max(0, Math.min(100, (rawY / 2880) * 100));
+      } else {
+        watermarkX = rawX;
+        watermarkY = rawY;
+      }
+
       // Process each photo
       const photosToProcess = photos.filter((p) => photoIds.includes(p.id));
 
@@ -1089,8 +1104,8 @@ const CarDetail = () => {
           const watermarkedBlob = await applyWatermark(
             sourceUrl,
             settings.logo_url,
-            settings.watermark_x || 20,
-            settings.watermark_y || 20,
+            watermarkX,
+            watermarkY,
             settings.watermark_size || 15,
             settings.watermark_opacity || 0.8,
           );
@@ -1119,8 +1134,8 @@ const CarDetail = () => {
               original_url: photo.original_url || photo.url,
               has_watermark: true,
               pre_watermark_url: currentPreWatermarkUrl,
-              watermark_x: settings.watermark_x || 2,
-              watermark_y: settings.watermark_y || 2,
+              watermark_x: watermarkX,
+              watermark_y: watermarkY,
               watermark_size: settings.watermark_size || 15,
               watermark_opacity: settings.watermark_opacity || 0.8,
             })
@@ -1223,12 +1238,42 @@ const CarDetail = () => {
       return;
     }
 
+    // Migration logic for settings values
+    const rawSettingsX = settings.watermark_x ?? 5;
+    const rawSettingsY = settings.watermark_y ?? 5;
+    const settingsNeedsMigration = rawSettingsX > 100 || rawSettingsY > 100;
+    
+    let settingsX: number, settingsY: number;
+    if (settingsNeedsMigration) {
+      settingsX = Math.max(0, Math.min(100, (rawSettingsX / 3840) * 100));
+      settingsY = Math.max(0, Math.min(100, (rawSettingsY / 2880) * 100));
+    } else {
+      settingsX = rawSettingsX;
+      settingsY = rawSettingsY;
+    }
+
+    // Migration logic for photo-specific values
+    const rawPhotoX = photo.watermark_x;
+    const rawPhotoY = photo.watermark_y;
+    let photoX: number | undefined, photoY: number | undefined;
+    
+    if (rawPhotoX !== undefined && rawPhotoY !== undefined) {
+      const photoNeedsMigration = rawPhotoX > 100 || rawPhotoY > 100;
+      if (photoNeedsMigration) {
+        photoX = Math.max(0, Math.min(100, (rawPhotoX / 3840) * 100));
+        photoY = Math.max(0, Math.min(100, (rawPhotoY / 2880) * 100));
+      } else {
+        photoX = rawPhotoX;
+        photoY = rawPhotoY;
+      }
+    }
+
     setWatermarkEditorPhoto({
       id: photoId,
       preWatermarkUrl: photo.pre_watermark_url,
       logoUrl: settings.logo_url,
-      xPercent: photo.watermark_x ?? settings.watermark_x ?? 2,
-      yPercent: photo.watermark_y ?? settings.watermark_y ?? 2,
+      xPercent: photoX ?? settingsX,
+      yPercent: photoY ?? settingsY,
       size: photo.watermark_size ?? settings.watermark_size ?? 15,
       opacity: photo.watermark_opacity ?? settings.watermark_opacity ?? 0.8,
     });
