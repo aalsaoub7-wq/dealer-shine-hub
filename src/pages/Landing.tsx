@@ -539,7 +539,7 @@ const Landing = () => {
 
           <div className="grid md:grid-cols-3 gap-8 md:gap-6 max-w-6xl mx-auto">
             {/* Start Plan */}
-            <div className="relative p-6 md:p-8 rounded-3xl bg-card border-2 border-green-500/50 shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20">
+            <div className="relative p-6 md:p-8 rounded-3xl bg-card border-2 border-green-500/50 shadow-xl transition-all duration-300 md:hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                 
               </div>
@@ -601,7 +601,7 @@ const Landing = () => {
             </div>
 
             {/* Elit Plan */}
-            <div className="relative p-6 md:p-8 rounded-3xl bg-card border-2 border-purple-500/50 shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
+            <div className="relative p-6 md:p-8 rounded-3xl bg-card border-2 border-purple-500/50 shadow-xl transition-all duration-300 md:hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                 
               </div>
