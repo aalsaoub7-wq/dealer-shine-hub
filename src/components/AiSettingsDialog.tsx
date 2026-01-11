@@ -29,16 +29,48 @@ const STATIC_BACKGROUNDS: Array<{
   image?: string;
   thumbnail?: string;
   isCustom?: boolean;
-}> = [
-  { id: 'curved-studio', name: 'Böjd Studio', description: 'Mjukt böjd vägg', image: '/backgrounds/curved-studio.jpg', thumbnail: '/backgrounds/thumbnails/curved-studio-thumb.jpg' },
-  { id: 'ceiling-lights', name: 'Taklampor', description: 'Studio med taklampor', image: '/backgrounds/ceiling-lights.jpg', thumbnail: '/backgrounds/thumbnails/ceiling-lights-thumb.jpg' },
-  { id: 'dark-studio', name: 'Mörk Studio', description: 'Helt mörk miljö', image: '/backgrounds/dark-studio.jpg', thumbnail: '/backgrounds/thumbnails/dark-studio-thumb.jpg' },
-  { id: 'dark-walls-light-floor', name: 'Mörka Väggar', description: 'Mörka väggar, ljust golv', image: '/backgrounds/dark-walls-light-floor.jpg', thumbnail: '/backgrounds/thumbnails/dark-walls-light-floor-thumb.jpg' },
-  { id: 'gallery', name: 'Galleri', description: 'Galleri-stil med paneler', image: '/backgrounds/gallery.jpg', thumbnail: '/backgrounds/thumbnails/gallery-thumb.jpg' },
-  { id: 'panel-wall', name: 'Panelvägg', description: 'Rak panelvägg', image: '/backgrounds/panel-wall.jpg', thumbnail: '/backgrounds/thumbnails/panel-wall-thumb.jpg' },
-  { id: 'custom-studio', name: 'Custom Studio', description: 'Skräddarsydd studio', isCustom: true },
-];
-
+}> = [{
+  id: 'curved-studio',
+  name: 'Böjd Studio',
+  description: 'Mjukt böjd vägg',
+  image: '/backgrounds/curved-studio.jpg',
+  thumbnail: '/backgrounds/thumbnails/curved-studio-thumb.jpg'
+}, {
+  id: 'ceiling-lights',
+  name: 'Taklampor',
+  description: 'Studio med taklampor',
+  image: '/backgrounds/ceiling-lights.jpg',
+  thumbnail: '/backgrounds/thumbnails/ceiling-lights-thumb.jpg'
+}, {
+  id: 'dark-studio',
+  name: 'Mörk Studio',
+  description: 'Helt mörk miljö',
+  image: '/backgrounds/dark-studio.jpg',
+  thumbnail: '/backgrounds/thumbnails/dark-studio-thumb.jpg'
+}, {
+  id: 'dark-walls-light-floor',
+  name: 'Mörka Väggar',
+  description: 'Mörka väggar, ljust golv',
+  image: '/backgrounds/dark-walls-light-floor.jpg',
+  thumbnail: '/backgrounds/thumbnails/dark-walls-light-floor-thumb.jpg'
+}, {
+  id: 'gallery',
+  name: 'Galleri',
+  description: 'Galleri-stil med paneler',
+  image: '/backgrounds/gallery.jpg',
+  thumbnail: '/backgrounds/thumbnails/gallery-thumb.jpg'
+}, {
+  id: 'panel-wall',
+  name: 'Panelvägg',
+  description: 'Rak panelvägg',
+  image: '/backgrounds/panel-wall.jpg',
+  thumbnail: '/backgrounds/thumbnails/panel-wall-thumb.jpg'
+}, {
+  id: 'custom-studio',
+  name: 'Custom Studio',
+  description: 'Skräddarsydd studio',
+  isCustom: true
+}];
 export const AiSettingsDialog = () => {
   const [open, setOpen] = useState(false);
   const [currentTab, setCurrentTab] = useState("background");
@@ -69,48 +101,51 @@ export const AiSettingsDialog = () => {
   const [loading, setLoading] = useState(false);
   const [removingLogoBg, setRemovingLogoBg] = useState(false);
   const [customStudioDialogOpen, setCustomStudioDialogOpen] = useState(false);
-  
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
-  
-  const { data: userRole } = useQuery({
+  const {
+    data: userRole
+  } = useQuery({
     queryKey: ["userRole"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
-      const { data } = await supabase.from("user_roles").select("role").eq("user_id", user.id).single();
+      const {
+        data
+      } = await supabase.from("user_roles").select("role").eq("user_id", user.id).single();
       return data?.role;
     }
   });
-
   useEffect(() => {
     if (open) {
       loadSettings();
     }
   }, [open]);
-
   const loadSettings = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) return;
-
-      const { data: companyData } = await supabase
-        .from("user_companies")
-        .select("company_id")
-        .eq("user_id", user.id)
-        .single();
+      const {
+        data: companyData
+      } = await supabase.from("user_companies").select("company_id").eq("user_id", user.id).single();
       if (!companyData) return;
-
-      const { data, error } = await supabase
-        .from("ai_settings")
-        .select("background_template_id, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity, landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text, landing_page_logo_size, landing_page_logo_position, landing_page_header_height, landing_page_header_fit")
-        .eq("company_id", companyData.company_id)
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from("ai_settings").select("background_template_id, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity, landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text, landing_page_logo_size, landing_page_logo_position, landing_page_header_height, landing_page_header_fit").eq("company_id", companyData.company_id).single();
       if (error && error.code !== "PGRST116") {
         throw error;
       }
-
       if (data) {
         const savedTemplateId = data.background_template_id;
         if (savedTemplateId) {
@@ -150,123 +185,182 @@ export const AiSettingsDialog = () => {
       });
     }
   };
-
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     setUploadingLogo(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Inte inloggad");
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}-logo-${Date.now()}.${fileExt}`;
       const filePath = `logos/${fileName}`;
-      const { error: uploadError } = await supabase.storage.from("car-photos").upload(filePath, file, { upsert: true });
+      const {
+        error: uploadError
+      } = await supabase.storage.from("car-photos").upload(filePath, file, {
+        upsert: true
+      });
       if (uploadError) throw uploadError;
-      const { data: { publicUrl } } = supabase.storage.from("car-photos").getPublicUrl(filePath);
+      const {
+        data: {
+          publicUrl
+        }
+      } = supabase.storage.from("car-photos").getPublicUrl(filePath);
       setLogoUrl(publicUrl);
     } catch (error: any) {
       console.error("Error uploading logo:", error);
-      toast({ title: "Fel vid uppladdning", description: error.message, variant: "destructive" });
+      toast({
+        title: "Fel vid uppladdning",
+        description: error.message,
+        variant: "destructive"
+      });
     } finally {
       setUploadingLogo(false);
     }
   };
-
   const handleRemoveLogo = () => {
     setLogoUrl("");
   };
-
   const handleRemoveLogoBackground = async () => {
     if (!logoUrl) return;
     setRemovingLogoBg(true);
     try {
-      const response = await supabase.functions.invoke('remove-logo-background', { body: { imageUrl: logoUrl } });
+      const response = await supabase.functions.invoke('remove-logo-background', {
+        body: {
+          imageUrl: logoUrl
+        }
+      });
       if (response.error) throw response.error;
       if (response.data?.error) throw new Error(response.data.error);
       setLogoUrl(response.data.newUrl);
     } catch (error: any) {
       console.error("Error removing logo background:", error);
-      toast({ title: "Fel", description: "Kunde inte ta bort bakgrunden: " + error.message, variant: "destructive" });
+      toast({
+        title: "Fel",
+        description: "Kunde inte ta bort bakgrunden: " + error.message,
+        variant: "destructive"
+      });
     } finally {
       setRemovingLogoBg(false);
     }
   };
-
   const handleRemoveLandingLogoBackground = async () => {
     if (!landingPageLogoUrl) return;
     setRemovingLandingLogoBg(true);
     try {
-      const response = await supabase.functions.invoke('remove-logo-background', { body: { imageUrl: landingPageLogoUrl } });
+      const response = await supabase.functions.invoke('remove-logo-background', {
+        body: {
+          imageUrl: landingPageLogoUrl
+        }
+      });
       if (response.error) throw response.error;
       if (response.data?.error) throw new Error(response.data.error);
       setLandingPageLogoUrl(response.data.newUrl);
     } catch (error: any) {
       console.error("Error removing landing logo background:", error);
-      toast({ title: "Fel", description: "Kunde inte ta bort bakgrunden: " + error.message, variant: "destructive" });
+      toast({
+        title: "Fel",
+        description: "Kunde inte ta bort bakgrunden: " + error.message,
+        variant: "destructive"
+      });
     } finally {
       setRemovingLandingLogoBg(false);
     }
   };
-
   const handleLandingLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     setUploadingLandingLogo(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Inte inloggad");
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}-landing-logo-${Date.now()}.${fileExt}`;
       const filePath = `logos/${fileName}`;
-      const { error: uploadError } = await supabase.storage.from("car-photos").upload(filePath, file, { upsert: true });
+      const {
+        error: uploadError
+      } = await supabase.storage.from("car-photos").upload(filePath, file, {
+        upsert: true
+      });
       if (uploadError) throw uploadError;
-      const { data: { publicUrl } } = supabase.storage.from("car-photos").getPublicUrl(filePath);
+      const {
+        data: {
+          publicUrl
+        }
+      } = supabase.storage.from("car-photos").getPublicUrl(filePath);
       setLandingPageLogoUrl(publicUrl);
     } catch (error: any) {
       console.error("Error uploading landing logo:", error);
-      toast({ title: "Fel vid uppladdning", description: error.message, variant: "destructive" });
+      toast({
+        title: "Fel vid uppladdning",
+        description: error.message,
+        variant: "destructive"
+      });
     } finally {
       setUploadingLandingLogo(false);
     }
   };
-
   const handleHeaderImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     setUploadingHeaderImage(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Inte inloggad");
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}-header-${Date.now()}.${fileExt}`;
       const filePath = `headers/${fileName}`;
-      const { error: uploadError } = await supabase.storage.from("car-photos").upload(filePath, file, { upsert: true });
+      const {
+        error: uploadError
+      } = await supabase.storage.from("car-photos").upload(filePath, file, {
+        upsert: true
+      });
       if (uploadError) throw uploadError;
-      const { data: { publicUrl } } = supabase.storage.from("car-photos").getPublicUrl(filePath);
+      const {
+        data: {
+          publicUrl
+        }
+      } = supabase.storage.from("car-photos").getPublicUrl(filePath);
       setLandingPageHeaderImageUrl(publicUrl);
     } catch (error: any) {
       console.error("Error uploading header image:", error);
-      toast({ title: "Fel vid uppladdning", description: error.message, variant: "destructive" });
+      toast({
+        title: "Fel vid uppladdning",
+        description: error.message,
+        variant: "destructive"
+      });
     } finally {
       setUploadingHeaderImage(false);
     }
   };
-
   const saveSettings = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Inte inloggad");
-
-      const { data: companyData } = await supabase
-        .from("user_companies")
-        .select("company_id")
-        .eq("user_id", user.id)
-        .single();
+      const {
+        data: companyData
+      } = await supabase.from("user_companies").select("company_id").eq("user_id", user.id).single();
       if (!companyData) throw new Error("Kunde inte hitta företag");
-
-      const { error } = await supabase.from("ai_settings").upsert({
+      const {
+        error
+      } = await supabase.from("ai_settings").upsert({
         user_id: user.id,
         company_id: companyData.company_id,
         background_template_id: selectedBackgroundId,
@@ -289,13 +383,18 @@ export const AiSettingsDialog = () => {
         landing_page_logo_position: landingPageLogoPosition,
         landing_page_header_height: landingPageHeaderHeight,
         landing_page_header_fit: landingPageHeaderFit
-      }, { onConflict: "company_id" });
-
+      }, {
+        onConflict: "company_id"
+      });
       if (error) throw error;
       setOpen(false);
     } catch (error: any) {
       console.error("Error saving AI settings:", error);
-      toast({ title: "Fel vid sparande", description: error.message, variant: "destructive" });
+      toast({
+        title: "Fel vid sparande",
+        description: error.message,
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -311,7 +410,6 @@ export const AiSettingsDialog = () => {
       delete (window as any).openSettingsDialog;
     };
   }, []);
-
   const handleGuideClick = async () => {
     if (isNativeApp()) {
       await openExternalUrl("https://luvero.se/guide");
@@ -319,9 +417,7 @@ export const AiSettingsDialog = () => {
       navigate("/guide");
     }
   };
-
-  return (
-    <div className="flex gap-2">
+  return <div className="flex gap-2">
       <Button variant="outline" size="icon" onClick={handleGuideClick}>
         <span className="text-lg font-bold">?</span>
       </Button>
@@ -347,16 +443,14 @@ export const AiSettingsDialog = () => {
               <TabsTrigger value="landing" className="flex items-center justify-center">
                 <Globe className="h-4 w-4" />
               </TabsTrigger>
-              {userRole === "admin" && (
-                <>
+              {userRole === "admin" && <>
                   <TabsTrigger value="payment" className="flex items-center justify-center">
                     <CreditCard className="h-4 w-4" />
                   </TabsTrigger>
                   <TabsTrigger value="team" className="flex items-center justify-center">
                     <Users className="h-4 w-4" />
                   </TabsTrigger>
-                </>
-              )}
+                </>}
               <TabsTrigger value="account" className="flex items-center justify-center">
                 <User className="h-4 w-4" />
               </TabsTrigger>
@@ -372,29 +466,18 @@ export const AiSettingsDialog = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {STATIC_BACKGROUNDS.map(bg => (
-                    <div
-                      key={bg.id}
-                      className={`relative cursor-pointer rounded-lg border-2 p-3 transition-all hover:border-primary ${
-                        selectedBackgroundId === bg.id && !bg.isCustom ? "border-primary bg-primary/5" : "border-border"
-                      } ${bg.isCustom ? "border-dashed" : ""}`}
-                      onClick={() => {
-                        if (bg.isCustom) {
-                          setCustomStudioDialogOpen(true);
-                        } else {
-                          setSelectedBackgroundId(bg.id);
-                        }
-                      }}
-                    >
-                      {bg.isCustom ? (
-                        <div className="aspect-video mb-2 overflow-hidden rounded-md bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
-                          <span className="text-white font-medium text-sm">Din logotyp här</span>
-                        </div>
-                      ) : (
-                        <div className="aspect-video mb-2 overflow-hidden rounded-md bg-muted">
+                  {STATIC_BACKGROUNDS.map(bg => <div key={bg.id} className={`relative cursor-pointer rounded-lg border-2 p-3 transition-all hover:border-primary ${selectedBackgroundId === bg.id && !bg.isCustom ? "border-primary bg-primary/5" : "border-border"} ${bg.isCustom ? "border-dashed" : ""}`} onClick={() => {
+                  if (bg.isCustom) {
+                    setCustomStudioDialogOpen(true);
+                  } else {
+                    setSelectedBackgroundId(bg.id);
+                  }
+                }}>
+                      {bg.isCustom ? <div className="aspect-video mb-2 overflow-hidden rounded-md bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                          <span className="text-white font-medium text-sm">Få din egna studio </span>
+                        </div> : <div className="aspect-video mb-2 overflow-hidden rounded-md bg-muted">
                           <img src={bg.thumbnail} alt={bg.name} className="h-full w-full object-cover" loading="eager" decoding="async" />
-                        </div>
-                      )}
+                        </div>}
                       <div className="flex items-start justify-between">
                         <div>
                           <h4 className="font-medium text-sm">{bg.name}</h4>
@@ -404,14 +487,10 @@ export const AiSettingsDialog = () => {
                         </div>
                         {selectedBackgroundId === bg.id && !bg.isCustom && <Check className="h-5 w-5 text-primary flex-shrink-0" />}
                       </div>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
 
-                <CustomStudioDialog 
-                  open={customStudioDialogOpen} 
-                  onOpenChange={setCustomStudioDialogOpen} 
-                />
+                <CustomStudioDialog open={customStudioDialogOpen} onOpenChange={setCustomStudioDialogOpen} />
               </div>
             </TabsContent>
 
@@ -425,62 +504,35 @@ export const AiSettingsDialog = () => {
                     Ladda upp en logotyp som kommer att läggas till på dina redigerade bilder
                   </p>
 
-                  {logoUrl ? (
-                    <div className="flex flex-wrap items-center gap-2 p-2 border rounded-lg bg-muted/30">
+                  {logoUrl ? <div className="flex flex-wrap items-center gap-2 p-2 border rounded-lg bg-muted/30">
                       <img src={logoUrl} alt="Logo" className="h-10 w-auto max-w-[80px] object-contain" />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRemoveLogoBackground}
-                        disabled={removingLogoBg}
-                        className="text-xs px-2 h-8"
-                      >
+                      <Button variant="outline" size="sm" onClick={handleRemoveLogoBackground} disabled={removingLogoBg} className="text-xs px-2 h-8">
                         {removingLogoBg ? "..." : "Ta bort bg"}
                       </Button>
                       <Button variant="destructive" size="sm" onClick={handleRemoveLogo} className="text-xs px-2 h-8">
                         <X className="h-3 w-3 mr-1" />
                         Ta bort
                       </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
+                    </div> : <div className="flex items-center gap-2">
                       <Input id="logo-upload" type="file" accept="image/*" onChange={handleLogoUpload} disabled={uploadingLogo} className="max-w-[250px] text-base" />
                       {uploadingLogo && <span className="text-sm text-muted-foreground">Laddar upp...</span>}
-                    </div>
-                  )}
+                    </div>}
                 </div>
 
-                {logoUrl && (
-                  <>
+                {logoUrl && <>
                     <Separator />
                     <div className="space-y-2">
                       <Label>Transparens ({Math.round(watermarkOpacity * 100)}%)</Label>
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={Math.round(watermarkOpacity * 100)}
-                        onChange={e => setWatermarkOpacity(Number(e.target.value) / 100)}
-                        className="w-full"
-                      />
+                      <input type="range" min="0" max="100" value={Math.round(watermarkOpacity * 100)} onChange={e => setWatermarkOpacity(Number(e.target.value) / 100)} className="w-full" />
                     </div>
                     <div className="mt-4">
                       <Label className="text-base font-semibold mb-3 block">Förhandsgranskning</Label>
-                      <WatermarkPreview
-                        logoUrl={logoUrl}
-                        x={watermarkX}
-                        y={watermarkY}
-                        size={watermarkSize}
-                        opacity={watermarkOpacity}
-                        onPositionChange={(newX, newY) => {
-                          setWatermarkX(newX);
-                          setWatermarkY(newY);
-                        }}
-                        onSizeChange={setWatermarkSize}
-                      />
+                      <WatermarkPreview logoUrl={logoUrl} x={watermarkX} y={watermarkY} size={watermarkSize} opacity={watermarkOpacity} onPositionChange={(newX, newY) => {
+                    setWatermarkX(newX);
+                    setWatermarkY(newY);
+                  }} onSizeChange={setWatermarkSize} />
                     </div>
-                  </>
-                )}
+                  </>}
               </div>
             </TabsContent>
 
@@ -496,31 +548,20 @@ export const AiSettingsDialog = () => {
                 {/* Logo upload */}
                 <div className="space-y-2">
                   <Label htmlFor="landing-logo-upload">Logotyp</Label>
-                  {landingPageLogoUrl ? (
-                    <div className="flex flex-wrap items-center gap-2 p-2 border rounded-lg bg-muted/30">
+                  {landingPageLogoUrl ? <div className="flex flex-wrap items-center gap-2 p-2 border rounded-lg bg-muted/30">
                       <img src={landingPageLogoUrl} alt="Logo" className="h-10 w-auto max-w-[80px] object-contain" />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRemoveLandingLogoBackground}
-                        disabled={removingLandingLogoBg}
-                        className="text-xs px-2 h-8"
-                      >
+                      <Button variant="outline" size="sm" onClick={handleRemoveLandingLogoBackground} disabled={removingLandingLogoBg} className="text-xs px-2 h-8">
                         {removingLandingLogoBg ? "..." : "Ta bort bg"}
                       </Button>
                       <Button variant="destructive" size="sm" onClick={() => setLandingPageLogoUrl("")} className="text-xs px-2 h-8">
                         <X className="h-3 w-3 mr-1" />
                         Ta bort
                       </Button>
-                    </div>
-                  ) : (
-                    <Input id="landing-logo-upload" type="file" accept="image/*" onChange={handleLandingLogoUpload} disabled={uploadingLandingLogo} className="text-base" />
-                  )}
+                    </div> : <Input id="landing-logo-upload" type="file" accept="image/*" onChange={handleLandingLogoUpload} disabled={uploadingLandingLogo} className="text-base" />}
                 </div>
 
                 {/* Logo size and position */}
-                {landingPageLogoUrl && (
-                  <div className="grid grid-cols-2 gap-4">
+                {landingPageLogoUrl && <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Logotypstorlek</Label>
                       <Select value={landingPageLogoSize} onValueChange={(v: "small" | "medium" | "large") => setLandingPageLogoSize(v)}>
@@ -547,14 +588,12 @@ export const AiSettingsDialog = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-                )}
+                  </div>}
 
                 {/* Header image upload */}
                 <div className="space-y-2">
                   <Label htmlFor="header-image-upload">Header-bild</Label>
-                  {landingPageHeaderImageUrl ? (
-                    <div className="space-y-2">
+                  {landingPageHeaderImageUrl ? <div className="space-y-2">
                       <div className="relative aspect-[3/1] w-full overflow-hidden rounded-lg border">
                         <img src={landingPageHeaderImageUrl} alt="Header" className="h-full w-full object-cover" />
                       </div>
@@ -562,15 +601,11 @@ export const AiSettingsDialog = () => {
                         <X className="h-4 w-4 mr-1" />
                         Ta bort
                       </Button>
-                    </div>
-                  ) : (
-                    <Input id="header-image-upload" type="file" accept="image/*" onChange={handleHeaderImageUpload} disabled={uploadingHeaderImage} className="text-base" />
-                  )}
+                    </div> : <Input id="header-image-upload" type="file" accept="image/*" onChange={handleHeaderImageUpload} disabled={uploadingHeaderImage} className="text-base" />}
                 </div>
 
                 {/* Header image settings */}
-                {landingPageHeaderImageUrl && (
-                  <div className="grid grid-cols-2 gap-4">
+                {landingPageHeaderImageUrl && <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Header-höjd</Label>
                       <Select value={landingPageHeaderHeight} onValueChange={(v: "small" | "medium" | "large") => setLandingPageHeaderHeight(v)}>
@@ -597,8 +632,7 @@ export const AiSettingsDialog = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-                )}
+                  </div>}
 
                 <Separator />
 
@@ -667,36 +701,18 @@ export const AiSettingsDialog = () => {
                 {/* Preview */}
                 <div>
                   <Label className="text-base font-semibold mb-3 block">Förhandsgranskning</Label>
-                  <LandingPagePreview
-                    logoUrl={landingPageLogoUrl}
-                    headerImageUrl={landingPageHeaderImageUrl}
-                    backgroundColor={landingPageBackgroundColor}
-                    textColor={landingPageTextColor}
-                    accentColor={landingPageAccentColor}
-                    title={landingPageTitle}
-                    description={landingPageDescription}
-                    footerText={landingPageFooterText}
-                    layout={landingPageLayout}
-                    logoSize={landingPageLogoSize}
-                    logoPosition={landingPageLogoPosition}
-                    headerHeight={landingPageHeaderHeight}
-                    headerFit={landingPageHeaderFit}
-                  />
+                  <LandingPagePreview logoUrl={landingPageLogoUrl} headerImageUrl={landingPageHeaderImageUrl} backgroundColor={landingPageBackgroundColor} textColor={landingPageTextColor} accentColor={landingPageAccentColor} title={landingPageTitle} description={landingPageDescription} footerText={landingPageFooterText} layout={landingPageLayout} logoSize={landingPageLogoSize} logoPosition={landingPageLogoPosition} headerHeight={landingPageHeaderHeight} headerFit={landingPageHeaderFit} />
                 </div>
               </div>
             </TabsContent>
 
-            {userRole === "admin" && (
-              <TabsContent value="payment" className="mt-6">
+            {userRole === "admin" && <TabsContent value="payment" className="mt-6">
                 <PaymentSettings />
-              </TabsContent>
-            )}
+              </TabsContent>}
 
-            {userRole === "admin" && (
-              <TabsContent value="team" className="mt-6">
+            {userRole === "admin" && <TabsContent value="team" className="mt-6">
                 <TeamManagement />
-              </TabsContent>
-            )}
+              </TabsContent>}
 
             <TabsContent value="account" className="mt-6">
               <AccountSettings />
@@ -713,6 +729,5 @@ export const AiSettingsDialog = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 };
