@@ -3,15 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Phone } from "lucide-react";
 import customExample1 from "@/assets/custom-studio-example-1.jpg";
 import customExample2 from "@/assets/custom-studio-example-2.png";
-
 interface CustomStudioDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-export const CustomStudioDialog = ({ open, onOpenChange }: CustomStudioDialogProps) => {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+export const CustomStudioDialog = ({
+  open,
+  onOpenChange
+}: CustomStudioDialogProps) => {
+  return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Custom Studio</DialogTitle>
@@ -24,22 +24,10 @@ export const CustomStudioDialog = ({ open, onOpenChange }: CustomStudioDialogPro
         {/* Exempelbilder */}
         <div className="flex flex-col gap-3 my-4">
           <div className="aspect-video rounded-lg overflow-hidden">
-            <img 
-              src={customExample1} 
-              alt="" 
-              className="w-full h-full object-cover" 
-              loading="eager"
-              decoding="async"
-            />
+            <img src={customExample1} alt="" className="w-full h-full object-cover" loading="eager" decoding="async" />
           </div>
           <div className="aspect-video rounded-lg overflow-hidden">
-            <img 
-              src={customExample2} 
-              alt="" 
-              className="w-full h-full object-cover" 
-              loading="eager"
-              decoding="async"
-            />
+            <img src={customExample2} alt="" className="w-full h-full object-cover" loading="eager" decoding="async" />
           </div>
         </div>
         
@@ -49,15 +37,10 @@ export const CustomStudioDialog = ({ open, onOpenChange }: CustomStudioDialogPro
         </div>
         
         {/* CTA */}
-        <Button 
-          className="w-full" 
-          size="lg"
-          onClick={() => window.location.href = "tel:0793436810"}
-        >
+        <Button className="w-full" size="lg" onClick={() => window.location.href = "tel:0793436810"}>
           <Phone className="h-4 w-4 mr-2" />
-          Ring 0793436810
+          Ring 079-343 68 10
         </Button>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
