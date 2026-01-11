@@ -1447,7 +1447,7 @@ const CarDetail = () => {
             </TabsList>
 
             <div className="min-h-12 sm:min-h-0 lg:ml-auto">
-              <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1">
+              <div className="flex flex-wrap gap-2">
                 {allSelectedPhotos.length > 0 && (
                   <>
                     <Button
