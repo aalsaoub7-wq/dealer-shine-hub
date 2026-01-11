@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useIsMobile } from "@/hooks/use-mobile";
-import testImage from "@/assets/watermark-test.jpg";
+import testImage from "@/assets/watermark-preview-example.jpg";
 
 // Constants for percentage conversion
 const CANVAS_WIDTH = 3840;
