@@ -168,7 +168,7 @@ All colors MUST be HSL.
   position: relative;
   background: hsl(var(--card));
   border-radius: 1.5rem;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .shimmer-border::before {
@@ -195,29 +195,6 @@ All colors MUST be HSL.
     linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-}
-
-.shimmer-border::after {
-  content: '';
-  position: absolute;
-  inset: -8px;
-  border-radius: 2rem;
-  background: linear-gradient(
-    90deg,
-    hsl(0 85% 60% / 0.4) 0%,
-    hsl(30 90% 55% / 0.4) 14%,
-    hsl(60 90% 50% / 0.4) 28%,
-    hsl(120 70% 45% / 0.4) 42%,
-    hsl(200 90% 50% / 0.4) 57%,
-    hsl(270 80% 60% / 0.4) 71%,
-    hsl(320 80% 55% / 0.4) 85%,
-    hsl(0 85% 60% / 0.4) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer-border 3s linear infinite;
-  filter: blur(20px);
-  z-index: -1;
-  opacity: 0.6;
 }
 
 /* Förbättra touch targets ENDAST i native */
