@@ -52,7 +52,7 @@ serve(async (req: Request) => {
 
     // Send email via Resend
     const { error: emailError } = await resend.emails.send({
-      from: "Luvero <noreply@luvero.se>",
+      from: "Luvero <verifiera@luvero.se>",
       to: [email],
       subject: "Verifiera din e-postadress - Luvero",
       html: `
