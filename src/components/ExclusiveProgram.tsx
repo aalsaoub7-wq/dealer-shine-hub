@@ -247,9 +247,8 @@ export const ExclusiveProgram = () => {
             >
               Lorbit AI:{" "}
               <span className="bg-gradient-to-r from-red-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
-                Automatiska deal-alerts
-              </span>{" "}
-              i realtid
+                Hittar bilar åt dig
+              </span>
             </h2>
 
             {/* Ingress */}
