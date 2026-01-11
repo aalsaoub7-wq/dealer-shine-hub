@@ -44,9 +44,13 @@ export const WatermarkPreview = ({
   const pixelToPercentX = (pixel: number) => (pixel / CANVAS_WIDTH) * 100;
   const pixelToPercentY = (pixel: number) => (pixel / CANVAS_HEIGHT) * 100;
   
+  // Ensure percent values are within valid range (0-100)
+  const safeXPercent = Math.max(0, Math.min(100, xPercent));
+  const safeYPercent = Math.max(0, Math.min(100, yPercent));
+  
   // Local state for smooth interaction (in pixels for canvas operations)
-  const [localX, setLocalX] = useState(percentToPixelX(xPercent));
-  const [localY, setLocalY] = useState(percentToPixelY(yPercent));
+  const [localX, setLocalX] = useState(percentToPixelX(safeXPercent));
+  const [localY, setLocalY] = useState(percentToPixelY(safeYPercent));
   const [localSize, setLocalSize] = useState(size);
   const [localOpacity, setLocalOpacity] = useState(opacity);
   const [logoSize, setLogoSize] = useState({ width: 0, height: 0 });
@@ -54,12 +58,12 @@ export const WatermarkPreview = ({
   // Sync local state with props when not interacting
   useEffect(() => {
     if (!isDragging && !isResizing) {
-      setLocalX(percentToPixelX(xPercent));
-      setLocalY(percentToPixelY(yPercent));
+      setLocalX(percentToPixelX(safeXPercent));
+      setLocalY(percentToPixelY(safeYPercent));
       setLocalSize(size);
       setLocalOpacity(opacity);
     }
-  }, [xPercent, yPercent, size, opacity, isDragging, isResizing]);
+  }, [safeXPercent, safeYPercent, size, opacity, isDragging, isResizing]);
 
   // Load images once
   useEffect(() => {

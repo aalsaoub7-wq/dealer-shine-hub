@@ -77,8 +77,8 @@ export const AiSettingsDialog = () => {
   const [selectedBackgroundId, setSelectedBackgroundId] = useState<string>("studio-background");
   const [exampleDescriptions, setExampleDescriptions] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
-  const [watermarkX, setWatermarkX] = useState(20);
-  const [watermarkY, setWatermarkY] = useState(20);
+  const [watermarkX, setWatermarkX] = useState(5);
+  const [watermarkY, setWatermarkY] = useState(5);
   const [watermarkSize, setWatermarkSize] = useState(15);
   const [watermarkOpacity, setWatermarkOpacity] = useState(0.8);
   const [landingPageLogoUrl, setLandingPageLogoUrl] = useState("");
@@ -158,8 +158,24 @@ export const AiSettingsDialog = () => {
         }
         setExampleDescriptions(data.example_descriptions || "");
         setLogoUrl(data.logo_url || "");
-        setWatermarkX(data.watermark_x || 20);
-        setWatermarkY(data.watermark_y || 20);
+        
+        // Migration logic: detect old pixel values (> 100) and convert to percentages
+        // Old canvas was 3840x2880, so values > 100 are definitely pixels
+        const rawX = data.watermark_x ?? 5;
+        const rawY = data.watermark_y ?? 5;
+        const needsMigration = rawX > 100 || rawY > 100;
+        
+        if (needsMigration) {
+          // Convert from old pixel values (3840x2880 canvas) to percentages
+          const migratedX = (rawX / 3840) * 100;
+          const migratedY = (rawY / 2880) * 100;
+          setWatermarkX(Math.max(0, Math.min(100, migratedX)));
+          setWatermarkY(Math.max(0, Math.min(100, migratedY)));
+        } else {
+          setWatermarkX(rawX);
+          setWatermarkY(rawY);
+        }
+        
         setWatermarkSize(data.watermark_size || 15);
         setWatermarkOpacity(data.watermark_opacity || 0.8);
         setLandingPageLogoUrl(data.landing_page_logo_url || "");
