@@ -204,19 +204,17 @@ export const ExclusiveProgram = () => {
 
       {/* Floating Logos Layer - No cards/frames, in front of main card */}
       <div className="absolute inset-0 flex items-center justify-between px-8 md:px-24 pointer-events-none z-30" style={getParallaxStyle(80)} aria-hidden="true">
-        {/* Blocket logo - left, bigger, no frame, smooth float like "Ny annons" */}
-        <div className={`hidden md:block transition-all duration-1000 animate-vip-float ${isInView ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"}`} style={{
+        {/* Blocket logo - left, bigger, no frame */}
+        <div className={`hidden md:block transition-all duration-1000 ${isInView ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"}`} style={{
         transitionDelay: "600ms",
-        animationDelay: "0.3s",
         filter: "drop-shadow(0 0 35px rgba(249,115,22,0.5))"
       }}>
           <img src={blocketLogo} alt="" className="h-32 w-auto object-contain" />
         </div>
         
-        {/* Facebook Marketplace logo - right, bigger, no frame, smooth float */}
-        <div className={`hidden md:block transition-all duration-1000 animate-vip-float ${isInView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"}`} style={{
+        {/* Facebook Marketplace logo - right, bigger, no frame */}
+        <div className={`hidden md:block transition-all duration-1000 ${isInView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"}`} style={{
         transitionDelay: "800ms",
-        animationDelay: "0.8s",
         filter: "drop-shadow(0 0 35px rgba(59,130,246,0.5))"
       }}>
           <img src={fbmLogo} alt="" className="h-32 w-auto object-contain" />
