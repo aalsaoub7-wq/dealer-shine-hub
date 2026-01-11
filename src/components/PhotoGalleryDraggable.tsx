@@ -109,13 +109,18 @@ const SortablePhotoCard = ({
         <div 
           className={`absolute bottom-2 left-2 z-10 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
           onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => {
+            // Prevent iOS focus-scroll on touch
+            if (e.pointerType === "touch") {
+              e.preventDefault();
+            }
+            e.stopPropagation();
+          }}
         >
           <Checkbox 
             checked={isSelected}
             onCheckedChange={(checked) => onSelect(photo.id, checked === true)}
-            className="bg-background/80 border-2 h-12 w-12 md:h-6 md:w-6 focus:outline-none"
-            tabIndex={-1}
-            onFocus={(e) => e.preventDefault()}
+            className="bg-background/80 border-2 h-12 w-12 md:h-6 md:w-6"
           />
         </div>
         <img
