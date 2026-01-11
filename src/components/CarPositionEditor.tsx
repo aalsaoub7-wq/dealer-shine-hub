@@ -1,10 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Loader2 } from "lucide-react";
+import { Loader2, X, Check } from "lucide-react";
 
 interface CarPositionEditorProps {
   open: boolean;
@@ -340,73 +337,83 @@ export const CarPositionEditor = ({
     );
   }, [carX, carY, carWidth, carHeight, onSave]);
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Justera bilens position</DialogTitle>
-          <DialogDescription>
-            Klicka på bilen för att välja den. Dra för att flytta, dra den röda pricken för att ändra storlek.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="space-y-4">
-          <Card className="p-4 bg-muted/30 border-muted">
-            {!imagesLoaded ? (
-              <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                <span className="ml-2">Laddar bilder...</span>
-              </div>
-            ) : (
-              <canvas
-                ref={canvasRef}
-                className="w-full h-auto cursor-move touch-none"
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  const touch = e.touches[0];
-                  const syntheticEvent = { clientX: touch.clientX, clientY: touch.clientY } as React.MouseEvent<HTMLCanvasElement>;
-                  handleMouseDown(syntheticEvent);
-                }}
-                onTouchMove={(e) => {
-                  e.preventDefault();
-                  const touch = e.touches[0];
-                  const syntheticEvent = { clientX: touch.clientX, clientY: touch.clientY } as React.MouseEvent<HTMLCanvasElement>;
-                  handleMouseMove(syntheticEvent);
-                }}
-                onTouchEnd={handleMouseUp}
-                style={{ imageRendering: 'auto' }}
-              />
-            )}
-          </Card>
+  if (!open) return null;
 
-          <div className="flex gap-3 justify-end">
-            <Button 
-              variant="outline" 
-              onClick={() => onOpenChange(false)}
-              disabled={isSaving}
-            >
+  if (!imagesLoaded) {
+    return (
+      <div className="fixed inset-0 z-50 bg-background/95 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
+          <p className="text-muted-foreground">Laddar bilder...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-background/95 flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b bg-card">
+        <h2 className="text-lg font-semibold">Justera bilens position</h2>
+        <div className="flex gap-2">
+          <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} disabled={isSaving}>
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Canvas area */}
+      <div className="flex-1 overflow-auto p-4 flex items-center justify-center">
+        <canvas
+          ref={canvasRef}
+          className="max-w-full max-h-full object-contain cursor-move touch-none shadow-lg rounded-lg"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const syntheticEvent = { clientX: touch.clientX, clientY: touch.clientY } as React.MouseEvent<HTMLCanvasElement>;
+            handleMouseDown(syntheticEvent);
+          }}
+          onTouchMove={(e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const syntheticEvent = { clientX: touch.clientX, clientY: touch.clientY } as React.MouseEvent<HTMLCanvasElement>;
+            handleMouseMove(syntheticEvent);
+          }}
+          onTouchEnd={handleMouseUp}
+          style={{ imageRendering: 'auto' }}
+        />
+      </div>
+
+      {/* Footer */}
+      <div className="p-4 border-t bg-card">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground text-center sm:text-left">
+            Klicka på bilen för att välja den. Dra för att flytta, dra den röda pricken för att ändra storlek.
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
               Avbryt
             </Button>
-            <Button 
-              onClick={handleSave}
-              disabled={!imagesLoaded || isSaving}
-            >
+            <Button onClick={handleSave} disabled={!imagesLoaded || isSaving}>
               {isSaving ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Sparar...
                 </>
               ) : (
-                "Spara och lägg till reflektion"
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Spara och lägg till reflektion
+                </>
               )}
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 };
