@@ -345,40 +345,58 @@ export type Database = {
           car_id: string
           created_at: string | null
           display_order: number | null
+          has_watermark: boolean | null
           id: string
           is_edited: boolean | null
           is_processing: boolean | null
           original_url: string | null
           photo_type: string
+          pre_watermark_url: string | null
           transparent_url: string | null
           updated_at: string | null
           url: string
+          watermark_opacity: number | null
+          watermark_size: number | null
+          watermark_x: number | null
+          watermark_y: number | null
         }
         Insert: {
           car_id: string
           created_at?: string | null
           display_order?: number | null
+          has_watermark?: boolean | null
           id?: string
           is_edited?: boolean | null
           is_processing?: boolean | null
           original_url?: string | null
           photo_type: string
+          pre_watermark_url?: string | null
           transparent_url?: string | null
           updated_at?: string | null
           url: string
+          watermark_opacity?: number | null
+          watermark_size?: number | null
+          watermark_x?: number | null
+          watermark_y?: number | null
         }
         Update: {
           car_id?: string
           created_at?: string | null
           display_order?: number | null
+          has_watermark?: boolean | null
           id?: string
           is_edited?: boolean | null
           is_processing?: boolean | null
           original_url?: string | null
           photo_type?: string
+          pre_watermark_url?: string | null
           transparent_url?: string | null
           updated_at?: string | null
           url?: string
+          watermark_opacity?: number | null
+          watermark_size?: number | null
+          watermark_x?: number | null
+          watermark_y?: number | null
         }
         Relationships: [
           {

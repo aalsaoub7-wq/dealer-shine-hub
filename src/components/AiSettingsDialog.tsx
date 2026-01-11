@@ -527,7 +527,7 @@ export const AiSettingsDialog = () => {
                     </div>
                     <div className="mt-4">
                       <Label className="text-base font-semibold mb-3 block">Förhandsgranskning</Label>
-                      <WatermarkPreview logoUrl={logoUrl} x={watermarkX} y={watermarkY} size={watermarkSize} opacity={watermarkOpacity} onPositionChange={(newX, newY) => {
+                      <WatermarkPreview logoUrl={logoUrl} xPercent={watermarkX} yPercent={watermarkY} size={watermarkSize} opacity={watermarkOpacity} onPositionChange={(newX, newY) => {
                     setWatermarkX(newX);
                     setWatermarkY(newY);
                   }} onSizeChange={setWatermarkSize} />

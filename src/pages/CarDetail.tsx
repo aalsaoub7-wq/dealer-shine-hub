@@ -32,6 +32,7 @@ import { useHaptics } from "@/hooks/useHaptics";
 import { nativeShare } from "@/lib/nativeCapabilities";
 import { analytics } from "@/lib/analytics";
 import { CarPositionEditor } from "@/components/CarPositionEditor";
+import { WatermarkPositionEditor } from "@/components/WatermarkPositionEditor";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -74,6 +75,12 @@ interface Photo {
   original_url: string | null;
   transparent_url: string | null;
   display_order: number;
+  has_watermark?: boolean;
+  watermark_x?: number;
+  watermark_y?: number;
+  watermark_size?: number;
+  watermark_opacity?: number;
+  pre_watermark_url?: string | null;
 }
 
 const CarDetail = () => {
@@ -111,6 +118,17 @@ const CarDetail = () => {
     transparentCarUrl: string;
   } | null>(null);
   const [positionEditorSaving, setPositionEditorSaving] = useState(false);
+  // Watermark position editor state
+  const [watermarkEditorPhoto, setWatermarkEditorPhoto] = useState<{
+    id: string;
+    preWatermarkUrl: string;
+    logoUrl: string;
+    xPercent: number;
+    yPercent: number;
+    size: number;
+    opacity: number;
+  } | null>(null);
+  const [watermarkEditorSaving, setWatermarkEditorSaving] = useState(false);
   // Background template state
   const [backgroundUrl, setBackgroundUrl] = useState<string>("/backgrounds/studio-background.jpg");
   const { toast } = useToast();
@@ -1092,12 +1110,19 @@ const CarDetail = () => {
             data: { publicUrl },
           } = supabase.storage.from("car-photos").getPublicUrl(filePath);
 
-          // Update photo record - save original URL if not already saved
+          // Update photo record - save original URL if not already saved, track watermark
+          const currentPreWatermarkUrl = photo.pre_watermark_url || photo.url;
           await supabase
             .from("photos")
             .update({
               url: publicUrl,
               original_url: photo.original_url || photo.url,
+              has_watermark: true,
+              pre_watermark_url: currentPreWatermarkUrl,
+              watermark_x: settings.watermark_x || 2,
+              watermark_y: settings.watermark_y || 2,
+              watermark_size: settings.watermark_size || 15,
+              watermark_opacity: settings.watermark_opacity || 0.8,
             })
             .eq("id", photo.id);
         } catch (error) {
@@ -1120,6 +1145,146 @@ const CarDetail = () => {
       });
     } finally {
       setApplyingWatermark(false);
+    }
+  };
+
+  // Handler for removing watermark from a photo
+  const handleRemoveWatermark = async (photoId: string) => {
+    const photo = photos.find(p => p.id === photoId);
+    if (!photo || !photo.pre_watermark_url) {
+      toast({
+        title: "Kan inte ta bort vattenmärke",
+        description: "Originalbilden finns inte sparad",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await supabase
+        .from("photos")
+        .update({
+          url: photo.pre_watermark_url,
+          has_watermark: false,
+          pre_watermark_url: null,
+          watermark_x: null,
+          watermark_y: null,
+          watermark_size: null,
+          watermark_opacity: null,
+        })
+        .eq("id", photoId);
+      
+      fetchCarData(true);
+    } catch (error: any) {
+      toast({
+        title: "Fel vid borttagning av vattenmärke",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handler for opening watermark position editor
+  const handleOpenWatermarkEditor = async (photoId: string) => {
+    const photo = photos.find(p => p.id === photoId);
+    if (!photo || !photo.pre_watermark_url) {
+      toast({
+        title: "Kan inte justera vattenmärke",
+        description: "Originalbilden finns inte sparad",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Get company logo
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: companyData } = await supabase
+      .from("user_companies")
+      .select("company_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!companyData) return;
+
+    const { data: settings } = await supabase
+      .from("ai_settings")
+      .select("logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity")
+      .eq("company_id", companyData.company_id)
+      .single();
+
+    if (!settings?.logo_url) {
+      toast({
+        title: "Ingen logotyp",
+        description: "Du måste ladda upp en logotyp i inställningarna först",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setWatermarkEditorPhoto({
+      id: photoId,
+      preWatermarkUrl: photo.pre_watermark_url,
+      logoUrl: settings.logo_url,
+      xPercent: photo.watermark_x ?? settings.watermark_x ?? 2,
+      yPercent: photo.watermark_y ?? settings.watermark_y ?? 2,
+      size: photo.watermark_size ?? settings.watermark_size ?? 15,
+      opacity: photo.watermark_opacity ?? settings.watermark_opacity ?? 0.8,
+    });
+  };
+
+  // Handler for saving adjusted watermark position
+  const handleSaveWatermarkPosition = async (xPercent: number, yPercent: number, size: number) => {
+    if (!watermarkEditorPhoto || !car) return;
+
+    setWatermarkEditorSaving(true);
+
+    try {
+      // Re-apply watermark with new position
+      const watermarkedBlob = await applyWatermark(
+        watermarkEditorPhoto.preWatermarkUrl,
+        watermarkEditorPhoto.logoUrl,
+        xPercent,
+        yPercent,
+        size,
+        watermarkEditorPhoto.opacity,
+      );
+
+      // Upload new watermarked image
+      const fileName = `watermarked-${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
+      const filePath = `${car.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("car-photos")
+        .upload(filePath, watermarkedBlob, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage.from("car-photos").getPublicUrl(filePath);
+
+      // Update photo record
+      await supabase
+        .from("photos")
+        .update({
+          url: publicUrl,
+          watermark_x: xPercent,
+          watermark_y: yPercent,
+          watermark_size: size,
+        })
+        .eq("id", watermarkEditorPhoto.id);
+
+      setWatermarkEditorPhoto(null);
+      fetchCarData(true);
+      successNotification();
+    } catch (error: any) {
+      toast({
+        title: "Fel vid sparande av vattenmärke",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setWatermarkEditorSaving(false);
     }
   };
 
@@ -1338,6 +1503,8 @@ const CarDetail = () => {
               onSelectionChange={setSelectedMainPhotos}
               onRegenerateReflection={handleRegenerateReflection}
               onAdjustPosition={handleOpenPositionEditor}
+              onRemoveWatermark={handleRemoveWatermark}
+              onAdjustWatermark={handleOpenWatermarkEditor}
             />
           </TabsContent>
 
@@ -1348,6 +1515,8 @@ const CarDetail = () => {
               onUpdate={() => fetchCarData(true)}
               selectedPhotos={selectedDocPhotos}
               onSelectionChange={setSelectedDocPhotos}
+              onRemoveWatermark={handleRemoveWatermark}
+              onAdjustWatermark={handleOpenWatermarkEditor}
             />
           </TabsContent>
         </Tabs>
@@ -1361,6 +1530,20 @@ const CarDetail = () => {
         onUploadComplete={() => {}}
       />
 
+      {/* Watermark Position Editor */}
+      {watermarkEditorPhoto && (
+        <WatermarkPositionEditor
+          imageUrl={watermarkEditorPhoto.preWatermarkUrl}
+          logoUrl={watermarkEditorPhoto.logoUrl}
+          initialXPercent={watermarkEditorPhoto.xPercent}
+          initialYPercent={watermarkEditorPhoto.yPercent}
+          initialSize={watermarkEditorPhoto.size}
+          opacity={watermarkEditorPhoto.opacity}
+          onSave={handleSaveWatermarkPosition}
+          onCancel={() => setWatermarkEditorPhoto(null)}
+          saving={watermarkEditorSaving}
+        />
+      )}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>

@@ -1,24 +1,27 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { useIsMobile } from "@/hooks/use-mobile";
 import testImage from "@/assets/watermark-test.jpg";
 
+// Constants for percentage conversion
+const CANVAS_WIDTH = 3840;
+const CANVAS_HEIGHT = 2880;
+
 interface WatermarkPreviewProps {
   logoUrl: string;
-  x: number;
-  y: number;
+  xPercent: number;
+  yPercent: number;
   size: number;
   opacity: number;
-  onPositionChange: (x: number, y: number) => void;
+  onPositionChange: (xPercent: number, yPercent: number) => void;
   onSizeChange: (size: number) => void;
 }
 
 export const WatermarkPreview = ({
   logoUrl,
-  x,
-  y,
+  xPercent,
+  yPercent,
   size,
   opacity,
   onPositionChange,
@@ -35,9 +38,15 @@ export const WatermarkPreview = ({
   const [isSelected, setIsSelected] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   
-  // Local state for smooth interaction
-  const [localX, setLocalX] = useState(x);
-  const [localY, setLocalY] = useState(y);
+  // Convert percentage to canvas pixels for internal use
+  const percentToPixelX = (percent: number) => (percent / 100) * CANVAS_WIDTH;
+  const percentToPixelY = (percent: number) => (percent / 100) * CANVAS_HEIGHT;
+  const pixelToPercentX = (pixel: number) => (pixel / CANVAS_WIDTH) * 100;
+  const pixelToPercentY = (pixel: number) => (pixel / CANVAS_HEIGHT) * 100;
+  
+  // Local state for smooth interaction (in pixels for canvas operations)
+  const [localX, setLocalX] = useState(percentToPixelX(xPercent));
+  const [localY, setLocalY] = useState(percentToPixelY(yPercent));
   const [localSize, setLocalSize] = useState(size);
   const [localOpacity, setLocalOpacity] = useState(opacity);
   const [logoSize, setLogoSize] = useState({ width: 0, height: 0 });
@@ -45,12 +54,12 @@ export const WatermarkPreview = ({
   // Sync local state with props when not interacting
   useEffect(() => {
     if (!isDragging && !isResizing) {
-      setLocalX(x);
-      setLocalY(y);
+      setLocalX(percentToPixelX(xPercent));
+      setLocalY(percentToPixelY(yPercent));
       setLocalSize(size);
       setLocalOpacity(opacity);
     }
-  }, [x, y, size, opacity, isDragging, isResizing]);
+  }, [xPercent, yPercent, size, opacity, isDragging, isResizing]);
 
   // Load images once
   useEffect(() => {
@@ -88,14 +97,14 @@ export const WatermarkPreview = ({
     if (!ctx) return;
 
     // Set canvas size once
-    if (canvas.width !== 3840) {
-      canvas.width = 3840;
-      canvas.height = 2880;
+    if (canvas.width !== CANVAS_WIDTH) {
+      canvas.width = CANVAS_WIDTH;
+      canvas.height = CANVAS_HEIGHT;
     }
 
     // Clear and draw test image
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(testImgRef.current, 0, 0, 3840, 2880);
+    ctx.drawImage(testImgRef.current, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     // Calculate logo size
     const logoMaxWidth = canvas.width * (localSize / 100);
@@ -249,7 +258,8 @@ export const WatermarkPreview = ({
 
   const handleMouseUp = useCallback(() => {
     if (isDragging) {
-      onPositionChange(localX, localY);
+      // Convert pixels to percentages before calling callback
+      onPositionChange(pixelToPercentX(localX), pixelToPercentY(localY));
     }
     if (isResizing) {
       onSizeChange(localSize);
