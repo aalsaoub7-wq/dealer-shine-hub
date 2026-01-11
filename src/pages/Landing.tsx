@@ -108,7 +108,7 @@ const Landing = () => {
               <Button className="w-full bg-black text-white hover:bg-black hover:text-white hover:scale-100" onClick={() => navigate("/auth")}>
                 Logga in
               </Button>
-              <Button className="w-full" onClick={() => scrollToSection('pricing')}>
+              <Button className="w-full" onClick={() => navigate("/auth?mode=signup")}>
                 Prova gratis i 21 dagar
               </Button>
             </div>
@@ -572,7 +572,7 @@ const Landing = () => {
             <div className="shimmer-border relative p-6 md:p-8 shadow-2xl shadow-blue-500/20 scale-105 transition-all duration-300 hover:scale-110 overflow-visible">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                 <span className="px-4 py-1 text-xs font-semibold bg-blue-500 text-white rounded-full whitespace-nowrap">
-                  Billigast för de flesta
+                  Billigast för dem flesta
                 </span>
               </div>
               
