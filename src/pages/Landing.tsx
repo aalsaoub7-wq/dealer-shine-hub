@@ -12,10 +12,78 @@ import { ExclusiveProgram } from "@/components/ExclusiveProgram";
 import { StatsParallaxSection } from "@/components/StatsParallaxSection";
 import LogoMarquee from "@/components/LogoMarquee";
 import { analytics } from "@/lib/analytics";
+
+// JSON-LD structured data for SEO
+const jsonLdData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://luvero.se/#organization",
+      "name": "Luvero",
+      "url": "https://luvero.se",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://luvero.se/favicon.png"
+      },
+      "description": "Professionell bilhanterare för återförsäljare med AI-driven bakgrundsredigering."
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://luvero.se/#software",
+      "name": "Luvero",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web, iOS, Android",
+      "description": "AI-powered car photo editing platform for professional car dealers. Transform car photos with studio backgrounds in seconds.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "SEK",
+        "description": "21 dagars gratis provperiod med 50 bilder"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "150"
+      },
+      "publisher": {
+        "@id": "https://luvero.se/#organization"
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://luvero.se/#website",
+      "url": "https://luvero.se",
+      "name": "Luvero",
+      "publisher": {
+        "@id": "https://luvero.se/#organization"
+      },
+      "inLanguage": "sv-SE"
+    }
+  ]
+};
+
 const Landing = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  
+  // Inject JSON-LD structured data
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.text = JSON.stringify(jsonLdData);
+    script.id = 'json-ld-structured-data';
+    document.head.appendChild(script);
+    
+    return () => {
+      const existingScript = document.getElementById('json-ld-structured-data');
+      if (existingScript) {
+        existingScript.remove();
+      }
+    };
+  }, []);
+  
   useEffect(() => {
     analytics.landingPageVisited();
   }, []);

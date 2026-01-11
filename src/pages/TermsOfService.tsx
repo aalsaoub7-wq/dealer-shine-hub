@@ -1,12 +1,18 @@
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { SEOHead } from "@/components/SEOHead";
 
 const TermsOfService = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead 
+        title="Användarvillkor | Luvero" 
+        description="Läs Luveros användarvillkor för vår AI-drivna bilredigeringstjänst. Information om prissättning, användning, ansvar och dina rättigheter."
+        canonicalPath="/anvandarvillkor"
+      />
       <div className="container mx-auto px-4 py-12 max-w-4xl">
         <Button
           variant="ghost"
