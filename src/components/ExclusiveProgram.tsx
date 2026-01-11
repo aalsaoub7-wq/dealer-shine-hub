@@ -127,22 +127,22 @@ export const ExclusiveProgram = () => {
   const hudChips = [{
     icon: Zap,
     label: "Deal Score",
-    desc: "prioriterade fynd, beräknat av AI",
+    desc: "AI värdesätter alla bilar 0-100 m.h.a. en algoritm",
     color: "text-red-400"
   }, {
     icon: Target,
     label: "Marginalmål",
-    desc: "larm endast när ditt mål uppnås",
+    desc: "beräknar hur mycket du kommer att tjäna på varje bil om du köper och säljer den",
     color: "text-blue-400"
   }, {
     icon: Bell,
     label: "Direktnotiser",
-    desc: "SMS/e-post/Discord",
+    desc: "få en notis så fort en bra bil har lagts ut",
     color: "text-green-400"
   }, {
     icon: Filter,
     label: "Kvalitetsfilter",
-    desc: "minimerar skräpannonser",
+    desc: "AI filtrerar bort alla bilar som du inte tjänar bra på",
     color: "text-purple-400"
   }];
   return <section ref={sectionRef} id="exclusive-program" className="relative min-h-[90vh] md:min-h-[90vh] w-full overflow-hidden py-20 md:py-32" style={{
