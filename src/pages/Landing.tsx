@@ -108,7 +108,7 @@ const Landing = () => {
               <Button className="w-full bg-black text-white hover:bg-black hover:text-white hover:scale-100" onClick={() => navigate("/auth")}>
                 Logga in
               </Button>
-              <Button className="w-full" onClick={() => navigate("/auth?mode=signup")}>
+              <Button className="w-full" onClick={() => scrollToSection('pricing')}>
                 Prova gratis i 21 dagar
               </Button>
             </div>
