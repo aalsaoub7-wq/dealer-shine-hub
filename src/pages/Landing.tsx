@@ -255,11 +255,11 @@ const Landing = () => {
           {/* YouTube Video Embed with Glow */}
           <div className="relative max-w-4xl mx-auto">
             {/* Glow effect */}
-            <div className="absolute -inset-4 bg-gradient-to-r from-primary/40 via-accent/30 to-primary/40 rounded-3xl blur-2xl opacity-60" />
-            <div className="absolute -inset-2 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl blur-xl" />
+            <div className="absolute -inset-4 bg-gradient-to-r from-orange-500/50 via-orange-400/40 to-orange-500/50 rounded-3xl blur-2xl opacity-70" />
+            <div className="absolute -inset-2 bg-gradient-to-br from-orange-500/30 to-orange-400/25 rounded-2xl blur-xl" />
             
             {/* Video container */}
-            <div className="relative rounded-2xl overflow-hidden border border-primary/20 shadow-2xl shadow-primary/20" style={{
+            <div className="relative rounded-2xl overflow-hidden border border-orange-500/30 shadow-2xl shadow-orange-500/30" style={{
             padding: '56.25% 0 0 0',
             position: 'relative'
           }}>
