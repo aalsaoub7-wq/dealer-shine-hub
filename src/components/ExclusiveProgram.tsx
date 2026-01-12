@@ -260,9 +260,9 @@ export const ExclusiveProgram = () => {
             </h2>
 
             {/* Ingress */}
-            <p className={`text-lg md:text-xl text-gray-300 mb-8 max-w-xl mx-auto transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{
+            <p className={`text-lg md:text-xl text-white/90 mb-8 max-w-xl mx-auto transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{
             transitionDelay: "400ms"
-          }}>Vår AI skannar Blocket & Facebook Marketplace dygnet runt och pingar dig bara när marginalen på bilen är bra.</p>
+          }}>Vår AI skannar alla bilar som läggs ut på Blocket & Facebook Marketplace dygnet runt, gör beräkningar åt dig, och du får en notis när en bil är bra</p>
 
             {/* Feature chips */}
             <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10 transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{
@@ -297,7 +297,7 @@ export const ExclusiveProgram = () => {
         </div>
 
         {/* Footnote */}
-        <p className={`mt-8 text-sm text-gray-300 text-center max-w-md transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{
+        <p className={`mt-8 text-sm text-white/80 text-center max-w-md transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{
         transitionDelay: "900ms"
       }}>
           * Endast en ny befintlig Luvero kund får köpa denna exklusiva AI varje månad. Prenumerera till Luvero för chansen att testa den.
