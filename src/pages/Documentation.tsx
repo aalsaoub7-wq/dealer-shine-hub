@@ -113,6 +113,14 @@ const Documentation = () => {
                 </p>
               </div>
               <div>
+                <h4 className="font-medium text-foreground mb-2">Organisera bildordning</h4>
+                <p>
+                  Du kan enkelt ordna om dina bilder genom att dra och släppa dem. 
+                  Klicka och håll på gripper-ikonen (tre horisontella linjer) på en bild och dra den till önskad position. 
+                  Den nya ordningen sparas automatiskt.
+                </p>
+              </div>
+              <div>
                 <h4 className="font-medium text-foreground mb-2">Filformat som stöds</h4>
                 <p>
                   JPEG, PNG, WebP och HEIC/HEIF. Maximal filstorlek är 10 MB per bild.
@@ -131,8 +139,8 @@ const Documentation = () => {
                 <h4 className="font-medium text-foreground mb-2">Hur det fungerar</h4>
                 <p>
                   Välj en eller flera huvudbilder genom att klicka på dem, sedan klicka på "AI redigera". 
-                  Vår AI tar bort den befintliga bakgrunden och ersätter den med en professionell studiobakgrund 
-                  baserat på din valda mall.
+                  Vår AI tar bort den befintliga bakgrunden, placerar bilen på en professionell studiobakgrund 
+                  (baserat på din valda mall) och lägger till realistiska skuggor och reflektioner.
                 </p>
               </div>
               <div>
@@ -146,9 +154,33 @@ const Documentation = () => {
                 <h4 className="font-medium text-foreground mb-2">Viktigt att veta</h4>
                 <ul className="list-disc list-inside space-y-1">
                   <li>Endast huvudbilder kan AI-redigeras (inte dokumentationsbilder)</li>
-                  <li>Redigerade bilder går att generera om ifall du inte tycker om de </li>
+                  <li>Redigerade bilder går att regenerera om du inte är nöjd</li>
                   <li>Varje redigerad bild kostar 5,95 kr (gratis under testperioden)</li>
                   <li>Du måste ha en betalmetod registrerad efter testperioden</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-medium text-foreground mb-2">Missnöjd med resultatet?</h4>
+                <p>
+                  Om du inte är nöjd med en AI-redigerad bild finns det två sätt att förbättra resultatet:
+                </p>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li><strong>Generera ny skugga och reflektion:</strong> Klicka på en redigerad bild för att öppna alternativmenyn. 
+                  Välj "Generera ny skugga och reflektion" för att köra AI:n igen med samma bilplacering men nya skuggor.</li>
+                  <li><strong>Justera bilens position:</strong> Om bilen är felplacerad, välj "Justera bilens position" 
+                  för att manuellt flytta och ändra storlek på bilen innan nya reflektioner genereras.</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-medium text-foreground mb-2">Positionsredigeraren</h4>
+                <p>
+                  När du väljer "Justera bilens position" öppnas en helskärmsredigerare:
+                </p>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li><strong>Flytta bilen:</strong> Klicka och dra var som helst på bilen för att flytta den</li>
+                  <li><strong>Ändra storlek:</strong> Dra i den röda pricken i hörnet för att förstora eller förminska bilen</li>
+                  <li><strong>Spara:</strong> Klicka på "Spara och lägg till reflektion" för att applicera den nya positionen och generera nya skuggor</li>
+                  <li><strong>Avbryt:</strong> Klicka på "Avbryt" för att stänga utan att spara ändringar</li>
                 </ul>
               </div>
               <div>
@@ -184,18 +216,10 @@ const Documentation = () => {
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-foreground mb-2">Egen bakgrund</h4>
-                <p>
-                  Du kan också skapa en egen bakgrund genom att skriva en beskrivning. 
-                  <strong className="text-yellow-500"> OBS!</strong> Egna bakgrunder kan bli oförutsägbara 
-                  eftersom du styr dem helt själv. Använd fördefinierade mallar för bäst resultat.
-                </p>
-              </div>
-              <div>
                 <h4 className="font-medium text-foreground mb-2">Byta mall</h4>
                 <p>
                   Gå till Inställningar → Bakgrund för att välja din bakgrundsmall. 
-                  Vald mall används för alla framtida AI-redigeringar i ditt företag.
+                  Vald mall används för alla framtida AI-redigeringar i ditt företag och delas med alla teammedlemmar.
                 </p>
               </div>
               <div>
@@ -216,28 +240,50 @@ const Documentation = () => {
               <div>
                 <h4 className="font-medium text-foreground mb-2">Konfigurera vattenmärke</h4>
                 <p>
-                  Gå till Inställningar → Vattenmärke. Ladda upp din logotyp som ska användas som vattenmärke.
+                  Gå till Inställningar → Vattenmärke. Ladda upp din logotyp som ska användas som vattenmärke. 
+                  Du kan även ta bort bakgrunden från din logotyp genom att klicka på "Ta bort bakgrund".
                 </p>
               </div>
               <div>
-                <h4 className="font-medium text-foreground mb-2">Positionering</h4>
+                <h4 className="font-medium text-foreground mb-2">Positionering i inställningar</h4>
                 <p>
                   Dra och släpp vattenmärket på förhandsvisningen för att placera det där du vill. 
-                  Använd opacitetsreglaget för att justera genomskinligheten (0-100%).
+                  Använd opacitetsreglaget för att justera genomskinligheten (0-100%). 
+                  Dessa inställningar används som standard när du applicerar vattenmärken.
                 </p>
               </div>
               <div>
                 <h4 className="font-medium text-foreground mb-2">Applicera vattenmärke</h4>
                 <p>
                   Välj redigerade bilder på detaljsidan och klicka på "Lägg till vattenmärke". 
-                  Vattenmärket appliceras permanent på bilderna.
+                  Vattenmärket appliceras på bilderna med din valda position och storlek.
                 </p>
+              </div>
+              <div>
+                <h4 className="font-medium text-foreground mb-2">Hantera applicerade vattenmärken</h4>
+                <p>
+                  Om du vill ändra ett redan applicerat vattenmärke, klicka på bilden för att öppna alternativmenyn:
+                </p>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li><strong>Ta bort vattenmärket:</strong> Återställer bilden till hur den såg ut innan vattenmärket applicerades</li>
+                  <li><strong>Justera vattenmärkets position:</strong> Öppnar redigeraren för att flytta eller ändra storlek på vattenmärket</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-medium text-foreground mb-2">Vattenmärkesredigeraren</h4>
+                <p>
+                  När du väljer "Justera vattenmärkets position" öppnas en helskärmsredigerare:
+                </p>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li><strong>Flytta:</strong> Klicka och dra vattenmärket för att flytta det</li>
+                  <li><strong>Ändra storlek:</strong> Dra i den röda pricken i hörnet för att förstora eller förminska</li>
+                  <li><strong>Spara:</strong> Klicka på "Spara" för att applicera den nya positionen</li>
+                </ul>
               </div>
               <div>
                 <h4 className="font-medium text-foreground mb-2">Viktigt</h4>
                 <p>
-                  Vattenmärken kan endast läggas till på redan AI-redigerade bilder. 
-                  När ett vattenmärke är applicerat kan det inte tas bort.
+                  Vattenmärken kan endast läggas till på redan AI-redigerade bilder.
                 </p>
               </div>
               <div>
@@ -312,7 +358,7 @@ const Documentation = () => {
               <div>
                 <h4 className="font-medium text-foreground mb-2">Kostnad</h4>
                 <p>
-                  Varje anställd kostar 299 kr/månad utöver basabonnemanget.
+                  Extra teammedlemmar är helt gratis att lägga till – inga extra kostnader.
                 </p>
               </div>
             </AccordionContent>
