@@ -263,7 +263,7 @@ const PhotoUpload = ({
               <input
                 type="file"
                 multiple
-                accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
+                accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/avif"
                 onChange={handleFileSelect}
                 className="hidden"
                 id="file-upload"
