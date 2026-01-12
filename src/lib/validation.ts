@@ -12,7 +12,6 @@ export const ALLOWED_IMAGE_TYPES = [
   "image/webp",
   "image/heic",
   "image/heif",
-  "image/avif",
 ];
 
 // Car schemas
@@ -76,7 +75,7 @@ export const validateImageFile = (file: File): { valid: boolean; error?: string 
   if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
     return {
       valid: false,
-      error: `Filtypen ${file.type} stöds inte. Tillåtna format: JPEG, PNG, WebP, HEIC/HEIF, AVIF`,
+      error: `Filtypen ${file.type} stöds inte. Tillåtna format: JPEG, PNG, WebP, HEIC/HEIF`,
     };
   }
 
