@@ -254,15 +254,13 @@ export const ExclusiveProgram = () => {
             transitionDelay: "300ms"
           }}>
               Lorbit AI:{" "}
-              <span className="bg-gradient-to-r from-red-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
-                Hittar bilar åt dig
-              </span>
+              <span className="bg-gradient-to-r from-red-400 via-orange-400 to-red-400 bg-clip-text text-transparent">Hittar bra bilar åt dig</span>
             </h2>
 
             {/* Ingress */}
             <p className={`text-lg md:text-xl text-white/90 mb-8 max-w-xl mx-auto transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{
             transitionDelay: "400ms"
-          }}>Vår AI skannar alla bilar som läggs ut på Blocket & Facebook Marketplace dygnet runt, gör beräkningar åt dig, och du får en notis när en bil är bra</p>
+          }}>Vår AI skannar alla bilar som läggs ut på Blocket & Facebook Marketplace dygnet runt, gör beräkningar åt dig, och du får en notis när en bil du kan tjäna pengar på kommer ut.</p>
 
             {/* Feature chips */}
             <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10 transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{
