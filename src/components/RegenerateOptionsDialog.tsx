@@ -23,7 +23,7 @@ export const RegenerateOptionsDialog = ({
 }: RegenerateOptionsDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md mx-4 sm:mx-auto">
         <DialogHeader>
           <DialogTitle>Vad vill du göra?</DialogTitle>
           <DialogDescription>
