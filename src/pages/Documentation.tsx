@@ -186,7 +186,7 @@ const Documentation = () => {
               <div>
                 <h4 className="font-medium text-foreground mb-2">Video på hur man gör</h4>
                 <div className="aspect-video rounded-lg overflow-hidden">
-                  <iframe width="100%" height="100%" src="https://www.youtube.com/embed/8JOnqNLX5ww" title="Video på hur man gör" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                  <iframe width="100%" height="100%" src="https://www.youtube.com/embed/GMAoqqagsHE" title="Video på hur man gör" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
                 </div>
               </div>
             </AccordionContent>
@@ -289,7 +289,7 @@ const Documentation = () => {
               <div>
                 <h4 className="font-medium text-foreground mb-2">Video på hur man gör</h4>
                 <div className="aspect-video rounded-lg overflow-hidden">
-                  <iframe width="100%" height="100%" src="https://www.youtube.com/embed/wt5jPwTrkXI" title="Video på hur man gör" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                  <iframe width="100%" height="100%" src="https://www.youtube.com/embed/gyZsIn-Wu24" title="Video på hur man gör" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
                 </div>
               </div>
             </AccordionContent>
@@ -320,6 +320,12 @@ const Documentation = () => {
                 <p>
                   Delade landningssidor upphör automatiskt efter 30 dagar och blir då otillgängliga.
                 </p>
+              </div>
+              <div>
+                <h4 className="font-medium text-foreground mb-2">Video på hur man gör</h4>
+                <div className="aspect-video rounded-lg overflow-hidden">
+                  <iframe width="100%" height="100%" src="https://www.youtube.com/embed/qPVEpZM8zZU" title="Video på hur man gör" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                </div>
               </div>
             </AccordionContent>
           </AccordionItem>
