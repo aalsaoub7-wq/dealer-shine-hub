@@ -151,15 +151,6 @@ const Documentation = () => {
                 </p>
               </div>
               <div>
-                <h4 className="font-medium text-foreground mb-2">Viktigt att veta</h4>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>Endast huvudbilder kan AI-redigeras (inte dokumentationsbilder)</li>
-                  <li>Redigerade bilder går att regenerera om du inte är nöjd</li>
-                  <li>Varje redigerad bild kostar 5,95 kr (gratis under testperioden)</li>
-                  <li>Du måste ha en betalmetod registrerad efter testperioden</li>
-                </ul>
-              </div>
-              <div>
                 <h4 className="font-medium text-foreground mb-2">Missnöjd med resultatet?</h4>
                 <p>
                   Om du inte är nöjd med en AI-redigerad bild finns det två sätt att förbättra resultatet:
