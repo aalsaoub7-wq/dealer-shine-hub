@@ -266,7 +266,7 @@ const CarDetail = () => {
     try {
       const { error } = await supabase.from("cars").delete().eq("id", id);
       if (error) throw error;
-      navigate("/");
+      navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Fel vid radering av bil",
