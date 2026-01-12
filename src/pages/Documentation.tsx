@@ -183,44 +183,6 @@ const Documentation = () => {
             </AccordionContent>
           </AccordionItem>
 
-          {/* Bakgrundsmallar */}
-          <AccordionItem value="background-templates" className="border border-border/50 rounded-lg px-4 bg-card/50">
-            <AccordionTrigger className="text-lg font-semibold">
-              🎨 Bakgrundsmallar
-            </AccordionTrigger>
-            <AccordionContent className="text-muted-foreground space-y-4">
-              <div>
-                <h4 className="font-medium text-foreground mb-2">Fördefinierade mallar</h4>
-                <p>
-                  Luvero erbjuder 9 professionella bakgrundsmallar som är optimerade för bilbilder:
-                </p>
-                <ul className="list-disc list-inside mt-2 space-y-1">
-                  <li><strong>Showroom</strong> – Klassisk grå golv med vit vägg</li>
-                  <li><strong>Luxury Studio</strong> – Mörkt glansigt golv med professionell belysning</li>
-                  <li><strong>Soft Grey Gradient</strong> – Mjuk grå gradient</li>
-                  <li><strong>White Infinity Cove</strong> – Vit oändlighetsbakgrund</li>
-                  <li><strong>Two-Tone Horizon</strong> – Tvåtonad horisont</li>
-                  <li><strong>Light Showroom</strong> – Ljus showroom-miljö</li>
-                  <li><strong>Dark Wall Light Floor</strong> – Mörk vägg med ljust golv</li>
-                  <li><strong>Very Light Studio</strong> – Mycket ljus studiomiljö</li>
-                  <li><strong>Darker Lower Wall</strong> – Mörkare nedre väggparti</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-medium text-foreground mb-2">Byta mall</h4>
-                <p>
-                  Gå till Inställningar → Bakgrund för att välja din bakgrundsmall. 
-                  Vald mall används för alla framtida AI-redigeringar i ditt företag och delas med alla teammedlemmar.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-medium text-foreground mb-2">Video på hur man gör</h4>
-                <div className="aspect-video rounded-lg overflow-hidden">
-                  <iframe width="100%" height="100%" src="https://www.youtube.com/embed/8JOnqNLX5ww" title="Video på hur man gör" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
 
           {/* Vattenmärken */}
           <AccordionItem value="watermarks" className="border border-border/50 rounded-lg px-4 bg-card/50">
