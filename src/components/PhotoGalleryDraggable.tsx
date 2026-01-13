@@ -70,6 +70,17 @@ const SortablePhotoCard = ({
   onRegenerate,
   onWatermarkOptions,
 }: SortablePhotoCardProps) => {
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState(photo.url);
+
+  // Reset isImageLoaded when URL changes (new image)
+  useEffect(() => {
+    if (photo.url !== currentSrc) {
+      setIsImageLoaded(false);
+      setCurrentSrc(photo.url);
+    }
+  }, [photo.url, currentSrc]);
+
   const {
     attributes,
     listeners,
@@ -86,6 +97,8 @@ const SortablePhotoCard = ({
     cursor: isDragging ? "grabbing" : "default",
   };
 
+  const showOverlay = photo.is_processing || !isImageLoaded;
+
   return (
     <Card
       ref={setNodeRef}
@@ -94,10 +107,12 @@ const SortablePhotoCard = ({
       {...attributes}
     >
       <div className="relative aspect-video bg-secondary">
-        {photo.is_processing && (
+        {showOverlay && (
           <div className="absolute inset-0 bg-background/90 z-20 flex flex-col items-center justify-center">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-lg text-foreground font-medium">Bild Behandlas</p>
+            <p className="text-lg text-foreground font-medium">
+              {photo.is_processing ? "Bild Behandlas" : "Laddar..."}
+            </p>
           </div>
         )}
         <div
@@ -130,8 +145,10 @@ const SortablePhotoCard = ({
           loading="lazy"
           decoding="async"
           onClick={() => onImageClick(photo.url)}
+          onLoad={() => setIsImageLoaded(true)}
           onError={(e) => {
             const el = e.currentTarget as HTMLImageElement;
+            setIsImageLoaded(true); // Show image even on error
             if (photo.original_url && el.src !== photo.original_url) {
               el.src = photo.original_url;
               return;
