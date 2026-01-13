@@ -1571,7 +1571,7 @@ const CarDetail = () => {
         onOpenChange={setUploadDialogOpen}
         carId={id!}
         photoType={uploadType}
-        onUploadComplete={() => {}}
+        onUploadComplete={() => fetchCarData(true)}
       />
 
       {/* Watermark Position Editor */}
