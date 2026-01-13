@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -216,6 +216,11 @@ const PhotoGalleryDraggable = ({
 }: PhotoGalleryProps) => {
   const { toast } = useToast();
   const [items, setItems] = useState(photos);
+  
+  // Sync internal state when photos prop changes (after upload/edit/watermark)
+  useEffect(() => {
+    setItems(photos);
+  }, [photos]);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [regenerateOptionsId, setRegenerateOptionsId] = useState<string | null>(null);
   const [watermarkOptionsId, setWatermarkOptionsId] = useState<string | null>(null);
