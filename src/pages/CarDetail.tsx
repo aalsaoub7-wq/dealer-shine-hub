@@ -224,7 +224,10 @@ const CarDetail = () => {
     // Save current scroll position if requested
     const scrollY = preserveScroll ? window.scrollY : 0;
 
-    setLoading(true);
+    // Only show skeleton on initial load, not on realtime updates
+    if (!preserveScroll) {
+      setLoading(true);
+    }
     try {
       // Fetch car details
       const { data: carData, error: carError } = await supabase.from("cars").select("*").eq("id", id).single();
