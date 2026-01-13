@@ -112,91 +112,110 @@ const PhotoUpload = ({
 
     setUploading(true);
     
-    // Collect all photo data for batch insert
-    const photosToInsert: Array<{
-      car_id: string;
-      url: string;
-      original_url: string;
-      photo_type: string;
-      is_edited: boolean;
-    }> = [];
-    
     try {
-      // First, upload all files to storage
-      for (const file of selectedFiles) {
+      // Step 1: Create placeholder records with is_processing: true
+      const placeholders = selectedFiles.map(() => ({
+        car_id: carId,
+        url: '/placeholder.svg',
+        original_url: '/placeholder.svg',
+        photo_type: photoType,
+        is_edited: false,
+        is_processing: true,
+      }));
+
+      const { data: insertedPhotos, error: insertError } = await supabase
+        .from("photos")
+        .insert(placeholders)
+        .select('id');
+
+      if (insertError) throw insertError;
+
+      // Trigger UI update so placeholder cards with spinners appear immediately
+      onUploadComplete();
+
+      // Step 2: Upload each file and update corresponding placeholder
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const photoId = insertedPhotos[i].id;
         const fileExt = file.name.split(".").pop();
         
-        if (photoType === "documentation") {
-          const originalFileName = `${carId}/doc-${Date.now()}-${Math.random()}.${fileExt}`;
-          const { error: uploadError } = await supabase.storage
-            .from("car-photos")
-            .upload(originalFileName, file, { contentType: file.type || 'application/octet-stream' });
+        try {
+          if (photoType === "documentation") {
+            const originalFileName = `${carId}/doc-${Date.now()}-${Math.random()}.${fileExt}`;
+            const { error: uploadError } = await supabase.storage
+              .from("car-photos")
+              .upload(originalFileName, file, { contentType: file.type || 'application/octet-stream' });
 
-          if (uploadError) throw uploadError;
+            if (uploadError) throw uploadError;
 
-          const { data: { publicUrl } } = supabase.storage
-            .from("car-photos")
-            .getPublicUrl(originalFileName);
+            const { data: { publicUrl } } = supabase.storage
+              .from("car-photos")
+              .getPublicUrl(originalFileName);
 
-          let finalUrl = publicUrl;
-          try {
-            const head = await fetch(publicUrl, { method: 'HEAD' });
-            if (!head.ok) {
-              const { data: signed } = await supabase.storage
-                .from('car-photos')
-                .createSignedUrl(originalFileName, 60 * 60 * 24 * 365);
-              if (signed?.signedUrl) finalUrl = signed.signedUrl;
-            }
-          } catch {}
+            let finalUrl = publicUrl;
+            try {
+              const head = await fetch(publicUrl, { method: 'HEAD' });
+              if (!head.ok) {
+                const { data: signed } = await supabase.storage
+                  .from('car-photos')
+                  .createSignedUrl(originalFileName, 60 * 60 * 24 * 365);
+                if (signed?.signedUrl) finalUrl = signed.signedUrl;
+              }
+            } catch {}
 
-          // Collect for batch insert instead of inserting immediately
-          photosToInsert.push({
-            car_id: carId,
-            url: finalUrl,
-            original_url: finalUrl,
-            photo_type: photoType,
-            is_edited: false,
-          });
-        } else {
-          const originalFileName = `${carId}/original-${Date.now()}-${Math.random()}.${fileExt}`;
-          const { error: originalUploadError } = await supabase.storage
-            .from("car-photos")
-            .upload(originalFileName, file, { contentType: file.type || 'application/octet-stream' });
+            // Update placeholder with real URL
+            await supabase
+              .from("photos")
+              .update({
+                url: finalUrl,
+                original_url: finalUrl,
+                is_processing: false,
+              })
+              .eq("id", photoId);
+          } else {
+            const originalFileName = `${carId}/original-${Date.now()}-${Math.random()}.${fileExt}`;
+            const { error: originalUploadError } = await supabase.storage
+              .from("car-photos")
+              .upload(originalFileName, file, { contentType: file.type || 'application/octet-stream' });
 
-          if (originalUploadError) throw originalUploadError;
+            if (originalUploadError) throw originalUploadError;
 
-          const { data: { publicUrl: originalUrl } } = supabase.storage
-            .from("car-photos")
-            .getPublicUrl(originalFileName);
+            const { data: { publicUrl: originalUrl } } = supabase.storage
+              .from("car-photos")
+              .getPublicUrl(originalFileName);
 
-          let finalOriginalUrl = originalUrl;
-          try {
-            const head = await fetch(originalUrl, { method: 'HEAD' });
-            if (!head.ok) {
-              const { data: signed } = await supabase.storage
-                .from('car-photos')
-                .createSignedUrl(originalFileName, 60 * 60 * 24 * 365);
-              if (signed?.signedUrl) finalOriginalUrl = signed.signedUrl;
-            }
-          } catch {}
+            let finalOriginalUrl = originalUrl;
+            try {
+              const head = await fetch(originalUrl, { method: 'HEAD' });
+              if (!head.ok) {
+                const { data: signed } = await supabase.storage
+                  .from('car-photos')
+                  .createSignedUrl(originalFileName, 60 * 60 * 24 * 365);
+                if (signed?.signedUrl) finalOriginalUrl = signed.signedUrl;
+              }
+            } catch {}
 
-          // Collect for batch insert instead of inserting immediately
-          photosToInsert.push({
-            car_id: carId,
-            url: finalOriginalUrl,
-            original_url: finalOriginalUrl,
-            photo_type: photoType,
-            is_edited: false,
-          });
+            // Update placeholder with real URL
+            await supabase
+              .from("photos")
+              .update({
+                url: finalOriginalUrl,
+                original_url: finalOriginalUrl,
+                is_processing: false,
+              })
+              .eq("id", photoId);
+          }
+        } catch (error) {
+          // On error, mark as not processing so card doesn't show spinner forever
+          await supabase
+            .from("photos")
+            .update({ is_processing: false })
+            .eq("id", photoId);
+          console.error(`Error uploading file ${file.name}:`, error);
         }
       }
 
-      // Single batch insert - triggers realtime only ONCE
-      if (photosToInsert.length > 0) {
-        const { error: dbError } = await supabase.from("photos").insert(photosToInsert);
-        if (dbError) throw dbError;
-      }
-
+      // Final UI update
       onUploadComplete();
       onOpenChange(false);
       setSelectedFiles([]);
