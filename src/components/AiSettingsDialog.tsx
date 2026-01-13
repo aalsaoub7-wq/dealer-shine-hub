@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -101,6 +102,33 @@ export const AiSettingsDialog = () => {
   const [loading, setLoading] = useState(false);
   const [removingLogoBg, setRemovingLogoBg] = useState(false);
   const [customStudioDialogOpen, setCustomStudioDialogOpen] = useState(false);
+  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+  const [pendingClose, setPendingClose] = useState(false);
+  
+  // Store original values to detect changes
+  const originalValuesRef = useRef<{
+    selectedBackgroundId: string;
+    exampleDescriptions: string;
+    logoUrl: string;
+    watermarkX: number;
+    watermarkY: number;
+    watermarkSize: number;
+    watermarkOpacity: number;
+    landingPageLogoUrl: string;
+    landingPageBackgroundColor: string;
+    landingPageLayout: string;
+    landingPageHeaderImageUrl: string;
+    landingPageTextColor: string;
+    landingPageAccentColor: string;
+    landingPageTitle: string;
+    landingPageDescription: string;
+    landingPageFooterText: string;
+    landingPageLogoSize: string;
+    landingPageLogoPosition: string;
+    landingPageHeaderHeight: string;
+    landingPageHeaderFit: string;
+  } | null>(null);
+  
   const {
     toast
   } = useToast();
@@ -148,9 +176,11 @@ export const AiSettingsDialog = () => {
       }
       if (data) {
         const savedTemplateId = data.background_template_id;
+        let finalBackgroundId = "studio-background";
         if (savedTemplateId) {
           const matchingBg = STATIC_BACKGROUNDS.find(bg => bg.id === savedTemplateId);
           if (matchingBg) {
+            finalBackgroundId = savedTemplateId;
             setSelectedBackgroundId(savedTemplateId);
           } else {
             setSelectedBackgroundId("studio-background");
@@ -165,32 +195,97 @@ export const AiSettingsDialog = () => {
         const rawY = data.watermark_y ?? 5;
         const needsMigration = rawX > 100 || rawY > 100;
         
+        let finalWatermarkX = rawX;
+        let finalWatermarkY = rawY;
         if (needsMigration) {
           // Convert from old pixel values (3840x2880 canvas) to percentages
           const migratedX = (rawX / 3840) * 100;
           const migratedY = (rawY / 2880) * 100;
-          setWatermarkX(Math.max(0, Math.min(100, migratedX)));
-          setWatermarkY(Math.max(0, Math.min(100, migratedY)));
-        } else {
-          setWatermarkX(rawX);
-          setWatermarkY(rawY);
+          finalWatermarkX = Math.max(0, Math.min(100, migratedX));
+          finalWatermarkY = Math.max(0, Math.min(100, migratedY));
         }
+        setWatermarkX(finalWatermarkX);
+        setWatermarkY(finalWatermarkY);
         
-        setWatermarkSize(data.watermark_size || 15);
-        setWatermarkOpacity(data.watermark_opacity || 0.8);
-        setLandingPageLogoUrl(data.landing_page_logo_url || "");
-        setLandingPageBackgroundColor(data.landing_page_background_color || "#ffffff");
-        setLandingPageLayout(data.landing_page_layout as "grid" | "carousel" | "masonry" || "grid");
-        setLandingPageHeaderImageUrl(data.landing_page_header_image_url || "");
-        setLandingPageTextColor(data.landing_page_text_color || "#000000");
-        setLandingPageAccentColor(data.landing_page_accent_color || "#000000");
-        setLandingPageTitle(data.landing_page_title || "Mina Bilder");
-        setLandingPageDescription(data.landing_page_description || "");
-        setLandingPageFooterText(data.landing_page_footer_text || "");
-        setLandingPageLogoSize(data.landing_page_logo_size as "small" | "medium" | "large" || "medium");
-        setLandingPageLogoPosition(data.landing_page_logo_position as "left" | "center" | "right" || "center");
-        setLandingPageHeaderHeight(data.landing_page_header_height as "small" | "medium" | "large" || "medium");
-        setLandingPageHeaderFit(data.landing_page_header_fit as "cover" | "contain" | "fill" || "cover");
+        const finalWatermarkSize = data.watermark_size || 15;
+        const finalWatermarkOpacity = data.watermark_opacity || 0.8;
+        const finalLandingPageLogoUrl = data.landing_page_logo_url || "";
+        const finalLandingPageBackgroundColor = data.landing_page_background_color || "#ffffff";
+        const finalLandingPageLayout = data.landing_page_layout as "grid" | "carousel" | "masonry" || "grid";
+        const finalLandingPageHeaderImageUrl = data.landing_page_header_image_url || "";
+        const finalLandingPageTextColor = data.landing_page_text_color || "#000000";
+        const finalLandingPageAccentColor = data.landing_page_accent_color || "#000000";
+        const finalLandingPageTitle = data.landing_page_title || "Mina Bilder";
+        const finalLandingPageDescription = data.landing_page_description || "";
+        const finalLandingPageFooterText = data.landing_page_footer_text || "";
+        const finalLandingPageLogoSize = data.landing_page_logo_size as "small" | "medium" | "large" || "medium";
+        const finalLandingPageLogoPosition = data.landing_page_logo_position as "left" | "center" | "right" || "center";
+        const finalLandingPageHeaderHeight = data.landing_page_header_height as "small" | "medium" | "large" || "medium";
+        const finalLandingPageHeaderFit = data.landing_page_header_fit as "cover" | "contain" | "fill" || "cover";
+        
+        setWatermarkSize(finalWatermarkSize);
+        setWatermarkOpacity(finalWatermarkOpacity);
+        setLandingPageLogoUrl(finalLandingPageLogoUrl);
+        setLandingPageBackgroundColor(finalLandingPageBackgroundColor);
+        setLandingPageLayout(finalLandingPageLayout);
+        setLandingPageHeaderImageUrl(finalLandingPageHeaderImageUrl);
+        setLandingPageTextColor(finalLandingPageTextColor);
+        setLandingPageAccentColor(finalLandingPageAccentColor);
+        setLandingPageTitle(finalLandingPageTitle);
+        setLandingPageDescription(finalLandingPageDescription);
+        setLandingPageFooterText(finalLandingPageFooterText);
+        setLandingPageLogoSize(finalLandingPageLogoSize);
+        setLandingPageLogoPosition(finalLandingPageLogoPosition);
+        setLandingPageHeaderHeight(finalLandingPageHeaderHeight);
+        setLandingPageHeaderFit(finalLandingPageHeaderFit);
+        
+        // Store original values for change detection
+        originalValuesRef.current = {
+          selectedBackgroundId: finalBackgroundId,
+          exampleDescriptions: data.example_descriptions || "",
+          logoUrl: data.logo_url || "",
+          watermarkX: finalWatermarkX,
+          watermarkY: finalWatermarkY,
+          watermarkSize: finalWatermarkSize,
+          watermarkOpacity: finalWatermarkOpacity,
+          landingPageLogoUrl: finalLandingPageLogoUrl,
+          landingPageBackgroundColor: finalLandingPageBackgroundColor,
+          landingPageLayout: finalLandingPageLayout,
+          landingPageHeaderImageUrl: finalLandingPageHeaderImageUrl,
+          landingPageTextColor: finalLandingPageTextColor,
+          landingPageAccentColor: finalLandingPageAccentColor,
+          landingPageTitle: finalLandingPageTitle,
+          landingPageDescription: finalLandingPageDescription,
+          landingPageFooterText: finalLandingPageFooterText,
+          landingPageLogoSize: finalLandingPageLogoSize,
+          landingPageLogoPosition: finalLandingPageLogoPosition,
+          landingPageHeaderHeight: finalLandingPageHeaderHeight,
+          landingPageHeaderFit: finalLandingPageHeaderFit,
+        };
+      } else {
+        // No existing data - store default values
+        originalValuesRef.current = {
+          selectedBackgroundId: "studio-background",
+          exampleDescriptions: "",
+          logoUrl: "",
+          watermarkX: 5,
+          watermarkY: 5,
+          watermarkSize: 15,
+          watermarkOpacity: 0.8,
+          landingPageLogoUrl: "",
+          landingPageBackgroundColor: "#ffffff",
+          landingPageLayout: "grid",
+          landingPageHeaderImageUrl: "",
+          landingPageTextColor: "#000000",
+          landingPageAccentColor: "#000000",
+          landingPageTitle: "Mina Bilder",
+          landingPageDescription: "",
+          landingPageFooterText: "",
+          landingPageLogoSize: "medium",
+          landingPageLogoPosition: "center",
+          landingPageHeaderHeight: "medium",
+          landingPageHeaderFit: "cover",
+        };
       }
     } catch (error: any) {
       console.error("Error loading AI settings:", error);
@@ -200,6 +295,68 @@ export const AiSettingsDialog = () => {
         variant: "destructive"
       });
     }
+  };
+  
+  // Check if there are unsaved changes
+  const hasUnsavedChanges = (): boolean => {
+    if (!originalValuesRef.current) return false;
+    const orig = originalValuesRef.current;
+    return (
+      selectedBackgroundId !== orig.selectedBackgroundId ||
+      exampleDescriptions !== orig.exampleDescriptions ||
+      logoUrl !== orig.logoUrl ||
+      watermarkX !== orig.watermarkX ||
+      watermarkY !== orig.watermarkY ||
+      watermarkSize !== orig.watermarkSize ||
+      watermarkOpacity !== orig.watermarkOpacity ||
+      landingPageLogoUrl !== orig.landingPageLogoUrl ||
+      landingPageBackgroundColor !== orig.landingPageBackgroundColor ||
+      landingPageLayout !== orig.landingPageLayout ||
+      landingPageHeaderImageUrl !== orig.landingPageHeaderImageUrl ||
+      landingPageTextColor !== orig.landingPageTextColor ||
+      landingPageAccentColor !== orig.landingPageAccentColor ||
+      landingPageTitle !== orig.landingPageTitle ||
+      landingPageDescription !== orig.landingPageDescription ||
+      landingPageFooterText !== orig.landingPageFooterText ||
+      landingPageLogoSize !== orig.landingPageLogoSize ||
+      landingPageLogoPosition !== orig.landingPageLogoPosition ||
+      landingPageHeaderHeight !== orig.landingPageHeaderHeight ||
+      landingPageHeaderFit !== orig.landingPageHeaderFit
+    );
+  };
+  
+  // Handle dialog close attempt
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && hasUnsavedChanges()) {
+      setPendingClose(true);
+      setShowUnsavedWarning(true);
+    } else {
+      setOpen(newOpen);
+      if (!newOpen) {
+        originalValuesRef.current = null;
+      }
+    }
+  };
+  
+  // Confirm close without saving
+  const confirmClose = () => {
+    setShowUnsavedWarning(false);
+    setPendingClose(false);
+    setOpen(false);
+    originalValuesRef.current = null;
+  };
+  
+  // Cancel close and keep editing
+  const cancelClose = () => {
+    setShowUnsavedWarning(false);
+    setPendingClose(false);
+  };
+  
+  // Save and close
+  const saveAndClose = async () => {
+    setShowUnsavedWarning(false);
+    setPendingClose(false);
+    await saveSettings();
   };
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -403,6 +560,7 @@ export const AiSettingsDialog = () => {
         onConflict: "company_id"
       });
       if (error) throw error;
+      originalValuesRef.current = null;
       setOpen(false);
     } catch (error: any) {
       console.error("Error saving AI settings:", error);
@@ -437,7 +595,34 @@ export const AiSettingsDialog = () => {
       <Button variant="outline" size="icon" onClick={handleGuideClick}>
         <span className="text-lg font-bold">?</span>
       </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
+      
+      {/* Unsaved changes warning dialog */}
+      <AlertDialog open={showUnsavedWarning} onOpenChange={setShowUnsavedWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Osparade ändringar</AlertDialogTitle>
+            <AlertDialogDescription>
+              Du har gjort ändringar som inte sparats. Vill du spara innan du stänger?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel onClick={cancelClose}>
+              Fortsätt redigera
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={confirmClose}
+            >
+              Stäng utan att spara
+            </AlertDialogAction>
+            <AlertDialogAction onClick={saveAndClose} disabled={loading}>
+              {loading ? "Sparar..." : "Spara och stäng"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>
           <Button variant="outline" size="icon">
             <Settings className="h-4 w-4" />
