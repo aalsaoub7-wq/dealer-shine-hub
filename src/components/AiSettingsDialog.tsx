@@ -605,23 +605,23 @@ export const AiSettingsDialog = () => {
               Du har gjort ändringar som inte sparats. Vill du spara innan du stänger?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col-reverse gap-2 sm:flex-row">
-            <AlertDialogCancel 
+          <AlertDialogFooter className="flex flex-col-reverse gap-2 space-x-0 sm:flex-row sm:flex-wrap sm:justify-end">
+            <AlertDialogCancel
               onClick={cancelClose}
-              className="w-full sm:w-auto mt-0"
+              className="w-full sm:w-auto min-w-0 whitespace-normal h-auto leading-snug mt-0"
             >
               Fortsätt redigera
             </AlertDialogCancel>
-            <AlertDialogAction 
-              className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            <AlertDialogAction
+              className="w-full sm:w-auto min-w-0 whitespace-normal h-auto leading-snug bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={confirmClose}
             >
               Stäng utan att spara
             </AlertDialogAction>
-            <AlertDialogAction 
-              onClick={saveAndClose} 
+            <AlertDialogAction
+              onClick={saveAndClose}
               disabled={loading}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto min-w-0 whitespace-normal h-auto leading-snug"
             >
               {loading ? "Sparar..." : "Spara och stäng"}
             </AlertDialogAction>
