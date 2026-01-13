@@ -70,16 +70,8 @@ const SortablePhotoCard = ({
   onRegenerate,
   onWatermarkOptions,
 }: SortablePhotoCardProps) => {
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
-  const [currentSrc, setCurrentSrc] = useState(photo.url);
-
-  // Reset isImageLoaded when URL changes (new image)
-  useEffect(() => {
-    if (photo.url !== currentSrc) {
-      setIsImageLoaded(false);
-      setCurrentSrc(photo.url);
-    }
-  }, [photo.url, currentSrc]);
+  // Track which URL has been fully loaded - overlay shows until current URL matches
+  const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
 
   const {
     attributes,
@@ -97,7 +89,8 @@ const SortablePhotoCard = ({
     cursor: isDragging ? "grabbing" : "default",
   };
 
-  const showOverlay = photo.is_processing || !isImageLoaded;
+  // Show overlay if processing OR if the loaded URL doesn't match current URL
+  const showOverlay = photo.is_processing || loadedUrl !== photo.url;
 
   return (
     <Card
@@ -145,10 +138,10 @@ const SortablePhotoCard = ({
           loading="lazy"
           decoding="async"
           onClick={() => onImageClick(photo.url)}
-          onLoad={() => setIsImageLoaded(true)}
+          onLoad={() => setLoadedUrl(photo.url)}
           onError={(e) => {
             const el = e.currentTarget as HTMLImageElement;
-            setIsImageLoaded(true); // Show image even on error
+            setLoadedUrl(photo.url); // Show image even on error
             if (photo.original_url && el.src !== photo.original_url) {
               el.src = photo.original_url;
               return;
