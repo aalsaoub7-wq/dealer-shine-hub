@@ -1099,6 +1099,16 @@ const CarDetail = () => {
       // Process each photo
       const photosToProcess = photos.filter((p) => photoIds.includes(p.id));
 
+      // Mark all photos as processing BEFORE starting (shows spinner immediately)
+      for (const photo of photosToProcess) {
+        await supabase
+          .from("photos")
+          .update({ is_processing: true })
+          .eq("id", photo.id);
+      }
+      // Refresh UI to show spinners
+      fetchCarData(true);
+
       for (const photo of photosToProcess) {
         try {
           // Apply watermark with user's settings
@@ -1141,9 +1151,15 @@ const CarDetail = () => {
               watermark_y: watermarkY,
               watermark_size: settings.watermark_size || 15,
               watermark_opacity: settings.watermark_opacity || 0.8,
+              is_processing: false,
             })
             .eq("id", photo.id);
         } catch (error) {
+          // On error, mark as not processing
+          await supabase
+            .from("photos")
+            .update({ is_processing: false })
+            .eq("id", photo.id);
           console.error(`Error processing photo ${photo.id}:`, error);
         }
       }
