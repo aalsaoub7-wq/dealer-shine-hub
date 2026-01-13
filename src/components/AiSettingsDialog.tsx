@@ -492,7 +492,16 @@ export const AiSettingsDialog = () => {
                       {bg.isCustom ? <div className="aspect-video mb-2 overflow-hidden rounded-md bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
                           <span className="text-white font-medium text-sm">Få din egna studio </span>
                         </div> : <div className="aspect-video mb-2 overflow-hidden rounded-md bg-muted">
-                          <img src={bg.thumbnail} alt={bg.name} className="h-full w-full object-cover" loading="eager" decoding="async" />
+                          <img 
+                            src={bg.thumbnail} 
+                            alt={bg.name} 
+                            className="h-full w-full object-cover" 
+                            loading="lazy" 
+                            decoding="async"
+                            width={400}
+                            height={225}
+                            fetchPriority="low"
+                          />
                         </div>}
                       <div className="flex items-start justify-between">
                         <div>
