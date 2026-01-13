@@ -598,17 +598,17 @@ export const AiSettingsDialog = () => {
       
       {/* Unsaved changes warning dialog */}
       <AlertDialog open={showUnsavedWarning} onOpenChange={setShowUnsavedWarning}>
-        <AlertDialogContent className="max-w-md w-[calc(100%-2rem)] mx-auto">
-          <AlertDialogHeader className="text-center sm:text-left">
+        <AlertDialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md">
+          <AlertDialogHeader>
             <AlertDialogTitle>Osparade ändringar</AlertDialogTitle>
             <AlertDialogDescription>
               Du har gjort ändringar som inte sparats. Vill du spara innan du stänger?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <AlertDialogFooter className="flex-col-reverse gap-2 sm:flex-row">
             <AlertDialogCancel 
               onClick={cancelClose}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto mt-0"
             >
               Fortsätt redigera
             </AlertDialogCancel>
