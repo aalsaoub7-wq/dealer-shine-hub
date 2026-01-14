@@ -294,12 +294,20 @@ export const ExclusiveProgram = () => {
           </div>
         </div>
 
-        {/* Footnote */}
-        <p className={`mt-8 text-sm text-white/80 text-center max-w-md transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{
-        transitionDelay: "900ms"
-      }}>
-          * Endast en ny befintlig Luvero kund får köpa denna exklusiva AI varje månad. Prenumerera till Luvero för chansen att testa den.
-        </p>
+        {/* Footnote with warning */}
+        <div className={`mt-8 relative transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{
+          transitionDelay: "900ms"
+        }}>
+          {/* Animated warning border */}
+          <div className="absolute -inset-3 rounded-lg bg-gradient-to-r from-yellow-500/60 via-amber-400/80 to-yellow-500/60 animate-pulse blur-sm" />
+          <div className="absolute -inset-3 rounded-lg border-2 border-yellow-400 animate-[ping_2s_ease-in-out_infinite]" style={{ animationDuration: '2s' }} />
+          <div className="absolute -inset-3 rounded-lg border-2 border-yellow-400/80" />
+          
+          <p className="relative text-sm text-yellow-200 text-center max-w-md px-4 py-3 bg-yellow-900/40 rounded-lg border border-yellow-500/50">
+            <span className="inline-block mr-2 text-yellow-400 font-bold animate-pulse">⚠️ OBS!</span>
+            Endast en ny befintlig Luvero kund får köpa denna exklusiva AI varje månad. Prenumerera till Luvero för chansen att testa den.
+          </p>
+        </div>
 
         {/* Scroll hint */}
         <div className={`mt-12 animate-vip-blink transition-all duration-700 ${isInView ? "opacity-100" : "opacity-0"}`} style={{
