@@ -295,9 +295,10 @@ export const ExclusiveProgram = () => {
 
         {/* Footnote with warning */}
         <p className={`mt-8 text-sm text-yellow-200 text-center max-w-md px-4 py-3 bg-yellow-900/40 rounded-lg border border-yellow-500/50 transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{
-        transitionDelay: "900ms"
-      }}>⚠️ OBS!Endast EN ny befintlig Luvero kund lottas ut för att köpa denna exklusiva AI varje månad. Prenumerera till Luvero för chansen att testa den.<span className="inline-block mr-2 text-yellow-400 font-bold">⚠️ OBS!</span>
-          Endast en ny befintlig Luvero kund får köpa denna exklusiva AI varje månad. Prenumerera till Luvero för chansen att testa den.
+          transitionDelay: "900ms"
+        }}>
+          <span className="inline-block mr-2 text-yellow-400 font-bold">⚠️ OBS!</span>
+          Endast EN ny befintlig Luvero kund lottas ut för att köpa denna exklusiva AI varje månad. Prenumerera till Luvero för chansen att testa den.
         </p>
 
         {/* Scroll hint */}
