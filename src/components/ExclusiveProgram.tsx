@@ -283,8 +283,7 @@ export const ExclusiveProgram = () => {
           }}>
               <Button onClick={() => document.getElementById('pricing')?.scrollIntoView({
               behavior: 'smooth'
-            })} size="lg" className="relative overflow-hidden bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold px-8 py-6 rounded-xl shadow-[0_0_30px_rgba(255,59,59,0.3)] hover:shadow-[0_0_40px_rgba(255,59,59,0.5)] transition-all duration-300 group">
-              <Lock className="h-5 w-5 mr-2" />
+            })} size="lg" className="relative overflow-hidden bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold px-8 py-6 rounded-xl shadow-[0_0_30px_rgba(255,59,59,0.3)] hover:shadow-[0_0_40px_rgba(255,59,59,0.5)] transition-all duration-300 group">Få chansen att prova<Lock className="h-5 w-5 mr-2" />
                 Få chansen att prova *
                 {/* Sheen effect */}
                 <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
@@ -296,9 +295,8 @@ export const ExclusiveProgram = () => {
 
         {/* Footnote with warning */}
         <p className={`mt-8 text-sm text-yellow-200 text-center max-w-md px-4 py-3 bg-yellow-900/40 rounded-lg border border-yellow-500/50 transition-all duration-700 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{
-          transitionDelay: "900ms"
-        }}>
-          <span className="inline-block mr-2 text-yellow-400 font-bold">⚠️ OBS!</span>
+        transitionDelay: "900ms"
+      }}>⚠️ OBS!Endast EN ny befintlig Luvero kund lottas ut för att köpa denna exklusiva AI varje månad. Prenumerera till Luvero för chansen att testa den.<span className="inline-block mr-2 text-yellow-400 font-bold">⚠️ OBS!</span>
           Endast en ny befintlig Luvero kund får köpa denna exklusiva AI varje månad. Prenumerera till Luvero för chansen att testa den.
         </p>
 
