@@ -44,6 +44,7 @@ export type Database = {
           custom_background_seed: string | null
           example_descriptions: string | null
           id: string
+          interior_color_history: string[] | null
           landing_page_accent_color: string | null
           landing_page_background_color: string | null
           landing_page_description: string | null
@@ -73,6 +74,7 @@ export type Database = {
           custom_background_seed?: string | null
           example_descriptions?: string | null
           id?: string
+          interior_color_history?: string[] | null
           landing_page_accent_color?: string | null
           landing_page_background_color?: string | null
           landing_page_description?: string | null
@@ -102,6 +104,7 @@ export type Database = {
           custom_background_seed?: string | null
           example_descriptions?: string | null
           id?: string
+          interior_color_history?: string[] | null
           landing_page_accent_color?: string | null
           landing_page_background_color?: string | null
           landing_page_description?: string | null
@@ -345,6 +348,7 @@ export type Database = {
           car_id: string
           created_at: string | null
           display_order: number | null
+          edit_type: string | null
           has_watermark: boolean | null
           id: string
           is_edited: boolean | null
@@ -364,6 +368,7 @@ export type Database = {
           car_id: string
           created_at?: string | null
           display_order?: number | null
+          edit_type?: string | null
           has_watermark?: boolean | null
           id?: string
           is_edited?: boolean | null
@@ -383,6 +388,7 @@ export type Database = {
           car_id?: string
           created_at?: string | null
           display_order?: number | null
+          edit_type?: string | null
           has_watermark?: boolean | null
           id?: string
           is_edited?: boolean | null
