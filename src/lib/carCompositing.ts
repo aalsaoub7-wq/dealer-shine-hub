@@ -15,13 +15,13 @@ export interface CompositingOptions {
 }
 
 const defaultOptions: Required<CompositingOptions> = {
-  outputWidth: 1920,   // Reduced from 3840 to prevent memory issues
-  outputHeight: 1440,  // Reduced from 2880 (maintains 4:3 ratio)
+  outputWidth: 3840,   // Full 4K resolution
+  outputHeight: 2880,  // 4:3 ratio (3840 / 4 * 3)
   paddingLeft: 0.10,   // 10% left margin
   paddingRight: 0.10,  // 10% right margin
   paddingTop: 0.05,    // 5% top margin
   paddingBottom: 0.15, // 15% bottom margin (car sits on "floor")
-  quality: 0.85,       // JPEG quality for smaller file size
+  quality: 0.98,       // Near-lossless JPEG quality for professional ads
 };
 
 /**

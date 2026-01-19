@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,13 +14,24 @@ serve(async (req) => {
 
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("Supabase credentials not configured");
+    }
 
-    // Get the composited image from form data
+    // Create Supabase admin client for storage uploads
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Get the composited image and metadata from form data
     const formData = await req.formData();
     const imageFile = formData.get("image_file");
+    const carId = formData.get("car_id") as string | null;
+    const photoId = formData.get("photo_id") as string | null;
 
     if (!imageFile || !(imageFile instanceof File)) {
       throw new Error("No image file provided");
@@ -27,14 +39,19 @@ serve(async (req) => {
 
     console.log("Adding reflection to composited image:", imageFile.name, "size:", imageFile.size);
 
-    // Convert image to base64
+    // Convert image to base64 for Gemini (required by the API)
     const imageBuffer = await imageFile.arrayBuffer();
-    const imageBase64 = btoa(
-      new Uint8Array(imageBuffer).reduce(
-        (data, byte) => data + String.fromCharCode(byte),
-        ""
-      )
-    );
+    const imageBytes = new Uint8Array(imageBuffer);
+    
+    // Use a chunked approach for base64 encoding to avoid memory issues
+    let imageBase64 = "";
+    const chunkSize = 32768;
+    for (let i = 0; i < imageBytes.length; i += chunkSize) {
+      const chunk = imageBytes.slice(i, Math.min(i + chunkSize, imageBytes.length));
+      imageBase64 += btoa(String.fromCharCode(...chunk));
+    }
+
+    console.log("Calling Gemini for reflection, base64 length:", imageBase64.length);
 
     // Call Gemini via Lovable AI Gateway for reflection
     const geminiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -44,7 +61,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-pro-image-preview",
+        model: "google/gemini-2.5-flash-image-preview",
         messages: [{
           role: "user",
           content: [
@@ -72,7 +89,6 @@ serve(async (req) => {
     console.log("Gemini response received, extracting image...");
 
     // Extract image from Gemini response
-    // The response format includes images in choices[0].message.images array
     const outputUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
     if (!outputUrl) {
@@ -87,10 +103,50 @@ serve(async (req) => {
     }
 
     const base64Only = base64Match[1];
-    console.log("Successfully added reflection to image");
+    console.log("Gemini base64 length:", base64Only.length);
+
+    // Convert base64 to Uint8Array for storage upload
+    const binaryString = atob(base64Only);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    const imageBlob = new Blob([bytes], { type: "image/png" });
+
+    console.log("Converted to blob, size:", imageBlob.size, "bytes");
+
+    // Upload directly to Supabase Storage
+    const timestamp = Date.now();
+    const fileName = carId && photoId 
+      ? `${carId}/edited-${photoId}-${timestamp}.png`
+      : `temp/edited-${timestamp}-${Math.random().toString(36).substring(7)}.png`;
+
+    console.log("Uploading edited image to Storage:", fileName);
+
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from("car-photos")
+      .upload(fileName, imageBlob, { 
+        upsert: true,
+        contentType: "image/png"
+      });
+
+    if (uploadError) {
+      console.error("Storage upload error:", uploadError);
+      throw new Error(`Storage upload failed: ${uploadError.message}`);
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabaseAdmin.storage
+      .from("car-photos")
+      .getPublicUrl(fileName);
+
+    console.log("Successfully uploaded edited image, URL:", publicUrl);
 
     return new Response(
-      JSON.stringify({ image: base64Only }),
+      JSON.stringify({ 
+        url: publicUrl,
+        path: fileName 
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
