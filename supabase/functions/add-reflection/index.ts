@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -39,17 +40,11 @@ serve(async (req) => {
 
     console.log("Adding reflection to composited image:", imageFile.name, "size:", imageFile.size);
 
-    // Convert image to base64 for Gemini (required by the API)
+    // Convert image to base64 for Gemini using Deno's proper base64 encoding
     const imageBuffer = await imageFile.arrayBuffer();
-    const imageBytes = new Uint8Array(imageBuffer);
     
-    // Use a chunked approach for base64 encoding to avoid memory issues
-    let imageBase64 = "";
-    const chunkSize = 32768;
-    for (let i = 0; i < imageBytes.length; i += chunkSize) {
-      const chunk = imageBytes.slice(i, Math.min(i + chunkSize, imageBytes.length));
-      imageBase64 += btoa(String.fromCharCode(...chunk));
-    }
+    // Use Deno's standard library for proper base64 encoding (handles large files correctly)
+    const imageBase64 = base64Encode(imageBuffer);
 
     console.log("Calling Gemini for reflection, base64 length:", imageBase64.length);
 
