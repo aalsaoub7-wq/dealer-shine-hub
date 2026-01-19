@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trash2, Check, GripVertical, Maximize2, RefreshCw, Stamp } from "lucide-react";
+import { Trash2, Check, GripVertical, Maximize2, RefreshCw, Stamp, Palette } from "lucide-react";
 import { RegenerateOptionsDialog } from "./RegenerateOptionsDialog";
 import { WatermarkOptionsDialog } from "./WatermarkOptionsDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +36,7 @@ interface Photo {
   original_url: string | null;
   display_order: number;
   has_watermark?: boolean;
+  edit_type?: string | null;
 }
 
 interface PhotoGalleryProps {
@@ -154,14 +155,19 @@ const SortablePhotoCard = ({
         
         {/* Badges */}
         <div className="absolute top-2 right-2 flex flex-col gap-1">
-          {photo.is_edited && (
+          {photo.edit_type === 'interior' ? (
+            <Badge className="bg-blue-500/50 backdrop-blur-sm border border-blue-500/30 text-white shadow-lg animate-scale-in">
+              <Palette className="w-3 h-3 mr-1" />
+              Interiör
+            </Badge>
+          ) : photo.is_edited && (
             <Badge className="bg-green-500/50 backdrop-blur-sm border border-green-500/30 text-white shadow-lg animate-scale-in">
               <Check className="w-3 h-3 mr-1" />
               Redigerad
             </Badge>
           )}
           {photo.has_watermark && (
-            <Badge className="bg-blue-500/50 backdrop-blur-sm border border-blue-500/30 text-white shadow-lg animate-scale-in">
+            <Badge className="bg-purple-500/50 backdrop-blur-sm border border-purple-500/30 text-white shadow-lg animate-scale-in">
               <Stamp className="w-3 h-3 mr-1" />
               Vattenmärke
             </Badge>

@@ -18,6 +18,7 @@ import {
   Sparkles,
   ChevronDown,
   Download,
+  Palette,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PhotoUpload from "@/components/PhotoUpload";
@@ -26,6 +27,7 @@ import { PlatformSyncDialog } from "@/components/PlatformSyncDialog";
 import EditCarDialog from "@/components/EditCarDialog";
 import { applyWatermark } from "@/lib/watermark";
 import { compositeCarOnBackground } from "@/lib/carCompositing";
+import { compositeCarOnSolidColor } from "@/lib/interiorCompositing";
 import { trackUsage } from "@/lib/usageTracking";
 import { CarDetailSkeleton } from "@/components/CarDetailSkeleton";
 import { useHaptics } from "@/hooks/useHaptics";
@@ -33,6 +35,7 @@ import { nativeShare } from "@/lib/nativeCapabilities";
 import { analytics } from "@/lib/analytics";
 import { CarPositionEditor } from "@/components/CarPositionEditor";
 import { WatermarkPositionEditor } from "@/components/WatermarkPositionEditor";
+import { InteriorColorDialog } from "@/components/InteriorColorDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -81,6 +84,7 @@ interface Photo {
   watermark_size?: number;
   watermark_opacity?: number;
   pre_watermark_url?: string | null;
+  edit_type?: string | null;
 }
 
 const CarDetail = () => {
@@ -131,6 +135,10 @@ const CarDetail = () => {
   const [watermarkEditorSaving, setWatermarkEditorSaving] = useState(false);
   // Background template state
   const [backgroundUrl, setBackgroundUrl] = useState<string>("/backgrounds/studio-background.jpg");
+  // Interior color dialog state
+  const [interiorDialogOpen, setInteriorDialogOpen] = useState(false);
+  const [interiorColorHistory, setInteriorColorHistory] = useState<string[]>([]);
+  const [processingInterior, setProcessingInterior] = useState(false);
   const { toast } = useToast();
   const { lightImpact, successNotification } = useHaptics();
   const fetchDebounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -140,6 +148,7 @@ const CarDetail = () => {
       fetchCarData();
       checkPaymentMethod();
       fetchBackgroundSettings();
+      fetchInteriorColorHistory();
 
       // Set up realtime subscription for photo updates
       const channel = supabase
@@ -197,6 +206,33 @@ const CarDetail = () => {
       }
     } catch (error) {
       console.error("Error fetching background settings:", error);
+    }
+  };
+
+  const fetchInteriorColorHistory = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: companyData } = await supabase
+        .from("user_companies")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!companyData) return;
+
+      const { data: settings } = await supabase
+        .from("ai_settings")
+        .select("interior_color_history")
+        .eq("company_id", companyData.company_id)
+        .single();
+
+      if (settings?.interior_color_history) {
+        setInteriorColorHistory(settings.interior_color_history);
+      }
+    } catch (error) {
+      console.error("Error fetching interior color history:", error);
     }
   };
 
@@ -543,12 +579,13 @@ const CarDetail = () => {
           await supabase
             .from("photos")
             .update({
-              url: publicUrl,
-              original_url: photo.url,
-              transparent_url: transparentPublicUrl,
-              is_edited: true,
-              is_processing: false,
-            })
+            url: publicUrl,
+            original_url: photo.url,
+            transparent_url: transparentPublicUrl,
+            is_edited: true,
+            is_processing: false,
+            edit_type: 'studio',
+          })
             .eq("id", photo.id);
 
           // Track usage for this edited image
@@ -584,6 +621,160 @@ const CarDetail = () => {
         }
       })();
     });
+  };
+
+  const handleInteriorEdit = async (color: string) => {
+    setInteriorDialogOpen(false);
+    
+    // Check trial image limit first
+    if (trialInfo?.isInTrial && (trialInfo?.imagesRemaining || 0) <= 0 && !hasPaymentMethod) {
+      toast({
+        title: "Bildgräns nådd",
+        description: "Du har använt alla 150 gratis bilder i din testperiod. Lägg till en betalmetod för att fortsätta.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!hasPaymentMethod) {
+      toast({
+        title: "Betalmetod krävs",
+        description: "Du måste lägga till en betalmetod för att redigera bilder.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const photoIds = selectedMainPhotos;
+    const photos = mainPhotos.filter((p) => photoIds.includes(p.id));
+    
+    // Clear selection immediately
+    setSelectedMainPhotos([]);
+    setProcessingInterior(true);
+
+    // Save color to history
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: companyData } = await supabase
+          .from("user_companies")
+          .select("company_id")
+          .eq("user_id", user.id)
+          .single();
+
+        if (companyData) {
+          // Add color to history (avoid duplicates, keep max 12)
+          const newHistory = [color, ...interiorColorHistory.filter(c => c !== color)].slice(0, 12);
+          setInteriorColorHistory(newHistory);
+          
+          await supabase
+            .from("ai_settings")
+            .update({ interior_color_history: newHistory })
+            .eq("company_id", companyData.company_id);
+        }
+      }
+    } catch (error) {
+      console.error("Error saving color history:", error);
+    }
+
+    // Mark photos as processing
+    for (const photo of photos) {
+      await supabase
+        .from("photos")
+        .update({ is_processing: true })
+        .eq("id", photo.id);
+    }
+
+    // Process photos independently in background
+    photos.forEach((photo) => {
+      (async () => {
+        try {
+          // STEP 1: Segment - Remove background using Remove.bg
+          const response = await fetch(photo.url);
+          const blob = await response.blob();
+          const file = new File([blob], "photo.jpg", { type: blob.type });
+
+          const segmentFormData = new FormData();
+          segmentFormData.append("image_file", file);
+          segmentFormData.append("car_id", car!.id);
+          segmentFormData.append("photo_id", photo.id);
+
+          console.log("Interior Step 1: Calling segment-car API...");
+          const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
+            body: segmentFormData,
+          });
+
+          if (segmentError) throw segmentError;
+          if (!segmentData?.url) throw new Error("No URL returned from segment-car");
+
+          const transparentPublicUrl = segmentData.url;
+          console.log("Interior Step 1 complete: Transparent PNG at", transparentPublicUrl);
+
+          // STEP 2: Canvas compositing - Place car on solid color background
+          console.log("Interior Step 2: Compositing car on solid color background...");
+          const compositedBlob = await compositeCarOnSolidColor(
+            transparentPublicUrl,
+            color
+          );
+          console.log("Interior Step 2 complete: Composited blob size:", compositedBlob.size, "bytes");
+
+          // STEP 3: Upload result to storage
+          const fileName = `interior-${photo.id}-${Date.now()}.jpg`;
+          const filePath = `edited/${car!.id}/${fileName}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from("photos")
+            .upload(filePath, compositedBlob, {
+              contentType: "image/jpeg",
+              upsert: true,
+            });
+
+          if (uploadError) throw uploadError;
+
+          const { data: urlData } = supabase.storage
+            .from("photos")
+            .getPublicUrl(filePath);
+
+          const publicUrl = urlData.publicUrl;
+          console.log("Interior Step 3 complete: Final image at", publicUrl);
+
+          // Update photo record - skip Gemini reflection step
+          await supabase
+            .from("photos")
+            .update({
+              url: publicUrl,
+              original_url: photo.url,
+              transparent_url: transparentPublicUrl,
+              is_edited: true,
+              is_processing: false,
+              edit_type: 'interior',
+            })
+            .eq("id", photo.id);
+
+          // Track usage
+          try {
+            await trackUsage("edited_image", car!.id);
+            analytics.imageEdited(car!.id);
+          } catch (error) {
+            console.error("Error tracking usage:", error);
+          }
+        } catch (error) {
+          console.error(`Error editing interior photo ${photo.id}:`, error);
+          await supabase
+            .from("photos")
+            .update({ is_processing: false })
+            .eq("id", photo.id);
+          
+          toast({
+            title: "Fel vid interiörredigering",
+            description: `Kunde inte redigera bild: ${error instanceof Error ? error.message : "Okänt fel"}`,
+            variant: "destructive",
+          });
+        }
+      })();
+    });
+
+    setProcessingInterior(false);
   };
 
   const handleRegeneratePhoto = async (photoId: string) => {
@@ -1389,6 +1580,15 @@ const CarDetail = () => {
                 {activeTab === "main" && selectedMainPhotos.length > 0 && (
                   <>
                     <Button
+                      onClick={() => setInteriorDialogOpen(true)}
+                      variant="outline"
+                      className="border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white text-xs md:text-sm h-12 md:h-10 w-full sm:w-auto sm:shrink-0 whitespace-nowrap"
+                    >
+                      <Palette className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                      <span className="hidden sm:inline">Interiör ({selectedMainPhotos.length})</span>
+                      <span className="sm:hidden">Interiör ({selectedMainPhotos.length})</span>
+                    </Button>
+                    <Button
                       onClick={() => handleEditPhotos(selectedMainPhotos, "main")}
                       variant="outline"
                       className="border-accent text-accent hover:bg-accent hover:text-accent-foreground text-xs md:text-sm h-12 md:h-10 w-full sm:w-auto sm:shrink-0 whitespace-nowrap"
@@ -1541,6 +1741,15 @@ const CarDetail = () => {
         backgroundUrl={backgroundUrl}
         onSave={handlePositionEditorSave}
         isSaving={positionEditorSaving}
+      />
+
+      {/* Interior Color Dialog */}
+      <InteriorColorDialog
+        open={interiorDialogOpen}
+        onOpenChange={setInteriorDialogOpen}
+        onColorSelected={handleInteriorEdit}
+        colorHistory={interiorColorHistory}
+        isProcessing={processingInterior}
       />
     </div>
   );
