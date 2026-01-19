@@ -491,13 +491,15 @@ const CarDetail = () => {
       // Process each photo independently without blocking
       (async () => {
         try {
-          // STEP 1: Segment - Remove background using PhotoRoom
+          // STEP 1: Segment - Remove background using PhotoRoom (now returns URL directly!)
           const response = await fetch(photo.url);
           const blob = await response.blob();
           const file = new File([blob], "photo.jpg", { type: blob.type });
 
           const segmentFormData = new FormData();
           segmentFormData.append("image_file", file);
+          segmentFormData.append("car_id", car!.id);
+          segmentFormData.append("photo_id", photo.id);
 
           console.log("Step 1: Calling segment-car API...");
           const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
@@ -505,67 +507,37 @@ const CarDetail = () => {
           });
 
           if (segmentError) throw segmentError;
-          if (!segmentData?.image) throw new Error("No image returned from segment-car");
+          if (!segmentData?.url) throw new Error("No URL returned from segment-car");
 
-          // STEP 1.5: Cache transparent PNG to storage for future use
-          console.log("Step 1.5: Caching transparent PNG...");
-          const transparentBase64 = segmentData.image;
-          const transparentBinaryString = atob(transparentBase64);
-          const transparentBytes = new Uint8Array(transparentBinaryString.length);
-          for (let i = 0; i < transparentBinaryString.length; i++) {
-            transparentBytes[i] = transparentBinaryString.charCodeAt(i);
-          }
-          const transparentBlob = new Blob([transparentBytes], { type: "image/png" });
-          
-          const transparentFileName = `${car!.id}/transparent-${photo.id}.png`;
-          await supabase.storage
-            .from("car-photos")
-            .upload(transparentFileName, transparentBlob, { upsert: true });
-          
-          const { data: { publicUrl: transparentPublicUrl } } = supabase.storage
-            .from("car-photos")
-            .getPublicUrl(transparentFileName);
+          // transparent_url is now directly from storage (no base64 conversion!)
+          const transparentPublicUrl = segmentData.url;
+          console.log("Step 1 complete: Transparent PNG at", transparentPublicUrl);
 
-          // STEP 2: Canvas compositing - Place car on background (deterministic, free)
-          console.log("Step 2: Compositing car on background...");
-          const transparentCarUrl = `data:image/png;base64,${segmentData.image}`;
+          // STEP 2: Canvas compositing - Place car on background (4K, 98% quality)
+          console.log("Step 2: Compositing car on background (4K 3840x2880, 98% quality)...");
           const compositedBlob = await compositeCarOnBackground(
-            transparentCarUrl,
+            transparentPublicUrl,
             backgroundUrl
           );
+          console.log("Step 2 complete: Composited blob size:", compositedBlob.size, "bytes");
 
-          // STEP 3: Add reflection using Gemini
+          // STEP 3: Add reflection using Gemini (now returns URL directly!)
           console.log("Step 3: Adding reflection with Gemini...");
           const reflectionFormData = new FormData();
           reflectionFormData.append("image_file", new File([compositedBlob], "composited.jpg", { type: "image/jpeg" }));
+          reflectionFormData.append("car_id", car!.id);
+          reflectionFormData.append("photo_id", photo.id);
 
           const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
             body: reflectionFormData,
           });
 
           if (reflectionError) throw reflectionError;
-          if (!reflectionData?.image) throw new Error("No image returned from add-reflection");
+          if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
 
-          // Convert base64 to blob
-          const base64 = reflectionData.image;
-          const binaryString = atob(base64);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
-          const editedBlob = new Blob([bytes], { type: "image/png" });
-
-          // Upload edited image
-          const editedFileName = `${car!.id}/edited-${Date.now()}-${Math.random()}.png`;
-          const { error: uploadError } = await supabase.storage
-            .from("car-photos")
-            .upload(editedFileName, editedBlob, { upsert: true });
-
-          if (uploadError) throw uploadError;
-
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from("car-photos").getPublicUrl(editedFileName);
+          // Final image URL is directly from storage (no base64 conversion, no re-upload!)
+          const publicUrl = reflectionData.url;
+          console.log("Step 3 complete: Final edited image at", publicUrl);
 
           // Update photo with transparent_url cached - realtime will handle UI update
           await supabase
@@ -653,7 +625,7 @@ const CarDetail = () => {
           console.log("Regenerate: Using cached transparent image");
           transparentCarUrl = photo.transparent_url;
         } else {
-          // STEP 1: Segment - Remove background using PhotoRoom
+          // STEP 1: Segment - Remove background using PhotoRoom (now returns URL directly!)
           console.log("Regenerate Step 1: Calling segment-car API...");
           const response = await fetch(photo.original_url!);
           const blob = await response.blob();
@@ -661,31 +633,18 @@ const CarDetail = () => {
 
           const segmentFormData = new FormData();
           segmentFormData.append("image_file", file);
+          segmentFormData.append("car_id", car!.id);
+          segmentFormData.append("photo_id", photo.id);
 
           const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
             body: segmentFormData,
           });
 
           if (segmentError) throw segmentError;
-          if (!segmentData?.image) throw new Error("No image returned from segment-car");
+          if (!segmentData?.url) throw new Error("No URL returned from segment-car");
 
-          // Cache the transparent image for future use
-          const transparentBase64 = segmentData.image;
-          const transparentBinaryString = atob(transparentBase64);
-          const transparentBytes = new Uint8Array(transparentBinaryString.length);
-          for (let i = 0; i < transparentBinaryString.length; i++) {
-            transparentBytes[i] = transparentBinaryString.charCodeAt(i);
-          }
-          const transparentBlob = new Blob([transparentBytes], { type: "image/png" });
-          
-          const transparentFileName = `${car!.id}/transparent-${photo.id}.png`;
-          await supabase.storage
-            .from("car-photos")
-            .upload(transparentFileName, transparentBlob, { upsert: true });
-          
-          const { data: { publicUrl: transparentPublicUrl } } = supabase.storage
-            .from("car-photos")
-            .getPublicUrl(transparentFileName);
+          // transparent_url is now directly from storage
+          const transparentPublicUrl = segmentData.url;
 
           // Save transparent_url to database
           await supabase
@@ -693,48 +652,32 @@ const CarDetail = () => {
             .update({ transparent_url: transparentPublicUrl })
             .eq("id", photoId);
 
-          transparentCarUrl = `data:image/png;base64,${segmentData.image}`;
+          transparentCarUrl = transparentPublicUrl;
         }
 
-        // STEP 2: Canvas compositing - Place car on background (deterministic, free)
-        console.log("Regenerate Step 2: Compositing car on background...");
+        // STEP 2: Canvas compositing - Place car on background (4K, 98% quality)
+        console.log("Regenerate Step 2: Compositing car on background (4K 3840x2880, 98% quality)...");
         const compositedBlob = await compositeCarOnBackground(
           transparentCarUrl,
           backgroundUrl
         );
 
-        // STEP 3: Add reflection using Gemini
+        // STEP 3: Add reflection using Gemini (now returns URL directly!)
         console.log("Regenerate Step 3: Adding reflection with Gemini...");
         const reflectionFormData = new FormData();
         reflectionFormData.append("image_file", new File([compositedBlob], "composited.jpg", { type: "image/jpeg" }));
+        reflectionFormData.append("car_id", car!.id);
+        reflectionFormData.append("photo_id", photo.id);
 
         const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
           body: reflectionFormData,
         });
 
         if (reflectionError) throw reflectionError;
-        if (!reflectionData?.image) throw new Error("No image returned from add-reflection");
+        if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
 
-        // Convert base64 to blob
-        const base64 = reflectionData.image;
-        const binaryString = atob(base64);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        const editedBlob = new Blob([bytes], { type: "image/png" });
-
-        // Upload regenerated image
-        const editedFileName = `${car!.id}/regenerated-${Date.now()}-${Math.random()}.png`;
-        const { error: uploadError } = await supabase.storage
-          .from("car-photos")
-          .upload(editedFileName, editedBlob, { upsert: true });
-
-        if (uploadError) throw uploadError;
-
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("car-photos").getPublicUrl(editedFileName);
+        // Final image URL is directly from storage
+        const publicUrl = reflectionData.url;
 
         // Update photo - keep original_url, update url
         await supabase
@@ -808,38 +751,22 @@ const CarDetail = () => {
         const blob = await response.blob();
         const file = new File([blob], "composited.jpg", { type: blob.type });
 
-        // Send directly to add-reflection (skip segment and compositing)
+        // Send directly to add-reflection (skip segment and compositing) - now returns URL directly!
         console.log("Regenerate Reflection: Sending to Gemini...");
         const reflectionFormData = new FormData();
         reflectionFormData.append("image_file", file);
+        reflectionFormData.append("car_id", car!.id);
+        reflectionFormData.append("photo_id", photo.id);
 
         const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
           body: reflectionFormData,
         });
 
         if (reflectionError) throw reflectionError;
-        if (!reflectionData?.image) throw new Error("No image returned from add-reflection");
+        if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
 
-        // Convert base64 to blob
-        const base64 = reflectionData.image;
-        const binaryString = atob(base64);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        const editedBlob = new Blob([bytes], { type: "image/png" });
-
-        // Upload regenerated image
-        const editedFileName = `${car!.id}/reflection-${Date.now()}-${Math.random()}.png`;
-        const { error: uploadError } = await supabase.storage
-          .from("car-photos")
-          .upload(editedFileName, editedBlob, { upsert: true });
-
-        if (uploadError) throw uploadError;
-
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("car-photos").getPublicUrl(editedFileName);
+        // Final image URL is directly from storage
+        const publicUrl = reflectionData.url;
 
         // Update photo
         await supabase
@@ -904,7 +831,7 @@ const CarDetail = () => {
         console.log("Position editor: Using cached transparent image");
         transparentCarUrl = photo.transparent_url;
       } else {
-        // Need to call segment-car API
+        // Need to call segment-car API (now returns URL directly!)
         console.log("Position editor: Segmenting car from original image");
 
         const response = await fetch(photo.original_url);
@@ -913,31 +840,18 @@ const CarDetail = () => {
 
         const segmentFormData = new FormData();
         segmentFormData.append("image_file", file);
+        segmentFormData.append("car_id", car!.id);
+        segmentFormData.append("photo_id", photo.id);
 
         const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
           body: segmentFormData,
         });
 
         if (segmentError) throw segmentError;
-        if (!segmentData?.image) throw new Error("No image returned from segment-car");
+        if (!segmentData?.url) throw new Error("No URL returned from segment-car");
 
-        // Cache the transparent image for future use
-        const transparentBase64 = segmentData.image;
-        const transparentBinaryString = atob(transparentBase64);
-        const transparentBytes = new Uint8Array(transparentBinaryString.length);
-        for (let i = 0; i < transparentBinaryString.length; i++) {
-          transparentBytes[i] = transparentBinaryString.charCodeAt(i);
-        }
-        const transparentBlob = new Blob([transparentBytes], { type: "image/png" });
-        
-        const transparentFileName = `${car!.id}/transparent-${photo.id}.png`;
-        await supabase.storage
-          .from("car-photos")
-          .upload(transparentFileName, transparentBlob, { upsert: true });
-        
-        const { data: { publicUrl: transparentPublicUrl } } = supabase.storage
-          .from("car-photos")
-          .getPublicUrl(transparentFileName);
+        // transparent_url is now directly from storage
+        const transparentPublicUrl = segmentData.url;
 
         // Save transparent_url to database
         await supabase
@@ -945,7 +859,7 @@ const CarDetail = () => {
           .update({ transparent_url: transparentPublicUrl })
           .eq("id", photoId);
 
-        transparentCarUrl = `data:image/png;base64,${segmentData.image}`;
+        transparentCarUrl = transparentPublicUrl;
       }
 
       // Open position editor with transparent car
@@ -979,37 +893,21 @@ const CarDetail = () => {
       // Close editor
       setPositionEditorPhoto(null);
 
-      // Send composition to add-reflection
+      // Send composition to add-reflection (now returns URL directly!)
       const reflectionFormData = new FormData();
       reflectionFormData.append("image_file", new File([compositionBlob], "composited.jpg", { type: "image/jpeg" }));
+      reflectionFormData.append("car_id", car.id);
+      reflectionFormData.append("photo_id", positionEditorPhoto.id);
 
       const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
         body: reflectionFormData,
       });
 
       if (reflectionError) throw reflectionError;
-      if (!reflectionData?.image) throw new Error("No image returned from add-reflection");
+      if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
 
-      // Convert base64 to blob
-      const base64 = reflectionData.image;
-      const binaryString = atob(base64);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      const editedBlob = new Blob([bytes], { type: "image/png" });
-
-      // Upload image
-      const editedFileName = `${car.id}/positioned-${Date.now()}-${Math.random()}.png`;
-      const { error: uploadError } = await supabase.storage
-        .from("car-photos")
-        .upload(editedFileName, editedBlob, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("car-photos").getPublicUrl(editedFileName);
+      // Final image URL is directly from storage
+      const publicUrl = reflectionData.url;
 
       // Update photo
       await supabase

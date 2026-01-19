@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,13 +14,24 @@ serve(async (req) => {
 
   try {
     const PHOTOROOM_API_KEY = Deno.env.get("PHOTOROOM_API_KEY");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
     if (!PHOTOROOM_API_KEY) {
       throw new Error("PHOTOROOM_API_KEY is not configured");
     }
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("Supabase credentials not configured");
+    }
 
-    // Get the image file from form data
+    // Create Supabase admin client for storage uploads
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Get the image file and metadata from form data
     const formData = await req.formData();
     const imageFile = formData.get("image_file");
+    const carId = formData.get("car_id") as string | null;
+    const photoId = formData.get("photo_id") as string | null;
 
     if (!imageFile || !(imageFile instanceof File)) {
       throw new Error("No image file provided");
@@ -54,19 +66,42 @@ serve(async (req) => {
       throw new Error("PhotoRoom did not return an image");
     }
 
-    // Convert response to base64
-    const imageBuffer = await response.arrayBuffer();
-    const base64 = btoa(
-      new Uint8Array(imageBuffer).reduce(
-        (data, byte) => data + String.fromCharCode(byte),
-        ""
-      )
-    );
+    // Get the image as a blob (NO base64 conversion - saves memory!)
+    const imageBlob = await response.blob();
+    console.log("PhotoRoom returned image, size:", imageBlob.size, "bytes");
 
-    console.log("Successfully segmented image, returning base64 PNG");
+    // Upload directly to Supabase Storage
+    const timestamp = Date.now();
+    const fileName = carId && photoId 
+      ? `${carId}/transparent-${photoId}.png`
+      : `temp/transparent-${timestamp}-${Math.random().toString(36).substring(7)}.png`;
+
+    console.log("Uploading transparent PNG to Storage:", fileName);
+
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from("car-photos")
+      .upload(fileName, imageBlob, { 
+        upsert: true,
+        contentType: "image/png"
+      });
+
+    if (uploadError) {
+      console.error("Storage upload error:", uploadError);
+      throw new Error(`Storage upload failed: ${uploadError.message}`);
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabaseAdmin.storage
+      .from("car-photos")
+      .getPublicUrl(fileName);
+
+    console.log("Successfully uploaded transparent PNG, URL:", publicUrl);
 
     return new Response(
-      JSON.stringify({ image: base64 }),
+      JSON.stringify({ 
+        url: publicUrl,
+        path: fileName 
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
