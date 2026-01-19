@@ -13,12 +13,14 @@ serve(async (req) => {
   }
 
   try {
-    const PHOTOROOM_API_KEY = Deno.env.get("PHOTOROOM_API_KEY");
+    // Remove.bg API (switched from PhotoRoom - keep PhotoRoom code commented for rollback)
+    const REMOVEBG_API_KEY = Deno.env.get("REMOVEBG_API_KEY");
+    // const PHOTOROOM_API_KEY = Deno.env.get("PHOTOROOM_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    if (!PHOTOROOM_API_KEY) {
-      throw new Error("PHOTOROOM_API_KEY is not configured");
+    if (!REMOVEBG_API_KEY) {
+      throw new Error("REMOVEBG_API_KEY is not configured");
     }
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error("Supabase credentials not configured");
@@ -37,9 +39,22 @@ serve(async (req) => {
       throw new Error("No image file provided");
     }
 
-    console.log("Calling PhotoRoom Segment API for file:", imageFile.name, "size:", imageFile.size);
+    console.log("Calling Remove.bg API for file:", imageFile.name, "size:", imageFile.size);
 
-    // Call PhotoRoom Segment API to remove background
+    // Call Remove.bg API to remove background
+    const segmentFormData = new FormData();
+    segmentFormData.append("image_file", imageFile);
+    segmentFormData.append("size", "full"); // Full quality up to 25MP
+
+    const response = await fetch("https://api.remove.bg/v1.0/removebg", {
+      method: "POST",
+      headers: {
+        "X-Api-Key": REMOVEBG_API_KEY,
+      },
+      body: segmentFormData,
+    });
+
+    /* PhotoRoom API (commented for rollback)
     const segmentFormData = new FormData();
     segmentFormData.append("image_file", imageFile);
 
@@ -51,24 +66,25 @@ serve(async (req) => {
       },
       body: segmentFormData,
     });
+    */
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("PhotoRoom Segment API error:", response.status, errorText);
-      throw new Error(`PhotoRoom API error: ${response.status} - ${errorText}`);
+      console.error("Remove.bg API error:", response.status, errorText);
+      throw new Error(`Remove.bg API error: ${response.status} - ${errorText}`);
     }
 
     // Check if response is actually an image
     const contentType = response.headers.get("content-type");
     if (!contentType?.includes("image/")) {
       const text = await response.text();
-      console.error("PhotoRoom returned non-image content:", text);
-      throw new Error("PhotoRoom did not return an image");
+      console.error("Remove.bg returned non-image content:", text);
+      throw new Error("Remove.bg did not return an image");
     }
 
     // Get the image as a blob (NO base64 conversion - saves memory!)
     const imageBlob = await response.blob();
-    console.log("PhotoRoom returned image, size:", imageBlob.size, "bytes");
+    console.log("Remove.bg returned image, size:", imageBlob.size, "bytes");
 
     // Upload directly to Supabase Storage
     const timestamp = Date.now();
