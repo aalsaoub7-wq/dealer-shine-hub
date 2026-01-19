@@ -723,7 +723,7 @@ const CarDetail = () => {
           const filePath = `edited/${car!.id}/${fileName}`;
           
           const { error: uploadError } = await supabase.storage
-            .from("photos")
+            .from("car-photos")
             .upload(filePath, compositedBlob, {
               contentType: "image/jpeg",
               upsert: true,
@@ -732,7 +732,7 @@ const CarDetail = () => {
           if (uploadError) throw uploadError;
 
           const { data: urlData } = supabase.storage
-            .from("photos")
+            .from("car-photos")
             .getPublicUrl(filePath);
 
           const publicUrl = urlData.publicUrl;
