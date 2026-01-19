@@ -44,7 +44,7 @@ serve(async (req) => {
     // Call Remove.bg API to remove background
     const segmentFormData = new FormData();
     segmentFormData.append("image_file", imageFile);
-    segmentFormData.append("size", "full"); // Full quality up to 25MP
+    segmentFormData.append("size", "preview"); // Preview is free (up to 0.25 megapixels)
 
     const response = await fetch("https://api.remove.bg/v1.0/removebg", {
       method: "POST",
