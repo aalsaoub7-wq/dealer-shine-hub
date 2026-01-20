@@ -48,6 +48,7 @@ interface PhotoGalleryProps {
   onAdjustPosition?: (photoId: string) => void;
   onRemoveWatermark?: (photoId: string) => void;
   onAdjustWatermark?: (photoId: string) => void;
+  onChangeInteriorColor?: (photoId: string) => void;
 }
 
 interface SortablePhotoCardProps {
@@ -229,6 +230,7 @@ const PhotoGalleryDraggable = ({
   onAdjustPosition,
   onRemoveWatermark,
   onAdjustWatermark,
+  onChangeInteriorColor,
 }: PhotoGalleryProps) => {
   const { toast } = useToast();
   const [items, setItems] = useState(photos);
@@ -238,7 +240,7 @@ const PhotoGalleryDraggable = ({
     setItems(photos);
   }, [photos]);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
-  const [regenerateOptionsId, setRegenerateOptionsId] = useState<string | null>(null);
+  const [regenerateOptionsPhoto, setRegenerateOptionsPhoto] = useState<Photo | null>(null);
   const [watermarkOptionsId, setWatermarkOptionsId] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -332,7 +334,10 @@ const PhotoGalleryDraggable = ({
                     onSelectionChange(selectedPhotos.filter(id => id !== photoId));
                   }
                 }}
-                onRegenerate={(photoId) => setRegenerateOptionsId(photoId)}
+                onRegenerate={(photoId) => {
+                  const photo = items.find(p => p.id === photoId);
+                  if (photo) setRegenerateOptionsPhoto(photo);
+                }}
                 onWatermarkOptions={(photoId) => setWatermarkOptionsId(photoId)}
               />
             ))}
@@ -347,16 +352,22 @@ const PhotoGalleryDraggable = ({
         />
       )}
       <RegenerateOptionsDialog
-        open={!!regenerateOptionsId}
-        onOpenChange={(open) => !open && setRegenerateOptionsId(null)}
+        open={!!regenerateOptionsPhoto}
+        onOpenChange={(open) => !open && setRegenerateOptionsPhoto(null)}
+        editType={regenerateOptionsPhoto?.edit_type}
         onRegenerateReflection={() => {
-          if (regenerateOptionsId && onRegenerateReflection) {
-            onRegenerateReflection(regenerateOptionsId);
+          if (regenerateOptionsPhoto && onRegenerateReflection) {
+            onRegenerateReflection(regenerateOptionsPhoto.id);
           }
         }}
         onAdjustPosition={() => {
-          if (regenerateOptionsId && onAdjustPosition) {
-            onAdjustPosition(regenerateOptionsId);
+          if (regenerateOptionsPhoto && onAdjustPosition) {
+            onAdjustPosition(regenerateOptionsPhoto.id);
+          }
+        }}
+        onChangeInteriorColor={() => {
+          if (regenerateOptionsPhoto && onChangeInteriorColor) {
+            onChangeInteriorColor(regenerateOptionsPhoto.id);
           }
         }}
       />

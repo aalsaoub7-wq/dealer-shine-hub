@@ -8,6 +8,7 @@ interface CarPositionEditorProps {
   onOpenChange: (open: boolean) => void;
   transparentCarUrl: string;
   backgroundUrl: string;
+  backgroundColor?: string; // If set, use solid color instead of background image
   onSave: (compositionBlob: Blob) => void;
   isSaving?: boolean;
 }
@@ -76,6 +77,7 @@ export const CarPositionEditor = ({
   onOpenChange,
   transparentCarUrl,
   backgroundUrl,
+  backgroundColor,
   onSave,
   isSaving = false,
 }: CarPositionEditorProps) => {
@@ -125,17 +127,37 @@ export const CarPositionEditor = ({
 
   // Load images
   useEffect(() => {
-    if (!open || !transparentCarUrl || !backgroundUrl) return;
+    if (!open || !transparentCarUrl) return;
+    // Need either backgroundUrl or backgroundColor
+    if (!backgroundUrl && !backgroundColor) return;
     
     setImagesLoaded(false);
     
-    const bgImg = new Image();
-    bgImg.crossOrigin = 'anonymous';
-    bgImg.src = backgroundUrl;
-    bgImg.onload = () => {
-      bgImgRef.current = bgImg;
-      checkBothLoaded();
-    };
+    // For solid color background, create a canvas instead of loading image
+    if (backgroundColor) {
+      const bgCanvas = document.createElement('canvas');
+      bgCanvas.width = OUTPUT_WIDTH;
+      bgCanvas.height = OUTPUT_HEIGHT;
+      const bgCtx = bgCanvas.getContext('2d')!;
+      bgCtx.fillStyle = backgroundColor;
+      bgCtx.fillRect(0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
+      
+      // Create an image from the canvas
+      const bgImg = new Image();
+      bgImg.src = bgCanvas.toDataURL();
+      bgImg.onload = () => {
+        bgImgRef.current = bgImg;
+        checkBothLoaded();
+      };
+    } else {
+      const bgImg = new Image();
+      bgImg.crossOrigin = 'anonymous';
+      bgImg.src = backgroundUrl;
+      bgImg.onload = () => {
+        bgImgRef.current = bgImg;
+        checkBothLoaded();
+      };
+    }
 
     const carImg = new Image();
     carImg.crossOrigin = 'anonymous';
@@ -158,7 +180,7 @@ export const CarPositionEditor = ({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [open, transparentCarUrl, backgroundUrl, calculateInitialPosition]);
+  }, [open, transparentCarUrl, backgroundUrl, backgroundColor, calculateInitialPosition]);
 
   // Render canvas
   const renderCanvas = useCallback(() => {
@@ -407,7 +429,7 @@ export const CarPositionEditor = ({
               ) : (
                 <>
                   <Check className="w-4 h-4 mr-2" />
-                  Spara och lägg till reflektion
+                  {backgroundColor ? "Spara" : "Spara och lägg till reflektion"}
                 </>
               )}
             </Button>
