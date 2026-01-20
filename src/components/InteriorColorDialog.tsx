@@ -30,6 +30,7 @@ export function InteriorColorDialog({
 
   const handleSubmit = () => {
     onColorSelected(selectedColor);
+    onOpenChange(false);
   };
 
   const handleHistoryClick = (color: string) => {
