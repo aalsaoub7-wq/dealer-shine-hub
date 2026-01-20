@@ -317,8 +317,8 @@ export const CarPositionEditor = ({
         newWidth = newHeight * carAspectRatio;
       }
 
-      setCarWidth(Math.min(OUTPUT_WIDTH * 0.95, newWidth));
-      setCarHeight(Math.min(OUTPUT_HEIGHT * 0.95, newHeight));
+      setCarWidth(Math.min(OUTPUT_WIDTH * 3, newWidth));
+      setCarHeight(Math.min(OUTPUT_HEIGHT * 3, newHeight));
       return;
     }
 
