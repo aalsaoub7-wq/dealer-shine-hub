@@ -97,9 +97,6 @@ export async function compositeCarOnSolidColor(
   // Load the transparent car image
   const carImg = await loadImage(transparentCarUrl);
 
-  // Crop transparent padding
-  const croppedCar = cropTransparentPadding(carImg);
-
   // Create output canvas
   const canvas = document.createElement("canvas");
   canvas.width = opts.outputWidth!;
@@ -110,31 +107,27 @@ export async function compositeCarOnSolidColor(
   ctx.fillStyle = backgroundColor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Calculate available area after padding
-  const availableWidth = canvas.width * (1 - opts.paddingLeft! - opts.paddingRight!);
-  const availableHeight = canvas.height * (1 - opts.paddingTop! - opts.paddingBottom!);
+  // Draw car at full size (no cropping), maintaining aspect ratio and centering
+  const carAspect = carImg.naturalWidth / carImg.naturalHeight;
+  const canvasAspect = canvas.width / canvas.height;
 
-  // Calculate scale to fit car in available area
-  const carAspect = croppedCar.width / croppedCar.height;
-  const availableAspect = availableWidth / availableHeight;
-
-  let drawWidth: number, drawHeight: number;
-  if (carAspect > availableAspect) {
-    // Car is wider - fit to width
-    drawWidth = availableWidth;
-    drawHeight = availableWidth / carAspect;
+  let drawWidth: number, drawHeight: number, drawX: number, drawY: number;
+  if (carAspect > canvasAspect) {
+    // Car is wider than canvas - fit to width
+    drawWidth = canvas.width;
+    drawHeight = canvas.width / carAspect;
+    drawX = 0;
+    drawY = (canvas.height - drawHeight) / 2;
   } else {
-    // Car is taller - fit to height
-    drawHeight = availableHeight;
-    drawWidth = availableHeight * carAspect;
+    // Car is taller than canvas - fit to height
+    drawHeight = canvas.height;
+    drawWidth = canvas.height * carAspect;
+    drawX = (canvas.width - drawWidth) / 2;
+    drawY = 0;
   }
 
-  // Center horizontally, anchor to bottom of available area
-  const drawX = opts.paddingLeft! * canvas.width + (availableWidth - drawWidth) / 2;
-  const drawY = opts.paddingTop! * canvas.height + (availableHeight - drawHeight);
-
-  // Draw the car
-  ctx.drawImage(croppedCar, drawX, drawY, drawWidth, drawHeight);
+  // Draw the car without cropping - full frame
+  ctx.drawImage(carImg, drawX, drawY, drawWidth, drawHeight);
 
   // Convert to blob
   return new Promise((resolve, reject) => {

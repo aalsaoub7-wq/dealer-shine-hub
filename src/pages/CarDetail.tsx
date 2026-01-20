@@ -120,8 +120,12 @@ const CarDetail = () => {
   const [positionEditorPhoto, setPositionEditorPhoto] = useState<{
     id: string;
     transparentCarUrl: string;
+    editType?: string | null;
+    backgroundColor?: string;
   } | null>(null);
   const [positionEditorSaving, setPositionEditorSaving] = useState(false);
+  // Interior color change state (for regeneration)
+  const [interiorColorChangePhotoId, setInteriorColorChangePhotoId] = useState<string | null>(null);
   // Watermark position editor state
   const [watermarkEditorPhoto, setWatermarkEditorPhoto] = useState<{
     id: string;
@@ -1053,11 +1057,23 @@ const CarDetail = () => {
         transparentCarUrl = transparentPublicUrl;
       }
 
-      // Open position editor with transparent car
-      setPositionEditorPhoto({
-        id: photoId,
-        transparentCarUrl,
-      });
+      // For interior photos, use a solid color background
+      if (photo.edit_type === 'interior') {
+        const bgColor = interiorColorHistory[0] || '#c8cfdb';
+        setPositionEditorPhoto({
+          id: photoId,
+          transparentCarUrl,
+          editType: photo.edit_type,
+          backgroundColor: bgColor,
+        });
+      } else {
+        // Open position editor with transparent car and background image
+        setPositionEditorPhoto({
+          id: photoId,
+          transparentCarUrl,
+          editType: photo.edit_type,
+        });
+      }
     } catch (error) {
       console.error("Error preparing position editor:", error);
       toast({
@@ -1068,9 +1084,12 @@ const CarDetail = () => {
     }
   };
 
-  // Handler for position editor save - composites and sends to Gemini
+  // Handler for position editor save - composites and sends to Gemini (or directly saves for interior)
   const handlePositionEditorSave = async (compositionBlob: Blob) => {
     if (!positionEditorPhoto || !car) return;
+
+    const photoId = positionEditorPhoto.id;
+    const isInterior = positionEditorPhoto.editType === 'interior';
 
     setPositionEditorSaving(true);
 
@@ -1079,35 +1098,66 @@ const CarDetail = () => {
       await supabase
         .from("photos")
         .update({ is_processing: true })
-        .eq("id", positionEditorPhoto.id);
+        .eq("id", photoId);
 
       // Close editor
       setPositionEditorPhoto(null);
 
-      // Send composition to add-reflection (now returns URL directly!)
-      const reflectionFormData = new FormData();
-      reflectionFormData.append("image_file", new File([compositionBlob], "composited.jpg", { type: "image/jpeg" }));
-      reflectionFormData.append("car_id", car.id);
-      reflectionFormData.append("photo_id", positionEditorPhoto.id);
+      if (isInterior) {
+        // For interior photos, upload directly without Gemini reflection
+        const fileName = `interior-${Date.now()}.jpg`;
+        const filePath = `edited/${car.id}/${fileName}`;
 
-      const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
-        body: reflectionFormData,
-      });
+        const { error: uploadError } = await supabase.storage
+          .from("car-photos")
+          .upload(filePath, compositionBlob, {
+            contentType: "image/jpeg",
+            upsert: true,
+          });
 
-      if (reflectionError) throw reflectionError;
-      if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
+        if (uploadError) throw uploadError;
 
-      // Final image URL is directly from storage
-      const publicUrl = reflectionData.url;
+        const { data: urlData } = supabase.storage
+          .from("car-photos")
+          .getPublicUrl(filePath);
 
-      // Update photo
-      await supabase
-        .from("photos")
-        .update({
-          url: publicUrl,
-          is_processing: false,
-        })
-        .eq("id", positionEditorPhoto.id);
+        const publicUrl = urlData.publicUrl;
+
+        // Update photo
+        await supabase
+          .from("photos")
+          .update({
+            url: publicUrl,
+            is_processing: false,
+            edit_type: 'interior',
+          })
+          .eq("id", photoId);
+      } else {
+        // For studio photos, send composition to add-reflection
+        const reflectionFormData = new FormData();
+        reflectionFormData.append("image_file", new File([compositionBlob], "composited.jpg", { type: "image/jpeg" }));
+        reflectionFormData.append("car_id", car.id);
+        reflectionFormData.append("photo_id", photoId);
+
+        const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
+          body: reflectionFormData,
+        });
+
+        if (reflectionError) throw reflectionError;
+        if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
+
+        // Final image URL is directly from storage
+        const publicUrl = reflectionData.url;
+
+        // Update photo
+        await supabase
+          .from("photos")
+          .update({
+            url: publicUrl,
+            is_processing: false,
+          })
+          .eq("id", photoId);
+      }
 
       // Track usage
       try {
@@ -1120,12 +1170,10 @@ const CarDetail = () => {
     } catch (error) {
       console.error("Error saving positioned image:", error);
       
-      if (positionEditorPhoto) {
-        await supabase
-          .from("photos")
-          .update({ is_processing: false })
-          .eq("id", positionEditorPhoto.id);
-      }
+      await supabase
+        .from("photos")
+        .update({ is_processing: false })
+        .eq("id", photoId);
 
       toast({
         title: "Fel vid sparande",
@@ -1134,6 +1182,101 @@ const CarDetail = () => {
       });
     } finally {
       setPositionEditorSaving(false);
+    }
+  };
+
+  // Handler for "Ändra bakgrundsfärg" on interior photos
+  const handleChangeInteriorColor = (photoId: string) => {
+    setInteriorColorChangePhotoId(photoId);
+    setInteriorDialogOpen(true);
+  };
+
+  // Modified interior edit handler to support both new edits and color changes
+  const handleInteriorEditWithColorChange = async (color: string) => {
+    // If we're changing color on a specific photo
+    if (interiorColorChangePhotoId) {
+      const photo = mainPhotos.find(p => p.id === interiorColorChangePhotoId);
+      if (!photo || !photo.transparent_url) {
+        toast({
+          title: "Kan inte ändra färg",
+          description: "Transparent bild saknas",
+          variant: "destructive",
+        });
+        setInteriorColorChangePhotoId(null);
+        return;
+      }
+
+      // Mark as processing
+      await supabase
+        .from("photos")
+        .update({ is_processing: true })
+        .eq("id", interiorColorChangePhotoId);
+
+      setInteriorColorChangePhotoId(null);
+
+      // Process in background
+      (async () => {
+        try {
+          // Composite car on new color
+          const compositedBlob = await compositeCarOnSolidColor(
+            photo.transparent_url!,
+            color
+          );
+
+          // Upload
+          const fileName = `interior-${Date.now()}.jpg`;
+          const filePath = `edited/${car!.id}/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from("car-photos")
+            .upload(filePath, compositedBlob, {
+              contentType: "image/jpeg",
+              upsert: true,
+            });
+
+          if (uploadError) throw uploadError;
+
+          const { data: urlData } = supabase.storage
+            .from("car-photos")
+            .getPublicUrl(filePath);
+
+          const publicUrl = urlData.publicUrl;
+
+          // Update photo
+          await supabase
+            .from("photos")
+            .update({
+              url: publicUrl,
+              is_processing: false,
+              edit_type: 'interior',
+            })
+            .eq("id", photo.id);
+
+          // Track usage
+          try {
+            await trackUsage("edited_image", car!.id);
+          } catch (error) {
+            console.error("Error tracking usage:", error);
+          }
+
+          successNotification();
+        } catch (error) {
+          console.error(`Error changing interior color:`, error);
+          await supabase
+            .from("photos")
+            .update({ is_processing: false })
+            .eq("id", photo.id);
+
+          toast({
+            title: "Fel vid färgändring",
+            description: error instanceof Error ? error.message : "Okänt fel",
+            variant: "destructive",
+          });
+        }
+      })();
+    } else {
+      // Original behavior - edit selected photos
+      handleInteriorEdit(color);
     }
   };
 
@@ -1663,6 +1806,7 @@ const CarDetail = () => {
               onAdjustPosition={handleOpenPositionEditor}
               onRemoveWatermark={handleRemoveWatermark}
               onAdjustWatermark={handleOpenWatermarkEditor}
+              onChangeInteriorColor={handleChangeInteriorColor}
             />
           </TabsContent>
 
@@ -1739,6 +1883,7 @@ const CarDetail = () => {
         onOpenChange={(open) => !open && setPositionEditorPhoto(null)}
         transparentCarUrl={positionEditorPhoto?.transparentCarUrl || ""}
         backgroundUrl={backgroundUrl}
+        backgroundColor={positionEditorPhoto?.backgroundColor}
         onSave={handlePositionEditorSave}
         isSaving={positionEditorSaving}
       />
@@ -1746,8 +1891,11 @@ const CarDetail = () => {
       {/* Interior Color Dialog */}
       <InteriorColorDialog
         open={interiorDialogOpen}
-        onOpenChange={setInteriorDialogOpen}
-        onColorSelected={handleInteriorEdit}
+        onOpenChange={(open) => {
+          setInteriorDialogOpen(open);
+          if (!open) setInteriorColorChangePhotoId(null);
+        }}
+        onColorSelected={handleInteriorEditWithColorChange}
         colorHistory={interiorColorHistory}
         isProcessing={processingInterior}
       />
