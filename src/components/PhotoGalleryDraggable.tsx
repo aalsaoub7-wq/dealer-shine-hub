@@ -180,6 +180,12 @@ const PhotoGalleryDraggable = ({
         error
       } = await supabase.from("photos").delete().eq("id", photoId);
       if (error) throw error;
+      
+      // Clear deleted photo from selection
+      if (selectedPhotos.includes(photoId)) {
+        onSelectionChange(selectedPhotos.filter(id => id !== photoId));
+      }
+      
       onUpdate();
     } catch (error: any) {
       toast({
