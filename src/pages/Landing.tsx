@@ -354,8 +354,8 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Comparison Section */}
-      <section className="py-20 md:py-32 scroll-animate">
+      {/* Comparison Section - HIDDEN */}
+      <section className="hidden py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -582,8 +582,8 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 md:py-32 scroll-animate">
+      {/* Pricing Section - HIDDEN */}
+      <section id="pricing" className="hidden py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
