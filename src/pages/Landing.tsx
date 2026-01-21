@@ -136,8 +136,8 @@ const Landing = () => {
                 <Button onClick={() => navigate("/auth")} className="bg-black text-white hover:bg-black hover:text-white hover:scale-100">
                   Logga in
                 </Button>
-              <Button onClick={() => scrollToSection('pricing')} className="shadow-glow">
-                Prova gratis i 21 dagar
+              <Button onClick={() => scrollToSection('book-demo')} className="shadow-glow">
+                Snacka med oss
               </Button>
               </div>
             </nav>
@@ -155,8 +155,8 @@ const Landing = () => {
               <button onClick={() => scrollToSection('features')} className="block w-full text-left px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-muted rounded-md transition-colors">
                 Funktioner
               </button>
-              <button onClick={() => scrollToSection('pricing')} className="block w-full text-left px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-muted rounded-md transition-colors">
-                Priser
+              <button onClick={() => scrollToSection('book-demo')} className="block w-full text-left px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                Snacka med oss
               </button>
               <button onClick={() => scrollToSection('how-it-works')} className="block w-full text-left px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-muted rounded-md transition-colors">
                 Så fungerar det
@@ -167,8 +167,8 @@ const Landing = () => {
               <Button className="w-full bg-black text-white hover:bg-black hover:text-white hover:scale-100" onClick={() => navigate("/auth")}>
                 Logga in
               </Button>
-              <Button className="w-full" onClick={() => navigate("/auth?mode=signup")}>
-                Prova gratis i 21 dagar
+              <Button className="w-full" onClick={() => scrollToSection('book-demo')}>
+                Snacka med oss
               </Button>
             </div>
           </div>}
@@ -198,8 +198,8 @@ const Landing = () => {
               <p className="text-xl md:text-2xl leading-relaxed text-gray-200">Fungerar även som självständig lagerhantering eller som komplement till ditt befintliga system!</p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="text-lg px-8 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => scrollToSection('pricing')}>
-                  Prova gratis i 21 dagar
+                <Button size="lg" className="text-lg px-8 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => scrollToSection('book-demo')}>
+                  Snacka med oss
                 </Button>
                 <Button size="lg" variant="outline" className="text-lg px-8 py-6 hover:bg-muted transition-all duration-300" onClick={() => scrollToSection('how-it-works')}>
                   Se hur det fungerar
@@ -574,8 +574,8 @@ const Landing = () => {
 
             {/* CTA after comparison */}
             <div className="text-center mt-12">
-              <Button size="lg" className="text-lg py-6 px-12 shadow-glow hover:shadow-glow-lg transition-all duration-300" onClick={() => scrollToSection('pricing')}>
-                Prova gratis i 21 dagar
+              <Button size="lg" className="text-lg py-6 px-12 shadow-glow hover:shadow-glow-lg transition-all duration-300" onClick={() => scrollToSection('book-demo')}>
+                Snacka med oss
               </Button>
             </div>
           </div>
@@ -818,8 +818,8 @@ const Landing = () => {
                 Börja gratis idag. Inget kreditkort krävs.
               </p>
               <div className="flex justify-center">
-                <Button size="lg" className="text-lg px-12 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => scrollToSection('pricing')}>
-                  Prova gratis i 21 dagar
+                <Button size="lg" className="text-lg px-12 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => scrollToSection('book-demo')}>
+                  Snacka med oss
                 </Button>
               </div>
             </div>
