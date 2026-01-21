@@ -351,6 +351,7 @@ export type Database = {
           edit_type: string | null
           has_watermark: boolean | null
           id: string
+          interior_background_url: string | null
           is_edited: boolean | null
           is_processing: boolean | null
           original_url: string | null
@@ -371,6 +372,7 @@ export type Database = {
           edit_type?: string | null
           has_watermark?: boolean | null
           id?: string
+          interior_background_url?: string | null
           is_edited?: boolean | null
           is_processing?: boolean | null
           original_url?: string | null
@@ -391,6 +393,7 @@ export type Database = {
           edit_type?: string | null
           has_watermark?: boolean | null
           id?: string
+          interior_background_url?: string | null
           is_edited?: boolean | null
           is_processing?: boolean | null
           original_url?: string | null

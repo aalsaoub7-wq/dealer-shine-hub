@@ -87,6 +87,7 @@ interface Photo {
   watermark_opacity?: number;
   pre_watermark_url?: string | null;
   edit_type?: string | null;
+  interior_background_url?: string | null;
 }
 
 const CarDetail = () => {
@@ -767,6 +768,7 @@ const CarDetail = () => {
               is_edited: true,
               is_processing: false,
               edit_type: 'interior',
+              interior_background_url: null, // Solid color was used
             })
             .eq("id", photo.id);
 
@@ -1072,15 +1074,27 @@ const CarDetail = () => {
         transparentCarUrl = transparentPublicUrl;
       }
 
-      // For interior photos, use a solid color background
+      // For interior photos, check if it was edited with solid color or background image
       if (photo.edit_type === 'interior') {
-        const bgColor = interiorColorHistory[0] || '#c8cfdb';
-        setPositionEditorPhoto({
-          id: photoId,
-          transparentCarUrl,
-          editType: photo.edit_type,
-          backgroundColor: bgColor,
-        });
+        if (photo.interior_background_url) {
+          // Background image was used - user moves the background
+          setPositionEditorPhoto({
+            id: photoId,
+            transparentCarUrl,
+            editType: photo.edit_type,
+            backgroundImageUrl: photo.interior_background_url,
+            moveBackground: true,
+          });
+        } else {
+          // Solid color was used - user moves the car
+          const bgColor = interiorColorHistory[0] || '#c8cfdb';
+          setPositionEditorPhoto({
+            id: photoId,
+            transparentCarUrl,
+            editType: photo.edit_type,
+            backgroundColor: bgColor,
+          });
+        }
       } else {
         // Open position editor with transparent car and background image
         setPositionEditorPhoto({
@@ -1138,13 +1152,14 @@ const CarDetail = () => {
 
         const publicUrl = urlData.publicUrl;
 
-        // Update photo
+        // Update photo - save the background image URL if one was used
         await supabase
           .from("photos")
           .update({
             url: publicUrl,
             is_processing: false,
             edit_type: 'interior',
+            interior_background_url: positionEditorPhoto.backgroundImageUrl || null,
           })
           .eq("id", photoId);
       } else {
