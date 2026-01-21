@@ -6,7 +6,7 @@ import testImage from "@/assets/watermark-preview-example.jpg";
 
 // Constants for percentage conversion
 const CANVAS_WIDTH = 3840;
-const CANVAS_HEIGHT = 2880;
+const CANVAS_HEIGHT = 2560;
 
 interface WatermarkPreviewProps {
   logoUrl: string;

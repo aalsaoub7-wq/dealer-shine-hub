@@ -22,7 +22,7 @@ const DEFAULT_PADDING = {
 };
 
 const OUTPUT_WIDTH = 1920;
-const OUTPUT_HEIGHT = 1440;
+const OUTPUT_HEIGHT = 1280;
 
 /**
  * Crops transparent padding from a PNG image
