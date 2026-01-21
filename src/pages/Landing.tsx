@@ -16,58 +16,53 @@ import { analytics } from "@/lib/analytics";
 // JSON-LD structured data for SEO
 const jsonLdData = {
   "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": "https://luvero.se/#organization",
-      "name": "Luvero",
-      "url": "https://luvero.se",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://luvero.se/favicon.png"
-      },
-      "description": "Professionell bilhanterare för återförsäljare med AI-driven bakgrundsredigering."
+  "@graph": [{
+    "@type": "Organization",
+    "@id": "https://luvero.se/#organization",
+    "name": "Luvero",
+    "url": "https://luvero.se",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://luvero.se/favicon.png"
     },
-    {
-      "@type": "SoftwareApplication",
-      "@id": "https://luvero.se/#software",
-      "name": "Luvero",
-      "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Web, iOS, Android",
-      "description": "AI-powered car photo editing platform for professional car dealers. Transform car photos with studio backgrounds in seconds.",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "SEK",
-        "description": "21 dagars gratis provperiod med 50 bilder"
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "ratingCount": "150"
-      },
-      "publisher": {
-        "@id": "https://luvero.se/#organization"
-      }
+    "description": "Professionell bilhanterare för återförsäljare med AI-driven bakgrundsredigering."
+  }, {
+    "@type": "SoftwareApplication",
+    "@id": "https://luvero.se/#software",
+    "name": "Luvero",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web, iOS, Android",
+    "description": "AI-powered car photo editing platform for professional car dealers. Transform car photos with studio backgrounds in seconds.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "SEK",
+      "description": "21 dagars gratis provperiod med 50 bilder"
     },
-    {
-      "@type": "WebSite",
-      "@id": "https://luvero.se/#website",
-      "url": "https://luvero.se",
-      "name": "Luvero",
-      "publisher": {
-        "@id": "https://luvero.se/#organization"
-      },
-      "inLanguage": "sv-SE"
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "ratingCount": "150"
+    },
+    "publisher": {
+      "@id": "https://luvero.se/#organization"
     }
-  ]
+  }, {
+    "@type": "WebSite",
+    "@id": "https://luvero.se/#website",
+    "url": "https://luvero.se",
+    "name": "Luvero",
+    "publisher": {
+      "@id": "https://luvero.se/#organization"
+    },
+    "inLanguage": "sv-SE"
+  }]
 };
-
 const Landing = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  
+
   // Inject JSON-LD structured data
   useEffect(() => {
     const script = document.createElement('script');
@@ -75,7 +70,6 @@ const Landing = () => {
     script.text = JSON.stringify(jsonLdData);
     script.id = 'json-ld-structured-data';
     document.head.appendChild(script);
-    
     return () => {
       const existingScript = document.getElementById('json-ld-structured-data');
       if (existingScript) {
@@ -83,7 +77,6 @@ const Landing = () => {
       }
     };
   }, []);
-  
   useEffect(() => {
     analytics.landingPageVisited();
   }, []);
@@ -135,9 +128,7 @@ const Landing = () => {
               <button onClick={() => scrollToSection('features')} className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
                 Funktioner
               </button>
-              <button onClick={() => scrollToSection('pricing')} className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
-                Priser
-              </button>
+              
               <button onClick={() => scrollToSection('how-it-works')} className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
                 Så fungerar det
               </button>
@@ -363,8 +354,8 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Comparison Section - HIDDEN FOR NOW */}
-      <section className="hidden py-20 md:py-32 scroll-animate">
+      {/* Comparison Section */}
+      <section className="py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -591,8 +582,8 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Pricing Section - HIDDEN FOR NOW */}
-      <section id="pricing" className="hidden py-20 md:py-32 scroll-animate">
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -705,32 +696,6 @@ const Landing = () => {
             <p className="text-white/90 text-sm mt-4 font-medium">
               ✓ Prova gratis i 21 dagar eller tills du når 50 bilderedigeringar
             </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Book Demo Section */}
-      <section id="book-demo" className="py-20 md:py-32 scroll-animate">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              <span className="bg-gradient-primary bg-clip-text text-transparent">
-                Snacka med oss för att få tillgång
-              </span>
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Låt oss visa hur Luvero kan hjälpa ditt företag
-            </p>
-          </div>
-          
-          <div className="max-w-3xl mx-auto">
-            <div className="rounded-3xl overflow-hidden border border-border/50 shadow-2xl shadow-primary/10 bg-card/50 backdrop-blur-sm">
-              <iframe 
-                src="https://calendar.notion.so/meet/alfred-zbpoy1pru/l68e4p14"
-                className="w-full h-[650px] border-0"
-                title="Boka en demo"
-              />
-            </div>
           </div>
         </div>
       </section>
