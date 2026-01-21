@@ -803,8 +803,8 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Final CTA Section */}
-      <section className="py-20 md:py-32 scroll-animate">
+      {/* Final CTA Section - HIDDEN */}
+      <section className="hidden py-20 md:py-32 scroll-animate">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="relative p-12 md:p-16 rounded-3xl bg-gradient-to-br from-primary/20 via-accent/10 to-primary/20 backdrop-blur-sm border border-primary/30 shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-3xl" />
