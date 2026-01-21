@@ -130,7 +130,7 @@ const SortablePhotoCard = ({
           {photo.has_watermark && onWatermarkOptions && <Button size="icon" variant="secondary" onClick={() => onWatermarkOptions(photo.id)} className="h-12 w-12 sm:h-8 sm:w-8 hover:scale-110 transition-transform duration-300" title="Vattenmärkesalternativ">
               <Stamp className="w-6 h-6 sm:w-4 sm:h-4" />
             </Button>}
-          {photo.is_edited && onRegenerate && <Button size="icon" variant="secondary" onClick={() => onRegenerate(photo.id)} className="h-12 w-12 sm:h-8 sm:w-8 hover:scale-110 transition-transform duration-300" title="Regenerera med ny bakgrund">
+          {photo.is_edited && onRegenerate && <Button size="icon" variant="secondary" onClick={() => onRegenerate(photo.id)} className="h-12 w-12 sm:h-8 sm:w-8 hover:scale-110 transition-transform duration-300" title="Redigera bilden">
               <Edit className="w-6 h-6 sm:w-4 sm:h-4" />
             </Button>}
           <Button size="icon" variant="secondary" onClick={() => onImageClick(photo.url)} className="h-12 w-12 sm:h-8 sm:w-8 hover:scale-110 transition-transform duration-300">
