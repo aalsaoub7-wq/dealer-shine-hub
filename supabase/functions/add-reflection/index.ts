@@ -62,7 +62,7 @@ serve(async (req) => {
           content: [
             {
               type: "text",
-              text: "This is a professional car dealership photo. Add a subtle mirror-like reflection of the vehicle on the polished showroom floor beneath it. Keep all other elements unchanged - maintain the exact same car, background, and lighting. Only add the floor reflection effect."
+              text: "This is a high-resolution professional car dealership photo (2560x1707 pixels, 3:2 aspect ratio). Add a subtle mirror-like reflection of the vehicle on the polished showroom floor beneath it. Keep all other elements unchanged - maintain the exact same car, background, lighting, and resolution. Only add the floor reflection effect. Output the image at the same 2K resolution."
             },
             {
               type: "image_url",
@@ -70,7 +70,15 @@ serve(async (req) => {
             }
           ]
         }],
-        modalities: ["image", "text"]
+        modalities: ["image", "text"],
+        // Request 2K output resolution from Gemini
+        generationConfig: {
+          responseModalities: ["TEXT", "IMAGE"],
+          imageGenerationConfig: {
+            aspectRatio: "3:2",
+            outputImageSize: "2048"
+          }
+        }
       }),
     });
 
