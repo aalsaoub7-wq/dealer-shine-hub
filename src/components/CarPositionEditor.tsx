@@ -9,6 +9,7 @@ interface CarPositionEditorProps {
   transparentCarUrl: string;
   backgroundUrl: string;
   backgroundColor?: string; // If set, use solid color instead of background image
+  isInterior?: boolean; // If true, use 4:3 aspect ratio instead of 3:2
   onSave: (compositionBlob: Blob) => void;
   isSaving?: boolean;
 }
@@ -22,7 +23,6 @@ const DEFAULT_PADDING = {
 };
 
 const OUTPUT_WIDTH = 1920;
-const OUTPUT_HEIGHT = 1280;
 
 /**
  * Crops transparent padding from a PNG image
@@ -78,10 +78,14 @@ export const CarPositionEditor = ({
   transparentCarUrl,
   backgroundUrl,
   backgroundColor,
+  isInterior = false,
   onSave,
   isSaving = false,
 }: CarPositionEditorProps) => {
   const isMobile = useIsMobile();
+  
+  // Dynamic height based on whether it's interior (4:3) or regular (3:2)
+  const OUTPUT_HEIGHT = isInterior ? 1440 : 1280;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgImgRef = useRef<HTMLImageElement | null>(null);
   const carCanvasRef = useRef<HTMLCanvasElement | null>(null);
