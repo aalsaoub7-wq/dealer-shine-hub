@@ -730,8 +730,8 @@ const Landing = () => {
       {/* Exclusive VIP Program Section */}
       <ExclusiveProgram />
 
-      {/* FAQ Section */}
-      <section className="py-20 md:py-32 scroll-animate">
+      {/* FAQ Section - HIDDEN */}
+      <section className="hidden py-20 md:py-32 scroll-animate">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
