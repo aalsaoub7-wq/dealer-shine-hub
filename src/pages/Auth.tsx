@@ -264,6 +264,13 @@ const Auth = () => {
           return;
         }
 
+        // BLOCKED: Normal admin signup without code is no longer allowed
+        // All new accounts must use either a signup code (new company) or employee invite code
+        setErrors({ signupCode: "Företagskod krävs för att skapa konto. Kontakta oss på hej@luvero.se" });
+        setLoading(false);
+        return;
+
+        /* === PRESERVED FOR FUTURE: Normal admin signup (trial) ===
         // Normal admin signup (no code) - check IP first
         const {
           data: ipCheck,
@@ -336,7 +343,9 @@ const Auth = () => {
             // Don't fail the signup if this fails
           }
         }
+        === END PRESERVED CODE === */
 
+        /* === PRESERVED: Email verification and tracking for trial signups ===
         // Send email verification
         if (authData.user) {
           try {
@@ -360,6 +369,7 @@ const Auth = () => {
           analytics.trialStarted(selectedPlan);
         }
         navigate("/verify");
+        === END PRESERVED === */
       }
     } catch (error: any) {
       toast({
