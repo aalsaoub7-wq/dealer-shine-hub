@@ -510,6 +510,36 @@ export type Database = {
         }
         Relationships: []
       }
+      signup_codes: {
+        Row: {
+          code: string
+          company_name: string | null
+          created_at: string | null
+          id: string
+          stripe_customer_id: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          code: string
+          company_name?: string | null
+          created_at?: string | null
+          id?: string
+          stripe_customer_id: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          code?: string
+          company_name?: string | null
+          created_at?: string | null
+          id?: string
+          stripe_customer_id?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           company_id: string
@@ -821,6 +851,27 @@ export type Database = {
           photo_ids?: string[] | null
           share_token?: string | null
           title?: string | null
+        }
+        Relationships: []
+      }
+      public_signup_codes: {
+        Row: {
+          code: string | null
+          company_name: string | null
+          id: string | null
+          is_used: boolean | null
+        }
+        Insert: {
+          code?: string | null
+          company_name?: string | null
+          id?: string | null
+          is_used?: never
+        }
+        Update: {
+          code?: string | null
+          company_name?: string | null
+          id?: string | null
+          is_used?: never
         }
         Relationships: []
       }
