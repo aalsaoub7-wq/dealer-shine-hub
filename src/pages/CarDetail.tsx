@@ -1884,6 +1884,7 @@ const CarDetail = () => {
         transparentCarUrl={positionEditorPhoto?.transparentCarUrl || ""}
         backgroundUrl={backgroundUrl}
         backgroundColor={positionEditorPhoto?.backgroundColor}
+        isInterior={positionEditorPhoto?.editType === 'interior'}
         onSave={handlePositionEditorSave}
         isSaving={positionEditorSaving}
       />

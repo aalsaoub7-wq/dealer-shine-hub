@@ -15,7 +15,7 @@ interface CompositingOptions {
 
 const defaultOptions: CompositingOptions = {
   outputWidth: 3840,
-  outputHeight: 2560, // 3:2 aspect ratio (3840 / 3 * 2)
+  outputHeight: 2880, // 4:3 aspect ratio (3840 / 4 * 3)
   paddingLeft: 0.10,
   paddingRight: 0.10,
   paddingTop: 0.05,
