@@ -76,33 +76,45 @@ const TermsOfService = () => {
             <h2 className="text-2xl font-semibold text-foreground">4. Priser och betalning</h2>
             <h3 className="text-xl font-semibold text-foreground">4.1 Prissättning</h3>
             <p className="text-muted-foreground">
-              Vår prissättningsmodell inkluderar:
+              Alla priser kan variera och bestäms individuellt baserat på avtal, volym och andra faktorer. Detta inkluderar men är inte begränsat till:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li><strong>Testperiod:</strong> 21 dagar gratis med 150 bildredigeringar inkluderade</li>
-              <li><strong>Månadsavgift:</strong> Från 349 kr per månad (beroende på plan)</li>
-              <li><strong>AI-redigering:</strong> Från 1,95 kr per redigerad bild (beroende på plan)</li>
-              <li><strong>Lagerhållning:</strong> Gratis och obegränsat</li>
-              <li><strong>Teammedlemmar:</strong> Gratis och obegränsat</li>
+              <li><strong>Månadsavgift:</strong> Varierar beroende på avtal och plan</li>
+              <li><strong>AI-redigering:</strong> Pris per redigerad bild varierar beroende på avtal</li>
+              <li><strong>Lagerhållning:</strong> Pris kan variera beroende på avtal</li>
+              <li><strong>Teammedlemmar:</strong> Pris kan variera beroende på avtal och antal användare</li>
+            </ul>
+            <p className="text-muted-foreground">
+              Kontakta oss för aktuell prissättning. Alla priser som kommuniceras är preliminära och kan ändras.
+            </p>
+
+            <h3 className="text-xl font-semibold text-foreground">4.2 Bindningstid och uppsägning</h3>
+            <p className="text-muted-foreground">
+              Beroende på valt abonnemang kan bindningstid förekomma. Du godkänner att:
+            </p>
+            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+              <li>Bindningstid kan gälla enligt ditt specifika avtal</li>
+              <li>Uppsägning under bindningstiden kan medföra avgifter enligt avtalet</li>
+              <li>Uppsägningstid kan variera beroende på avtal</li>
+              <li>Du är bunden av de villkor som anges i ditt specifika abonnemangsavtal</li>
             </ul>
 
-            <h3 className="text-xl font-semibold text-foreground">4.2 Fakturering</h3>
+            <h3 className="text-xl font-semibold text-foreground">4.3 Fakturering</h3>
             <p className="text-muted-foreground">
               Betalningar hanteras av Stripe. Du godkänner att:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li>Betalningar dras automatiskt varje månad</li>
+              <li>Betalningar dras automatiskt enligt faktureringsperiod</li>
               <li>Du ansvarar för alla tillämpliga skatter</li>
               <li>Priser kan ändras med 30 dagars varsel</li>
               <li>Återbetalningar utfärdas endast enligt vår återbetalningspolicy</li>
               <li>Misslyckade betalningar kan resultera i tillfällig avstängning av tjänsten</li>
             </ul>
 
-            <h3 className="text-xl font-semibold text-foreground">4.3 Testperiod</h3>
+            <h3 className="text-xl font-semibold text-foreground">4.4 Testperiod</h3>
             <p className="text-muted-foreground">
-              Under din 21-dagars testperiod kan du redigera upp till 150 bilder kostnadsfritt. 
-              Efter att testperioden löper ut eller bildgränsen nås måste du lägga till en betalmetod 
-              för att fortsätta använda AI-redigeringsfunktionen.
+              Testperiod kan erbjudas enligt överenskommelse. Villkoren för testperioden, inklusive 
+              längd och inkluderade funktioner, varierar och specificeras i ditt avtal.
             </p>
           </section>
 
@@ -198,8 +210,9 @@ const TermsOfService = () => {
             <h2 className="text-2xl font-semibold text-foreground">11. Uppsägning</h2>
             <h3 className="text-xl font-semibold text-foreground">11.1 Av dig</h3>
             <p className="text-muted-foreground">
-              Du kan säga upp ditt konto när som helst genom att kontakta oss eller genom 
-              kontoinställningarna. Uppsägning träder i kraft vid slutet av din aktuella faktureringsperiod.
+              Uppsägning av ditt konto måste ske i enlighet med villkoren i ditt specifika avtal. 
+              Observera att bindningstid kan gälla och att uppsägning under bindningstiden kan 
+              medföra avgifter. Uppsägning träder i kraft enligt vad som anges i ditt avtal.
             </p>
 
             <h3 className="text-xl font-semibold text-foreground">11.2 Av oss</h3>
