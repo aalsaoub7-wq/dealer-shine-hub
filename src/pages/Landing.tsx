@@ -284,9 +284,18 @@ const Landing = () => {
                 Allt du behöver för professionella bilfoton
               </span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
               Kraftfulla funktioner som hjälper dig sälja bilar snabbare
             </p>
+            
+            {/* Notion Calendar Embed */}
+            <div className="max-w-3xl mx-auto rounded-2xl overflow-hidden border border-border shadow-lg">
+              <iframe 
+                src="https://calendar.notion.so/meet/alfred-zbpoy1pru/l68e4p14"
+                className="w-full h-[600px] border-0"
+                title="Boka en demo"
+              />
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
