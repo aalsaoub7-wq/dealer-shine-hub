@@ -700,6 +700,32 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Book Demo Section */}
+      <section id="book-demo" className="py-20 md:py-32 scroll-animate">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              <span className="bg-gradient-primary bg-clip-text text-transparent">
+                Snacka med oss för att få tillgång
+              </span>
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Låt oss visa hur Luvero kan hjälpa ditt företag
+            </p>
+          </div>
+
+          <div className="max-w-3xl mx-auto">
+            <div className="rounded-3xl overflow-hidden border border-border/50 shadow-2xl bg-card/50 backdrop-blur-sm">
+              <iframe 
+                src="https://calendar.notion.so/meet/alfred-zbpoy1pru/l68e4p14" 
+                className="w-full h-[650px] border-0"
+                title="Boka demo"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Exclusive VIP Program Section */}
       <ExclusiveProgram />
 
