@@ -59,6 +59,7 @@ export type Database = {
           landing_page_text_color: string | null
           landing_page_title: string | null
           logo_url: string | null
+          unlocked_backgrounds: string[] | null
           updated_at: string
           user_id: string
           watermark_opacity: number | null
@@ -89,6 +90,7 @@ export type Database = {
           landing_page_text_color?: string | null
           landing_page_title?: string | null
           logo_url?: string | null
+          unlocked_backgrounds?: string[] | null
           updated_at?: string
           user_id: string
           watermark_opacity?: number | null
@@ -119,6 +121,7 @@ export type Database = {
           landing_page_text_color?: string | null
           landing_page_title?: string | null
           logo_url?: string | null
+          unlocked_backgrounds?: string[] | null
           updated_at?: string
           user_id?: string
           watermark_opacity?: number | null
