@@ -1901,6 +1901,7 @@ const CarDetail = () => {
         backgroundColor={positionEditorPhoto?.backgroundColor}
         isInterior={positionEditorPhoto?.editType === 'interior'}
         moveBackground={positionEditorPhoto?.moveBackground}
+        fillCanvas={positionEditorPhoto?.moveBackground || (positionEditorPhoto?.editType === 'interior' && !!positionEditorPhoto?.backgroundColor)}
         onSave={handlePositionEditorSave}
         isSaving={positionEditorSaving}
       />
