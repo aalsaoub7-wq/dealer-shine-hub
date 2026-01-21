@@ -718,8 +718,9 @@ const Landing = () => {
             <div className="rounded-3xl overflow-hidden border border-border/50 shadow-2xl bg-card/50 backdrop-blur-sm">
               <iframe 
                 src="https://calendar.notion.so/meet/alfred-zbpoy1pru/l68e4p14" 
-                className="w-full h-[450px] border-0"
+                className="w-full h-[800px] border-0"
                 title="Boka demo"
+                style={{ overflow: 'hidden' }}
               />
             </div>
           </div>
