@@ -36,6 +36,8 @@ import { analytics } from "@/lib/analytics";
 import { CarPositionEditor } from "@/components/CarPositionEditor";
 import { WatermarkPositionEditor } from "@/components/WatermarkPositionEditor";
 import { InteriorColorDialog } from "@/components/InteriorColorDialog";
+import { InteriorBackgroundDialog } from "@/components/InteriorBackgroundDialog";
+import { STATIC_BACKGROUNDS } from "@/components/AiSettingsDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -122,6 +124,8 @@ const CarDetail = () => {
     transparentCarUrl: string;
     editType?: string | null;
     backgroundColor?: string;
+    backgroundImageUrl?: string; // For interior with image background
+    moveBackground?: boolean; // If true, user moves background instead of car
   } | null>(null);
   const [positionEditorSaving, setPositionEditorSaving] = useState(false);
   // Interior color change state (for regeneration)
@@ -139,10 +143,14 @@ const CarDetail = () => {
   const [watermarkEditorSaving, setWatermarkEditorSaving] = useState(false);
   // Background template state
   const [backgroundUrl, setBackgroundUrl] = useState<string>("/backgrounds/studio-background.jpg");
-  // Interior color dialog state
+  const [backgroundTemplateId, setBackgroundTemplateId] = useState<string>("studio-background");
+  // Interior dialogs state
+  const [interiorBackgroundDialogOpen, setInteriorBackgroundDialogOpen] = useState(false);
   const [interiorDialogOpen, setInteriorDialogOpen] = useState(false);
   const [interiorColorHistory, setInteriorColorHistory] = useState<string[]>([]);
   const [processingInterior, setProcessingInterior] = useState(false);
+  // Available interior backgrounds from current template
+  const [availableInteriorBackgrounds, setAvailableInteriorBackgrounds] = useState<string[]>([]);
   const { toast } = useToast();
   const { lightImpact, successNotification } = useHaptics();
   const fetchDebounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -207,6 +215,13 @@ const CarDetail = () => {
 
       if (settings?.background_template_id) {
         setBackgroundUrl(`/backgrounds/${settings.background_template_id}.jpg`);
+        setBackgroundTemplateId(settings.background_template_id);
+        
+        // Find interior backgrounds for this template
+        const template = STATIC_BACKGROUNDS.find(bg => bg.id === settings.background_template_id);
+        if (template?.interiorBackgrounds) {
+          setAvailableInteriorBackgrounds(template.interiorBackgrounds);
+        }
       }
     } catch (error) {
       console.error("Error fetching background settings:", error);
@@ -1723,7 +1738,7 @@ const CarDetail = () => {
                 {activeTab === "main" && selectedMainPhotos.length > 0 && (
                   <>
                     <Button
-                      onClick={() => setInteriorDialogOpen(true)}
+                      onClick={() => setInteriorBackgroundDialogOpen(true)}
                       variant="outline"
                       className="border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white text-xs md:text-sm h-12 md:h-10 w-full sm:w-auto sm:shrink-0 whitespace-nowrap"
                     >
@@ -1882,11 +1897,91 @@ const CarDetail = () => {
         open={!!positionEditorPhoto}
         onOpenChange={(open) => !open && setPositionEditorPhoto(null)}
         transparentCarUrl={positionEditorPhoto?.transparentCarUrl || ""}
-        backgroundUrl={backgroundUrl}
+        backgroundUrl={positionEditorPhoto?.backgroundImageUrl || backgroundUrl}
         backgroundColor={positionEditorPhoto?.backgroundColor}
         isInterior={positionEditorPhoto?.editType === 'interior'}
+        moveBackground={positionEditorPhoto?.moveBackground}
         onSave={handlePositionEditorSave}
         isSaving={positionEditorSaving}
+      />
+
+      {/* Interior Background Selection Dialog */}
+      <InteriorBackgroundDialog
+        open={interiorBackgroundDialogOpen}
+        onOpenChange={setInteriorBackgroundDialogOpen}
+        onSolidColorSelected={() => setInteriorDialogOpen(true)}
+        onImageSelected={(imageUrl) => {
+          // For image background, we need to segment first then open position editor
+          const photoIds = selectedMainPhotos;
+          if (photoIds.length === 0) return;
+          
+          // For now, use the first selected photo and open position editor with moveBackground
+          const photoId = photoIds[0];
+          const photo = mainPhotos.find(p => p.id === photoId);
+          if (!photo) return;
+          
+          // If photo already has transparent_url, use it directly
+          if (photo.transparent_url) {
+            setPositionEditorPhoto({
+              id: photoId,
+              transparentCarUrl: photo.transparent_url,
+              editType: 'interior',
+              backgroundImageUrl: imageUrl,
+              moveBackground: true,
+            });
+            setSelectedMainPhotos([]);
+          } else {
+            // Need to segment first - show toast that we're processing
+            toast({
+              title: "Förbereder...",
+              description: "Tar bort bakgrunden först, vänta...",
+            });
+            // Segment then open editor
+            (async () => {
+              try {
+                const response = await fetch(photo.url);
+                const blob = await response.blob();
+                const file = new File([blob], "photo.jpg", { type: blob.type });
+                
+                const segmentFormData = new FormData();
+                segmentFormData.append("image_file", file);
+                segmentFormData.append("car_id", car!.id);
+                segmentFormData.append("photo_id", photo.id);
+                
+                const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
+                  body: segmentFormData,
+                });
+                
+                if (segmentError) throw segmentError;
+                if (!segmentData?.url) throw new Error("No URL returned");
+                
+                // Save transparent_url
+                await supabase
+                  .from("photos")
+                  .update({ transparent_url: segmentData.url, original_url: photo.url })
+                  .eq("id", photoId);
+                
+                setPositionEditorPhoto({
+                  id: photoId,
+                  transparentCarUrl: segmentData.url,
+                  editType: 'interior',
+                  backgroundImageUrl: imageUrl,
+                  moveBackground: true,
+                });
+                setSelectedMainPhotos([]);
+              } catch (error) {
+                console.error("Error segmenting for interior image:", error);
+                toast({
+                  title: "Fel",
+                  description: "Kunde inte förbereda bilden",
+                  variant: "destructive",
+                });
+              }
+            })();
+          }
+        }}
+        availableBackgrounds={availableInteriorBackgrounds}
+        isProcessing={processingInterior}
       />
 
       {/* Interior Color Dialog */}
