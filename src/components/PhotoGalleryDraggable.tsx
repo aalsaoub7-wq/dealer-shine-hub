@@ -22,6 +22,7 @@ interface Photo {
   display_order: number;
   has_watermark?: boolean;
   edit_type?: string | null;
+  interior_background_url?: string | null;
 }
 interface PhotoGalleryProps {
   photos: Photo[];
@@ -236,7 +237,14 @@ const PhotoGalleryDraggable = ({
             }
           }} onRegenerate={photoId => {
             const photo = items.find(p => p.id === photoId);
-            if (photo) setRegenerateOptionsPhoto(photo);
+            if (photo) {
+              // If interior with background image - go directly to position editor
+              if (photo.edit_type === 'interior' && photo.interior_background_url && onAdjustPosition) {
+                onAdjustPosition(photoId);
+              } else {
+                setRegenerateOptionsPhoto(photo);
+              }
+            }
           }} onWatermarkOptions={photoId => setWatermarkOptionsId(photoId)} />)}
           </div>
         </SortableContext>
