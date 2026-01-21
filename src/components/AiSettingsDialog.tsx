@@ -22,6 +22,11 @@ import { AccountSettings } from "./AccountSettings";
 import { useQuery } from "@tanstack/react-query";
 import { CustomStudioDialog } from "./CustomStudioDialog";
 
+// Hidden backgrounds that require unlock codes
+const BACKGROUND_UNLOCK_CODES: Record<string, string> = {
+  'concrete-showroom': '=DDkyZYm'
+};
+
 // Static background templates with optimized thumbnails
 export const STATIC_BACKGROUNDS: Array<{
   id: string;
@@ -119,6 +124,7 @@ export const AiSettingsDialog = () => {
   const [customStudioDialogOpen, setCustomStudioDialogOpen] = useState(false);
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [pendingClose, setPendingClose] = useState(false);
+  const [unlockedBackgrounds, setUnlockedBackgrounds] = useState<string[]>([]);
   
   // Store original values to detect changes
   const originalValuesRef = useRef<{
@@ -185,7 +191,7 @@ export const AiSettingsDialog = () => {
       const {
         data,
         error
-      } = await supabase.from("ai_settings").select("background_template_id, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity, landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text, landing_page_logo_size, landing_page_logo_position, landing_page_header_height, landing_page_header_fit").eq("company_id", companyData.company_id).single();
+      } = await supabase.from("ai_settings").select("background_template_id, example_descriptions, logo_url, watermark_x, watermark_y, watermark_size, watermark_opacity, landing_page_logo_url, landing_page_background_color, landing_page_layout, landing_page_header_image_url, landing_page_text_color, landing_page_accent_color, landing_page_title, landing_page_description, landing_page_footer_text, landing_page_logo_size, landing_page_logo_position, landing_page_header_height, landing_page_header_fit, unlocked_backgrounds").eq("company_id", companyData.company_id).single();
       if (error && error.code !== "PGRST116") {
         throw error;
       }
@@ -253,6 +259,7 @@ export const AiSettingsDialog = () => {
         setLandingPageLogoPosition(finalLandingPageLogoPosition);
         setLandingPageHeaderHeight(finalLandingPageHeaderHeight);
         setLandingPageHeaderFit(finalLandingPageHeaderFit);
+        setUnlockedBackgrounds((data as any).unlocked_backgrounds || []);
         
         // Store original values for change detection
         originalValuesRef.current = {
@@ -372,6 +379,47 @@ export const AiSettingsDialog = () => {
     setShowUnsavedWarning(false);
     setPendingClose(false);
     await saveSettings();
+  };
+
+  // Handle unlock code submission
+  const handleUnlockCode = async (code: string) => {
+    // Find which background matches the code
+    const backgroundId = Object.entries(BACKGROUND_UNLOCK_CODES)
+      .find(([_, unlockCode]) => unlockCode === code)?.[0];
+    
+    if (!backgroundId) {
+      toast({ title: "Felaktig kod", variant: "destructive" });
+      return;
+    }
+    
+    if (unlockedBackgrounds.includes(backgroundId)) {
+      toast({ title: "Redan upplåst" });
+      return;
+    }
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data: companyData } = await supabase.from("user_companies")
+        .select("company_id").eq("user_id", user.id).single();
+      if (!companyData) return;
+      
+      const newUnlocked = [...unlockedBackgrounds, backgroundId];
+      
+      await supabase.from("ai_settings")
+        .update({ unlocked_backgrounds: newUnlocked })
+        .eq("company_id", companyData.company_id);
+      
+      setUnlockedBackgrounds(newUnlocked);
+      setCustomStudioDialogOpen(false);
+      
+      const bgName = STATIC_BACKGROUNDS.find(bg => bg.id === backgroundId)?.name || backgroundId;
+      toast({ title: "Bakgrund upplåst!", description: `${bgName} är nu tillgänglig` });
+    } catch (error: any) {
+      console.error("Error unlocking background:", error);
+      toast({ title: "Fel vid upplåsning", description: error.message, variant: "destructive" });
+    }
   };
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -689,40 +737,47 @@ export const AiSettingsDialog = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {STATIC_BACKGROUNDS.map(bg => <div key={bg.id} className={`relative cursor-pointer rounded-lg border-2 p-3 transition-all hover:border-primary ${selectedBackgroundId === bg.id && !bg.isCustom ? "border-primary bg-primary/5" : "border-border"} ${bg.isCustom ? "border-dashed" : ""}`} onClick={() => {
-                  if (bg.isCustom) {
-                    setCustomStudioDialogOpen(true);
-                  } else {
-                    setSelectedBackgroundId(bg.id);
-                  }
-                }}>
-                      {bg.isCustom ? <div className="aspect-video mb-2 overflow-hidden rounded-md bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
-                          <span className="text-white font-medium text-sm">Få din egna studio </span>
-                        </div> : <div className="aspect-video mb-2 overflow-hidden rounded-md bg-muted">
-                          <img 
-                            src={bg.thumbnail} 
-                            alt={bg.name} 
-                            className="h-full w-full object-cover" 
-                            loading="lazy" 
-                            decoding="async"
-                            width={400}
-                            height={225}
-                            fetchPriority="low"
-                          />
-                        </div>}
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium text-sm">{bg.name}</h4>
-                          <p className="text-xs text-muted-foreground">
-                            {bg.isCustom ? "Från 299 kr" : bg.description}
-                          </p>
+                  {STATIC_BACKGROUNDS
+                    .filter(bg => {
+                      // Always show if not locked
+                      if (!BACKGROUND_UNLOCK_CODES[bg.id]) return true;
+                      // Show if unlocked
+                      return unlockedBackgrounds.includes(bg.id);
+                    })
+                    .map(bg => <div key={bg.id} className={`relative cursor-pointer rounded-lg border-2 p-3 transition-all hover:border-primary ${selectedBackgroundId === bg.id && !bg.isCustom ? "border-primary bg-primary/5" : "border-border"} ${bg.isCustom ? "border-dashed" : ""}`} onClick={() => {
+                    if (bg.isCustom) {
+                      setCustomStudioDialogOpen(true);
+                    } else {
+                      setSelectedBackgroundId(bg.id);
+                    }
+                  }}>
+                        {bg.isCustom ? <div className="aspect-video mb-2 overflow-hidden rounded-md bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                            <span className="text-white font-medium text-sm">Få din egna studio </span>
+                          </div> : <div className="aspect-video mb-2 overflow-hidden rounded-md bg-muted">
+                            <img 
+                              src={bg.thumbnail} 
+                              alt={bg.name} 
+                              className="h-full w-full object-cover" 
+                              loading="lazy" 
+                              decoding="async"
+                              width={400}
+                              height={225}
+                              fetchPriority="low"
+                            />
+                          </div>}
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h4 className="font-medium text-sm">{bg.name}</h4>
+                            <p className="text-xs text-muted-foreground">
+                              {bg.isCustom ? "Från 299 kr" : bg.description}
+                            </p>
+                          </div>
+                          {selectedBackgroundId === bg.id && !bg.isCustom && <Check className="h-5 w-5 text-primary flex-shrink-0" />}
                         </div>
-                        {selectedBackgroundId === bg.id && !bg.isCustom && <Check className="h-5 w-5 text-primary flex-shrink-0" />}
-                      </div>
-                    </div>)}
+                      </div>)}
                 </div>
 
-                <CustomStudioDialog open={customStudioDialogOpen} onOpenChange={setCustomStudioDialogOpen} />
+                <CustomStudioDialog open={customStudioDialogOpen} onOpenChange={setCustomStudioDialogOpen} onCodeSubmit={handleUnlockCode} />
               </div>
             </TabsContent>
 
