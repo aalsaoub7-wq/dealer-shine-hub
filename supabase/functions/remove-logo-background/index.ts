@@ -13,9 +13,9 @@ serve(async (req) => {
   }
 
   try {
-    const PHOTOROOM_API_KEY = Deno.env.get('PHOTOROOM_API_KEY');
-    if (!PHOTOROOM_API_KEY) {
-      throw new Error('PHOTOROOM_API_KEY is not set');
+    const REMOVEBG_API_KEY = Deno.env.get('REMOVEBG_API_KEY');
+    if (!REMOVEBG_API_KEY) {
+      throw new Error('REMOVEBG_API_KEY is not set');
     }
 
     const { imageUrl } = await req.json();
@@ -34,30 +34,30 @@ serve(async (req) => {
 
     console.log('[REMOVE-BG] Image fetched, size:', imageBlob.size);
 
-    // Create form data for PhotoRoom API
+    // Create form data for Remove.bg API
     const formData = new FormData();
     formData.append('image_file', imageBlob, 'logo.png');
+    formData.append('size', 'auto');
 
-    // Call PhotoRoom segment API to remove background
-    const photoroomResponse = await fetch('https://sdk.photoroom.com/v1/segment', {
+    // Call Remove.bg API to remove background
+    const removebgResponse = await fetch('https://api.remove.bg/v1.0/removebg', {
       method: 'POST',
       headers: {
-        'Accept': 'image/png',
-        'x-api-key': PHOTOROOM_API_KEY,
+        'X-Api-Key': REMOVEBG_API_KEY,
       },
       body: formData,
     });
 
-    if (!photoroomResponse.ok) {
-      const errorText = await photoroomResponse.text();
-      console.error('[REMOVE-BG] PhotoRoom API error:', errorText);
-      throw new Error(`PhotoRoom API error: ${photoroomResponse.status} - ${errorText}`);
+    if (!removebgResponse.ok) {
+      const errorText = await removebgResponse.text();
+      console.error('[REMOVE-BG] Remove.bg API error:', errorText);
+      throw new Error(`Remove.bg API error: ${removebgResponse.status} - ${errorText}`);
     }
 
     console.log('[REMOVE-BG] Background removed successfully');
 
     // Get the result as a blob
-    const resultBlob = await photoroomResponse.blob();
+    const resultBlob = await removebgResponse.blob();
     const resultArrayBuffer = await resultBlob.arrayBuffer();
     const resultUint8Array = new Uint8Array(resultArrayBuffer);
 
