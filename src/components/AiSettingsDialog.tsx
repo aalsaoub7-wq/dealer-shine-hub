@@ -67,6 +67,12 @@ const STATIC_BACKGROUNDS: Array<{
   image: '/backgrounds/panel-wall.jpg',
   thumbnail: '/backgrounds/thumbnails/panel-wall-thumb.jpg'
 }, {
+  id: 'concrete-showroom',
+  name: 'Betong Showroom',
+  description: 'Modern betongstudio med plattform',
+  image: '/backgrounds/concrete-showroom.jpg',
+  thumbnail: '/backgrounds/thumbnails/concrete-showroom-thumb.jpg'
+}, {
   id: 'custom-studio',
   name: 'Custom Studio',
   description: 'Skräddarsydd studio',
