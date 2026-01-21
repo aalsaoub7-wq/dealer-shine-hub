@@ -284,18 +284,9 @@ const Landing = () => {
                 Allt du behöver för professionella bilfoton
               </span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Kraftfulla funktioner som hjälper dig sälja bilar snabbare
             </p>
-            
-            {/* Notion Calendar Embed */}
-            <div className="max-w-3xl mx-auto rounded-2xl overflow-hidden border border-border shadow-lg">
-              <iframe 
-                src="https://calendar.notion.so/meet/alfred-zbpoy1pru/l68e4p14"
-                className="w-full h-[600px] border-0"
-                title="Boka en demo"
-              />
-            </div>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
@@ -714,6 +705,32 @@ const Landing = () => {
             <p className="text-white/90 text-sm mt-4 font-medium">
               ✓ Prova gratis i 21 dagar eller tills du når 50 bilderedigeringar
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Book Demo Section */}
+      <section id="book-demo" className="py-20 md:py-32 scroll-animate">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              <span className="bg-gradient-primary bg-clip-text text-transparent">
+                Boka en demo
+              </span>
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Låt oss visa hur Luvero kan hjälpa ditt företag
+            </p>
+          </div>
+          
+          <div className="max-w-3xl mx-auto">
+            <div className="rounded-3xl overflow-hidden border border-border/50 shadow-2xl shadow-primary/10 bg-card/50 backdrop-blur-sm">
+              <iframe 
+                src="https://calendar.notion.so/meet/alfred-zbpoy1pru/l68e4p14"
+                className="w-full h-[650px] border-0"
+                title="Boka en demo"
+              />
+            </div>
           </div>
         </div>
       </section>
