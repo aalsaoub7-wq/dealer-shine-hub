@@ -714,11 +714,11 @@ const Landing = () => {
             </p>
           </div>
 
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <div className="rounded-3xl overflow-hidden border border-border/50 shadow-2xl bg-card/50 backdrop-blur-sm">
               <iframe 
                 src="https://calendar.notion.so/meet/alfred-zbpoy1pru/l68e4p14" 
-                className="w-full h-[650px] border-0"
+                className="w-full h-[450px] border-0"
                 title="Boka demo"
               />
             </div>
