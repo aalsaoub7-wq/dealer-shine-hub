@@ -9,15 +9,13 @@ import luveroLogo from "@/assets/luvero-logo.png";
 import luveroLogoText from "@/assets/luvero-logo-text.png";
 import { z } from "zod";
 // Separator import removed - Google OAuth disabled
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+// Alert imports removed - OBS message removed
 import { analytics, identifyUser } from "@/lib/analytics";
 
 const authSchema = z.object({
   email: z.string().trim().min(1, "E-postadress krävs").email("Ogiltig e-postadress").max(255, "E-postadressen får vara max 255 tecken"),
   password: z.string().min(6, "Lösenordet måste vara minst 6 tecken").max(72, "Lösenordet får vara max 72 tecken"),
-  inviteCode: z.string().optional(),
-  signupCode: z.string().optional()
+  code: z.string().optional()
 });
 
 const Auth = () => {
@@ -30,14 +28,12 @@ const Auth = () => {
   const selectedPlan = searchParams.get("plan") || "start";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [inviteCode, setInviteCode] = useState("");
-  const [signupCode, setSignupCode] = useState("");
+  const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
-    inviteCode?: string;
-    signupCode?: string;
+    code?: string;
   }>({});
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
@@ -107,19 +103,17 @@ const Auth = () => {
       const validation = authSchema.safeParse({
         email,
         password,
-        inviteCode,
-        signupCode
+        code
       });
       if (!validation.success) {
         const fieldErrors: {
           email?: string;
           password?: string;
-          inviteCode?: string;
-          signupCode?: string;
+          code?: string;
         } = {};
         validation.error.errors.forEach(err => {
           if (err.path[0]) {
-            fieldErrors[err.path[0] as "email" | "password" | "inviteCode" | "signupCode"] = err.message;
+            fieldErrors[err.path[0] as "email" | "password" | "code"] = err.message;
           }
         });
         setErrors(fieldErrors);
@@ -148,23 +142,32 @@ const Auth = () => {
         // Redirect to verify to check verification status
         navigate("/verify");
       } else {
-        // Check if signup_code is provided (new admin with pre-linked Stripe)
-        if (signupCode) {
-          // Validate signup code
-          const { data: codeData, error: codeError } = await supabase
-            .from("public_signup_codes")
-            .select("id, is_used, company_name")
-            .eq("code", signupCode.toUpperCase())
-            .maybeSingle();
+        // Unified code validation - check if any code is provided
+        if (!code) {
+          toast({
+            title: "Oj!",
+            description: "Nu går det lite snabbt, boka en demo för att få din företagskod ;)",
+            variant: "info",
+          });
+          setLoading(false);
+          return;
+        }
 
-          if (codeError || !codeData) {
-            setErrors({ signupCode: "Ogiltig företagskod" });
-            setLoading(false);
-            return;
-          }
+        // Step 1: Try as signup_code (admin with pre-linked Stripe)
+        const { data: signupCodeData } = await supabase
+          .from("public_signup_codes")
+          .select("id, is_used, company_name")
+          .eq("code", code.toUpperCase())
+          .maybeSingle();
 
-          if (codeData.is_used) {
-            setErrors({ signupCode: "Denna kod har redan använts" });
+        if (signupCodeData) {
+          // Found as signup code
+          if (signupCodeData.is_used) {
+            toast({
+              title: "Oj!",
+              description: "Denna kod har redan använts",
+              variant: "info",
+            });
             setLoading(false);
             return;
           }
@@ -176,7 +179,7 @@ const Auth = () => {
             options: {
               emailRedirectTo: `${window.location.origin}/dashboard`,
               data: {
-                signup_code: signupCode.toUpperCase()
+                signup_code: code.toUpperCase()
               }
             }
           });
@@ -202,32 +205,19 @@ const Auth = () => {
 
           toast({
             title: "Konto skapat!",
-            description: `Välkommen till ${codeData.company_name || 'Luvero'}! Kolla din e-post för verifiering.`
+            description: `Välkommen till ${signupCodeData.company_name || 'Luvero'}! Kolla din e-post för verifiering.`
           });
 
           navigate("/verify");
           return;
         }
 
-        // Check if employee invite code is provided
-        if (inviteCode) {
-          // Use the secure validate_invite_code function instead of querying companies directly
-          const {
-            data: companyId,
-            error: validateError
-          } = await supabase.rpc("validate_invite_code", {
-            code: inviteCode.toUpperCase()
-          });
-          if (validateError || !companyId) {
-            toast({
-              title: "Ogiltig kod",
-              description: "Inbjudningskoden är ogiltig.",
-              variant: "destructive"
-            });
-            setLoading(false);
-            return;
-          }
+        // Step 2: Try as employee invite code
+        const { data: companyId } = await supabase.rpc("validate_invite_code", {
+          code: code.toUpperCase()
+        });
 
+        if (companyId) {
           // Employee signup with invite code
           const { data: authData, error } = await supabase.auth.signUp({
             email: validation.data.email,
@@ -236,7 +226,7 @@ const Auth = () => {
               emailRedirectTo: `${window.location.origin}/dashboard`,
               data: {
                 is_employee_signup: true,
-                invite_code: inviteCode.toUpperCase()
+                invite_code: code.toUpperCase()
               }
             }
           });
@@ -264,9 +254,12 @@ const Auth = () => {
           return;
         }
 
-        // BLOCKED: Normal admin signup without code is no longer allowed
-        // All new accounts must use either a signup code (new company) or employee invite code
-        setErrors({ signupCode: "Företagskod krävs för att skapa konto. Kontakta oss på hej@luvero.se" });
+        // No valid code found
+        toast({
+          title: "Oj!",
+          description: "Ogiltig kod. Dubbelkolla att du skrev rätt.",
+          variant: "info",
+        });
         setLoading(false);
         return;
 
@@ -442,14 +435,7 @@ const Auth = () => {
             )
           ) : (
             <>
-              {!isLogin && (
-                <Alert className="mb-4 border-primary/20 bg-primary/5">
-                  <AlertCircle className="h-4 w-4 text-primary" />
-                  <AlertDescription className="text-sm text-foreground ml-2">
-                    <strong>OBS!</strong> Om du har fått en företagskod, ange den nedan för att skapa ditt konto.
-                  </AlertDescription>
-                </Alert>
-              )}
+              {/* OBS message removed - unified code field below */}
 
               <form onSubmit={handleAuth} className="space-y-4">
                 <div className="space-y-2">
@@ -494,47 +480,24 @@ const Auth = () => {
                 </div>
 
                 {!isLogin && (
-                  <>
-                    {/* Signup Code - for new admins with pre-linked Stripe */}
-                    <div className="space-y-2">
-                      <label htmlFor="signupCode" className="text-sm font-medium">
-                        Företagskod
-                      </label>
-                      <Input
-                        id="signupCode"
-                        type="text"
-                        placeholder="Ange din företagskod"
-                        value={signupCode}
-                        onChange={e => setSignupCode(e.target.value.toUpperCase())}
-                        disabled={loading || !!inviteCode}
-                        className={errors.signupCode ? "border-destructive" : ""}
-                      />
-                      {errors.signupCode && <p className="text-sm text-destructive">{errors.signupCode}</p>}
-                      <p className="text-xs text-muted-foreground">
-                        Har du fått en kod från Luvero? Ange den här.
-                      </p>
-                    </div>
-
-                    {/* Employee Invite Code - for team members */}
-                    <div className="space-y-2">
-                      <label htmlFor="inviteCode" className="text-sm font-medium">
-                        Inbjudningskod (för anställda)
-                      </label>
-                      <Input
-                        id="inviteCode"
-                        type="text"
-                        placeholder="Ange kod från din arbetsgivare"
-                        value={inviteCode}
-                        onChange={e => setInviteCode(e.target.value.toUpperCase())}
-                        disabled={loading || !!signupCode}
-                        className={errors.inviteCode ? "border-destructive" : ""}
-                      />
-                      {errors.inviteCode && <p className="text-sm text-destructive">{errors.inviteCode}</p>}
-                      <p className="text-xs text-muted-foreground">
-                        Anställda anger inbjudningskod från sin arbetsgivare
-                      </p>
-                    </div>
-                  </>
+                  <div className="space-y-2">
+                    <label htmlFor="code" className="text-sm font-medium">
+                      Företagskod
+                    </label>
+                    <Input
+                      id="code"
+                      type="text"
+                      placeholder="Ange din kod"
+                      value={code}
+                      onChange={e => setCode(e.target.value.toUpperCase())}
+                      disabled={loading}
+                      className={errors.code ? "border-destructive" : ""}
+                    />
+                    {errors.code && <p className="text-sm text-destructive">{errors.code}</p>}
+                    <p className="text-xs text-muted-foreground">
+                      Ange koden du fått från Luvero eller din arbetsgivare
+                    </p>
+                  </div>
                 )}
 
                 <Button type="submit" className="w-full" disabled={loading}>
