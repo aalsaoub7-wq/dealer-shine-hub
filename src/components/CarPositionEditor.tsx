@@ -11,6 +11,7 @@ interface CarPositionEditorProps {
   backgroundColor?: string; // If set, use solid color instead of background image
   isInterior?: boolean; // If true, use 4:3 aspect ratio instead of 3:2
   moveBackground?: boolean; // If true, user moves background instead of car (for interior image backgrounds)
+  fillCanvas?: boolean; // If true, position image to cover entire canvas without margins
   onSave: (compositionBlob: Blob) => void;
   isSaving?: boolean;
 }
@@ -81,6 +82,7 @@ export const CarPositionEditor = ({
   backgroundColor,
   isInterior = false,
   moveBackground = false,
+  fillCanvas = false,
   onSave,
   isSaving = false,
 }: CarPositionEditorProps) => {
@@ -112,13 +114,40 @@ export const CarPositionEditor = ({
   const [bgScale, setBgScale] = useState(1);
   const bgAspectRatioRef = useRef(1);
 
-  // Calculate initial car position based on default padding
+  // Calculate initial car position based on default padding or fill canvas
   const calculateInitialPosition = useCallback((croppedCanvas: HTMLCanvasElement) => {
-    const availableWidth = OUTPUT_WIDTH * (1 - DEFAULT_PADDING.left - DEFAULT_PADDING.right);
-    const availableHeight = OUTPUT_HEIGHT * (1 - DEFAULT_PADDING.top - DEFAULT_PADDING.bottom);
-    
     const aspectRatio = croppedCanvas.width / croppedCanvas.height;
     setCarAspectRatio(aspectRatio);
+    
+    // If fillCanvas is true, scale image to cover entire canvas without margins
+    if (fillCanvas) {
+      const canvasAspect = OUTPUT_WIDTH / OUTPUT_HEIGHT;
+      let width: number, height: number;
+      
+      if (aspectRatio > canvasAspect) {
+        // Image is wider than canvas - match height
+        height = OUTPUT_HEIGHT;
+        width = height * aspectRatio;
+      } else {
+        // Image is taller/equal - match width
+        width = OUTPUT_WIDTH;
+        height = width / aspectRatio;
+      }
+      
+      // Center the image
+      const x = (OUTPUT_WIDTH - width) / 2;
+      const y = (OUTPUT_HEIGHT - height) / 2;
+      
+      setCarX(x);
+      setCarY(y);
+      setCarWidth(width);
+      setCarHeight(height);
+      return;
+    }
+    
+    // Default behavior with margins
+    const availableWidth = OUTPUT_WIDTH * (1 - DEFAULT_PADDING.left - DEFAULT_PADDING.right);
+    const availableHeight = OUTPUT_HEIGHT * (1 - DEFAULT_PADDING.top - DEFAULT_PADDING.bottom);
     
     let width = availableWidth;
     let height = width / aspectRatio;
@@ -135,7 +164,7 @@ export const CarPositionEditor = ({
     setCarY(y);
     setCarWidth(width);
     setCarHeight(height);
-  }, []);
+  }, [fillCanvas, OUTPUT_HEIGHT]);
 
   // Load images
   useEffect(() => {
