@@ -12,8 +12,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-// Plan pricing configuration
-const PLAN_PRICING = {
+// Fallback plan pricing (used only if Stripe data not available)
+const FALLBACK_PLAN_PRICING = {
   start: {
     name: 'Start',
     monthlyFee: 349,
@@ -106,8 +106,7 @@ serve(async (req) => {
       ? Math.max(0, Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
       : 0;
 
-    // Get subscription info including plan (accept active, trialing, and canceled statuses)
-    // Include canceled to check if user still has time left on their subscription
+    // Get subscription info including plan
     const { data: subscription } = await supabaseClient
       .from("subscriptions")
       .select("*, plan, scheduled_plan, scheduled_plan_date")
@@ -117,11 +116,60 @@ serve(async (req) => {
       .limit(1)
       .maybeSingle();
 
-    // Get current plan - check subscription first, then Stripe customer metadata as fallback
+    // Function to get dynamic pricing from Stripe subscription
+    const getDynamicPricing = async (stripeSubscriptionId: string) => {
+      try {
+        console.log(`[BILLING-INFO] Fetching dynamic pricing from Stripe subscription: ${stripeSubscriptionId}`);
+        const stripeSubscription = await stripe.subscriptions.retrieve(stripeSubscriptionId, {
+          expand: ['items.data.price'],
+        });
+
+        let monthlyFee = 0;
+        let pricePerImage = 0;
+        let planName = 'Anpassad';
+
+        for (const item of stripeSubscription.items.data) {
+          const price = item.price;
+          
+          if (price.recurring?.usage_type === 'metered') {
+            // This is the per-image price
+            pricePerImage = (price.unit_amount || 0) / 100;
+            console.log(`[BILLING-INFO] Found metered price: ${pricePerImage} kr/image`);
+          } else if (price.recurring?.usage_type === 'licensed') {
+            // This is the fixed monthly fee
+            monthlyFee = (price.unit_amount || 0) / 100;
+            console.log(`[BILLING-INFO] Found licensed price: ${monthlyFee} kr/month`);
+          }
+
+          // Try to get plan name from price metadata or product
+          if (price.metadata?.plan_name) {
+            planName = price.metadata.plan_name;
+          }
+        }
+
+        return {
+          name: planName,
+          monthlyFee,
+          pricePerImage,
+          color: 'primary',
+        };
+      } catch (error) {
+        console.error("[BILLING-INFO] Error fetching Stripe subscription:", error);
+        return null;
+      }
+    };
+
+    // Get current plan config - try dynamic pricing first
     let currentPlan = subscription?.plan || null;
-    
-    // If no plan from subscription, try to get from Stripe customer metadata
-    if (!currentPlan && company.stripe_customer_id) {
+    let planConfig = null;
+
+    // If we have a Stripe subscription, try to get dynamic pricing
+    if (subscription?.stripe_subscription_id) {
+      planConfig = await getDynamicPricing(subscription.stripe_subscription_id);
+    }
+
+    // If no dynamic pricing, try to get from Stripe customer metadata
+    if (!planConfig && company.stripe_customer_id) {
       try {
         const customer = await stripe.customers.retrieve(company.stripe_customer_id) as any;
         if (customer && !customer.deleted && customer.metadata?.plan) {
@@ -132,10 +180,12 @@ serve(async (req) => {
         console.error("[BILLING-INFO] Error fetching customer metadata:", error);
       }
     }
-    
-    // Default to 'start' if still no plan
-    currentPlan = currentPlan || 'start';
-    const planConfig = PLAN_PRICING[currentPlan as keyof typeof PLAN_PRICING] || PLAN_PRICING.start;
+
+    // Fallback to hardcoded pricing if no dynamic pricing available
+    if (!planConfig) {
+      currentPlan = currentPlan || 'start';
+      planConfig = FALLBACK_PLAN_PRICING[currentPlan as keyof typeof FALLBACK_PLAN_PRICING] || FALLBACK_PLAN_PRICING.start;
+    }
 
     // Check if there's an active subscription in database
     const hasActiveSubscription = !!(subscription && ["active", "trialing"].includes(subscription.status));
@@ -191,7 +241,7 @@ serve(async (req) => {
       .select("id, email")
       .in("id", userIds);
 
-    // Create per-user breakdown using stored costs (correct for plan changes mid-month)
+    // Create per-user breakdown using stored costs
     const userUsageStats = (companyUsers || []).map((uc) => {
       const profile = profiles?.find((p) => p.id === uc.user_id);
       const stats = usageStats?.find((s) => s.user_id === uc.user_id);
@@ -220,13 +270,12 @@ serve(async (req) => {
       cost: totalCost,
     };
 
-    // Check if user has payment method by listing all payment methods for customer
+    // Check if user has payment method
     let hasPaymentMethod = false;
     if (company.stripe_customer_id) {
       try {
         console.log(`[BILLING-INFO] Checking payment methods for customer: ${company.stripe_customer_id}`);
         
-        // List all payment methods attached to the customer (cards)
         const paymentMethods = await stripe.paymentMethods.list({
           customer: company.stripe_customer_id,
           type: 'card',
@@ -236,14 +285,6 @@ serve(async (req) => {
         hasPaymentMethod = paymentMethods.data.length > 0;
         
         console.log(`[BILLING-INFO] Payment methods found: ${paymentMethods.data.length}, hasPaymentMethod: ${hasPaymentMethod}`);
-        
-        if (paymentMethods.data.length > 0) {
-          console.log(`[BILLING-INFO] First payment method:`, {
-            id: paymentMethods.data[0].id,
-            brand: paymentMethods.data[0].card?.brand,
-            last4: paymentMethods.data[0].card?.last4,
-          });
-        }
       } catch (error) {
         console.error("[BILLING-INFO] Error checking payment methods:", error);
       }

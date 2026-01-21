@@ -11,12 +11,14 @@ import { openExternalUrl } from "@/lib/nativeCapabilities";
 import { isNativeApp } from "@/lib/utils";
 import { ChangePlanDialog } from "./ChangePlanDialog";
 import { analytics } from "@/lib/analytics";
+
 interface PlanConfig {
   name: string;
   monthlyFee: number;
   pricePerImage: number;
   color: string;
 }
+
 interface BillingInfo {
   hasCustomer: boolean;
   customerId?: string;
@@ -51,12 +53,11 @@ interface BillingInfo {
   }>;
   portalUrl?: string;
 }
+
 export const PaymentSettings = () => {
   const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [creatingCustomer, setCreatingCustomer] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<PlanType>('start');
   const [userUsageStats, setUserUsageStats] = useState<Array<{
     userId: string;
     email: string;
@@ -68,38 +69,24 @@ export const PaymentSettings = () => {
     cost: 0
   });
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [changePlanDialogOpen, setChangePlanDialogOpen] = useState(false);
-  const {
-    toast
-  } = useToast();
-  const {
-    data: userRole
-  } = useQuery({
+  const { toast } = useToast();
+  
+  const { data: userRole } = useQuery({
     queryKey: ["userRole"],
     queryFn: async () => {
-      const {
-        data: {
-          user
-        }
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
-      const {
-        data
-      } = await supabase.from("user_roles").select("role").eq("user_id", user.id).single();
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", user.id).single();
       return data?.role;
     }
   });
+  
   const previousPaymentMethodRef = useRef<boolean | null>(null);
   
   const fetchBillingInfo = async () => {
     try {
       setLoading(true);
-
-      // Fetch billing info from edge function
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke("get-billing-info");
+      const { data, error } = await supabase.functions.invoke("get-billing-info");
       if (error) throw error;
       
       // Track payment method added event
@@ -110,23 +97,13 @@ export const PaymentSettings = () => {
       
       setBillingInfo(data);
 
-      // Set selected plan from billing info
-      if (data.plan) {
-        setSelectedPlan(data.plan as PlanType);
-      }
-
       // Use user usage stats from edge function
       if (data.userUsageStats) {
         setUserUsageStats(data.userUsageStats);
-
-        // Calculate totals
         const total = data.userUsageStats.reduce((acc: any, stat: any) => ({
           editedImages: acc.editedImages + stat.editedImages,
           cost: acc.cost + stat.cost
-        }), {
-          editedImages: 0,
-          cost: 0
-        });
+        }), { editedImages: 0, cost: 0 });
         setTotalUsage(total);
       }
     } catch (error: any) {
@@ -140,47 +117,11 @@ export const PaymentSettings = () => {
       setLoading(false);
     }
   };
-  const createStripeCustomer = async (plan: PlanType = 'start') => {
-    try {
-      setCreatingCustomer(true);
-      
-      // Track plan selection
-      analytics.planSelected(plan);
-      
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke("create-stripe-customer", {
-        body: {
-          plan
-        }
-      });
-      if (error) throw error;
-      toast({
-        title: "Framgång",
-        description: `Stripe-kund skapad med ${PLANS[plan].name}-planen`
-      });
 
-      // Refresh billing info
-      await fetchBillingInfo();
-    } catch (error: any) {
-      console.error("Error creating Stripe customer:", error);
-      toast({
-        title: "Fel",
-        description: "Kunde inte skapa Stripe-kund",
-        variant: "destructive"
-      });
-    } finally {
-      setCreatingCustomer(false);
-    }
-  };
   const openCustomerPortal = async () => {
     try {
       setOpeningPortal(true);
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke("customer-portal");
+      const { data, error } = await supabase.functions.invoke("customer-portal");
       if (error) throw error;
       if (data?.url) {
         await openExternalUrl(data.url);
@@ -193,16 +134,16 @@ export const PaymentSettings = () => {
         pollingIntervalRef.current = setInterval(() => {
           console.log("[PAYMENT-SETTINGS] Polling for billing info update");
           fetchBillingInfo();
-        }, 30000); // 30 seconds
+        }, 30000);
 
-        // Stop polling after 10 minutes (20 polls)
+        // Stop polling after 10 minutes
         setTimeout(() => {
           if (pollingIntervalRef.current) {
             console.log("[PAYMENT-SETTINGS] Stopping polling after timeout");
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
           }
-        }, 600000); // 10 minutes
+        }, 600000);
       }
     } catch (error: any) {
       console.error("Error opening customer portal:", error);
@@ -215,10 +156,9 @@ export const PaymentSettings = () => {
       setOpeningPortal(false);
     }
   };
+
   useEffect(() => {
     fetchBillingInfo();
-
-    // Cleanup polling on unmount
     return () => {
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
@@ -226,86 +166,67 @@ export const PaymentSettings = () => {
     };
   }, []);
 
-  // Get current plan config
-  const currentPlan = billingInfo?.plan as PlanType || 'start';
-  const planConfig = PLANS[currentPlan] || PLANS.start;
+  // Get plan config from billing info (dynamic from Stripe) or fallback
+  const planConfig = billingInfo?.planConfig || { name: 'Anpassad', monthlyFee: 0, pricePerImage: 0, color: 'primary' };
+
   if (userRole !== "admin") {
-    return <Card>
+    return (
+      <Card>
         <CardHeader>
           <CardTitle>Åtkomst nekad</CardTitle>
           <CardDescription>Endast administratörer kan hantera betalningsinställningar.</CardDescription>
         </CardHeader>
-      </Card>;
+      </Card>
+    );
   }
+
   if (loading) {
     return <PaymentSettingsSkeleton />;
   }
+
+  // If no Stripe customer exists, show contact message
   if (!billingInfo?.hasCustomer) {
-    return <div className="space-y-6">
-        <Card>
+    return (
+      <div className="space-y-6">
+        <Card className="border-primary/20 bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Crown className="h-5 w-5 text-primary" />
-              Välj din plan
+              Aktivera ditt konto
             </CardTitle>
-            <CardDescription>
-              Välj den plan som passar ditt behov bäst. Du kan alltid ändra plan senare.
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Plan Selection */}
-            <div className="grid gap-4">
-              {(Object.entries(PLANS) as [PlanType, typeof PLANS.start][]).map(([key, plan]) => <div key={key} onClick={() => setSelectedPlan(key)} className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedPlan === key ? `${plan.borderClass} ${plan.bgClass}` : 'border-border hover:border-border/80'}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedPlan === key ? plan.borderClass : 'border-muted-foreground'}`}>
-                        {selectedPlan === key && <div className={`w-2 h-2 rounded-full ${plan.bgClass.replace('/10', '')}`} />}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className={`font-semibold ${plan.colorClass}`}>{plan.name}</span>
-                          {plan.isPopular && <span className="px-2 py-0.5 text-xs bg-blue-500 text-white rounded-full">
-                              Populär
-                            </span>}
-                        </div>
-                        
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className={`font-bold ${plan.colorClass}`}>{plan.monthlyFee} kr/mån</p>
-                      <p className="text-sm text-muted-foreground">+ {plan.pricePerImage} kr/bild</p>
-                    </div>
-                  </div>
-                </div>)}
+            <p className="text-muted-foreground">
+              Ditt konto är inte kopplat till en betalningsplan ännu.
+            </p>
+            <p className="text-muted-foreground">
+              Kontakta oss för att aktivera ditt konto:
+            </p>
+            <div className="space-y-2 p-4 rounded-lg bg-muted/50">
+              <p className="font-medium">E-post: <a href="mailto:hej@luvero.se" className="text-primary hover:underline">hej@luvero.se</a></p>
             </div>
-
-            <Button onClick={() => createStripeCustomer(selectedPlan)} disabled={creatingCustomer} className="w-full">
-              {creatingCustomer && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Aktivera {PLANS[selectedPlan].name}-planen
-            </Button>
           </CardContent>
         </Card>
-      </div>;
+      </div>
+    );
   }
-  return <div className="space-y-6">
-      {/* Current Plan Card */}
-      <Card className={`${planConfig.borderClass} ${planConfig.bgClass}`}>
+
+  return (
+    <div className="space-y-6">
+      {/* Current Plan Card - Dynamic pricing from Stripe */}
+      <Card className="border-primary/20 bg-primary/5">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Crown className={`h-5 w-5 ${planConfig.colorClass}`} />
+              <Crown className="h-5 w-5 text-primary" />
               Aktuell plan: {planConfig.name}
             </div>
-            {billingInfo?.hasPaymentMethod && !isNativeApp() && <Button variant="outline" size="sm" onClick={() => setChangePlanDialogOpen(true)} className="flex items-center gap-1">
-                <RefreshCw className="h-4 w-4" />
-                Byt plan
-              </Button>}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
             <div>
-              <p className={`text-2xl font-bold ${planConfig.colorClass}`}>
+              <p className="text-2xl font-bold text-primary">
                 {planConfig.monthlyFee} kr/månad
               </p>
               <p className="text-sm text-muted-foreground">
@@ -316,24 +237,20 @@ export const PaymentSettings = () => {
         </CardContent>
       </Card>
 
-      {/* Scheduled Plan Change Notice */}
-      {billingInfo?.subscription?.scheduled_plan && (
-        <Card className="border-amber-500/30 bg-amber-500/5">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-center gap-2 text-amber-500">
-              <AlertCircle className="h-5 w-5" />
-              <span className="text-sm">
-                Schemalagd planändring: <strong>{PLANS[billingInfo.subscription.scheduled_plan as PlanType]?.name || billingInfo.subscription.scheduled_plan}</strong> från{' '}
-                {billingInfo.subscription.scheduled_plan_date 
-                  ? new Date(billingInfo.subscription.scheduled_plan_date).toLocaleDateString("sv-SE")
-                  : 'nästa faktureringsperiod'}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+      {/* 
+        ========================================
+        HIDDEN: Plan selector and change plan functionality
+        Kept for future use when self-service model is re-enabled
+        ========================================
+      */}
+      {/* 
+      {billingInfo?.hasPaymentMethod && !isNativeApp() && (
+        <Button variant="outline" size="sm" onClick={() => setChangePlanDialogOpen(true)} className="flex items-center gap-1">
+          <RefreshCw className="h-4 w-4" />
+          Byt plan
+        </Button>
       )}
-
-      {/* Change Plan Dialog */}
+      
       <ChangePlanDialog 
         open={changePlanDialogOpen} 
         onOpenChange={setChangePlanDialogOpen} 
@@ -341,9 +258,11 @@ export const PaymentSettings = () => {
         currentPeriodEnd={billingInfo?.subscription?.current_period_end}
         onPlanChanged={fetchBillingInfo} 
       />
+      */}
 
       {/* Trial Status */}
-      {billingInfo?.trial?.isInTrial && <Card className="border-primary/20 bg-card">
+      {billingInfo?.trial?.isInTrial && (
+        <Card className="border-primary/20 bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
@@ -361,14 +280,18 @@ export const PaymentSettings = () => {
               <p className="text-xs text-muted-foreground">
                 Testperiod löper ut: {new Date(billingInfo.trial.endDate).toLocaleDateString("sv-SE")}
               </p>
-              {!billingInfo.hasPaymentMethod && <p className="text-xs text-amber-400 mt-2">
+              {!billingInfo.hasPaymentMethod && (
+                <p className="text-xs text-amber-400 mt-2">
                   Lägg till en betalmetod innan din testperiod löper ut för att fortsätta använda AI-redigering
-                </p>}
+                </p>
+              )}
             </div>
           </CardContent>
-        </Card>}
+        </Card>
+      )}
 
-      {!billingInfo?.trial?.isInTrial && billingInfo?.trial?.daysLeft === 0 && !billingInfo?.hasPaymentMethod && <Card className="border-destructive/20 bg-card">
+      {!billingInfo?.trial?.isInTrial && billingInfo?.trial?.daysLeft === 0 && !billingInfo?.hasPaymentMethod && (
+        <Card className="border-destructive/20 bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-destructive">
               <AlertCircle className="h-5 w-5" />
@@ -380,7 +303,8 @@ export const PaymentSettings = () => {
               Din testperiod har löpt ut. Lägg till en betalmetod för att fortsätta använda AI-redigering.
             </p>
           </CardContent>
-        </Card>}
+        </Card>
+      )}
 
       {/* Payment Method Status */}
       <Card className={billingInfo?.hasPaymentMethod ? "border-primary/20 bg-card" : "border-amber-500/20 bg-card"}>
@@ -391,13 +315,17 @@ export const PaymentSettings = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {billingInfo?.hasPaymentMethod ? <div className="flex items-center gap-2 text-green-500">
+          {billingInfo?.hasPaymentMethod ? (
+            <div className="flex items-center gap-2 text-green-500">
               <CheckCircle2 className="h-5 w-5" />
               <span>Betalmetod tillagd</span>
-            </div> : <div className="flex items-center gap-2 text-amber-400">
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-amber-400">
               <AlertCircle className="h-5 w-5" />
               <span>Ingen betalmetod tillagd</span>
-            </div>}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -408,31 +336,34 @@ export const PaymentSettings = () => {
             <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-primary" />
             Månatlig användning -{" "}
             {new Date().toLocaleDateString("sv-SE", {
-            month: "long",
-            year: "numeric"
-          })}
+              month: "long",
+              year: "numeric"
+            })}
           </CardTitle>
           <CardDescription className="text-xs md:text-sm">
-            Översikt över företagets användning och kostnader per användare ({planConfig.name}-planen)
+            Översikt över företagets användning och kostnader per användare
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Trial info notice */}
-          {billingInfo?.trial?.isInTrial && <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+          {billingInfo?.trial?.isInTrial && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
               <Sparkles className="h-4 w-4 text-green-500" />
               <p className="text-sm text-green-500">Under testperioden debiteras inga kostnader</p>
-            </div>}
+            </div>
+          )}
 
           {/* Monthly Fee */}
           <div className="flex items-center justify-between p-4 rounded-lg bg-primary/5 border border-primary/20">
             <span className="font-medium">Månadsavgift ({planConfig.name})</span>
-            <span className={`text-xl font-bold ${billingInfo?.trial?.isInTrial ? "text-green-500" : planConfig.colorClass}`}>
+            <span className={`text-xl font-bold ${billingInfo?.trial?.isInTrial ? "text-green-500" : "text-primary"}`}>
               {billingInfo?.trial?.isInTrial ? "0" : planConfig.monthlyFee} kr
             </span>
           </div>
 
           {/* Per-user breakdown */}
-          {userUsageStats.map(userStat => <div key={userStat.userId} className="flex flex-col gap-3 p-4 rounded-lg bg-gradient-to-br from-muted/50 via-transparent to-transparent border border-border/30">
+          {userUsageStats.map(userStat => (
+            <div key={userStat.userId} className="flex flex-col gap-3 p-4 rounded-lg bg-gradient-to-br from-muted/50 via-transparent to-transparent border border-border/30">
               <div className="flex items-center gap-2">
                 <div className="p-2 rounded-full bg-primary/10">
                   <User className="w-4 h-4 text-primary" />
@@ -454,8 +385,11 @@ export const PaymentSettings = () => {
                   {billingInfo?.trial?.isInTrial ? "0.00" : userStat.cost.toFixed(2)} kr
                 </span>
               </div>
-            </div>)}
-          {userUsageStats.length === 0 && <div className="text-center py-8 text-muted-foreground text-sm">Ingen bildanvändning denna månad</div>}
+            </div>
+          ))}
+          {userUsageStats.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground text-sm">Ingen bildanvändning denna månad</div>
+          )}
 
           {/* Usage-based cost summary */}
           <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
@@ -473,7 +407,7 @@ export const PaymentSettings = () => {
           {/* Total monthly cost */}
           <div className="flex justify-between items-center pt-4 border-t-2 border-primary/20">
             <span className="text-lg font-semibold">Total kostnad denna månad:</span>
-            <span className={`text-2xl font-bold ${billingInfo?.trial?.isInTrial ? "text-green-500" : planConfig.colorClass}`}>
+            <span className={`text-2xl font-bold ${billingInfo?.trial?.isInTrial ? "text-green-500" : "text-primary"}`}>
               {billingInfo?.trial?.isInTrial ? "0" : (planConfig.monthlyFee + totalUsage.cost).toFixed(2)} kr
             </span>
           </div>
@@ -485,7 +419,8 @@ export const PaymentSettings = () => {
         <h3 className="font-medium text-xl">​Betalning och Fakturahistorik</h3>
         <Card>
           <CardContent className="pt-6">
-            {isNativeApp() ? <div className="text-center space-y-3">
+            {isNativeApp() ? (
+              <div className="text-center space-y-3">
                 <p className="text-sm text-muted-foreground">
                   Hantera ditt konto och din prenumeration via vår webbportal.
                 </p>
@@ -493,17 +428,20 @@ export const PaymentSettings = () => {
                   Gå till Luvero.se
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
-              </div> : <>
+              </div>
+            ) : (
+              <>
                 <Button onClick={openCustomerPortal} disabled={openingPortal} className="w-full">
                   {openingPortal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Öppna Stripe-portal
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
                 <p className="text-xs text-muted-foreground mt-2">Hantera dina betalningsmetoder, se fakturor och uppdatera betalningsinformation</p>
-              </>}
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
-
-    </div>;
+    </div>
+  );
 };
