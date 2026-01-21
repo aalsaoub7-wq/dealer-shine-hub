@@ -136,8 +136,8 @@ const Landing = () => {
                 <Button onClick={() => navigate("/auth")} className="bg-black text-white hover:bg-black hover:text-white hover:scale-100">
                   Logga in
                 </Button>
-              <Button onClick={() => scrollToSection('book-demo')} className="shadow-glow">
-                Snacka med oss
+              <Button onClick={() => scrollToSection('pricing')} className="shadow-glow">
+                Prova gratis i 21 dagar
               </Button>
               </div>
             </nav>
@@ -155,8 +155,8 @@ const Landing = () => {
               <button onClick={() => scrollToSection('features')} className="block w-full text-left px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-muted rounded-md transition-colors">
                 Funktioner
               </button>
-              <button onClick={() => scrollToSection('book-demo')} className="block w-full text-left px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-muted rounded-md transition-colors">
-                Snacka med oss
+              <button onClick={() => scrollToSection('pricing')} className="block w-full text-left px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-muted rounded-md transition-colors">
+                Priser
               </button>
               <button onClick={() => scrollToSection('how-it-works')} className="block w-full text-left px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-muted rounded-md transition-colors">
                 Så fungerar det
@@ -167,8 +167,8 @@ const Landing = () => {
               <Button className="w-full bg-black text-white hover:bg-black hover:text-white hover:scale-100" onClick={() => navigate("/auth")}>
                 Logga in
               </Button>
-              <Button className="w-full" onClick={() => scrollToSection('book-demo')}>
-                Snacka med oss
+              <Button className="w-full" onClick={() => navigate("/auth?mode=signup")}>
+                Prova gratis i 21 dagar
               </Button>
             </div>
           </div>}
@@ -198,8 +198,8 @@ const Landing = () => {
               <p className="text-xl md:text-2xl leading-relaxed text-gray-200">Fungerar även som självständig lagerhantering eller som komplement till ditt befintliga system!</p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="text-lg px-8 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => scrollToSection('book-demo')}>
-                  Snacka med oss
+                <Button size="lg" className="text-lg px-8 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => scrollToSection('pricing')}>
+                  Prova gratis i 21 dagar
                 </Button>
                 <Button size="lg" variant="outline" className="text-lg px-8 py-6 hover:bg-muted transition-all duration-300" onClick={() => scrollToSection('how-it-works')}>
                   Se hur det fungerar
@@ -354,8 +354,8 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Comparison Section - HIDDEN */}
-      <section className="hidden py-20 md:py-32 scroll-animate">
+      {/* Comparison Section */}
+      <section className="py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -574,16 +574,16 @@ const Landing = () => {
 
             {/* CTA after comparison */}
             <div className="text-center mt-12">
-              <Button size="lg" className="text-lg py-6 px-12 shadow-glow hover:shadow-glow-lg transition-all duration-300" onClick={() => scrollToSection('book-demo')}>
-                Snacka med oss
+              <Button size="lg" className="text-lg py-6 px-12 shadow-glow hover:shadow-glow-lg transition-all duration-300" onClick={() => scrollToSection('pricing')}>
+                Prova gratis i 21 dagar
               </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Pricing Section - HIDDEN */}
-      <section id="pricing" className="hidden py-20 md:py-32 scroll-animate">
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -700,38 +700,11 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Book Demo Section */}
-      <section id="book-demo" className="py-20 md:py-32 scroll-animate">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              <span className="bg-gradient-primary bg-clip-text text-transparent">
-                Snacka med oss för att få tillgång
-              </span>
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Låt oss visa hur Luvero kan hjälpa ditt företag
-            </p>
-          </div>
-
-          <div className="max-w-5xl mx-auto">
-            <div className="rounded-3xl overflow-hidden border border-border/50 shadow-2xl bg-card/50 backdrop-blur-sm">
-              <iframe 
-                src="https://calendar.notion.so/meet/alfred-zbpoy1pru/l68e4p14" 
-                className="w-full h-[800px] border-0"
-                title="Boka demo"
-                style={{ overflow: 'hidden' }}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Exclusive VIP Program Section */}
       <ExclusiveProgram />
 
-      {/* FAQ Section - HIDDEN */}
-      <section className="hidden py-20 md:py-32 scroll-animate">
+      {/* FAQ Section */}
+      <section className="py-20 md:py-32 scroll-animate">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -819,8 +792,8 @@ const Landing = () => {
                 Börja gratis idag. Inget kreditkort krävs.
               </p>
               <div className="flex justify-center">
-                <Button size="lg" className="text-lg px-12 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => scrollToSection('book-demo')}>
-                  Snacka med oss
+                <Button size="lg" className="text-lg px-12 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => scrollToSection('pricing')}>
+                  Prova gratis i 21 dagar
                 </Button>
               </div>
             </div>
@@ -833,15 +806,7 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             {/* Column 1 - Brand */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <img src={luveroLogo} alt="" className="h-6 w-6" />
-                <img src={luveroLogoText} alt="" className="h-4" />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Professionell bildredigering för återförsäljare. Snabbt, enkelt, och prisvärt.
-              </p>
-            </div>
+            
 
             {/* Column 2 - Product */}
             <div>
