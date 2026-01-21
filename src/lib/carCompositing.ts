@@ -16,7 +16,7 @@ export interface CompositingOptions {
 
 const defaultOptions: Required<CompositingOptions> = {
   outputWidth: 3840,   // Full 4K resolution
-  outputHeight: 2880,  // 4:3 ratio (3840 / 4 * 3)
+  outputHeight: 2560,  // 3:2 ratio (3840 / 3 * 2)
   paddingLeft: 0.10,   // 10% left margin
   paddingRight: 0.10,  // 10% right margin
   paddingTop: 0.05,    // 5% top margin
