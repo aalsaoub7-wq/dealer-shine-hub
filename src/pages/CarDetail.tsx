@@ -618,9 +618,9 @@ const CarDetail = () => {
             .eq("id", photo.id);
           
           toast({
-            title: "Fel vid redigering",
-            description: `Kunde inte redigera bild: ${error instanceof Error ? error.message : "Okänt fel"}`,
-            variant: "destructive",
+            title: "Oj!",
+            description: "Vår AI fick lite för många bollar att jonglera. Försök igen.",
+            variant: "info",
           });
         }
       })();
@@ -770,9 +770,9 @@ const CarDetail = () => {
             .eq("id", photo.id);
           
           toast({
-            title: "Fel vid interiörredigering",
-            description: `Kunde inte redigera bild: ${error instanceof Error ? error.message : "Okänt fel"}`,
-            variant: "destructive",
+            title: "Oj!",
+            description: "Vår AI fick lite för många bollar att jonglera. Försök igen.",
+            variant: "info",
           });
         }
       })();
@@ -900,9 +900,9 @@ const CarDetail = () => {
           .eq("id", photoId);
 
         toast({
-          title: "Fel vid regenerering",
-          description: error instanceof Error ? error.message : "Okänt fel",
-          variant: "destructive",
+          title: "Oj!",
+          description: "Vår AI fick lite för många bollar att jonglera. Försök igen.",
+          variant: "info",
         });
       }
     })();
@@ -988,9 +988,9 @@ const CarDetail = () => {
           .eq("id", photoId);
 
         toast({
-          title: "Fel vid regenerering av reflektion",
-          description: error instanceof Error ? error.message : "Okänt fel",
-          variant: "destructive",
+          title: "Oj!",
+          description: "Vår AI fick lite för många bollar att jonglera. Försök igen.",
+          variant: "info",
         });
       }
     })();
@@ -1176,9 +1176,9 @@ const CarDetail = () => {
         .eq("id", photoId);
 
       toast({
-        title: "Fel vid sparande",
-        description: error instanceof Error ? error.message : "Okänt fel",
-        variant: "destructive",
+        title: "Oj!",
+        description: "Vår AI fick lite för många bollar att jonglera. Försök igen.",
+        variant: "info",
       });
     } finally {
       setPositionEditorSaving(false);
