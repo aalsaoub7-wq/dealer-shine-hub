@@ -10,6 +10,7 @@ interface CarPositionEditorProps {
   backgroundUrl: string;
   backgroundColor?: string; // If set, use solid color instead of background image
   isInterior?: boolean; // If true, use 4:3 aspect ratio instead of 3:2
+  moveBackground?: boolean; // If true, user moves background instead of car (for interior image backgrounds)
   onSave: (compositionBlob: Blob) => void;
   isSaving?: boolean;
 }
@@ -79,6 +80,7 @@ export const CarPositionEditor = ({
   backgroundUrl,
   backgroundColor,
   isInterior = false,
+  moveBackground = false,
   onSave,
   isSaving = false,
 }: CarPositionEditorProps) => {
@@ -103,6 +105,12 @@ export const CarPositionEditor = ({
   const [carWidth, setCarWidth] = useState(0);
   const [carHeight, setCarHeight] = useState(0);
   const [carAspectRatio, setCarAspectRatio] = useState(1);
+  
+  // Background position state (for moveBackground mode)
+  const [bgX, setBgX] = useState(0);
+  const [bgY, setBgY] = useState(0);
+  const [bgScale, setBgScale] = useState(1);
+  const bgAspectRatioRef = useRef(1);
 
   // Calculate initial car position based on default padding
   const calculateInitialPosition = useCallback((croppedCanvas: HTMLCanvasElement) => {
@@ -159,6 +167,25 @@ export const CarPositionEditor = ({
       bgImg.src = backgroundUrl;
       bgImg.onload = () => {
         bgImgRef.current = bgImg;
+        bgAspectRatioRef.current = bgImg.width / bgImg.height;
+        // For moveBackground mode, calculate initial centered position
+        if (moveBackground) {
+          const targetAspect = OUTPUT_WIDTH / OUTPUT_HEIGHT;
+          const imgAspect = bgImg.width / bgImg.height;
+          let scale: number;
+          if (imgAspect > targetAspect) {
+            // Image is wider, fit by height
+            scale = OUTPUT_HEIGHT / bgImg.height;
+          } else {
+            // Image is taller, fit by width
+            scale = OUTPUT_WIDTH / bgImg.width;
+          }
+          setBgScale(scale);
+          const scaledWidth = bgImg.width * scale;
+          const scaledHeight = bgImg.height * scale;
+          setBgX((OUTPUT_WIDTH - scaledWidth) / 2);
+          setBgY((OUTPUT_HEIGHT - scaledHeight) / 2);
+        }
         checkBothLoaded();
       };
     }
@@ -199,63 +226,124 @@ export const CarPositionEditor = ({
       canvas.height = OUTPUT_HEIGHT;
     }
 
-    // Draw background
+    // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(bgImgRef.current, 0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
 
-    // Draw car
-    ctx.drawImage(carCanvasRef.current, carX, carY, carWidth, carHeight);
+    if (moveBackground) {
+      // moveBackground mode: car is centered, background moves
+      // Draw background at position with scale
+      const scaledWidth = bgImgRef.current.width * bgScale;
+      const scaledHeight = bgImgRef.current.height * bgScale;
+      ctx.drawImage(bgImgRef.current, bgX, bgY, scaledWidth, scaledHeight);
+      
+      // Draw car centered at fixed position
+      ctx.drawImage(carCanvasRef.current, carX, carY, carWidth, carHeight);
+      
+      // Draw selection frame around background area
+      if (isSelected) {
+        ctx.strokeStyle = '#3b82f6'; // Blue for background
+        ctx.lineWidth = 8;
+        ctx.strokeRect(bgX, bgY, scaledWidth, scaledHeight);
+        
+        // Draw resize handle for background
+        const handleSize = isMobile ? 60 : 40;
+        const handleX = bgX + scaledWidth;
+        const handleY = bgY + scaledHeight;
+        
+        ctx.fillStyle = '#3b82f6';
+        ctx.beginPath();
+        ctx.arc(handleX, handleY, handleSize, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(handleX, handleY, handleSize, 0, 2 * Math.PI);
+        ctx.stroke();
+        
+        // Draw resize arrows
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        
+        const arrowSize = 18;
+        const arrowOffset = arrowSize / Math.sqrt(2);
+        
+        ctx.beginPath();
+        ctx.moveTo(handleX - arrowOffset, handleY - arrowOffset);
+        ctx.lineTo(handleX + arrowOffset, handleY + arrowOffset);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(handleX - arrowOffset, handleY - arrowOffset);
+        ctx.lineTo(handleX - arrowOffset + 8, handleY - arrowOffset);
+        ctx.moveTo(handleX - arrowOffset, handleY - arrowOffset);
+        ctx.lineTo(handleX - arrowOffset, handleY - arrowOffset + 8);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(handleX + arrowOffset, handleY + arrowOffset);
+        ctx.lineTo(handleX + arrowOffset - 8, handleY + arrowOffset);
+        ctx.moveTo(handleX + arrowOffset, handleY + arrowOffset);
+        ctx.lineTo(handleX + arrowOffset, handleY + arrowOffset - 8);
+        ctx.stroke();
+      }
+    } else {
+      // Normal mode: background fixed, car moves
+      ctx.drawImage(bgImgRef.current, 0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
+      ctx.drawImage(carCanvasRef.current, carX, carY, carWidth, carHeight);
 
-    // Draw selection frame if selected
-    if (isSelected) {
-      ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = 8;
-      ctx.strokeRect(carX, carY, carWidth, carHeight);
-      
-      // Draw resize handle
-      const handleSize = isMobile ? 60 : 40;
-      const handleX = carX + carWidth;
-      const handleY = carY + carHeight;
-      
-      ctx.fillStyle = '#ef4444';
-      ctx.beginPath();
-      ctx.arc(handleX, handleY, handleSize, 0, 2 * Math.PI);
-      ctx.fill();
-      
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(handleX, handleY, handleSize, 0, 2 * Math.PI);
-      ctx.stroke();
-      
-      // Draw resize arrows
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 4;
-      ctx.lineCap = 'round';
-      
-      const arrowSize = 18;
-      const arrowOffset = arrowSize / Math.sqrt(2);
-      
-      ctx.beginPath();
-      ctx.moveTo(handleX - arrowOffset, handleY - arrowOffset);
-      ctx.lineTo(handleX + arrowOffset, handleY + arrowOffset);
-      ctx.stroke();
-      
-      ctx.beginPath();
-      ctx.moveTo(handleX - arrowOffset, handleY - arrowOffset);
-      ctx.lineTo(handleX - arrowOffset + 8, handleY - arrowOffset);
-      ctx.moveTo(handleX - arrowOffset, handleY - arrowOffset);
-      ctx.lineTo(handleX - arrowOffset, handleY - arrowOffset + 8);
-      ctx.stroke();
-      
-      ctx.beginPath();
-      ctx.moveTo(handleX + arrowOffset, handleY + arrowOffset);
-      ctx.lineTo(handleX + arrowOffset - 8, handleY + arrowOffset);
-      ctx.moveTo(handleX + arrowOffset, handleY + arrowOffset);
-      ctx.lineTo(handleX + arrowOffset, handleY + arrowOffset - 8);
-      ctx.stroke();
+      // Draw selection frame if selected
+      if (isSelected) {
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(carX, carY, carWidth, carHeight);
+        
+        // Draw resize handle
+        const handleSize = isMobile ? 60 : 40;
+        const handleX = carX + carWidth;
+        const handleY = carY + carHeight;
+        
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(handleX, handleY, handleSize, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(handleX, handleY, handleSize, 0, 2 * Math.PI);
+        ctx.stroke();
+        
+        // Draw resize arrows
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        
+        const arrowSize = 18;
+        const arrowOffset = arrowSize / Math.sqrt(2);
+        
+        ctx.beginPath();
+        ctx.moveTo(handleX - arrowOffset, handleY - arrowOffset);
+        ctx.lineTo(handleX + arrowOffset, handleY + arrowOffset);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(handleX - arrowOffset, handleY - arrowOffset);
+        ctx.lineTo(handleX - arrowOffset + 8, handleY - arrowOffset);
+        ctx.moveTo(handleX - arrowOffset, handleY - arrowOffset);
+        ctx.lineTo(handleX - arrowOffset, handleY - arrowOffset + 8);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(handleX + arrowOffset, handleY + arrowOffset);
+        ctx.lineTo(handleX + arrowOffset - 8, handleY + arrowOffset);
+        ctx.moveTo(handleX + arrowOffset, handleY + arrowOffset);
+        ctx.lineTo(handleX + arrowOffset, handleY + arrowOffset - 8);
+        ctx.stroke();
+      }
     }
-  }, [carX, carY, carWidth, carHeight, isSelected, isMobile]);
+  }, [carX, carY, carWidth, carHeight, bgX, bgY, bgScale, isSelected, isMobile, moveBackground]);
 
   // Trigger render when state changes
   useEffect(() => {
@@ -268,7 +356,7 @@ export const CarPositionEditor = ({
   }, [renderCanvas, imagesLoaded]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || !bgImgRef.current) return;
     
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
@@ -278,30 +366,58 @@ export const CarPositionEditor = ({
     const mouseY = (e.clientY - rect.top) * scaleY;
 
     const handleSize = isMobile ? 60 : 40;
-    const handleX = carX + carWidth;
-    const handleY = carY + carHeight;
     
-    const distanceToHandle = Math.sqrt(
-      Math.pow(mouseX - handleX, 2) + Math.pow(mouseY - handleY, 2)
-    );
-    
-    if (distanceToHandle <= handleSize && isSelected) {
-      setIsResizing(true);
-      return;
-    }
+    if (moveBackground) {
+      // In moveBackground mode, we're selecting/dragging the background
+      const scaledWidth = bgImgRef.current.width * bgScale;
+      const scaledHeight = bgImgRef.current.height * bgScale;
+      const handleX = bgX + scaledWidth;
+      const handleY = bgY + scaledHeight;
+      
+      const distanceToHandle = Math.sqrt(
+        Math.pow(mouseX - handleX, 2) + Math.pow(mouseY - handleY, 2)
+      );
+      
+      if (distanceToHandle <= handleSize && isSelected) {
+        setIsResizing(true);
+        return;
+      }
 
-    if (mouseX >= carX && mouseX <= carX + carWidth && 
-        mouseY >= carY && mouseY <= carY + carHeight) {
-      setIsSelected(true);
-      setIsDragging(true);
-      setDragOffset({ x: mouseX - carX, y: mouseY - carY });
+      if (mouseX >= bgX && mouseX <= bgX + scaledWidth && 
+          mouseY >= bgY && mouseY <= bgY + scaledHeight) {
+        setIsSelected(true);
+        setIsDragging(true);
+        setDragOffset({ x: mouseX - bgX, y: mouseY - bgY });
+      } else {
+        setIsSelected(false);
+      }
     } else {
-      setIsSelected(false);
+      // Normal mode: select/drag car
+      const handleX = carX + carWidth;
+      const handleY = carY + carHeight;
+      
+      const distanceToHandle = Math.sqrt(
+        Math.pow(mouseX - handleX, 2) + Math.pow(mouseY - handleY, 2)
+      );
+      
+      if (distanceToHandle <= handleSize && isSelected) {
+        setIsResizing(true);
+        return;
+      }
+
+      if (mouseX >= carX && mouseX <= carX + carWidth && 
+          mouseY >= carY && mouseY <= carY + carHeight) {
+        setIsSelected(true);
+        setIsDragging(true);
+        setDragOffset({ x: mouseX - carX, y: mouseY - carY });
+      } else {
+        setIsSelected(false);
+      }
     }
-  }, [carX, carY, carWidth, carHeight, isSelected, isMobile]);
+  }, [carX, carY, carWidth, carHeight, bgX, bgY, bgScale, isSelected, isMobile, moveBackground]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current || (!isDragging && !isResizing)) return;
+    if (!canvasRef.current || !bgImgRef.current || (!isDragging && !isResizing)) return;
 
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
@@ -310,29 +426,47 @@ export const CarPositionEditor = ({
     const mouseX = (e.clientX - rect.left) * scaleX;
     const mouseY = (e.clientY - rect.top) * scaleY;
 
-    if (isResizing) {
-      const dx = Math.max(100, mouseX - carX);
-      const dy = Math.max(100, mouseY - carY);
-
-      let newWidth = dx;
-      let newHeight = newWidth / carAspectRatio;
-      if (newHeight > dy) {
-        newHeight = dy;
-        newWidth = newHeight * carAspectRatio;
+    if (moveBackground) {
+      // Moving/resizing the background
+      if (isResizing) {
+        const dx = Math.max(100, mouseX - bgX);
+        const newScale = dx / bgImgRef.current.width;
+        setBgScale(Math.max(0.1, Math.min(5, newScale)));
+        return;
       }
 
-      setCarWidth(Math.min(OUTPUT_WIDTH * 3, newWidth));
-      setCarHeight(Math.min(OUTPUT_HEIGHT * 3, newHeight));
-      return;
-    }
+      if (isDragging) {
+        const newX = mouseX - dragOffset.x;
+        const newY = mouseY - dragOffset.y;
+        setBgX(newX);
+        setBgY(newY);
+      }
+    } else {
+      // Moving/resizing the car
+      if (isResizing) {
+        const dx = Math.max(100, mouseX - carX);
+        const dy = Math.max(100, mouseY - carY);
 
-    if (isDragging) {
-      const newX = mouseX - dragOffset.x;
-      const newY = mouseY - dragOffset.y;
-      setCarX(newX);
-      setCarY(newY);
+        let newWidth = dx;
+        let newHeight = newWidth / carAspectRatio;
+        if (newHeight > dy) {
+          newHeight = dy;
+          newWidth = newHeight * carAspectRatio;
+        }
+
+        setCarWidth(Math.min(OUTPUT_WIDTH * 3, newWidth));
+        setCarHeight(Math.min(OUTPUT_HEIGHT * 3, newHeight));
+        return;
+      }
+
+      if (isDragging) {
+        const newX = mouseX - dragOffset.x;
+        const newY = mouseY - dragOffset.y;
+        setCarX(newX);
+        setCarY(newY);
+      }
     }
-  }, [isDragging, isResizing, carX, dragOffset, carAspectRatio]);
+  }, [isDragging, isResizing, carX, bgX, bgY, dragOffset, carAspectRatio, moveBackground]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -349,8 +483,18 @@ export const CarPositionEditor = ({
     const ctx = exportCanvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.drawImage(bgImgRef.current, 0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
-    ctx.drawImage(carCanvasRef.current, carX, carY, carWidth, carHeight);
+    if (moveBackground) {
+      // Draw background at current position/scale
+      const scaledWidth = bgImgRef.current.width * bgScale;
+      const scaledHeight = bgImgRef.current.height * bgScale;
+      ctx.drawImage(bgImgRef.current, bgX, bgY, scaledWidth, scaledHeight);
+      // Draw car at its fixed position
+      ctx.drawImage(carCanvasRef.current, carX, carY, carWidth, carHeight);
+    } else {
+      // Normal mode
+      ctx.drawImage(bgImgRef.current, 0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
+      ctx.drawImage(carCanvasRef.current, carX, carY, carWidth, carHeight);
+    }
 
     exportCanvas.toBlob(
       (blob) => {
@@ -361,7 +505,7 @@ export const CarPositionEditor = ({
       'image/jpeg',
       0.85
     );
-  }, [carX, carY, carWidth, carHeight, onSave]);
+  }, [carX, carY, carWidth, carHeight, bgX, bgY, bgScale, moveBackground, onSave]);
 
   if (!open) return null;
 
@@ -380,7 +524,9 @@ export const CarPositionEditor = ({
     <div className="fixed inset-0 z-50 bg-background/95 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-card">
-        <h2 className="text-lg font-semibold">Justera bilens position</h2>
+        <h2 className="text-lg font-semibold">
+          {moveBackground ? "Justera bakgrundens position" : "Justera bilens position"}
+        </h2>
         <div className="flex gap-2">
           <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} disabled={isSaving}>
             <X className="w-5 h-5" />
@@ -418,7 +564,10 @@ export const CarPositionEditor = ({
       <div className="p-4 border-t bg-card">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground text-center sm:text-left">
-            Klicka på bilen för att välja den. Dra för att flytta, dra den röda pricken för att ändra storlek.
+            {moveBackground 
+              ? "Klicka på bakgrunden för att välja den. Dra för att flytta, dra den blåa pricken för att ändra storlek."
+              : "Klicka på bilen för att välja den. Dra för att flytta, dra den röda pricken för att ändra storlek."
+            }
           </p>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
@@ -433,7 +582,7 @@ export const CarPositionEditor = ({
               ) : (
                 <>
                   <Check className="w-4 h-4 mr-2" />
-                  {backgroundColor ? "Spara" : "Spara och lägg till reflektion"}
+                  {moveBackground ? "Spara" : (backgroundColor ? "Spara" : "Spara och lägg till reflektion")}
                 </>
               )}
             </Button>

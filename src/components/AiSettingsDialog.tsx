@@ -23,60 +23,69 @@ import { useQuery } from "@tanstack/react-query";
 import { CustomStudioDialog } from "./CustomStudioDialog";
 
 // Static background templates with optimized thumbnails
-const STATIC_BACKGROUNDS: Array<{
+export const STATIC_BACKGROUNDS: Array<{
   id: string;
   name: string;
   description: string;
   image?: string;
   thumbnail?: string;
   isCustom?: boolean;
+  interiorBackgrounds?: string[];
 }> = [{
   id: 'curved-studio',
   name: 'Böjd Studio',
   description: 'Mjukt böjd vägg',
   image: '/backgrounds/curved-studio.jpg',
-  thumbnail: '/backgrounds/thumbnails/curved-studio-thumb.jpg'
+  thumbnail: '/backgrounds/thumbnails/curved-studio-thumb.jpg',
+  interiorBackgrounds: ['/backgrounds/curved-studio.jpg']
 }, {
   id: 'ceiling-lights',
   name: 'Taklampor',
   description: 'Studio med taklampor',
   image: '/backgrounds/ceiling-lights.jpg',
-  thumbnail: '/backgrounds/thumbnails/ceiling-lights-thumb.jpg'
+  thumbnail: '/backgrounds/thumbnails/ceiling-lights-thumb.jpg',
+  interiorBackgrounds: ['/backgrounds/ceiling-lights.jpg']
 }, {
   id: 'dark-studio',
   name: 'Mörk Studio',
   description: 'Helt mörk miljö',
   image: '/backgrounds/dark-studio.jpg',
-  thumbnail: '/backgrounds/thumbnails/dark-studio-thumb.jpg'
+  thumbnail: '/backgrounds/thumbnails/dark-studio-thumb.jpg',
+  interiorBackgrounds: ['/backgrounds/dark-studio.jpg']
 }, {
   id: 'dark-walls-light-floor',
   name: 'Mörka Väggar',
   description: 'Mörka väggar, ljust golv',
   image: '/backgrounds/dark-walls-light-floor.jpg',
-  thumbnail: '/backgrounds/thumbnails/dark-walls-light-floor-thumb.jpg'
+  thumbnail: '/backgrounds/thumbnails/dark-walls-light-floor-thumb.jpg',
+  interiorBackgrounds: ['/backgrounds/dark-walls-light-floor.jpg']
 }, {
   id: 'gallery',
   name: 'Galleri',
   description: 'Galleri-stil med paneler',
   image: '/backgrounds/gallery.jpg',
-  thumbnail: '/backgrounds/thumbnails/gallery-thumb.jpg'
+  thumbnail: '/backgrounds/thumbnails/gallery-thumb.jpg',
+  interiorBackgrounds: ['/backgrounds/gallery.jpg']
 }, {
   id: 'panel-wall',
   name: 'Panelvägg',
   description: 'Rak panelvägg',
   image: '/backgrounds/panel-wall.jpg',
-  thumbnail: '/backgrounds/thumbnails/panel-wall-thumb.jpg'
+  thumbnail: '/backgrounds/thumbnails/panel-wall-thumb.jpg',
+  interiorBackgrounds: ['/backgrounds/panel-wall.jpg']
 }, {
   id: 'concrete-showroom',
   name: 'Betong Showroom',
   description: 'Modern betongstudio med plattform',
   image: '/backgrounds/concrete-showroom.jpg',
-  thumbnail: '/backgrounds/thumbnails/concrete-showroom-thumb.jpg'
+  thumbnail: '/backgrounds/thumbnails/concrete-showroom-thumb.jpg',
+  interiorBackgrounds: ['/backgrounds/concrete-showroom.jpg']
 }, {
   id: 'custom-studio',
   name: 'Custom Studio',
   description: 'Skräddarsydd studio',
-  isCustom: true
+  isCustom: true,
+  interiorBackgrounds: []
 }];
 export const AiSettingsDialog = () => {
   const [open, setOpen] = useState(false);
