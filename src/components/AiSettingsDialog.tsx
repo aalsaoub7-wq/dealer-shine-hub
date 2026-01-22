@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { getOptimizedImageUrl } from "@/lib/imageOptimization";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -126,7 +127,8 @@ export const AiSettingsDialog = () => {
           setThumbnailsLoaded(true);
         }
       };
-      img.src = url || '';
+      // Use optimized URL for preloading too
+      img.src = getOptimizedImageUrl(url || '', { width: 300, quality: 60 });
     });
 
     // Fallback timeout
@@ -768,7 +770,7 @@ export const AiSettingsDialog = () => {
                               <span className="text-white font-medium text-sm">Få din egna studio </span>
                             </div> : <div className="aspect-video mb-2 overflow-hidden rounded-md bg-muted">
                               <img 
-                                src={bg.thumbnail_url || bg.image_url || ''} 
+                                src={getOptimizedImageUrl(bg.thumbnail_url || bg.image_url || '', { width: 300, quality: 60 })} 
                                 alt={bg.name} 
                                 className="h-full w-full object-cover" 
                               />
