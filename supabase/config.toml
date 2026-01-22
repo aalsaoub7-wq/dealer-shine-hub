@@ -68,3 +68,6 @@ verify_jwt = true
 
 [functions.create-customer-checkout]
 verify_jwt = true
+
+[functions.manage-leads]
+verify_jwt = true
