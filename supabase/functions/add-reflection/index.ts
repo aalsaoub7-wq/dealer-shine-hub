@@ -3,13 +3,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -42,7 +42,7 @@ serve(async (req) => {
 
     // Convert image to base64 for Gemini using Deno's proper base64 encoding
     const imageBuffer = await imageFile.arrayBuffer();
-    
+
     // Use Deno's standard library for proper base64 encoding (handles large files correctly)
     const imageBase64 = base64Encode(imageBuffer);
 
@@ -52,33 +52,35 @@ serve(async (req) => {
     const geminiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         model: "google/gemini-3-pro-image-preview",
-        messages: [{
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: "This is a high-resolution professional car dealership photo (2560x1707 pixels, 3:2 aspect ratio). Add a subtle mirror-like reflection of the vehicle on the polished showroom floor beneath it. Keep all other elements unchanged - maintain the exact same car, background, lighting, and resolution. Only add the floor reflection effect. Output the image at the same 2K resolution."
-            },
-            {
-              type: "image_url",
-              image_url: { url: `data:image/jpeg;base64,${imageBase64}` }
-            }
-          ]
-        }],
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "This is a high-resolution professional car dealership photo (2560x1707 pixels, 3:2 aspect ratio). Add a subtle soft and fading mirror-like reflection of the vehicle on the polished showroom floor beneath it. Keep all other elements unchanged - maintain the exact same car, background, lighting, and resolution. Only add the floor reflection effect. Output the image at the same 2K resolution.",
+              },
+              {
+                type: "image_url",
+                image_url: { url: `data:image/jpeg;base64,${imageBase64}` },
+              },
+            ],
+          },
+        ],
         modalities: ["image", "text"],
         // Request 2K output resolution from Gemini
         generationConfig: {
           responseModalities: ["TEXT", "IMAGE"],
           imageGenerationConfig: {
             aspectRatio: "3:2",
-            outputImageSize: "2048"
-          }
-        }
+            outputImageSize: "2048",
+          },
+        },
       }),
     });
 
@@ -93,7 +95,7 @@ serve(async (req) => {
 
     // Extract image from Gemini response
     const outputUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    
+
     if (!outputUrl) {
       console.error("No image in Gemini response:", JSON.stringify(data).substring(0, 500));
       throw new Error("Gemini did not return an image");
@@ -120,18 +122,17 @@ serve(async (req) => {
 
     // Upload directly to Supabase Storage
     const timestamp = Date.now();
-    const fileName = carId && photoId 
-      ? `${carId}/edited-${photoId}-${timestamp}.png`
-      : `temp/edited-${timestamp}-${Math.random().toString(36).substring(7)}.png`;
+    const fileName =
+      carId && photoId
+        ? `${carId}/edited-${photoId}-${timestamp}.png`
+        : `temp/edited-${timestamp}-${Math.random().toString(36).substring(7)}.png`;
 
     console.log("Uploading edited image to Storage:", fileName);
 
-    const { error: uploadError } = await supabaseAdmin.storage
-      .from("car-photos")
-      .upload(fileName, imageBlob, { 
-        upsert: true,
-        contentType: "image/png"
-      });
+    const { error: uploadError } = await supabaseAdmin.storage.from("car-photos").upload(fileName, imageBlob, {
+      upsert: true,
+      contentType: "image/png",
+    });
 
     if (uploadError) {
       console.error("Storage upload error:", uploadError);
@@ -139,30 +140,27 @@ serve(async (req) => {
     }
 
     // Get public URL
-    const { data: { publicUrl } } = supabaseAdmin.storage
-      .from("car-photos")
-      .getPublicUrl(fileName);
+    const {
+      data: { publicUrl },
+    } = supabaseAdmin.storage.from("car-photos").getPublicUrl(fileName);
 
     console.log("Successfully uploaded edited image, URL:", publicUrl);
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         url: publicUrl,
-        path: fileName 
+        path: fileName,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      },
     );
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Error in add-reflection function:", error);
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
