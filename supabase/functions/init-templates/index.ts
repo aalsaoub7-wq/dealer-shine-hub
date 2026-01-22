@@ -18,14 +18,21 @@ const ALLOWED_DOMAINS = [
 
 // Template definitions with their public URLs (from Lovable deployment)
 const TEMPLATES = [
-  {
-    id: 'showroom',
-    filename: 'templates/showroom.jpg',
-  },
-  {
-    id: 'luxury-studio', 
-    filename: 'templates/luxury-studio.jpg',
-  }
+  { id: 'showroom', filename: 'templates/showroom.jpg' },
+  { id: 'luxury-studio', filename: 'templates/luxury-studio.jpg' },
+];
+
+// Thumbnail definitions - these need to be uploaded to Supabase Storage
+const THUMBNAILS = [
+  { id: 'showroom-thumb', filename: 'backgrounds/thumbnails/studio-background-thumb.jpg', source: 'backgrounds/thumbnails/studio-background-thumb.jpg' },
+  { id: 'dark-studio-thumb', filename: 'backgrounds/thumbnails/dark-studio-thumb.jpg', source: 'backgrounds/thumbnails/dark-studio-thumb.jpg' },
+  { id: 'gallery-thumb', filename: 'backgrounds/thumbnails/gallery-thumb.jpg', source: 'backgrounds/thumbnails/gallery-thumb.jpg' },
+  { id: 'curved-studio-thumb', filename: 'backgrounds/thumbnails/curved-studio-thumb.jpg', source: 'backgrounds/thumbnails/curved-studio-thumb.jpg' },
+  { id: 'ceiling-lights-thumb', filename: 'backgrounds/thumbnails/ceiling-lights-thumb.jpg', source: 'backgrounds/thumbnails/ceiling-lights-thumb.jpg' },
+  { id: 'panel-wall-thumb', filename: 'backgrounds/thumbnails/panel-wall-thumb.jpg', source: 'backgrounds/thumbnails/panel-wall-thumb.jpg' },
+  { id: 'dark-walls-light-floor-thumb', filename: 'backgrounds/thumbnails/dark-walls-light-floor-thumb.jpg', source: 'backgrounds/thumbnails/dark-walls-light-floor-thumb.jpg' },
+  { id: 'concrete-showroom-thumb', filename: 'backgrounds/thumbnails/concrete-showroom-thumb.jpg', source: 'backgrounds/thumbnails/concrete-showroom-thumb.jpg' },
+  { id: 'spotlight-studio-thumb', filename: 'backgrounds/thumbnails/spotlight-studio-thumb.jpg', source: 'backgrounds/thumbnails/spotlight-studio-thumb.jpg' },
 ];
 
 /**
@@ -79,43 +86,55 @@ serve(async (req) => {
 
     const results: Array<{ id: string; success: boolean; error?: string }> = [];
 
+    // Upload templates
     for (const template of TEMPLATES) {
       try {
-        // Fetch the image from the public URL
         const imageUrl = `${baseUrl}/${template.filename}`;
-        
-        // Double-check the constructed URL is still allowed
         if (!isAllowedUrl(imageUrl)) {
           throw new Error('Constructed URL not allowed');
         }
-        
         console.log(`Fetching template image from: ${imageUrl}`);
-        
         const response = await fetch(imageUrl);
         if (!response.ok) {
           throw new Error(`Failed to fetch image: ${response.status}`);
         }
-        
         const imageBlob = await response.blob();
         console.log(`Fetched ${template.id}, size: ${imageBlob.size} bytes`);
-
-        // Upload to Supabase Storage
         const { error: uploadError } = await supabase.storage
           .from('car-photos')
-          .upload(template.filename, imageBlob, {
-            contentType: 'image/jpeg',
-            upsert: true
-          });
-
-        if (uploadError) {
-          throw uploadError;
-        }
-
+          .upload(template.filename, imageBlob, { contentType: 'image/jpeg', upsert: true });
+        if (uploadError) throw uploadError;
         console.log(`Successfully uploaded ${template.id} to storage`);
         results.push({ id: template.id, success: true });
       } catch (error: any) {
         console.error(`Failed to upload ${template.id}:`, error.message);
         results.push({ id: template.id, success: false, error: error.message });
+      }
+    }
+
+    // Upload thumbnails
+    for (const thumb of THUMBNAILS) {
+      try {
+        const imageUrl = `${baseUrl}/${thumb.source}`;
+        if (!isAllowedUrl(imageUrl)) {
+          throw new Error('Constructed URL not allowed');
+        }
+        console.log(`Fetching thumbnail from: ${imageUrl}`);
+        const response = await fetch(imageUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch thumbnail: ${response.status}`);
+        }
+        const imageBlob = await response.blob();
+        console.log(`Fetched ${thumb.id}, size: ${imageBlob.size} bytes`);
+        const { error: uploadError } = await supabase.storage
+          .from('car-photos')
+          .upload(thumb.filename, imageBlob, { contentType: 'image/jpeg', upsert: true });
+        if (uploadError) throw uploadError;
+        console.log(`Successfully uploaded ${thumb.id} to storage`);
+        results.push({ id: thumb.id, success: true });
+      } catch (error: any) {
+        console.error(`Failed to upload ${thumb.id}:`, error.message);
+        results.push({ id: thumb.id, success: false, error: error.message });
       }
     }
 
