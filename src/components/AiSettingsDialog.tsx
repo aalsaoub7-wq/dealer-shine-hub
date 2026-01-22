@@ -128,7 +128,7 @@ export const AiSettingsDialog = () => {
         }
       };
       // Use optimized URL for preloading too
-      img.src = getOptimizedImageUrl(url || '', { width: 300, quality: 60 });
+      img.src = getOptimizedImageUrl(url || '', { width: 300, quality: 60, resize: 'contain' });
     });
 
     // Fallback timeout
@@ -770,9 +770,9 @@ export const AiSettingsDialog = () => {
                               <span className="text-white font-medium text-sm">Få din egna studio </span>
                             </div> : <div className="aspect-video mb-2 overflow-hidden rounded-md bg-muted">
                               <img 
-                                src={getOptimizedImageUrl(bg.thumbnail_url || bg.image_url || '', { width: 300, quality: 60 })} 
+                                src={getOptimizedImageUrl(bg.thumbnail_url || bg.image_url || '', { width: 300, quality: 60, resize: 'contain' })} 
                                 alt={bg.name} 
-                                className="h-full w-full object-cover" 
+                                className="h-full w-full object-contain" 
                               />
                             </div>}
                           <div className="flex items-start justify-between">
