@@ -24,7 +24,8 @@ import { CustomStudioDialog } from "./CustomStudioDialog";
 
 // Hidden backgrounds that require unlock codes
 const BACKGROUND_UNLOCK_CODES: Record<string, string> = {
-  'concrete-showroom': '=DDkyZYm'
+  'concrete-showroom': '=DDkyZYm',
+  'spotlight-studio': '2P6058'
 };
 
 // Static background templates with optimized thumbnails
@@ -85,6 +86,13 @@ export const STATIC_BACKGROUNDS: Array<{
   image: '/backgrounds/concrete-showroom.jpg',
   thumbnail: '/backgrounds/thumbnails/concrete-showroom-thumb.jpg',
   interiorBackgrounds: ['/backgrounds/concrete-showroom.jpg']
+}, {
+  id: 'spotlight-studio',
+  name: 'Spotlight Studio',
+  description: 'Vit vägg med spotlights och polerat golv',
+  image: '/backgrounds/spotlight-studio.jpg',
+  thumbnail: '/backgrounds/thumbnails/spotlight-studio-thumb.jpg',
+  interiorBackgrounds: ['/backgrounds/spotlight-studio.jpg']
 }, {
   id: 'custom-studio',
   name: 'Custom Studio',
