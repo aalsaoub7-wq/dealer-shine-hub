@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Copy, Check, ArrowLeft } from "lucide-react";
+import { Loader2, Copy, Check, ArrowLeft, Trash2 } from "lucide-react";
 
 const ADMIN_EMAIL = "aalsaoub7@gmail.com";
 
@@ -20,11 +20,20 @@ interface Customer {
   pricePerImage: number | null;
 }
 
+interface Lead {
+  id: string;
+  email: string;
+  created_at: string;
+}
+
 const Admin = () => {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customersLoading, setCustomersLoading] = useState(true);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [leadsLoading, setLeadsLoading] = useState(true);
+  const [deletingLeadId, setDeletingLeadId] = useState<string | null>(null);
   
   // Create customer form
   const [companyName, setCompanyName] = useState("");
@@ -89,6 +98,61 @@ const Admin = () => {
     
     fetchCustomers();
   }, [isAuthorized]);
+
+  // Fetch leads
+  useEffect(() => {
+    if (!isAuthorized) return;
+    
+    const fetchLeads = async () => {
+      setLeadsLoading(true);
+      
+      try {
+        const { data, error } = await supabase.functions.invoke("manage-leads", {
+          method: "GET"
+        });
+        
+        if (error) {
+          console.error("Error fetching leads:", error);
+          return;
+        }
+        
+        setLeads(data?.leads || []);
+      } catch (err) {
+        console.error("Error fetching leads:", err);
+      } finally {
+        setLeadsLoading(false);
+      }
+    };
+    
+    fetchLeads();
+  }, [isAuthorized]);
+
+  const handleDeleteLead = async (id: string) => {
+    setDeletingLeadId(id);
+    
+    try {
+      const { error } = await supabase.functions.invoke("manage-leads", {
+        body: { id }
+      });
+      
+      if (error) throw error;
+      
+      setLeads(prev => prev.filter(lead => lead.id !== id));
+      toast({
+        title: "Lead raderad",
+        description: "Leaden har tagits bort"
+      });
+    } catch (err) {
+      console.error("Error deleting lead:", err);
+      toast({
+        title: "Fel",
+        description: "Kunde inte radera lead",
+        variant: "destructive"
+      });
+    } finally {
+      setDeletingLeadId(null);
+    }
+  };
 
   const handleCreateCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -335,6 +399,60 @@ const Admin = () => {
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {new Date(customer.created_at).toLocaleDateString("sv-SE")}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+        {/* Leads Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Leads</CardTitle>
+            <CardDescription>
+              Användare som försökt registrera sig utan giltig kod
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {leadsLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : leads.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">
+                Inga leads ännu
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>E-post</TableHead>
+                    <TableHead>Datum</TableHead>
+                    <TableHead className="w-20">Åtgärd</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {leads.map((lead) => (
+                    <TableRow key={lead.id}>
+                      <TableCell className="font-medium">{lead.email}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {new Date(lead.created_at).toLocaleDateString("sv-SE")}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteLead(lead.id)}
+                          disabled={deletingLeadId === lead.id}
+                        >
+                          {deletingLeadId === lead.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          )}
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
