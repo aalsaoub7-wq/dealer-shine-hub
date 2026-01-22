@@ -65,3 +65,6 @@ verify_jwt = true
 
 [functions.remove-logo-background]
 verify_jwt = true
+
+[functions.create-customer-checkout]
+verify_jwt = true

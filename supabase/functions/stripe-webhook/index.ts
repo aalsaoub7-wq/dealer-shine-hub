@@ -232,6 +232,48 @@ serve(async (req) => {
         break;
       }
 
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        console.log("Checkout session completed:", session.id);
+        
+        // Only process subscription checkouts
+        if (session.mode !== "subscription") {
+          console.log("Not a subscription checkout, skipping");
+          break;
+        }
+
+        const customerId = session.customer as string;
+        const companyName = session.metadata?.company_name || "Okänt företag";
+        
+        console.log("Creating signup code for customer:", customerId, "Company:", companyName);
+
+        // Generate readable signup code: PREFIX-XXXX
+        const prefix = companyName
+          .substring(0, 6)
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, "")
+          .padEnd(3, "X")
+          .substring(0, 6);
+        const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+        const signupCode = `${prefix}-${suffix}`;
+
+        // Insert signup code
+        const { error: insertError } = await supabaseClient
+          .from("signup_codes")
+          .insert({
+            code: signupCode,
+            stripe_customer_id: customerId,
+            company_name: companyName,
+          });
+
+        if (insertError) {
+          console.error("Error creating signup code:", insertError);
+        } else {
+          console.log("Signup code created:", signupCode, "for customer:", customerId);
+        }
+        break;
+      }
+
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
