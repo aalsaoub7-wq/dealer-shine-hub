@@ -22,13 +22,22 @@ import { AccountSettings } from "./AccountSettings";
 import { useQuery } from "@tanstack/react-query";
 import { CustomStudioDialog } from "./CustomStudioDialog";
 
-// Hidden backgrounds that require unlock codes
-const BACKGROUND_UNLOCK_CODES: Record<string, string> = {
-  'concrete-showroom': '=DDkyZYm',
-  'spotlight-studio': '2P6058'
-};
+// Type for background templates from database
+export interface BackgroundTemplate {
+  id: string;
+  template_id: string;
+  name: string;
+  description: string | null;
+  image_url: string | null;
+  thumbnail_url: string | null;
+  interior_backgrounds: string[];
+  unlock_code: string | null;
+  is_custom: boolean;
+  display_order: number;
+  is_active: boolean;
+}
 
-// Static background templates with optimized thumbnails
+// Legacy export for backwards compatibility with other components
 export const STATIC_BACKGROUNDS: Array<{
   id: string;
   name: string;
@@ -37,73 +46,11 @@ export const STATIC_BACKGROUNDS: Array<{
   thumbnail?: string;
   isCustom?: boolean;
   interiorBackgrounds?: string[];
-}> = [{
-  id: 'curved-studio',
-  name: 'Böjd Studio',
-  description: 'Mjukt böjd vägg',
-  image: '/backgrounds/curved-studio.jpg',
-  thumbnail: '/backgrounds/thumbnails/curved-studio-thumb.jpg',
-  interiorBackgrounds: ['/backgrounds/curved-studio.jpg']
-}, {
-  id: 'ceiling-lights',
-  name: 'Taklampor',
-  description: 'Studio med taklampor',
-  image: '/backgrounds/ceiling-lights.jpg',
-  thumbnail: '/backgrounds/thumbnails/ceiling-lights-thumb.jpg',
-  interiorBackgrounds: ['/backgrounds/ceiling-lights.jpg']
-}, {
-  id: 'dark-studio',
-  name: 'Mörk Studio',
-  description: 'Helt mörk miljö',
-  image: '/backgrounds/dark-studio.jpg',
-  thumbnail: '/backgrounds/thumbnails/dark-studio-thumb.jpg',
-  interiorBackgrounds: ['/backgrounds/dark-studio.jpg']
-}, {
-  id: 'dark-walls-light-floor',
-  name: 'Mörka Väggar',
-  description: 'Mörka väggar, ljust golv',
-  image: '/backgrounds/dark-walls-light-floor.jpg',
-  thumbnail: '/backgrounds/thumbnails/dark-walls-light-floor-thumb.jpg',
-  interiorBackgrounds: ['/backgrounds/dark-walls-light-floor.jpg']
-}, {
-  id: 'gallery',
-  name: 'Galleri',
-  description: 'Galleri-stil med paneler',
-  image: '/backgrounds/gallery.jpg',
-  thumbnail: '/backgrounds/thumbnails/gallery-thumb.jpg',
-  interiorBackgrounds: ['/backgrounds/gallery.jpg']
-}, {
-  id: 'panel-wall',
-  name: 'Panelvägg',
-  description: 'Rak panelvägg',
-  image: '/backgrounds/panel-wall.jpg',
-  thumbnail: '/backgrounds/thumbnails/panel-wall-thumb.jpg',
-  interiorBackgrounds: ['/backgrounds/panel-wall.jpg']
-}, {
-  id: 'concrete-showroom',
-  name: 'Betong Showroom',
-  description: 'Modern betongstudio med plattform',
-  image: '/backgrounds/concrete-showroom.jpg',
-  thumbnail: '/backgrounds/thumbnails/concrete-showroom-thumb.jpg',
-  interiorBackgrounds: ['/backgrounds/concrete-showroom.jpg']
-}, {
-  id: 'spotlight-studio',
-  name: 'Spotlight Studio',
-  description: 'Vit vägg med spotlights och polerat golv',
-  image: '/backgrounds/spotlight-studio.jpg',
-  thumbnail: '/backgrounds/thumbnails/spotlight-studio-thumb.jpg',
-  interiorBackgrounds: ['/backgrounds/spotlight-studio.jpg']
-}, {
-  id: 'custom-studio',
-  name: 'Custom Studio',
-  description: 'Skräddarsydd studio',
-  isCustom: true,
-  interiorBackgrounds: []
-}];
+}> = [];
 export const AiSettingsDialog = () => {
   const [open, setOpen] = useState(false);
   const [currentTab, setCurrentTab] = useState("background");
-  const [selectedBackgroundId, setSelectedBackgroundId] = useState<string>("studio-background");
+  const [selectedBackgroundId, setSelectedBackgroundId] = useState<string>("showroom");
   const [exampleDescriptions, setExampleDescriptions] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [watermarkX, setWatermarkX] = useState(5);
@@ -133,6 +80,23 @@ export const AiSettingsDialog = () => {
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [pendingClose, setPendingClose] = useState(false);
   const [unlockedBackgrounds, setUnlockedBackgrounds] = useState<string[]>([]);
+
+  // Fetch background templates from database
+  const { data: backgroundTemplates = [] } = useQuery({
+    queryKey: ["backgroundTemplates"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("background_templates")
+        .select("*")
+        .order("display_order", { ascending: true });
+      
+      if (error) {
+        console.error("Error fetching background templates:", error);
+        return [];
+      }
+      return data as BackgroundTemplate[];
+    }
+  });
   
   // Store original values to detect changes
   const originalValuesRef = useRef<{
@@ -205,14 +169,14 @@ export const AiSettingsDialog = () => {
       }
       if (data) {
         const savedTemplateId = data.background_template_id;
-        let finalBackgroundId = "studio-background";
+        let finalBackgroundId = "showroom";
         if (savedTemplateId) {
-          const matchingBg = STATIC_BACKGROUNDS.find(bg => bg.id === savedTemplateId);
+          const matchingBg = backgroundTemplates.find(bg => bg.template_id === savedTemplateId);
           if (matchingBg) {
             finalBackgroundId = savedTemplateId;
             setSelectedBackgroundId(savedTemplateId);
           } else {
-            setSelectedBackgroundId("studio-background");
+            setSelectedBackgroundId("showroom");
           }
         }
         setExampleDescriptions(data.example_descriptions || "");
@@ -389,16 +353,17 @@ export const AiSettingsDialog = () => {
     await saveSettings();
   };
 
-  // Handle unlock code submission
+  // Handle unlock code submission - now checks database
   const handleUnlockCode = async (code: string) => {
-    // Find which background matches the code
-    const backgroundId = Object.entries(BACKGROUND_UNLOCK_CODES)
-      .find(([_, unlockCode]) => unlockCode === code)?.[0];
+    // Find which background matches the code from database
+    const matchingBackground = backgroundTemplates.find(bg => bg.unlock_code === code);
     
-    if (!backgroundId) {
+    if (!matchingBackground) {
       toast({ title: "Felaktig kod", variant: "destructive" });
       return;
     }
+    
+    const backgroundId = matchingBackground.template_id;
     
     if (unlockedBackgrounds.includes(backgroundId)) {
       toast({ title: "Redan upplåst" });
@@ -422,8 +387,7 @@ export const AiSettingsDialog = () => {
       setUnlockedBackgrounds(newUnlocked);
       setCustomStudioDialogOpen(false);
       
-      const bgName = STATIC_BACKGROUNDS.find(bg => bg.id === backgroundId)?.name || backgroundId;
-      toast({ title: "Bakgrund upplåst!", description: `${bgName} är nu tillgänglig` });
+      toast({ title: "Bakgrund upplåst!", description: `${matchingBackground.name} är nu tillgänglig` });
     } catch (error: any) {
       console.error("Error unlocking background:", error);
       toast({ title: "Fel vid upplåsning", description: error.message, variant: "destructive" });
@@ -745,25 +709,25 @@ export const AiSettingsDialog = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {STATIC_BACKGROUNDS
+                  {backgroundTemplates
                     .filter(bg => {
-                      // Always show if not locked
-                      if (!BACKGROUND_UNLOCK_CODES[bg.id]) return true;
+                      // Always show if not locked (no unlock_code)
+                      if (!bg.unlock_code) return true;
                       // Show if unlocked
-                      return unlockedBackgrounds.includes(bg.id);
+                      return unlockedBackgrounds.includes(bg.template_id);
                     })
-                    .map(bg => <div key={bg.id} className={`relative cursor-pointer rounded-lg border-2 p-3 transition-all hover:border-primary ${selectedBackgroundId === bg.id && !bg.isCustom ? "border-primary bg-primary/5" : "border-border"} ${bg.isCustom ? "border-dashed" : ""}`} onClick={() => {
-                    if (bg.isCustom) {
+                    .map(bg => <div key={bg.template_id} className={`relative cursor-pointer rounded-lg border-2 p-3 transition-all hover:border-primary ${selectedBackgroundId === bg.template_id && !bg.is_custom ? "border-primary bg-primary/5" : "border-border"} ${bg.is_custom ? "border-dashed" : ""}`} onClick={() => {
+                    if (bg.is_custom) {
                       setCustomStudioDialogOpen(true);
                     } else {
-                      setSelectedBackgroundId(bg.id);
+                      setSelectedBackgroundId(bg.template_id);
                     }
                   }}>
-                        {bg.isCustom ? <div className="aspect-video mb-2 overflow-hidden rounded-md bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                        {bg.is_custom ? <div className="aspect-video mb-2 overflow-hidden rounded-md bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
                             <span className="text-white font-medium text-sm">Få din egna studio </span>
                           </div> : <div className="aspect-video mb-2 overflow-hidden rounded-md bg-muted">
                             <img 
-                              src={bg.thumbnail} 
+                              src={bg.thumbnail_url || bg.image_url || ''} 
                               alt={bg.name} 
                               className="h-full w-full object-cover" 
                               loading="lazy" 
@@ -777,10 +741,10 @@ export const AiSettingsDialog = () => {
                           <div>
                             <h4 className="font-medium text-sm">{bg.name}</h4>
                             <p className="text-xs text-muted-foreground">
-                              {bg.isCustom ? "Från 299 kr" : bg.description}
+                              {bg.is_custom ? "Från 299 kr" : bg.description}
                             </p>
                           </div>
-                          {selectedBackgroundId === bg.id && !bg.isCustom && <Check className="h-5 w-5 text-primary flex-shrink-0" />}
+                          {selectedBackgroundId === bg.template_id && !bg.is_custom && <Check className="h-5 w-5 text-primary flex-shrink-0" />}
                         </div>
                       </div>)}
                 </div>
