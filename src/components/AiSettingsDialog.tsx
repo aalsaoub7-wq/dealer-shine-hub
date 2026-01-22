@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Settings, X, Palette, Stamp, Globe, CreditCard, Users, Check, User } from "lucide-react";
+import { Settings, X, Palette, Stamp, Globe, CreditCard, Users, Check, User, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { isNativeApp } from "@/lib/utils";
 import { openExternalUrl } from "@/lib/nativeCapabilities";
@@ -80,6 +80,7 @@ export const AiSettingsDialog = () => {
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [pendingClose, setPendingClose] = useState(false);
   const [unlockedBackgrounds, setUnlockedBackgrounds] = useState<string[]>([]);
+  const [thumbnailsLoaded, setThumbnailsLoaded] = useState(false);
 
   // Fetch background templates from database
   const { data: backgroundTemplates = [] } = useQuery({
@@ -97,6 +98,41 @@ export const AiSettingsDialog = () => {
       return data as BackgroundTemplate[];
     }
   });
+
+  // Preload all thumbnails before showing them
+  useEffect(() => {
+    if (backgroundTemplates.length === 0) {
+      setThumbnailsLoaded(false);
+      return;
+    }
+
+    const thumbnailUrls = backgroundTemplates
+      .filter(bg => !bg.is_custom && (bg.thumbnail_url || bg.image_url))
+      .map(bg => bg.thumbnail_url || bg.image_url);
+
+    if (thumbnailUrls.length === 0) {
+      setThumbnailsLoaded(true);
+      return;
+    }
+
+    let loadedCount = 0;
+    const total = thumbnailUrls.length;
+
+    thumbnailUrls.forEach(url => {
+      const img = new Image();
+      img.onload = img.onerror = () => {
+        loadedCount++;
+        if (loadedCount >= total) {
+          setThumbnailsLoaded(true);
+        }
+      };
+      img.src = url || '';
+    });
+
+    // Fallback timeout
+    const timeout = setTimeout(() => setThumbnailsLoaded(true), 5000);
+    return () => clearTimeout(timeout);
+  }, [backgroundTemplates]);
   
   // Store original values to detect changes
   const originalValuesRef = useRef<{
@@ -708,46 +744,47 @@ export const AiSettingsDialog = () => {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {backgroundTemplates
-                    .filter(bg => {
-                      // Always show if not locked (no unlock_code)
-                      if (!bg.unlock_code) return true;
-                      // Show if unlocked
-                      return unlockedBackgrounds.includes(bg.template_id);
-                    })
-                    .map(bg => <div key={bg.template_id} className={`relative cursor-pointer rounded-lg border-2 p-3 transition-all hover:border-primary ${selectedBackgroundId === bg.template_id && !bg.is_custom ? "border-primary bg-primary/5" : "border-border"} ${bg.is_custom ? "border-dashed" : ""}`} onClick={() => {
-                    if (bg.is_custom) {
-                      setCustomStudioDialogOpen(true);
-                    } else {
-                      setSelectedBackgroundId(bg.template_id);
-                    }
-                  }}>
-                        {bg.is_custom ? <div className="aspect-video mb-2 overflow-hidden rounded-md bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
-                            <span className="text-white font-medium text-sm">Få din egna studio </span>
-                          </div> : <div className="aspect-video mb-2 overflow-hidden rounded-md bg-muted">
-                            <img 
-                              src={bg.thumbnail_url || bg.image_url || ''} 
-                              alt={bg.name} 
-                              className="h-full w-full object-cover" 
-                              loading="lazy" 
-                              decoding="async"
-                              width={400}
-                              height={225}
-                              fetchPriority="low"
-                            />
-                          </div>}
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className="font-medium text-sm">{bg.name}</h4>
-                            <p className="text-xs text-muted-foreground">
-                              {bg.is_custom ? "Från 299 kr" : bg.description}
-                            </p>
+                {!thumbnailsLoaded ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {backgroundTemplates
+                      .filter(bg => {
+                        // Always show if not locked (no unlock_code)
+                        if (!bg.unlock_code) return true;
+                        // Show if unlocked
+                        return unlockedBackgrounds.includes(bg.template_id);
+                      })
+                      .map(bg => <div key={bg.template_id} className={`relative cursor-pointer rounded-lg border-2 p-3 transition-all hover:border-primary ${selectedBackgroundId === bg.template_id && !bg.is_custom ? "border-primary bg-primary/5" : "border-border"} ${bg.is_custom ? "border-dashed" : ""}`} onClick={() => {
+                      if (bg.is_custom) {
+                        setCustomStudioDialogOpen(true);
+                      } else {
+                        setSelectedBackgroundId(bg.template_id);
+                      }
+                    }}>
+                          {bg.is_custom ? <div className="aspect-video mb-2 overflow-hidden rounded-md bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                              <span className="text-white font-medium text-sm">Få din egna studio </span>
+                            </div> : <div className="aspect-video mb-2 overflow-hidden rounded-md bg-muted">
+                              <img 
+                                src={bg.thumbnail_url || bg.image_url || ''} 
+                                alt={bg.name} 
+                                className="h-full w-full object-cover" 
+                              />
+                            </div>}
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="font-medium text-sm">{bg.name}</h4>
+                              <p className="text-xs text-muted-foreground">
+                                {bg.is_custom ? "Från 299 kr" : bg.description}
+                              </p>
+                            </div>
+                            {selectedBackgroundId === bg.template_id && !bg.is_custom && <Check className="h-5 w-5 text-primary flex-shrink-0" />}
                           </div>
-                          {selectedBackgroundId === bg.template_id && !bg.is_custom && <Check className="h-5 w-5 text-primary flex-shrink-0" />}
-                        </div>
-                      </div>)}
-                </div>
+                        </div>)}
+                  </div>
+                )}
 
                 <CustomStudioDialog open={customStudioDialogOpen} onOpenChange={setCustomStudioDialogOpen} onCodeSubmit={handleUnlockCode} />
               </div>
