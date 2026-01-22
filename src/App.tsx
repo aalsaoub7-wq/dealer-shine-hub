@@ -12,6 +12,7 @@ import Verify from "./pages/Verify";
 import CarDetail from "./pages/CarDetail";
 import SharedPhotos from "./pages/SharedPhotos";
 import NotFound from "./pages/NotFound";
+import Admin from "./pages/Admin";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Documentation from "./pages/Documentation";
@@ -81,6 +82,7 @@ const App = () => {
                   <Route path="/integritetspolicy" element={<PrivacyPolicy />} />
                   <Route path="/användarvillkor" element={<TermsOfService />} />
                   <Route path="/guide" element={<Documentation />} />
+                  <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
