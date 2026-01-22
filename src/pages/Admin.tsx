@@ -16,6 +16,8 @@ interface Customer {
   stripe_customer_id: string | null;
   signup_code: string | null;
   created_at: string;
+  monthlyFee: number | null;
+  pricePerImage: number | null;
 }
 
 const Admin = () => {
@@ -62,52 +64,27 @@ const Admin = () => {
     checkAccess();
   }, [navigate, toast]);
 
-  // Fetch customers
+  // Fetch customers with pricing from Stripe
   useEffect(() => {
     if (!isAuthorized) return;
     
     const fetchCustomers = async () => {
       setCustomersLoading(true);
       
-      // Get companies with their signup codes
-      const { data: companies, error: companiesError } = await supabase
-        .from("companies")
-        .select("id, name, stripe_customer_id, created_at")
-        .order("created_at", { ascending: false });
-      
-      if (companiesError) {
-        console.error("Error fetching companies:", companiesError);
-        setCustomersLoading(false);
-        return;
-      }
-      
-      // Get signup codes
-      const { data: signupCodes, error: codesError } = await supabase
-        .from("signup_codes")
-        .select("code, stripe_customer_id");
-      
-      if (codesError) {
-        console.error("Error fetching signup codes:", codesError);
-      }
-      
-      // Map codes to companies by stripe_customer_id
-      const codeMap = new Map<string, string>();
-      signupCodes?.forEach(sc => {
-        if (sc.stripe_customer_id) {
-          codeMap.set(sc.stripe_customer_id, sc.code);
+      try {
+        const { data, error } = await supabase.functions.invoke("get-admin-customers");
+        
+        if (error) {
+          console.error("Error fetching customers:", error);
+          return;
         }
-      });
-      
-      const customersWithCodes: Customer[] = (companies || []).map(company => ({
-        id: company.id,
-        name: company.name,
-        stripe_customer_id: company.stripe_customer_id,
-        signup_code: company.stripe_customer_id ? codeMap.get(company.stripe_customer_id) || null : null,
-        created_at: company.created_at
-      }));
-      
-      setCustomers(customersWithCodes);
-      setCustomersLoading(false);
+        
+        setCustomers(data?.customers || []);
+      } catch (err) {
+        console.error("Error fetching customers:", err);
+      } finally {
+        setCustomersLoading(false);
+      }
     };
     
     fetchCustomers();
@@ -323,7 +300,8 @@ const Admin = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Företag</TableHead>
-                    <TableHead>Stripe ID</TableHead>
+                    <TableHead>Månadsavgift</TableHead>
+                    <TableHead>Pris/bild</TableHead>
                     <TableHead>Signup-kod</TableHead>
                     <TableHead>Skapad</TableHead>
                   </TableRow>
@@ -332,8 +310,19 @@ const Admin = () => {
                   {customers.map((customer) => (
                     <TableRow key={customer.id}>
                       <TableCell className="font-medium">{customer.name}</TableCell>
-                      <TableCell className="font-mono text-xs">
-                        {customer.stripe_customer_id || "—"}
+                      <TableCell>
+                        {customer.monthlyFee !== null ? (
+                          <span>{customer.monthlyFee.toLocaleString("sv-SE")} kr</span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {customer.pricePerImage !== null ? (
+                          <span>{customer.pricePerImage.toLocaleString("sv-SE", { minimumFractionDigits: 2 })} kr</span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {customer.signup_code ? (
