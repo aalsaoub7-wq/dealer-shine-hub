@@ -79,10 +79,41 @@ const PhotoUpload = ({
   };
 
   const editPhotoWithAPI = async (file: File): Promise<Blob> => {
-    // Fetch the static background image
-    const backgroundResponse = await fetch('/backgrounds/studio-background.jpg');
+    // Fetch user's selected background from database
+    const { data: { user } } = await supabase.auth.getUser();
+    let backgroundUrl = '/backgrounds/studio-background.jpg'; // Default fallback
+    
+    if (user) {
+      const { data: companyData } = await supabase
+        .from("user_companies")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (companyData) {
+        const { data: settings } = await supabase
+          .from("ai_settings")
+          .select("background_template_id")
+          .eq("company_id", companyData.company_id)
+          .single();
+
+        if (settings?.background_template_id) {
+          const { data: template } = await supabase
+            .from("background_templates")
+            .select("image_url")
+            .eq("template_id", settings.background_template_id)
+            .single();
+
+          if (template?.image_url) {
+            backgroundUrl = template.image_url;
+          }
+        }
+      }
+    }
+
+    const backgroundResponse = await fetch(backgroundUrl);
     const backgroundBlob = await backgroundResponse.blob();
-    const backgroundFile = new File([backgroundBlob], 'studio-background.jpg', { type: 'image/jpeg' });
+    const backgroundFile = new File([backgroundBlob], 'background.jpg', { type: 'image/jpeg' });
 
     const formData = new FormData();
     formData.append('image_file', file);

@@ -37,7 +37,7 @@ import { CarPositionEditor } from "@/components/CarPositionEditor";
 import { WatermarkPositionEditor } from "@/components/WatermarkPositionEditor";
 import { InteriorColorDialog } from "@/components/InteriorColorDialog";
 import { InteriorBackgroundDialog } from "@/components/InteriorBackgroundDialog";
-import { STATIC_BACKGROUNDS } from "@/components/AiSettingsDialog";
+import { BackgroundTemplate } from "@/components/AiSettingsDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -215,13 +215,21 @@ const CarDetail = () => {
         .single();
 
       if (settings?.background_template_id) {
-        setBackgroundUrl(`/backgrounds/${settings.background_template_id}.jpg`);
+        // Fetch the background template from database
+        const { data: template } = await supabase
+          .from("background_templates")
+          .select("image_url, interior_backgrounds")
+          .eq("template_id", settings.background_template_id)
+          .single();
+        
+        if (template?.image_url) {
+          setBackgroundUrl(template.image_url);
+        }
         setBackgroundTemplateId(settings.background_template_id);
         
-        // Find interior backgrounds for this template
-        const template = STATIC_BACKGROUNDS.find(bg => bg.id === settings.background_template_id);
-        if (template?.interiorBackgrounds) {
-          setAvailableInteriorBackgrounds(template.interiorBackgrounds);
+        // Set interior backgrounds from database
+        if (template?.interior_backgrounds && Array.isArray(template.interior_backgrounds)) {
+          setAvailableInteriorBackgrounds(template.interior_backgrounds);
         }
       }
     } catch (error) {
