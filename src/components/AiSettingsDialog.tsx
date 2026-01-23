@@ -82,6 +82,7 @@ export const AiSettingsDialog = () => {
   const [pendingClose, setPendingClose] = useState(false);
   const [unlockedBackgrounds, setUnlockedBackgrounds] = useState<string[]>([]);
   const [thumbnailsLoaded, setThumbnailsLoaded] = useState(false);
+  const [loadedThumbnails, setLoadedThumbnails] = useState<Record<string, boolean>>({});
 
   // Fetch background templates from database
   const { data: backgroundTemplates = [] } = useQuery({
@@ -768,11 +769,28 @@ export const AiSettingsDialog = () => {
                     }}>
                           {bg.is_custom ? <div className="aspect-[4/3] mb-2 overflow-hidden rounded-md bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
                               <span className="text-white font-medium text-sm">Få din egna studio </span>
-                            </div> : <div className="aspect-[4/3] mb-2 overflow-hidden rounded-md bg-muted">
+                            </div> : <div className="aspect-[4/3] mb-2 overflow-hidden rounded-md bg-muted relative">
+                              {!loadedThumbnails[bg.template_id] && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                                </div>
+                              )}
                               <img 
                                 src={getOptimizedImageUrl(bg.thumbnail_url || bg.image_url || '', { width: 300, quality: 60, resize: 'contain' })} 
                                 alt={bg.name} 
-                                className="h-full w-full object-contain" 
+                                className={`h-full w-full object-contain transition-opacity duration-300 ${loadedThumbnails[bg.template_id] ? 'opacity-100' : 'opacity-0'}`}
+                                onLoad={() => setLoadedThumbnails(prev => ({ ...prev, [bg.template_id]: true }))}
+                                onError={(e) => {
+                                  // Fallback to local public folder if Supabase URL fails
+                                  const target = e.target as HTMLImageElement;
+                                  const fallbackUrl = `/backgrounds/thumbnails/${bg.template_id}-thumb.jpg`;
+                                  if (!target.src.includes('/backgrounds/thumbnails/')) {
+                                    target.src = fallbackUrl;
+                                  } else {
+                                    // Even fallback failed, just show it anyway
+                                    setLoadedThumbnails(prev => ({ ...prev, [bg.template_id]: true }));
+                                  }
+                                }}
                               />
                             </div>}
                           <div className="flex items-start justify-between">
