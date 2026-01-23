@@ -6,9 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Phone, Unlock, Loader2 } from "lucide-react";
 
-// Supabase Storage URLs for custom studio examples
-const CUSTOM_EXAMPLE_1_URL = "https://abepwxatllszoapfmccl.supabase.co/storage/v1/object/public/car-photos/custom-studio/custom-studio-example-1.jpg";
-const CUSTOM_EXAMPLE_2_URL = "https://abepwxatllszoapfmccl.supabase.co/storage/v1/object/public/car-photos/custom-studio/custom-studio-example-2.png";
+// Use local assets (reliable, bundled with app)
+import customExample1 from "@/assets/custom-studio-example-1.jpg";
+import customExample2 from "@/assets/custom-studio-example-2.png";
 
 interface CustomStudioDialogProps {
   open: boolean;
@@ -61,10 +61,11 @@ export const CustomStudioDialog = ({
               </div>
             )}
             <img 
-              src={CUSTOM_EXAMPLE_1_URL} 
+              src={customExample1} 
               alt="Custom studio exempel 1" 
               className={`w-full h-full object-cover transition-opacity duration-300 ${image1Loaded ? 'opacity-100' : 'opacity-0'}`}
               onLoad={() => setImage1Loaded(true)}
+              onError={() => setImage1Loaded(true)}
             />
           </div>
           <div className="aspect-video rounded-lg overflow-hidden bg-muted relative">
@@ -74,10 +75,11 @@ export const CustomStudioDialog = ({
               </div>
             )}
             <img 
-              src={CUSTOM_EXAMPLE_2_URL} 
+              src={customExample2} 
               alt="Custom studio exempel 2" 
               className={`w-full h-full object-cover transition-opacity duration-300 ${image2Loaded ? 'opacity-100' : 'opacity-0'}`}
               onLoad={() => setImage2Loaded(true)}
+              onError={() => setImage2Loaded(true)}
             />
           </div>
         </div>
