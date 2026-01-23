@@ -14,6 +14,8 @@ const ALLOWED_DOMAINS = [
   'luvero.lovable.app',
   'lovable.app',
   'localhost',
+  'id-preview--5b0009b5-b32d-4e58-8cc6-95ab3ae3872f.lovable.app',
+  'j8h8hienf8b3nfhbv.lovable.app',
 ];
 
 // Template definitions with their public URLs (from Lovable deployment)
@@ -22,11 +24,16 @@ const TEMPLATES = [
   { id: 'luxury-studio', filename: 'templates/luxury-studio.jpg' },
 ];
 
+// Custom studio example images
+const CUSTOM_STUDIO_EXAMPLES = [
+  { id: 'custom-studio-example-1', filename: 'custom-studio/custom-studio-example-1.jpg', source: 'src/assets/custom-studio-example-1.jpg' },
+  { id: 'custom-studio-example-2', filename: 'custom-studio/custom-studio-example-2.png', source: 'src/assets/custom-studio-example-2.png' },
+];
+
 // Thumbnail definitions - these need to be uploaded to Supabase Storage
 const THUMBNAILS = [
   { id: 'showroom-thumb', filename: 'backgrounds/thumbnails/studio-background-thumb.jpg', source: 'backgrounds/thumbnails/studio-background-thumb.jpg' },
   { id: 'dark-studio-thumb', filename: 'backgrounds/thumbnails/dark-studio-thumb.jpg', source: 'backgrounds/thumbnails/dark-studio-thumb.jpg' },
-  { id: 'gallery-thumb', filename: 'backgrounds/thumbnails/gallery-thumb.jpg', source: 'backgrounds/thumbnails/gallery-thumb.jpg' },
   { id: 'curved-studio-thumb', filename: 'backgrounds/thumbnails/curved-studio-thumb.jpg', source: 'backgrounds/thumbnails/curved-studio-thumb.jpg' },
   { id: 'ceiling-lights-thumb', filename: 'backgrounds/thumbnails/ceiling-lights-thumb.jpg', source: 'backgrounds/thumbnails/ceiling-lights-thumb.jpg' },
   { id: 'panel-wall-thumb', filename: 'backgrounds/thumbnails/panel-wall-thumb.jpg', source: 'backgrounds/thumbnails/panel-wall-thumb.jpg' },
@@ -109,6 +116,33 @@ serve(async (req) => {
       } catch (error: any) {
         console.error(`Failed to upload ${template.id}:`, error.message);
         results.push({ id: template.id, success: false, error: error.message });
+      }
+    }
+
+    // Upload custom studio examples
+    for (const example of CUSTOM_STUDIO_EXAMPLES) {
+      try {
+        const imageUrl = `${baseUrl}/${example.source}`;
+        if (!isAllowedUrl(imageUrl)) {
+          throw new Error('Constructed URL not allowed');
+        }
+        console.log(`Fetching custom studio example from: ${imageUrl}`);
+        const response = await fetch(imageUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch custom studio example: ${response.status}`);
+        }
+        const imageBlob = await response.blob();
+        const contentType = example.filename.endsWith('.png') ? 'image/png' : 'image/jpeg';
+        console.log(`Fetched ${example.id}, size: ${imageBlob.size} bytes`);
+        const { error: uploadError } = await supabase.storage
+          .from('car-photos')
+          .upload(example.filename, imageBlob, { contentType, upsert: true });
+        if (uploadError) throw uploadError;
+        console.log(`Successfully uploaded ${example.id} to storage`);
+        results.push({ id: example.id, success: true });
+      } catch (error: any) {
+        console.error(`Failed to upload ${example.id}:`, error.message);
+        results.push({ id: example.id, success: false, error: error.message });
       }
     }
 

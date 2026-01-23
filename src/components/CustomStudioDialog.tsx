@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Phone, Unlock } from "lucide-react";
-import customExample1 from "@/assets/custom-studio-example-1.jpg";
-import customExample2 from "@/assets/custom-studio-example-2.png";
+import { Phone, Unlock, Loader2 } from "lucide-react";
+
+// Supabase Storage URLs for custom studio examples
+const CUSTOM_EXAMPLE_1_URL = "https://abepwxatllszoapfmccl.supabase.co/storage/v1/object/public/car-photos/custom-studio/custom-studio-example-1.jpg";
+const CUSTOM_EXAMPLE_2_URL = "https://abepwxatllszoapfmccl.supabase.co/storage/v1/object/public/car-photos/custom-studio/custom-studio-example-2.png";
 
 interface CustomStudioDialogProps {
   open: boolean;
@@ -20,6 +22,8 @@ export const CustomStudioDialog = ({
   onCodeSubmit
 }: CustomStudioDialogProps) => {
   const [code, setCode] = useState("");
+  const [image1Loaded, setImage1Loaded] = useState(false);
+  const [image2Loaded, setImage2Loaded] = useState(false);
 
   const handleSubmitCode = () => {
     if (code.trim() && onCodeSubmit) {
@@ -27,7 +31,18 @@ export const CustomStudioDialog = ({
       setCode("");
     }
   };
-  return <Dialog open={open} onOpenChange={onOpenChange}>
+
+  // Reset loading states when dialog opens
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen) {
+      setImage1Loaded(false);
+      setImage2Loaded(false);
+    }
+    onOpenChange(newOpen);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Custom Studio</DialogTitle>
@@ -37,16 +52,35 @@ export const CustomStudioDialog = ({
           Få en skräddarsydd studiobakgrund med din logotyp integrerad.
         </p>
         
-        {/* Exempelbilder */}
+        {/* Exempelbilder med smooth loading */}
         <div className="flex flex-col gap-3 my-4">
-          <div className="aspect-video rounded-lg overflow-hidden">
-            <img src={customExample1} alt="" className="w-full h-full object-cover" loading="eager" decoding="async" />
+          <div className="aspect-video rounded-lg overflow-hidden bg-muted relative">
+            {!image1Loaded && (
+              <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            )}
+            <img 
+              src={CUSTOM_EXAMPLE_1_URL} 
+              alt="Custom studio exempel 1" 
+              className={`w-full h-full object-cover transition-opacity duration-300 ${image1Loaded ? 'opacity-100' : 'opacity-0'}`}
+              onLoad={() => setImage1Loaded(true)}
+            />
           </div>
-          <div className="aspect-video rounded-lg overflow-hidden">
-            <img src={customExample2} alt="" className="w-full h-full object-cover" loading="eager" decoding="async" />
+          <div className="aspect-video rounded-lg overflow-hidden bg-muted relative">
+            {!image2Loaded && (
+              <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            )}
+            <img 
+              src={CUSTOM_EXAMPLE_2_URL} 
+              alt="Custom studio exempel 2" 
+              className={`w-full h-full object-cover transition-opacity duration-300 ${image2Loaded ? 'opacity-100' : 'opacity-0'}`}
+              onLoad={() => setImage2Loaded(true)}
+            />
           </div>
         </div>
-        
         
         {/* CTA */}
         <Button className="w-full" size="lg" onClick={() => window.location.href = "tel:0793436810"}>
@@ -73,5 +107,6 @@ export const CustomStudioDialog = ({
           </div>
         </div>
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+  );
 };
