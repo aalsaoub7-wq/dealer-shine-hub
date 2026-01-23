@@ -47,10 +47,6 @@ export const CustomStudioDialog = ({
           </div>
         </div>
         
-        {/* Pris */}
-        <div className="text-center py-3 bg-muted/50 rounded-lg mb-4">
-          <span className="text-lg font-semibold">Från 299 kr</span>
-        </div>
         
         {/* CTA */}
         <Button className="w-full" size="lg" onClick={() => window.location.href = "tel:0793436810"}>
