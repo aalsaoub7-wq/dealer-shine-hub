@@ -30,16 +30,16 @@ const CUSTOM_STUDIO_EXAMPLES = [
   { id: 'custom-studio-example-2', filename: 'custom-studio/custom-studio-example-2.png', source: 'src/assets/custom-studio-example-2.png' },
 ];
 
-// Thumbnail definitions - these need to be uploaded to Supabase Storage
+// Thumbnail definitions - fetch from public folder which has the actual image files
 const THUMBNAILS = [
-  { id: 'showroom-thumb', filename: 'backgrounds/thumbnails/studio-background-thumb.jpg', source: 'backgrounds/thumbnails/studio-background-thumb.jpg' },
-  { id: 'dark-studio-thumb', filename: 'backgrounds/thumbnails/dark-studio-thumb.jpg', source: 'backgrounds/thumbnails/dark-studio-thumb.jpg' },
-  { id: 'curved-studio-thumb', filename: 'backgrounds/thumbnails/curved-studio-thumb.jpg', source: 'backgrounds/thumbnails/curved-studio-thumb.jpg' },
-  { id: 'ceiling-lights-thumb', filename: 'backgrounds/thumbnails/ceiling-lights-thumb.jpg', source: 'backgrounds/thumbnails/ceiling-lights-thumb.jpg' },
-  { id: 'panel-wall-thumb', filename: 'backgrounds/thumbnails/panel-wall-thumb.jpg', source: 'backgrounds/thumbnails/panel-wall-thumb.jpg' },
-  { id: 'dark-walls-light-floor-thumb', filename: 'backgrounds/thumbnails/dark-walls-light-floor-thumb.jpg', source: 'backgrounds/thumbnails/dark-walls-light-floor-thumb.jpg' },
-  { id: 'concrete-showroom-thumb', filename: 'backgrounds/thumbnails/concrete-showroom-thumb.jpg', source: 'backgrounds/thumbnails/concrete-showroom-thumb.jpg' },
-  { id: 'spotlight-studio-thumb', filename: 'backgrounds/thumbnails/spotlight-studio-thumb.jpg', source: 'backgrounds/thumbnails/spotlight-studio-thumb.jpg' },
+  { id: 'showroom-thumb', filename: 'backgrounds/thumbnails/studio-background-thumb.jpg', source: 'public/backgrounds/thumbnails/studio-background-thumb.jpg' },
+  { id: 'dark-studio-thumb', filename: 'backgrounds/thumbnails/dark-studio-thumb.jpg', source: 'public/backgrounds/thumbnails/dark-studio-thumb.jpg' },
+  { id: 'curved-studio-thumb', filename: 'backgrounds/thumbnails/curved-studio-thumb.jpg', source: 'public/backgrounds/thumbnails/curved-studio-thumb.jpg' },
+  { id: 'ceiling-lights-thumb', filename: 'backgrounds/thumbnails/ceiling-lights-thumb.jpg', source: 'public/backgrounds/thumbnails/ceiling-lights-thumb.jpg' },
+  { id: 'panel-wall-thumb', filename: 'backgrounds/thumbnails/panel-wall-thumb.jpg', source: 'public/backgrounds/thumbnails/panel-wall-thumb.jpg' },
+  { id: 'dark-walls-light-floor-thumb', filename: 'backgrounds/thumbnails/dark-walls-light-floor-thumb.jpg', source: 'public/backgrounds/thumbnails/dark-walls-light-floor-thumb.jpg' },
+  { id: 'concrete-showroom-thumb', filename: 'backgrounds/thumbnails/concrete-showroom-thumb.jpg', source: 'public/backgrounds/thumbnails/concrete-showroom-thumb.jpg' },
+  { id: 'spotlight-studio-thumb', filename: 'backgrounds/thumbnails/spotlight-studio-thumb.jpg', source: 'public/backgrounds/thumbnails/spotlight-studio-thumb.jpg' },
 ];
 
 /**
