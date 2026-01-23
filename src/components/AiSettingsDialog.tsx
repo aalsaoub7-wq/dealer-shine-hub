@@ -778,9 +778,9 @@ export const AiSettingsDialog = () => {
                           <div className="flex items-start justify-between">
                             <div>
                               <h4 className="font-medium text-sm">{bg.name}</h4>
-                              <p className="text-xs text-muted-foreground">
-                                {bg.is_custom ? "Från 299 kr" : bg.description}
-                              </p>
+                              {!bg.is_custom && <p className="text-xs text-muted-foreground">
+                                {bg.description}
+                              </p>}
                             </div>
                             {selectedBackgroundId === bg.template_id && !bg.is_custom && <Check className="h-5 w-5 text-primary flex-shrink-0" />}
                           </div>
