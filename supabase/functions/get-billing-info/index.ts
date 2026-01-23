@@ -163,9 +163,30 @@ serve(async (req) => {
     let currentPlan = subscription?.plan || null;
     let planConfig = null;
 
-    // If we have a Stripe subscription, try to get dynamic pricing
-    if (subscription?.stripe_subscription_id) {
-      planConfig = await getDynamicPricing(subscription.stripe_subscription_id);
+    // Try to get subscription ID from database first, or fetch directly from Stripe
+    let stripeSubscriptionId = subscription?.stripe_subscription_id;
+
+    // Fallback: If no subscription in DB but customer exists in Stripe, fetch active subscription directly
+    if (!stripeSubscriptionId && company.stripe_customer_id) {
+      try {
+        console.log(`[BILLING-INFO] No subscription in DB, fetching from Stripe for customer: ${company.stripe_customer_id}`);
+        const stripeSubs = await stripe.subscriptions.list({
+          customer: company.stripe_customer_id,
+          status: 'active',
+          limit: 1,
+        });
+        if (stripeSubs.data.length > 0) {
+          stripeSubscriptionId = stripeSubs.data[0].id;
+          console.log(`[BILLING-INFO] Found Stripe subscription: ${stripeSubscriptionId}`);
+        }
+      } catch (error) {
+        console.error("[BILLING-INFO] Error fetching Stripe subscriptions:", error);
+      }
+    }
+
+    // If we have a Stripe subscription ID, get dynamic pricing
+    if (stripeSubscriptionId) {
+      planConfig = await getDynamicPricing(stripeSubscriptionId);
     }
 
     // If no dynamic pricing, try to get from Stripe customer metadata
