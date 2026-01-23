@@ -101,26 +101,34 @@ export const AiSettingsDialog = () => {
     }
   });
 
-  // Preload all thumbnails before showing them
+  // Helper: derive stable local thumbnail path from image_url
+  // e.g. "/backgrounds/studio-background.jpg" -> "/backgrounds/thumbnails/studio-background-thumb.jpg"
+  const getLocalThumbnailUrl = (imageUrl: string | null): string => {
+    if (!imageUrl) return '/placeholder.svg';
+    const filename = imageUrl.split('/').pop() || '';
+    const nameWithoutExt = filename.replace(/\.[^.]+$/, '');
+    const ext = filename.match(/\.[^.]+$/)?.[0] || '.jpg';
+    return `/backgrounds/thumbnails/${nameWithoutExt}-thumb${ext}`;
+  };
+
+  // Preload all thumbnails before showing them (use local paths for stability)
   useEffect(() => {
     if (backgroundTemplates.length === 0) {
       setThumbnailsLoaded(false);
       return;
     }
 
-    const thumbnailUrls = backgroundTemplates
-      .filter(bg => !bg.is_custom && (bg.thumbnail_url || bg.image_url))
-      .map(bg => bg.thumbnail_url || bg.image_url);
+    const templatesToPreload = backgroundTemplates.filter(bg => !bg.is_custom && bg.image_url);
 
-    if (thumbnailUrls.length === 0) {
+    if (templatesToPreload.length === 0) {
       setThumbnailsLoaded(true);
       return;
     }
 
     let loadedCount = 0;
-    const total = thumbnailUrls.length;
+    const total = templatesToPreload.length;
 
-    thumbnailUrls.forEach(url => {
+    templatesToPreload.forEach(bg => {
       const img = new Image();
       img.onload = img.onerror = () => {
         loadedCount++;
@@ -128,12 +136,12 @@ export const AiSettingsDialog = () => {
           setThumbnailsLoaded(true);
         }
       };
-      // Use optimized URL for preloading too
-      img.src = getOptimizedImageUrl(url || '', { width: 300, quality: 60, resize: 'contain' });
+      // Use LOCAL thumbnail URL for preloading (always stable)
+      img.src = getLocalThumbnailUrl(bg.image_url);
     });
 
     // Fallback timeout
-    const timeout = setTimeout(() => setThumbnailsLoaded(true), 5000);
+    const timeout = setTimeout(() => setThumbnailsLoaded(true), 3000);
     return () => clearTimeout(timeout);
   }, [backgroundTemplates]);
   
@@ -776,18 +784,26 @@ export const AiSettingsDialog = () => {
                                 </div>
                               )}
                               <img 
-                                src={getOptimizedImageUrl(bg.thumbnail_url || bg.image_url || '', { width: 300, quality: 60, resize: 'contain' })} 
-                                alt={bg.name} 
+                                src={getLocalThumbnailUrl(bg.image_url)}
+                                alt=""
+                                loading="lazy"
+                                decoding="async"
                                 className={`h-full w-full object-contain transition-opacity duration-300 ${loadedThumbnails[bg.template_id] ? 'opacity-100' : 'opacity-0'}`}
                                 onLoad={() => setLoadedThumbnails(prev => ({ ...prev, [bg.template_id]: true }))}
                                 onError={(e) => {
-                                  // Fallback to local public folder if Supabase URL fails
                                   const target = e.target as HTMLImageElement;
-                                  const fallbackUrl = `/backgrounds/thumbnails/${bg.template_id}-thumb.jpg`;
-                                  if (!target.src.includes('/backgrounds/thumbnails/')) {
-                                    target.src = fallbackUrl;
+                                  const step = parseInt(target.dataset.fallbackStep || '0', 10);
+                                  const fallbackChain = [
+                                    bg.thumbnail_url ? getOptimizedImageUrl(bg.thumbnail_url, { width: 300, quality: 60, resize: 'contain' }) : null,
+                                    bg.thumbnail_url,
+                                    bg.image_url,
+                                    '/placeholder.svg'
+                                  ].filter(Boolean) as string[];
+                                  
+                                  if (step < fallbackChain.length) {
+                                    target.dataset.fallbackStep = String(step + 1);
+                                    target.src = fallbackChain[step];
                                   } else {
-                                    // Even fallback failed, just show it anyway
                                     setLoadedThumbnails(prev => ({ ...prev, [bg.template_id]: true }));
                                   }
                                 }}
