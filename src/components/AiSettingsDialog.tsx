@@ -766,9 +766,9 @@ export const AiSettingsDialog = () => {
                         setSelectedBackgroundId(bg.template_id);
                       }
                     }}>
-                          {bg.is_custom ? <div className="aspect-video mb-2 overflow-hidden rounded-md bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                          {bg.is_custom ? <div className="aspect-[4/3] mb-2 overflow-hidden rounded-md bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
                               <span className="text-white font-medium text-sm">Få din egna studio </span>
-                            </div> : <div className="aspect-video mb-2 overflow-hidden rounded-md bg-muted">
+                            </div> : <div className="aspect-[4/3] mb-2 overflow-hidden rounded-md bg-muted">
                               <img 
                                 src={getOptimizedImageUrl(bg.thumbnail_url || bg.image_url || '', { width: 300, quality: 60, resize: 'contain' })} 
                                 alt={bg.name} 
