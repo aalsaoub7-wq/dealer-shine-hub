@@ -1137,8 +1137,10 @@ const CarDetail = () => {
         .update({ is_processing: true })
         .eq("id", photoId);
 
-      // Close editor
+      // Close editor and free up the save button immediately
+      // (each photo tracks its own is_processing state in the database)
       setPositionEditorPhoto(null);
+      setPositionEditorSaving(false);
 
       if (isInterior) {
         // For interior photos, upload directly without Gemini reflection
@@ -1218,7 +1220,6 @@ const CarDetail = () => {
         description: "Vår AI fick lite för många bollar att jonglera. Försök igen.",
         variant: "info",
       });
-    } finally {
       setPositionEditorSaving(false);
     }
   };
