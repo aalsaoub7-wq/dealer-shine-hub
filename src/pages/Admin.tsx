@@ -41,7 +41,9 @@ const Admin = () => {
   const [pricePerImage, setPricePerImage] = useState("");
   const [creating, setCreating] = useState(false);
   const [checkoutUrl, setCheckoutUrl] = useState("");
+  const [signupCode, setSignupCode] = useState("");
   const [copied, setCopied] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -189,6 +191,7 @@ const Admin = () => {
     
     setCreating(true);
     setCheckoutUrl("");
+    setSignupCode("");
     
     try {
       const { data, error } = await supabase.functions.invoke("create-customer-checkout", {
@@ -203,9 +206,10 @@ const Admin = () => {
       
       if (data?.url) {
         setCheckoutUrl(data.url);
+        setSignupCode(data.signupCode || "");
         toast({
           title: "Checkout-länk skapad!",
-          description: "Kopiera länken och skicka till kunden"
+          description: "Kopiera länken och signup-koden"
         });
       } else {
         throw new Error("Ingen URL returnerades");
@@ -227,6 +231,16 @@ const Admin = () => {
       await navigator.clipboard.writeText(checkoutUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  const copySignupCode = async () => {
+    try {
+      await navigator.clipboard.writeText(signupCode);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
     }
@@ -321,22 +335,42 @@ const Admin = () => {
             </form>
             
             {checkoutUrl && (
-              <div className="mt-4 p-4 bg-muted rounded-lg space-y-2">
+              <div className="mt-4 p-4 bg-muted rounded-lg space-y-3">
                 <p className="text-sm font-medium text-green-600">✓ Checkout-länk skapad!</p>
-                <div className="flex gap-2">
-                  <Input
-                    value={checkoutUrl}
-                    readOnly
-                    className="font-mono text-xs"
-                  />
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={copyToClipboard}
-                  >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </Button>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">Checkout URL</label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={checkoutUrl}
+                      readOnly
+                      className="font-mono text-xs"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={copyToClipboard}
+                    >
+                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 </div>
+                {signupCode && (
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">Signup-kod (delas efter betalning)</label>
+                    <div className="flex gap-2 items-center">
+                      <code className="px-3 py-2 bg-primary/10 rounded font-mono text-sm flex-1">
+                        {signupCode}
+                      </code>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={copySignupCode}
+                      >
+                        {copiedCode ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
