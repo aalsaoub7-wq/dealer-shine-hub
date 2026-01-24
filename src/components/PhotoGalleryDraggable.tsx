@@ -210,12 +210,13 @@ const PhotoGalleryDraggable = ({
           id: item.id,
           display_order: index
         }));
-        for (const update of updates) {
-          await supabase.from("photos").update({
-            display_order: update.display_order
-          }).eq("id", update.id);
-        }
-        onUpdate();
+        await Promise.all(
+          updates.map(update => 
+            supabase.from("photos").update({
+              display_order: update.display_order
+            }).eq("id", update.id)
+          )
+        );
       } catch (error: any) {
         toast({
           title: "Fel vid uppdatering av ordning",
