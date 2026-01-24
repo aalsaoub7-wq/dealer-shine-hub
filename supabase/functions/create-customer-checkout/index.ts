@@ -58,6 +58,36 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
+    // Initialize Supabase admin client for signup_codes table
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    // Generate signup code BEFORE checkout session
+    const prefix = companyName
+      .substring(0, 6)
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .padEnd(3, "X")
+      .substring(0, 6);
+    const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const signupCode = `${prefix}-${suffix}`;
+
+    console.log("[CREATE-CUSTOMER-CHECKOUT] Generated signup code:", signupCode);
+
+    // Insert signup code with pending status (will be updated by webhook)
+    const { error: signupError } = await supabaseAdmin.from("signup_codes").insert({
+      code: signupCode,
+      stripe_customer_id: "pending",
+      company_name: companyName,
+    });
+
+    if (signupError) {
+      console.error("[CREATE-CUSTOMER-CHECKOUT] Error creating signup code:", signupError);
+      throw new Error("Failed to create signup code");
+    }
+
     // Step 1: Create Product
     const product = await stripe.products.create({
       name: `Luvero x ${companyName}`,
@@ -93,7 +123,7 @@ serve(async (req) => {
     });
     console.log("[CREATE-CUSTOMER-CHECKOUT] Metered price created:", meteredPrice.id);
 
-    // Step 4: Create Checkout Session
+    // Step 4: Create Checkout Session with signup_code in metadata
     const origin = req.headers.get("origin") || "https://luvero.se";
     
     const session = await stripe.checkout.sessions.create({
@@ -111,6 +141,7 @@ serve(async (req) => {
       metadata: {
         company_name: companyName,
         product_id: product.id,
+        signup_code: signupCode, // Include signup code for webhook to update
       },
       subscription_data: {
         metadata: {
@@ -125,7 +156,7 @@ serve(async (req) => {
     console.log("[CREATE-CUSTOMER-CHECKOUT] Checkout session created:", session.id);
 
     return new Response(
-      JSON.stringify({ url: session.url }),
+      JSON.stringify({ url: session.url, signupCode }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,

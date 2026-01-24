@@ -244,32 +244,49 @@ serve(async (req) => {
 
         const customerId = session.customer as string;
         const companyName = session.metadata?.company_name || "Okänt företag";
+        const signupCode = session.metadata?.signup_code;
         
-        console.log("Creating signup code for customer:", customerId, "Company:", companyName);
+        console.log("Processing checkout for customer:", customerId, "Company:", companyName, "SignupCode:", signupCode);
 
-        // Generate readable signup code: PREFIX-XXXX
-        const prefix = companyName
-          .substring(0, 6)
-          .toUpperCase()
-          .replace(/[^A-Z0-9]/g, "")
-          .padEnd(3, "X")
-          .substring(0, 6);
-        const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
-        const signupCode = `${prefix}-${suffix}`;
+        if (signupCode) {
+          // UPDATE existing signup code with real Stripe customer ID
+          const { error: updateError } = await supabaseClient
+            .from("signup_codes")
+            .update({ stripe_customer_id: customerId })
+            .eq("code", signupCode)
+            .eq("stripe_customer_id", "pending");
 
-        // Insert signup code
-        const { error: insertError } = await supabaseClient
-          .from("signup_codes")
-          .insert({
-            code: signupCode,
-            stripe_customer_id: customerId,
-            company_name: companyName,
-          });
-
-        if (insertError) {
-          console.error("Error creating signup code:", insertError);
+          if (updateError) {
+            console.error("Error updating signup code:", updateError);
+          } else {
+            console.log("Signup code updated with customer:", signupCode, customerId);
+          }
         } else {
-          console.log("Signup code created:", signupCode, "for customer:", customerId);
+          // Fallback: create new code (for legacy checkouts without code in metadata)
+          console.log("No signup_code in metadata, creating new code");
+          
+          const prefix = companyName
+            .substring(0, 6)
+            .toUpperCase()
+            .replace(/[^A-Z0-9]/g, "")
+            .padEnd(3, "X")
+            .substring(0, 6);
+          const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+          const newSignupCode = `${prefix}-${suffix}`;
+
+          const { error: insertError } = await supabaseClient
+            .from("signup_codes")
+            .insert({
+              code: newSignupCode,
+              stripe_customer_id: customerId,
+              company_name: companyName,
+            });
+
+          if (insertError) {
+            console.error("Error creating signup code:", insertError);
+          } else {
+            console.log("Signup code created:", newSignupCode, "for customer:", customerId);
+          }
         }
         break;
       }
