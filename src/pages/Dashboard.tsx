@@ -27,6 +27,7 @@ interface CarData {
   mileage: number | null;
   notes: string | null;
   photo_url?: string | null;
+  deleted_at?: string | null;
 }
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -188,8 +189,18 @@ const Dashboard = () => {
     await supabase.auth.signOut();
     navigate("/auth");
   };
-  const filteredCars = cars.filter(car => {
-    const query = searchQuery.toLowerCase();
+  // Determine if we should show archived cars
+  const isArchiveSearch = searchQuery.toLowerCase().includes("arkiv");
+  
+  // First filter by archive status
+  const baseCars = isArchiveSearch 
+    ? cars.filter(car => car.deleted_at !== null)
+    : cars.filter(car => car.deleted_at === null);
+  
+  // Then filter by search query (skip "arkiv" keyword for actual filtering)
+  const filteredCars = baseCars.filter(car => {
+    const query = searchQuery.toLowerCase().replace("arkiv", "").trim();
+    if (!query) return true; // If only "arkiv" was searched, show all archived
     return car.make.toLowerCase().includes(query) || car.model.toLowerCase().includes(query) || car.year.toString().includes(query) || car.vin && car.vin.toLowerCase().includes(query) || car.registration_number && car.registration_number.toLowerCase().includes(query);
   });
   if (loading) {
