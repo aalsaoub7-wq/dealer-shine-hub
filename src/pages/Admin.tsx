@@ -78,30 +78,46 @@ const Admin = () => {
 
   // Filtered data
   const filteredCustomers = useMemo(() => {
-    if (!customerSearch.trim()) return customers;
-    const search = customerSearch.toLowerCase();
-    return customers.filter(c =>
-      c.name.toLowerCase().includes(search) ||
-      c.signup_code?.toLowerCase().includes(search)
+    let result = customers;
+    if (customerSearch.trim()) {
+      const search = customerSearch.toLowerCase();
+      result = result.filter(c =>
+        c.name.toLowerCase().includes(search) ||
+        c.signup_code?.toLowerCase().includes(search)
+      );
+    }
+    // Sort by created_at descending (newest first)
+    return [...result].sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
   }, [customers, customerSearch]);
 
   const filteredLeads = useMemo(() => {
-    if (!leadSearch.trim()) return leads;
-    const search = leadSearch.toLowerCase();
-    return leads.filter(l =>
-      l.email.toLowerCase().includes(search)
+    let result = leads;
+    if (leadSearch.trim()) {
+      const search = leadSearch.toLowerCase();
+      result = result.filter(l =>
+        l.email.toLowerCase().includes(search)
+      );
+    }
+    // Sort by created_at descending (newest first)
+    return [...result].sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
   }, [leads, leadSearch]);
 
   const filteredBackgrounds = useMemo(() => {
-    if (!backgroundSearch.trim()) return lockedBackgrounds;
-    const search = backgroundSearch.toLowerCase();
-    return lockedBackgrounds.filter(bg =>
-      bg.name.toLowerCase().includes(search) ||
-      bg.template_id.toLowerCase().includes(search) ||
-      bg.unlock_code.toLowerCase().includes(search)
-    );
+    let result = lockedBackgrounds;
+    if (backgroundSearch.trim()) {
+      const search = backgroundSearch.toLowerCase();
+      result = result.filter(bg =>
+        bg.name.toLowerCase().includes(search) ||
+        bg.template_id.toLowerCase().includes(search) ||
+        bg.unlock_code.toLowerCase().includes(search)
+      );
+    }
+    // Sort by display_order descending (newest first, since new ones get higher order)
+    return [...result].sort((a, b) => b.display_order - a.display_order);
   }, [lockedBackgrounds, backgroundSearch]);
 
   // Check admin access
