@@ -93,30 +93,34 @@ const SortablePhotoCard = ({
       }}>
           <Checkbox checked={isSelected} onCheckedChange={checked => onSelect(photo.id, checked === true)} className="bg-background/80 border-2 h-12 w-12 md:h-6 md:w-6" />
         </div>
-        <img 
+        <div 
           {...listeners}
-          src={getOptimizedImageUrl(photo.url, {
-            width: 600,
-            height: 338,
-            quality: 75
-          })} 
-          alt="Bilfoto" 
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 cursor-grab active:cursor-grabbing" 
-          loading="lazy" 
-          decoding="async" 
-          onClick={() => onImageClick(photo.url)} 
-          onLoad={() => setLoadedUrl(photo.url)} 
-          onError={e => {
-            const el = e.currentTarget as HTMLImageElement;
-            setLoadedUrl(photo.url);
-            if (photo.original_url && el.src !== photo.original_url) {
-              el.src = photo.original_url;
-              return;
-            }
-            if (el.src.endsWith('.png')) el.src = el.src.replace('.png', '.webp');
-            else if (el.src.endsWith('.webp')) el.src = el.src.replace('.webp', '.png');
-          }} 
-        />
+          className="w-full h-full cursor-grab active:cursor-grabbing"
+          onClick={() => onImageClick(photo.url)}
+        >
+          <img 
+            src={getOptimizedImageUrl(photo.url, {
+              width: 600,
+              height: 338,
+              quality: 75
+            })} 
+            alt="Bilfoto" 
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 pointer-events-none" 
+            loading="lazy" 
+            decoding="async" 
+            onLoad={() => setLoadedUrl(photo.url)} 
+            onError={e => {
+              const el = e.currentTarget as HTMLImageElement;
+              setLoadedUrl(photo.url);
+              if (photo.original_url && el.src !== photo.original_url) {
+                el.src = photo.original_url;
+                return;
+              }
+              if (el.src.endsWith('.png')) el.src = el.src.replace('.png', '.webp');
+              else if (el.src.endsWith('.webp')) el.src = el.src.replace('.webp', '.png');
+            }} 
+          />
+        </div>
         <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-20 transition-opacity duration-500" />
         
         {/* Badges */}
