@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Copy, Check, ArrowLeft, Trash2 } from "lucide-react";
+import { Loader2, Copy, Check, ArrowLeft, Trash2, Upload, Plus } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 const ADMIN_EMAIL = "aalsaoub7@gmail.com";
 
@@ -31,6 +33,7 @@ interface LockedBackground {
   template_id: string;
   name: string;
   unlock_code: string;
+  image_url: string | null;
   is_active: boolean;
   display_order: number;
 }
@@ -55,6 +58,14 @@ const Admin = () => {
   const [signupCode, setSignupCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  
+  // Create background form
+  const [newBgName, setNewBgName] = useState("");
+  const [newBgDescription, setNewBgDescription] = useState("");
+  const [newBgUnlockCode, setNewBgUnlockCode] = useState("");
+  const [newBgFile, setNewBgFile] = useState<File | null>(null);
+  const [uploadingBg, setUploadingBg] = useState(false);
+  const [copiedUnlockCode, setCopiedUnlockCode] = useState<string | null>(null);
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -150,7 +161,7 @@ const Admin = () => {
       try {
         const { data, error } = await supabase
           .from("background_templates")
-          .select("id, template_id, name, unlock_code, is_active, display_order")
+          .select("id, template_id, name, unlock_code, image_url, is_active, display_order")
           .not("unlock_code", "is", null)
           .order("display_order", { ascending: true });
         
@@ -284,6 +295,122 @@ const Admin = () => {
       setTimeout(() => setCopiedCode(false), 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
+    }
+  };
+
+  const copyUnlockCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedUnlockCode(code);
+      setTimeout(() => setCopiedUnlockCode(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  const handleCreateBackground = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!newBgFile || !newBgName.trim() || !newBgUnlockCode.trim()) {
+      toast({
+        title: "Fel",
+        description: "Namn, bild och upplåsningskod krävs",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setUploadingBg(true);
+    
+    try {
+      // Generate template_id from name
+      const templateId = newBgName
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/-+/g, '-');
+      
+      const fileExt = newBgFile.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `${templateId}.${fileExt}`;
+      
+      console.log('Uploading background:', { templateId, fileName });
+      
+      // 1. Upload to Storage
+      const { error: uploadError } = await supabase.storage
+        .from('car-photos')
+        .upload(`backgrounds/${fileName}`, newBgFile, { 
+          upsert: true,
+          contentType: newBgFile.type 
+        });
+      
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        toast({
+          title: "Uppladdningsfel",
+          description: "Kunde inte ladda upp bilden: " + uploadError.message,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // 2. Get public URL
+      const { data: urlData } = supabase.storage
+        .from('car-photos')
+        .getPublicUrl(`backgrounds/${fileName}`);
+      
+      console.log('Image URL:', urlData.publicUrl);
+      
+      // 3. Create database entry via edge function
+      const { data, error: dbError } = await supabase.functions.invoke('create-background-template', {
+        body: {
+          template_id: templateId,
+          name: newBgName.trim(),
+          description: newBgDescription.trim() || null,
+          image_url: urlData.publicUrl,
+          unlock_code: newBgUnlockCode.trim()
+        }
+      });
+      
+      if (dbError) {
+        console.error('Database error:', dbError);
+        toast({
+          title: "Databasfel",
+          description: "Kunde inte skapa bakgrundsmall",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      toast({
+        title: "Bakgrund skapad!",
+        description: `"${newBgName}" har lagts till med koden ${newBgUnlockCode}`
+      });
+      
+      // Reset form
+      setNewBgName("");
+      setNewBgDescription("");
+      setNewBgUnlockCode("");
+      setNewBgFile(null);
+      
+      // Refresh backgrounds list
+      const { data: refreshedData } = await supabase
+        .from("background_templates")
+        .select("id, template_id, name, unlock_code, image_url, is_active, display_order")
+        .not("unlock_code", "is", null)
+        .order("display_order", { ascending: true });
+      
+      if (refreshedData) {
+        setLockedBackgrounds(refreshedData as LockedBackground[]);
+      }
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      toast({
+        title: "Fel",
+        description: "Ett oväntat fel uppstod",
+        variant: "destructive"
+      });
+    } finally {
+      setUploadingBg(false);
     }
   };
 
@@ -537,6 +664,90 @@ const Admin = () => {
           </CardContent>
         </Card>
 
+        {/* Create Background Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              Skapa ny låst bakgrund
+            </CardTitle>
+            <CardDescription>
+              Ladda upp en bakgrundsbild och sätt en upplåsningskod
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleCreateBackground} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="bgName">Namn *</Label>
+                  <Input
+                    id="bgName"
+                    placeholder="Premium Studio"
+                    value={newBgName}
+                    onChange={(e) => setNewBgName(e.target.value)}
+                    disabled={uploadingBg}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bgUnlockCode">Upplåsningskod *</Label>
+                  <Input
+                    id="bgUnlockCode"
+                    placeholder="PREMIUM2024"
+                    value={newBgUnlockCode}
+                    onChange={(e) => setNewBgUnlockCode(e.target.value.toUpperCase())}
+                    disabled={uploadingBg}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="bgDescription">Beskrivning (valfritt)</Label>
+                <Textarea
+                  id="bgDescription"
+                  placeholder="En exklusiv studiobakgrund..."
+                  value={newBgDescription}
+                  onChange={(e) => setNewBgDescription(e.target.value)}
+                  disabled={uploadingBg}
+                  rows={2}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="bgFile">Bakgrundsbild *</Label>
+                <div className="flex items-center gap-4">
+                  <Input
+                    id="bgFile"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setNewBgFile(e.target.files?.[0] || null)}
+                    disabled={uploadingBg}
+                    className="flex-1"
+                  />
+                  {newBgFile && (
+                    <span className="text-sm text-muted-foreground">
+                      {newBgFile.name}
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <Button type="submit" disabled={uploadingBg || !newBgFile || !newBgName || !newBgUnlockCode}>
+                {uploadingBg ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Skapar...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Skapa bakgrund
+                  </>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
         {/* Locked Backgrounds Card */}
         <Card>
           <CardHeader>
@@ -558,6 +769,7 @@ const Admin = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-16">Bild</TableHead>
                     <TableHead>Namn</TableHead>
                     <TableHead>Template ID</TableHead>
                     <TableHead>Upplåsningskod</TableHead>
@@ -567,14 +779,41 @@ const Admin = () => {
                 <TableBody>
                   {lockedBackgrounds.map((bg) => (
                     <TableRow key={bg.id}>
+                      <TableCell>
+                        {bg.image_url ? (
+                          <img 
+                            src={bg.image_url} 
+                            alt={bg.name}
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+                            <span className="text-xs text-muted-foreground">—</span>
+                          </div>
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium">{bg.name}</TableCell>
                       <TableCell className="text-muted-foreground font-mono text-sm">
                         {bg.template_id}
                       </TableCell>
                       <TableCell>
-                        <code className="px-2 py-1 bg-primary/10 rounded text-sm">
-                          {bg.unlock_code}
-                        </code>
+                        <div className="flex items-center gap-2">
+                          <code className="px-2 py-1 bg-primary/10 rounded text-sm">
+                            {bg.unlock_code}
+                          </code>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => copyUnlockCode(bg.unlock_code)}
+                          >
+                            {copiedUnlockCode === bg.unlock_code ? (
+                              <Check className="h-3 w-3" />
+                            ) : (
+                              <Copy className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {bg.is_active ? (
