@@ -69,6 +69,7 @@ interface CarData {
   gearbox: string | null;
   description: string | null;
   publish_on_blocket: boolean;
+  deleted_at?: string | null;
 }
 
 interface Photo {
@@ -99,6 +100,7 @@ const CarDetail = () => {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadType, setUploadType] = useState<"main" | "documentation">("main");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editedNotes, setEditedNotes] = useState<string>("");
   const [isSavingNotes, setIsSavingNotes] = useState(false);
@@ -333,10 +335,39 @@ const CarDetail = () => {
     try {
       const { error } = await supabase.from("cars").delete().eq("id", id);
       if (error) throw error;
+      toast({
+        title: "Bil raderad",
+        description: "Bilen och alla foton har permanent raderats.",
+      });
       navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Fel vid radering av bil",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleArchiveCar = async () => {
+    try {
+      const newDeletedAt = car?.deleted_at ? null : new Date().toISOString();
+      const { error } = await supabase
+        .from("cars")
+        .update({ deleted_at: newDeletedAt })
+        .eq("id", id);
+      if (error) throw error;
+      
+      toast({
+        title: car?.deleted_at ? "Bil avarkiverad" : "Bil arkiverad",
+        description: car?.deleted_at 
+          ? "Bilen syns nu på startsidan igen" 
+          : "Bilen är nu arkiverad. Sök på \"arkiv\" för att hitta den.",
+      });
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast({
+        title: "Fel",
         description: error.message,
         variant: "destructive",
       });
@@ -1885,12 +1916,48 @@ const CarDetail = () => {
           saving={watermarkEditorSaving}
         />
       )}
+      {/* Delete/Archive Choice Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle>Är du säker?</AlertDialogTitle>
+            <AlertDialogTitle>Vad vill du göra med bilen?</AlertDialogTitle>
             <AlertDialogDescription>
-              Detta kommer permanent radera bilen och alla tillhörande foton. Denna åtgärd kan inte ångras.
+              {car?.deleted_at 
+                ? "Bilen är arkiverad. Du kan avarkivera den eller radera permanent."
+                : "Välj om du vill arkivera bilen (dölj från startsidan) eller radera den permanent."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                handleArchiveCar();
+              }}
+            >
+              {car?.deleted_at ? "Avarkivera" : "Arkivera"}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setConfirmDeleteOpen(true);
+              }}
+            >
+              Radera permanent
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm Permanent Delete Dialog */}
+      <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Är du helt säker?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Detta kommer <strong>permanent radera</strong> bilen och alla tillhörande foton. Denna åtgärd kan inte ångras.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1899,7 +1966,7 @@ const CarDetail = () => {
               onClick={handleDeleteCar}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Ta bort
+              Ja, radera permanent
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
