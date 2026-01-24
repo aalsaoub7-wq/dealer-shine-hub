@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trash2, Check, GripVertical, Maximize2, Stamp, Palette, Edit } from "lucide-react";
+import { Trash2, Check, Maximize2, Stamp, Palette, Edit } from "lucide-react";
 import { RegenerateOptionsDialog } from "./RegenerateOptionsDialog";
 import { WatermarkOptionsDialog } from "./WatermarkOptionsDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -84,9 +84,6 @@ const SortablePhotoCard = ({
               {photo.is_processing ? "Bild Behandlas" : "Laddar..."}
             </p>
           </div>}
-        <div className="absolute top-2 left-2 z-10 cursor-grab active:cursor-grabbing p-2 bg-background/80 rounded-md opacity-0 group-hover:opacity-100 transition-opacity" {...listeners}>
-          <GripVertical className="w-4 h-4 text-foreground" />
-        </div>
         <div className={`absolute bottom-2 left-2 z-10 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} onClick={e => e.stopPropagation()} onPointerDown={e => {
         // Prevent iOS focus-scroll on touch
         if (e.pointerType === "touch") {
@@ -96,19 +93,30 @@ const SortablePhotoCard = ({
       }}>
           <Checkbox checked={isSelected} onCheckedChange={checked => onSelect(photo.id, checked === true)} className="bg-background/80 border-2 h-12 w-12 md:h-6 md:w-6" />
         </div>
-        <img src={getOptimizedImageUrl(photo.url, {
-        width: 600,
-        height: 338,
-        quality: 75
-      })} alt="Bilfoto" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 cursor-pointer" loading="lazy" decoding="async" onClick={() => onImageClick(photo.url)} onLoad={() => setLoadedUrl(photo.url)} onError={e => {
-        const el = e.currentTarget as HTMLImageElement;
-        setLoadedUrl(photo.url); // Show image even on error
-        if (photo.original_url && el.src !== photo.original_url) {
-          el.src = photo.original_url;
-          return;
-        }
-        if (el.src.endsWith('.png')) el.src = el.src.replace('.png', '.webp');else if (el.src.endsWith('.webp')) el.src = el.src.replace('.webp', '.png');
-      }} />
+        <img 
+          {...listeners}
+          src={getOptimizedImageUrl(photo.url, {
+            width: 600,
+            height: 338,
+            quality: 75
+          })} 
+          alt="Bilfoto" 
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 cursor-grab active:cursor-grabbing" 
+          loading="lazy" 
+          decoding="async" 
+          onClick={() => onImageClick(photo.url)} 
+          onLoad={() => setLoadedUrl(photo.url)} 
+          onError={e => {
+            const el = e.currentTarget as HTMLImageElement;
+            setLoadedUrl(photo.url);
+            if (photo.original_url && el.src !== photo.original_url) {
+              el.src = photo.original_url;
+              return;
+            }
+            if (el.src.endsWith('.png')) el.src = el.src.replace('.png', '.webp');
+            else if (el.src.endsWith('.webp')) el.src = el.src.replace('.webp', '.png');
+          }} 
+        />
         <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-20 transition-opacity duration-500" />
         
         {/* Badges */}
@@ -161,9 +169,15 @@ const PhotoGalleryDraggable = ({
   const [items, setItems] = useState(photos);
 
   // Sync internal state when photos prop changes (after upload/edit/watermark)
+  // Smart comparison to prevent re-renders when only display_order changes from drag-drop
   useEffect(() => {
-    setItems(photos);
-  }, [photos]);
+    const currentIds = items.map(i => `${i.id}-${i.url}-${i.is_processing}`).join(',');
+    const newIds = photos.map(p => `${p.id}-${p.url}-${p.is_processing}`).join(',');
+    
+    if (currentIds !== newIds) {
+      setItems(photos);
+    }
+  }, [photos, items]);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [regenerateOptionsPhoto, setRegenerateOptionsPhoto] = useState<Photo | null>(null);
   const [watermarkOptionsId, setWatermarkOptionsId] = useState<string | null>(null);
