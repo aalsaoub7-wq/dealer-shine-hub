@@ -35,9 +35,8 @@ const jsonLdData = {
     "description": "AI-powered car photo editing platform for professional car dealers. Transform car photos with studio backgrounds in seconds.",
     "offers": {
       "@type": "Offer",
-      "price": "0",
       "priceCurrency": "SEK",
-      "description": "21 dagars gratis provperiod med 50 bilder"
+      "description": "Professionell AI-bilredigering för återförsäljare"
     },
     "aggregateRating": {
       "@type": "AggregateRating",

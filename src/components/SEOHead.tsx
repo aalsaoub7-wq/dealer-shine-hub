@@ -59,7 +59,7 @@ export const SEOHead = ({ title, description, canonicalPath }: SEOHeadProps) => 
       if (metaDescription) {
         metaDescription.setAttribute(
           "content",
-          "Professionell bilhanterare för återförsäljare. AI-redigering av bilfoton på 20-30 sekunder. Prova gratis i 21 dagar - 50 bilder utan kreditkort."
+          "Professionell bilhanterare för återförsäljare. AI-redigering av bilfoton på 20-30 sekunder."
         );
       }
     };
