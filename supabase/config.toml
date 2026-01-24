@@ -71,3 +71,6 @@ verify_jwt = true
 
 [functions.manage-leads]
 verify_jwt = true
+
+[functions.create-background-template]
+verify_jwt = true
