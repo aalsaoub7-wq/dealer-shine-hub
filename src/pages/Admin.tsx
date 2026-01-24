@@ -26,6 +26,15 @@ interface Lead {
   created_at: string;
 }
 
+interface LockedBackground {
+  id: string;
+  template_id: string;
+  name: string;
+  unlock_code: string;
+  is_active: boolean;
+  display_order: number;
+}
+
 const Admin = () => {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -34,6 +43,8 @@ const Admin = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [leadsLoading, setLeadsLoading] = useState(true);
   const [deletingLeadId, setDeletingLeadId] = useState<string | null>(null);
+  const [lockedBackgrounds, setLockedBackgrounds] = useState<LockedBackground[]>([]);
+  const [backgroundsLoading, setBackgroundsLoading] = useState(true);
   
   // Create customer form
   const [companyName, setCompanyName] = useState("");
@@ -127,6 +138,36 @@ const Admin = () => {
     };
     
     fetchLeads();
+  }, [isAuthorized]);
+
+  // Fetch locked backgrounds
+  useEffect(() => {
+    if (!isAuthorized) return;
+    
+    const fetchLockedBackgrounds = async () => {
+      setBackgroundsLoading(true);
+      
+      try {
+        const { data, error } = await supabase
+          .from("background_templates")
+          .select("id, template_id, name, unlock_code, is_active, display_order")
+          .not("unlock_code", "is", null)
+          .order("display_order", { ascending: true });
+        
+        if (error) {
+          console.error("Error fetching locked backgrounds:", error);
+          return;
+        }
+        
+        setLockedBackgrounds((data || []) as LockedBackground[]);
+      } catch (err) {
+        console.error("Error fetching locked backgrounds:", err);
+      } finally {
+        setBackgroundsLoading(false);
+      }
+    };
+    
+    fetchLockedBackgrounds();
   }, [isAuthorized]);
 
   const handleDeleteLead = async (id: string) => {
@@ -487,6 +528,60 @@ const Admin = () => {
                             <Trash2 className="h-4 w-4 text-destructive" />
                           )}
                         </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Locked Backgrounds Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Låsta bakgrunder</CardTitle>
+            <CardDescription>
+              Bakgrundsmallar som kräver upplåsningskod
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {backgroundsLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : lockedBackgrounds.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">
+                Inga låsta bakgrunder
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Namn</TableHead>
+                    <TableHead>Template ID</TableHead>
+                    <TableHead>Upplåsningskod</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {lockedBackgrounds.map((bg) => (
+                    <TableRow key={bg.id}>
+                      <TableCell className="font-medium">{bg.name}</TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-sm">
+                        {bg.template_id}
+                      </TableCell>
+                      <TableCell>
+                        <code className="px-2 py-1 bg-primary/10 rounded text-sm">
+                          {bg.unlock_code}
+                        </code>
+                      </TableCell>
+                      <TableCell>
+                        {bg.is_active ? (
+                          <span className="text-green-600">Aktiv</span>
+                        ) : (
+                          <span className="text-muted-foreground">Inaktiv</span>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
