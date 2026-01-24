@@ -768,14 +768,15 @@ export const AiSettingsDialog = () => {
                         // Show if unlocked
                         return unlockedBackgrounds.includes(bg.template_id);
                       })
-                      .map(bg => <div key={bg.template_id} className={`relative cursor-pointer rounded-lg border-2 p-3 transition-all hover:border-primary ${selectedBackgroundId === bg.template_id && !bg.is_custom ? "border-primary bg-primary/5" : "border-border"} ${bg.is_custom ? "border-dashed" : ""}`} onClick={() => {
-                      if (bg.is_custom) {
+                      .map(bg => <div key={bg.template_id} className={`relative cursor-pointer rounded-lg border-2 p-3 transition-all hover:border-primary ${selectedBackgroundId === bg.template_id && bg.template_id !== "custom-studio" ? "border-primary bg-primary/5" : "border-border"} ${bg.template_id === "custom-studio" ? "border-dashed" : ""}`} onClick={() => {
+                      // Only the special "custom-studio" template opens the code dialog
+                      if (bg.template_id === "custom-studio") {
                         setCustomStudioDialogOpen(true);
                       } else {
                         setSelectedBackgroundId(bg.template_id);
                       }
                     }}>
-                          {bg.is_custom ? <div className="aspect-[4/3] mb-2 overflow-hidden rounded-md bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                          {bg.template_id === "custom-studio" ? <div className="aspect-[4/3] mb-2 overflow-hidden rounded-md bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
                               <span className="text-white font-medium text-sm">Få din egna studio </span>
                             </div> : <div className="aspect-[4/3] mb-2 overflow-hidden rounded-md bg-muted relative">
                               {!loadedThumbnails[bg.template_id] && (
