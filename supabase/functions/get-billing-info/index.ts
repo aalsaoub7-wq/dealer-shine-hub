@@ -349,7 +349,8 @@ serve(async (req) => {
         console.error("[BILLING-INFO] Error creating portal session:", error);
       }
     } else if (company.id === ADMIN_TEST_COMPANY_ID) {
-      console.log('[BILLING-INFO] Skipping Stripe API calls for admin test account');
+      console.log('[BILLING-INFO] Admin test account - granting unlimited access');
+      hasPaymentMethod = true; // Allow unlimited editing for admin test account
     }
 
     return new Response(
