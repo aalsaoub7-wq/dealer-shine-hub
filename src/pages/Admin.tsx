@@ -11,7 +11,8 @@ import { Loader2, Copy, Check, ArrowLeft, Trash2, Upload, Plus, Search } from "l
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-const ADMIN_EMAIL = "aalsaoub7@gmail.com";
+// Admin company ID - only users in this company can access admin page
+const ADMIN_COMPANY_ID = 'e0496e49-c30b-4fbd-a346-d8dfeacdf1ea';
 
 interface Customer {
   id: string;
@@ -120,7 +121,7 @@ const Admin = () => {
     return [...result].sort((a, b) => b.display_order - a.display_order);
   }, [lockedBackgrounds, backgroundSearch]);
 
-  // Check admin access
+  // Check admin access by company ID
   useEffect(() => {
     const checkAccess = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -130,7 +131,14 @@ const Admin = () => {
         return;
       }
       
-      if (user.email !== ADMIN_EMAIL) {
+      // Check if user belongs to admin company
+      const { data: userCompany } = await supabase
+        .from('user_companies')
+        .select('company_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (userCompany?.company_id !== ADMIN_COMPANY_ID) {
         toast({
           title: "Åtkomst nekad",
           description: "Du har inte behörighet att se denna sida",
