@@ -3,15 +3,17 @@ import { useNavigate } from "react-router-dom";
 import luveroLogo from "@/assets/luvero-logo-new.png";
 import luveroLogoText from "@/assets/luvero-logo-text.png";
 import adstuffLogo from "@/assets/adstuff-logo.png";
-import { Brain, Link2, Shield, Globe, Users, DollarSign, Upload, Wand2, Download, Check, ChevronDown, Menu, X, Package, Phone, Mail } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Brain, Link2, Shield, Globe, Users, Upload, Wand2, Download, ChevronDown, Menu, X, Package, Phone, Mail, Check } from "lucide-react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { TypewriterText } from "@/components/TypewriterText";
-import { ExclusiveProgram } from "@/components/ExclusiveProgram";
-import { StatsParallaxSection } from "@/components/StatsParallaxSection";
 import LogoMarquee from "@/components/LogoMarquee";
 import { analytics } from "@/lib/analytics";
+
+// Lazy load heavy below-the-fold components
+const ExclusiveProgram = lazy(() => import("@/components/ExclusiveProgram").then(m => ({ default: m.ExclusiveProgram })));
+const StatsParallaxSection = lazy(() => import("@/components/StatsParallaxSection").then(m => ({ default: m.StatsParallaxSection })));
 
 // JSON-LD structured data for SEO
 const jsonLdData = {
@@ -225,7 +227,9 @@ const Landing = () => {
       <LogoMarquee />
 
       {/* Stats Parallax Section */}
-      <StatsParallaxSection className="pt-[40px] pb-0" />
+      <Suspense fallback={<div className="min-h-[400px]" />}>
+        <StatsParallaxSection className="pt-[40px] pb-0" />
+      </Suspense>
 
       {/* How It Works */}
       <div className="h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
@@ -728,7 +732,9 @@ const Landing = () => {
       </section>
 
       {/* Exclusive VIP Program Section */}
-      <ExclusiveProgram />
+      <Suspense fallback={<div className="min-h-[600px]" />}>
+        <ExclusiveProgram />
+      </Suspense>
 
       {/* FAQ Section - REMOVED FROM RENDERING */}
       {false && <section className="py-20 md:py-32 scroll-animate">
