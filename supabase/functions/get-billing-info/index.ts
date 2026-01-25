@@ -12,6 +12,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// Admin test account - special pricing for testing without Stripe
+const ADMIN_TEST_COMPANY_ID = 'e0496e49-c30b-4fbd-a346-d8dfeacdf1ea';
+const ADMIN_TEST_PRICING = {
+  name: 'Test',
+  monthlyFee: 0,
+  pricePerImage: 3.2,
+  color: 'primary',
+};
+
 // Fallback plan pricing (used only if Stripe data not available)
 const FALLBACK_PLAN_PRICING = {
   start: {
@@ -202,6 +211,12 @@ serve(async (req) => {
       }
     }
 
+    // Special pricing for admin test account (bypasses Stripe)
+    if (company.id === ADMIN_TEST_COMPANY_ID) {
+      console.log('[BILLING-INFO] Using admin test pricing for company:', company.id);
+      planConfig = ADMIN_TEST_PRICING;
+    }
+
     // Fallback to hardcoded pricing if no dynamic pricing available
     if (!planConfig) {
       currentPlan = currentPlan || 'start';
@@ -211,7 +226,7 @@ serve(async (req) => {
     // Check if there's an active subscription in database
     const hasActiveSubscription = !!(subscription && ["active", "trialing"].includes(subscription.status));
 
-    if (!company.stripe_customer_id) {
+    if (!company.stripe_customer_id && company.id !== ADMIN_TEST_COMPANY_ID) {
       return new Response(
         JSON.stringify({
           hasCustomer: false,
