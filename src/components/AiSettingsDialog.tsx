@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Settings, X, Palette, Stamp, Globe, CreditCard, Users, Check, User, Loader2 } from "lucide-react";
+import { Settings, X, Palette, Stamp, Globe, CreditCard, Users, Check, User, Loader2, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { isNativeApp } from "@/lib/utils";
 import { openExternalUrl } from "@/lib/nativeCapabilities";
@@ -22,6 +22,9 @@ import { TeamManagement } from "./TeamManagement";
 import { AccountSettings } from "./AccountSettings";
 import { useQuery } from "@tanstack/react-query";
 import { CustomStudioDialog } from "./CustomStudioDialog";
+
+// Admin company ID - only this company sees admin button
+const ADMIN_COMPANY_ID = 'e0496e49-c30b-4fbd-a346-d8dfeacdf1ea';
 
 // Type for background templates from database
 export interface BackgroundTemplate {
@@ -83,6 +86,7 @@ export const AiSettingsDialog = () => {
   const [unlockedBackgrounds, setUnlockedBackgrounds] = useState<string[]>([]);
   const [thumbnailsLoaded, setThumbnailsLoaded] = useState(false);
   const [loadedThumbnails, setLoadedThumbnails] = useState<Record<string, boolean>>({});
+  const [userCompanyId, setUserCompanyId] = useState<string | null>(null);
 
   // Fetch background templates from database
   const { data: backgroundTemplates = [] } = useQuery({
@@ -101,7 +105,21 @@ export const AiSettingsDialog = () => {
     }
   });
 
-  // Helper: derive stable local thumbnail path from image_url
+  // Fetch user's company ID to check if they're in admin company
+  useEffect(() => {
+    const fetchUserCompanyId = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('user_companies')
+          .select('company_id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        setUserCompanyId(data?.company_id || null);
+      }
+    };
+    fetchUserCompanyId();
+  }, []);
   // e.g. "/backgrounds/studio-background.jpg" -> "/backgrounds/thumbnails/studio-background-thumb.jpg"
   const getLocalThumbnailUrl = (imageUrl: string | null): string => {
     if (!imageUrl) return '/placeholder.svg';
@@ -674,6 +692,18 @@ export const AiSettingsDialog = () => {
     }
   };
   return <div className="flex gap-2">
+      {/* Admin button - only visible to admin company */}
+      {userCompanyId === ADMIN_COMPANY_ID && (
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={() => navigate("/admin")}
+          title="Admin"
+        >
+          <Shield className="h-4 w-4" />
+        </Button>
+      )}
+      
       <Button variant="outline" size="icon" onClick={handleGuideClick}>
         <span className="text-lg font-bold">?</span>
       </Button>
