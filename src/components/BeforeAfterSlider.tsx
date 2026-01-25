@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeftRight, Loader2 } from 'lucide-react';
-import beforeImage from '@/assets/before-car.webp';
+import beforeImage from '@/assets/before-car-tiguan.jpg';
 import afterImage from '@/assets/after-car.webp';
 
 export const BeforeAfterSlider = () => {

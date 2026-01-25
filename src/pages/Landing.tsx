@@ -6,15 +6,13 @@ import adstuffLogo from "@/assets/adstuff-logo.png";
 import { Brain, Shield, Globe, Users, ChevronDown, Menu, X, Package, Check, Phone, Mail } from "lucide-react";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 
 
-// Lazy load heavy components
-const BeforeAfterSlider = lazy(() => import("@/components/BeforeAfterSlider").then(m => ({ default: m.BeforeAfterSlider })));
+// Lazy load heavy below-the-fold components
 import { TypewriterText } from "@/components/TypewriterText";
 import LogoMarquee from "@/components/LogoMarquee";
 import { analytics } from "@/lib/analytics";
-
-// Lazy load heavy below-the-fold components
 const ExclusiveProgram = lazy(() => import("@/components/ExclusiveProgram").then(m => ({ default: m.ExclusiveProgram })));
 const StatsParallaxSection = lazy(() => import("@/components/StatsParallaxSection").then(m => ({ default: m.StatsParallaxSection })));
 
@@ -218,9 +216,7 @@ const Landing = () => {
             <div className="relative animate-fade-in overflow-visible pb-0 my-[20px] pt-[60px]">
               {/* Soft glow effect */}
               <div className="absolute -inset-8 bg-gradient-to-r from-red-500/40 via-orange-500/30 to-red-500/40 rounded-3xl blur-3xl opacity-80 pointer-events-none" />
-              <Suspense fallback={<div className="aspect-[4/3] bg-muted rounded-3xl animate-pulse" />}>
-                <BeforeAfterSlider />
-              </Suspense>
+              <BeforeAfterSlider />
             </div>
           </div>
         </div>
