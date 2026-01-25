@@ -47,6 +47,24 @@ serve(async (req) => {
       throw new Error("Company not found");
     }
 
+    // Admin test account - skip Stripe usage reporting entirely
+    const ADMIN_TEST_COMPANY_ID = 'e0496e49-c30b-4fbd-a346-d8dfeacdf1ea';
+    
+    if (userCompany.company_id === ADMIN_TEST_COMPANY_ID) {
+      console.log("[REPORT-USAGE] Admin test account - skipping Stripe usage reporting");
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          skipped: true,
+          reason: "Admin test account - Stripe reporting bypassed"
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    }
+
     // Get company's subscription with plan
     const { data: subscription, error: subError } = await supabase
       .from("subscriptions")
