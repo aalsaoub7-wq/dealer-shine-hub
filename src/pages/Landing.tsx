@@ -253,7 +253,7 @@ const Landing = () => {
             padding: '56.25% 0 0 0',
             position: 'relative'
           }}>
-              <iframe src="https://player.vimeo.com/video/1154144228?badge=0&autopause=0&player_id=0&app_id=58479" frameBorder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerPolicy="strict-origin-when-cross-origin" style={{
+              <iframe src="https://player.vimeo.com/video/1154144228?badge=0&autopause=0&player_id=0&app_id=58479" frameBorder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerPolicy="strict-origin-when-cross-origin" loading="lazy" style={{
               position: 'absolute',
               top: 0,
               left: 0,
@@ -353,8 +353,8 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Comparison Section - HIDDEN */}
-      <section className="hidden py-20 md:py-32 scroll-animate">
+      {/* Comparison Section - REMOVED FROM RENDERING */}
+      {false && <section className="py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -579,10 +579,10 @@ const Landing = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* Pricing Section - HIDDEN */}
-      <section id="pricing" className="hidden py-20 md:py-32 scroll-animate">
+      {/* Pricing Section - REMOVED FROM RENDERING */}
+      {false && <section id="pricing" className="py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -697,7 +697,7 @@ const Landing = () => {
             </p>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* Book Demo Section */}
       <section id="book-demo" className="py-20 md:py-32 scroll-animate">
@@ -719,6 +719,7 @@ const Landing = () => {
                 src="https://calendar.notion.so/meet/alfred-zbpoy1pru/l68e4p14" 
                 className="w-full h-[800px] border-0"
                 title="Boka demo"
+                loading="lazy"
                 style={{ overflow: 'hidden' }}
               />
             </div>
@@ -729,8 +730,8 @@ const Landing = () => {
       {/* Exclusive VIP Program Section */}
       <ExclusiveProgram />
 
-      {/* FAQ Section - HIDDEN */}
-      <section className="hidden py-20 md:py-32 scroll-animate">
+      {/* FAQ Section - REMOVED FROM RENDERING */}
+      {false && <section className="py-20 md:py-32 scroll-animate">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -800,7 +801,7 @@ const Landing = () => {
 
           </Accordion>
         </div>
-      </section>
+      </section>}
 
       {/* Final CTA Section */}
       <section className="py-20 md:py-32 scroll-animate">
