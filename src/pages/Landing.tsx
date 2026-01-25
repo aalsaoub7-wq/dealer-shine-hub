@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import luveroLogo from "@/assets/luvero-logo-new.png";
 import luveroLogoText from "@/assets/luvero-logo-text.png";
 import adstuffLogo from "@/assets/adstuff-logo.png";
-import { Brain, Link2, Shield, Globe, Users, Upload, Wand2, Download, ChevronDown, Menu, X, Package, Phone, Mail, Check } from "lucide-react";
+import { Brain, Shield, Globe, Users, ChevronDown, Menu, X, Package, Check, Phone, Mail } from "lucide-react";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
+
+// Lazy load heavy components
+const BeforeAfterSlider = lazy(() => import("@/components/BeforeAfterSlider").then(m => ({ default: m.BeforeAfterSlider })));
 import { TypewriterText } from "@/components/TypewriterText";
 import LogoMarquee from "@/components/LogoMarquee";
 import { analytics } from "@/lib/analytics";
@@ -117,8 +119,8 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = '/'}>
-              <img src={luveroLogo} alt="" className="h-8 w-8" />
-              <img src={luveroLogoText} alt="" className="h-5" />
+              <img src={luveroLogo} alt="" className="h-8 w-8" width={32} height={32} />
+              <img src={luveroLogoText} alt="" className="h-5" width={100} height={20} />
             </div>
 
             {/* Desktop Navigation */}
@@ -215,9 +217,9 @@ const Landing = () => {
             <div className="relative animate-fade-in overflow-visible pb-0 my-[20px] pt-[60px]">
               {/* Soft glow effect */}
               <div className="absolute -inset-8 bg-gradient-to-r from-red-500/40 via-orange-500/30 to-red-500/40 rounded-3xl blur-3xl opacity-80 pointer-events-none" />
-              <div className="relative">
+              <Suspense fallback={<div className="aspect-[4/3] bg-muted rounded-3xl animate-pulse" />}>
                 <BeforeAfterSlider />
-              </div>
+              </Suspense>
             </div>
           </div>
         </div>
@@ -344,9 +346,9 @@ const Landing = () => {
 
             {/* Feature 6 */}
             <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
-              <div className="flex gap-2 mb-4">
-                <img src="/assets/app-store-badge.webp" alt="" className="h-10 w-auto" />
-                <img src="/assets/google-play-badge.webp" alt="" className="h-10 w-auto" />
+            <div className="flex gap-2 mb-4">
+                <img src="/assets/app-store-badge.webp" alt="" className="h-10 w-auto" width={120} height={40} loading="lazy" />
+                <img src="/assets/google-play-badge.webp" alt="" className="h-10 w-auto" width={135} height={40} loading="lazy" />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">​Finns där appar finns <span className="ml-1 inline-flex items-center rounded-full bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">Beta (Kommer Snart)</span></h3>
               <p className="text-muted-foreground">

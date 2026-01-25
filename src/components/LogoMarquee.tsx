@@ -30,7 +30,7 @@ const LogoMarquee = () => {
           {/* Scrolling track */}
           <div className="flex animate-marquee">
             {[0, 1].map(trackIndex => <div key={trackIndex} className="flex shrink-0 items-center gap-20 px-10">
-                {[...Array(4)].map((_, setIndex) => logos.map((logo, i) => <img key={`${trackIndex}-${setIndex}-${i}`} src={logo.src} alt="" loading="lazy" fetchPriority="low" className="h-16 md:h-20 w-auto opacity-60 hover:opacity-100 transition-opacity" />))}
+                {[...Array(4)].map((_, setIndex) => logos.map((logo, i) => <img key={`${trackIndex}-${setIndex}-${i}`} src={logo.src} alt="" loading="lazy" fetchPriority="low" width={80} height={64} className="h-16 md:h-20 w-auto opacity-60 hover:opacity-100 transition-opacity" />))}
               </div>)}
           </div>
         </div>
