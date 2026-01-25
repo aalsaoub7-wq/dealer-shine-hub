@@ -195,6 +195,8 @@ export const BeforeAfterSlider = () => {
           loading="eager"
           decoding="async"
           fetchPriority="high"
+          width={1200}
+          height={900}
           onLoad={handleImageLoad}
         />
         {/* Before Label */}
@@ -220,6 +222,8 @@ export const BeforeAfterSlider = () => {
           loading="eager"
           decoding="async"
           fetchPriority="high"
+          width={1200}
+          height={900}
           onLoad={handleImageLoad}
         />
         {/* After Label */}

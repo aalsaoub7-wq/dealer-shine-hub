@@ -7,6 +7,7 @@ import { Brain, Shield, Globe, Users, ChevronDown, Menu, X, Package, Check, Phon
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
+
 // Lazy load heavy components
 const BeforeAfterSlider = lazy(() => import("@/components/BeforeAfterSlider").then(m => ({ default: m.BeforeAfterSlider })));
 import { TypewriterText } from "@/components/TypewriterText";
