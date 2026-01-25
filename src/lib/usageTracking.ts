@@ -5,6 +5,10 @@ export type PlanType = 'start' | 'pro' | 'elit';
 // Joels Bil company ID - undantag från gratis regenerering
 const JOELS_BIL_COMPANY_ID = '4ef5e6f6-28c8-4291-8c08-9b5d46466598';
 
+// Admin test account - special pricing override
+const ADMIN_TEST_COMPANY_ID = 'e0496e49-c30b-4fbd-a346-d8dfeacdf1ea';
+const ADMIN_TEST_PRICE_PER_IMAGE = 3.2;
+
 export const PLANS = {
   start: {
     id: 'start',
@@ -148,8 +152,17 @@ export const trackUsage = async (
     }
 
     // Track each edited image with plan-specific pricing
+    // Admin test account uses custom pricing override
+    const pricePerImage = company.id === ADMIN_TEST_COMPANY_ID 
+      ? ADMIN_TEST_PRICE_PER_IMAGE 
+      : planPricing.pricePerImage;
+    
+    if (company.id === ADMIN_TEST_COMPANY_ID) {
+      console.log('[USAGE] Using admin test pricing: 3.2 kr/image');
+    }
+
     const newCount = (existingStats?.edited_images_count || 0) + 1;
-    const newCost = (existingStats?.edited_images_cost || 0) + planPricing.pricePerImage;
+    const newCost = (existingStats?.edited_images_cost || 0) + pricePerImage;
 
     const updates = {
       user_id: user.id,
