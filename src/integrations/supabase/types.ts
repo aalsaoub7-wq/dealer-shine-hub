@@ -418,6 +418,7 @@ export type Database = {
           created_at: string | null
           display_order: number | null
           edit_type: string | null
+          has_free_regeneration: boolean | null
           has_watermark: boolean | null
           id: string
           interior_background_url: string | null
@@ -439,6 +440,7 @@ export type Database = {
           created_at?: string | null
           display_order?: number | null
           edit_type?: string | null
+          has_free_regeneration?: boolean | null
           has_watermark?: boolean | null
           id?: string
           interior_background_url?: string | null
@@ -460,6 +462,7 @@ export type Database = {
           created_at?: string | null
           display_order?: number | null
           edit_type?: string | null
+          has_free_regeneration?: boolean | null
           has_watermark?: boolean | null
           id?: string
           interior_background_url?: string | null

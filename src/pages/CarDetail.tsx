@@ -28,7 +28,7 @@ import EditCarDialog from "@/components/EditCarDialog";
 import { applyWatermark } from "@/lib/watermark";
 import { compositeCarOnBackground } from "@/lib/carCompositing";
 import { compositeCarOnSolidColor } from "@/lib/interiorCompositing";
-import { trackUsage } from "@/lib/usageTracking";
+import { trackUsage, trackRegenerationUsage } from "@/lib/usageTracking";
 import { CarDetailSkeleton } from "@/components/CarDetailSkeleton";
 import { useHaptics } from "@/hooks/useHaptics";
 import { nativeShare } from "@/lib/nativeCapabilities";
@@ -89,6 +89,7 @@ interface Photo {
   pre_watermark_url?: string | null;
   edit_type?: string | null;
   interior_background_url?: string | null;
+  has_free_regeneration?: boolean;
 }
 
 const CarDetail = () => {
@@ -644,6 +645,7 @@ const CarDetail = () => {
             is_edited: true,
             is_processing: false,
             edit_type: 'studio',
+            has_free_regeneration: true, // Grant one free regeneration
           })
             .eq("id", photo.id);
 
@@ -808,6 +810,7 @@ const CarDetail = () => {
               is_processing: false,
               edit_type: 'interior',
               interior_background_url: null, // Solid color was used
+              has_free_regeneration: true, // Grant one free regeneration
             })
             .eq("id", photo.id);
 
@@ -1028,9 +1031,9 @@ const CarDetail = () => {
           })
           .eq("id", photoId);
 
-        // Track usage
+        // Track usage - use regeneration tracking for free first regeneration
         try {
-          await trackUsage("edited_image", car!.id);
+          await trackRegenerationUsage(photoId, car!.id);
         } catch (error) {
           console.error("Error tracking usage:", error);
         }
@@ -1230,9 +1233,9 @@ const CarDetail = () => {
           .eq("id", photoId);
       }
 
-      // Track usage
+      // Track usage - use regeneration tracking for free first regeneration
       try {
-        await trackUsage("edited_image", car.id);
+        await trackRegenerationUsage(photoId, car.id);
       } catch (error) {
         console.error("Error tracking usage:", error);
       }
@@ -1322,9 +1325,9 @@ const CarDetail = () => {
             })
             .eq("id", photo.id);
 
-          // Track usage
+          // Track usage - use regeneration tracking for free first regeneration
           try {
-            await trackUsage("edited_image", car!.id);
+            await trackRegenerationUsage(photo.id, car!.id);
           } catch (error) {
             console.error("Error tracking usage:", error);
           }
