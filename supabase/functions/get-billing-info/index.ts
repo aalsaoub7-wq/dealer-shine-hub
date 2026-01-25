@@ -308,7 +308,11 @@ serve(async (req) => {
 
     // Check if user has payment method
     let hasPaymentMethod = false;
-    if (company.stripe_customer_id) {
+    let invoices: any = { data: [] };
+    let portalSession: any = { url: null };
+
+    // Skip Stripe API calls for admin test account (no Stripe customer)
+    if (company.stripe_customer_id && company.id !== ADMIN_TEST_COMPANY_ID) {
       try {
         console.log(`[BILLING-INFO] Checking payment methods for customer: ${company.stripe_customer_id}`);
         
@@ -324,19 +328,29 @@ serve(async (req) => {
       } catch (error) {
         console.error("[BILLING-INFO] Error checking payment methods:", error);
       }
+
+      // Get invoices from Stripe
+      try {
+        invoices = await stripe.invoices.list({
+          customer: company.stripe_customer_id,
+          limit: 10,
+        });
+      } catch (error) {
+        console.error("[BILLING-INFO] Error fetching invoices:", error);
+      }
+
+      // Get customer portal URL
+      try {
+        portalSession = await stripe.billingPortal.sessions.create({
+          customer: company.stripe_customer_id,
+          return_url: `${req.headers.get("origin") || "https://abepwxatllszoapfmccl.supabase.co"}/`,
+        });
+      } catch (error) {
+        console.error("[BILLING-INFO] Error creating portal session:", error);
+      }
+    } else if (company.id === ADMIN_TEST_COMPANY_ID) {
+      console.log('[BILLING-INFO] Skipping Stripe API calls for admin test account');
     }
-
-    // Get invoices from Stripe
-    const invoices = await stripe.invoices.list({
-      customer: company.stripe_customer_id,
-      limit: 10,
-    });
-
-    // Get customer portal URL
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: company.stripe_customer_id,
-      return_url: `${req.headers.get("origin") || "https://abepwxatllszoapfmccl.supabase.co"}/`,
-    });
 
     return new Response(
       JSON.stringify({
