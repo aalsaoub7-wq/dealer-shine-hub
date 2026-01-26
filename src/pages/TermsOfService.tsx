@@ -76,27 +76,27 @@ const TermsOfService = () => {
             <h2 className="text-2xl font-semibold text-foreground">4. Priser och betalning</h2>
             <h3 className="text-xl font-semibold text-foreground">4.1 Prissättning</h3>
             <p className="text-muted-foreground">
-              Alla priser kan variera och bestäms individuellt baserat på avtal, volym och andra faktorer. Detta inkluderar men är inte begränsat till:
+              <strong>Det som överenskommes vid ert inledande möte med Luvero gällande prissättning och bindningstid är det som gäller för ert avtal.</strong> Alla priser och villkor bestäms individuellt och bekräftas skriftligen i samband med avtalet. Detta inkluderar men är inte begränsat till:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li><strong>Månadsavgift:</strong> Varierar beroende på avtal och plan</li>
-              <li><strong>AI-redigering:</strong> Pris per redigerad bild varierar beroende på avtal</li>
-              <li><strong>Lagerhållning:</strong> Pris kan variera beroende på avtal</li>
-              <li><strong>Teammedlemmar:</strong> Pris kan variera beroende på avtal och antal användare</li>
+              <li><strong>Månadsavgift:</strong> Enligt överenskommelse i ert avtal</li>
+              <li><strong>AI-redigering:</strong> Pris per redigerad bild enligt överenskommelse</li>
+              <li><strong>Lagerhållning:</strong> Enligt överenskommelse i ert avtal</li>
+              <li><strong>Teammedlemmar:</strong> Enligt överenskommelse i ert avtal</li>
             </ul>
             <p className="text-muted-foreground">
-              Kontakta oss för aktuell prissättning. Alla priser som kommuniceras är preliminära och kan ändras.
+              Kontakta oss för ett möte där vi tillsammans går igenom prissättning och villkor anpassade för er verksamhet.
             </p>
 
             <h3 className="text-xl font-semibold text-foreground">4.2 Bindningstid och uppsägning</h3>
             <p className="text-muted-foreground">
-              Beroende på valt abonnemang kan bindningstid förekomma. Du godkänner att:
+              <strong>Den bindningstid som överenskommes vid ert möte med Luvero är den som gäller.</strong> Du godkänner att:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li>Bindningstid kan gälla enligt ditt specifika avtal</li>
-              <li>Uppsägning under bindningstiden kan medföra avgifter enligt avtalet</li>
-              <li>Uppsägningstid kan variera beroende på avtal</li>
-              <li>Du är bunden av de villkor som anges i ditt specifika abonnemangsavtal</li>
+              <li>Bindningstid gäller enligt vad som överenskommits vid ert möte och bekräftats i avtalet</li>
+              <li>Uppsägning under bindningstiden kan medföra avgifter enligt det överenskomna avtalet</li>
+              <li>Uppsägningstid gäller enligt vad som överenskommits vid ert möte</li>
+              <li>Du är bunden av de villkor som överenskommits och bekräftats skriftligen</li>
             </ul>
 
             <h3 className="text-xl font-semibold text-foreground">4.3 Fakturering</h3>
