@@ -231,8 +231,12 @@ const CarDetail = () => {
         setBackgroundTemplateId(settings.background_template_id);
         
         // Set interior backgrounds from database
-        if (template?.interior_backgrounds && Array.isArray(template.interior_backgrounds)) {
+        // If interior_backgrounds is empty, fallback to using the template's own image_url
+        if (template?.interior_backgrounds && Array.isArray(template.interior_backgrounds) && template.interior_backgrounds.length > 0) {
           setAvailableInteriorBackgrounds(template.interior_backgrounds);
+        } else if (template?.image_url) {
+          // Fallback: use the template's own background image for interior editing
+          setAvailableInteriorBackgrounds([template.image_url]);
         }
       }
     } catch (error) {
