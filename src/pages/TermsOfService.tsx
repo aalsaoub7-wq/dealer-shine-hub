@@ -76,7 +76,7 @@ const TermsOfService = () => {
             <h2 className="text-2xl font-semibold text-foreground">4. Priser och betalning</h2>
             <h3 className="text-xl font-semibold text-foreground">4.1 Prissättning</h3>
             <p className="text-muted-foreground">
-              <strong>Det som överenskommes vid ert inledande möte med Luvero gällande prissättning och bindningstid är det som gäller för ert avtal.</strong> Alla priser och villkor bestäms individuellt och bekräftas skriftligen i samband med avtalet. Detta inkluderar men är inte begränsat till:
+              <strong>Det som muntligen överenskommes vid ert inledande möte med Luvero gällande prissättning och bindningstid är det som gäller för ert avtal.</strong> Muntliga avtal är juridiskt bindande enligt principen <em>pacta sunt servanda</em> (avtal ska hållas). Alla priser och villkor bestäms individuellt vid mötet. Detta inkluderar men är inte begränsat till:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
               <li><strong>Månadsavgift:</strong> Enligt överenskommelse i ert avtal</li>
@@ -90,13 +90,13 @@ const TermsOfService = () => {
 
             <h3 className="text-xl font-semibold text-foreground">4.2 Bindningstid och uppsägning</h3>
             <p className="text-muted-foreground">
-              <strong>Den bindningstid som överenskommes vid ert möte med Luvero är den som gäller.</strong> Du godkänner att:
+              <strong>Den bindningstid som muntligen överenskommes vid ert möte med Luvero är den som gäller enligt principen <em>pacta sunt servanda</em>.</strong> Du godkänner att:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li>Bindningstid gäller enligt vad som överenskommits vid ert möte och bekräftats i avtalet</li>
-              <li>Uppsägning under bindningstiden kan medföra avgifter enligt det överenskomna avtalet</li>
-              <li>Uppsägningstid gäller enligt vad som överenskommits vid ert möte</li>
-              <li>Du är bunden av de villkor som överenskommits och bekräftats skriftligen</li>
+              <li>Bindningstid gäller enligt vad som muntligen överenskommits vid ert möte</li>
+              <li>Uppsägning under bindningstiden kan medföra avgifter enligt det muntliga avtalet</li>
+              <li>Uppsägningstid gäller enligt vad som muntligen överenskommits vid ert möte</li>
+              <li>Du är bunden av de villkor som muntligen överenskommits enligt <em>pacta sunt servanda</em></li>
             </ul>
 
             <h3 className="text-xl font-semibold text-foreground">4.3 Fakturering</h3>
