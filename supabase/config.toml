@@ -60,9 +60,6 @@ verify_jwt = false
 [functions.get-verification-status]
 verify_jwt = false
 
-[functions.create-checkout-session]
-verify_jwt = true
-
 [functions.remove-logo-background]
 verify_jwt = true
 
@@ -74,3 +71,15 @@ verify_jwt = true
 
 [functions.create-background-template]
 verify_jwt = true
+
+[functions.track-trial-usage]
+verify_jwt = true
+
+[functions.delete-account]
+verify_jwt = true
+
+[functions.get-admin-customers]
+verify_jwt = true
+
+[functions.create-initial-stripe-customer]
+verify_jwt = false

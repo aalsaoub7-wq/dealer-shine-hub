@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Image, TrendingUp } from "lucide-react";
-import { PRICES } from "@/lib/usageTracking";
+import { Image, TrendingUp } from "lucide-react";
 
 interface UsageStats {
   edited_images_count: number;
@@ -58,6 +57,11 @@ export const UsageDashboard = ({ showTotalCost = false }: UsageDashboardProps) =
   if (!stats) return null;
 
   const monthName = new Date().toLocaleDateString("sv-SE", { month: "long", year: "numeric" });
+  
+  // Calculate price per image from stored data (avoids hardcoding)
+  const pricePerImage = stats.edited_images_count > 0 
+    ? (stats.edited_images_cost / stats.edited_images_count).toFixed(2)
+    : "0.00";
 
   return (
     <Card className="mb-4 md:mb-6 animate-fade-in border-border/50 bg-card/50 backdrop-blur-sm">
@@ -90,8 +94,12 @@ export const UsageDashboard = ({ showTotalCost = false }: UsageDashboardProps) =
           <div className="pt-2 border-t border-border/50 w-full">
             <p className="text-xs md:text-sm text-muted-foreground">
               <span className="text-base md:text-lg font-semibold text-foreground">{stats.edited_images_cost.toFixed(2)} kr</span>
-              <br />
-              <span className="text-[10px] md:text-xs opacity-70">(à {PRICES.EDITED_IMAGE} kr per bild)</span>
+              {stats.edited_images_count > 0 && (
+                <>
+                  <br />
+                  <span className="text-[10px] md:text-xs opacity-70">(à {pricePerImage} kr per bild)</span>
+                </>
+              )}
             </p>
           </div>
         </div>
