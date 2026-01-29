@@ -21,28 +21,6 @@ const ADMIN_TEST_PRICING = {
   color: 'primary',
 };
 
-// Fallback plan pricing (used only if Stripe data not available)
-const FALLBACK_PLAN_PRICING = {
-  start: {
-    name: 'Start',
-    monthlyFee: 349,
-    pricePerImage: 5.95,
-    color: 'green',
-  },
-  pro: {
-    name: 'Pro',
-    monthlyFee: 449,
-    pricePerImage: 2.95,
-    color: 'blue',
-  },
-  elit: {
-    name: 'Elit',
-    monthlyFee: 995,
-    pricePerImage: 1.95,
-    color: 'purple',
-  },
-};
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -115,10 +93,10 @@ serve(async (req) => {
       ? Math.max(0, Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
       : 0;
 
-    // Get subscription info including plan
+    // Get subscription info from database
     const { data: subscription } = await supabaseClient
       .from("subscriptions")
-      .select("*, plan, scheduled_plan, scheduled_plan_date")
+      .select("*")
       .eq("company_id", company.id)
       .in("status", ["active", "trialing", "canceled", "past_due"])
       .order("current_period_end", { ascending: false })
@@ -168,8 +146,7 @@ serve(async (req) => {
       }
     };
 
-    // Get current plan config - try dynamic pricing first
-    let currentPlan = subscription?.plan || null;
+    // Get pricing - always from Stripe (no fallback to hardcoded plans)
     let planConfig = null;
 
     // Try to get subscription ID from database first, or fetch directly from Stripe
@@ -198,29 +175,20 @@ serve(async (req) => {
       planConfig = await getDynamicPricing(stripeSubscriptionId);
     }
 
-    // If no dynamic pricing, try to get from Stripe customer metadata
-    if (!planConfig && company.stripe_customer_id) {
-      try {
-        const customer = await stripe.customers.retrieve(company.stripe_customer_id) as any;
-        if (customer && !customer.deleted && customer.metadata?.plan) {
-          currentPlan = customer.metadata.plan;
-          console.log(`[BILLING-INFO] Got plan from Stripe metadata: ${currentPlan}`);
-        }
-      } catch (error) {
-        console.error("[BILLING-INFO] Error fetching customer metadata:", error);
-      }
-    }
-
     // Special pricing for admin test account (bypasses Stripe)
     if (company.id === ADMIN_TEST_COMPANY_ID) {
       console.log('[BILLING-INFO] Using admin test pricing for company:', company.id);
       planConfig = ADMIN_TEST_PRICING;
     }
 
-    // Fallback to hardcoded pricing if no dynamic pricing available
+    // Default pricing if nothing found (trial users without subscription)
     if (!planConfig) {
-      currentPlan = currentPlan || 'start';
-      planConfig = FALLBACK_PLAN_PRICING[currentPlan as keyof typeof FALLBACK_PLAN_PRICING] || FALLBACK_PLAN_PRICING.start;
+      planConfig = {
+        name: 'Provperiod',
+        monthlyFee: 0,
+        pricePerImage: 0,
+        color: 'primary',
+      };
     }
 
     // Check if there's an active subscription in database
@@ -233,7 +201,6 @@ serve(async (req) => {
           hasPaymentMethod: false,
           hasActiveSubscription,
           isAdmin,
-          plan: currentPlan,
           planConfig,
           trial: {
             isInTrial,
@@ -360,14 +327,10 @@ serve(async (req) => {
         hasPaymentMethod,
         hasActiveSubscription,
         isAdmin,
-        plan: currentPlan,
         planConfig,
         subscription: subscription ? {
           status: subscription.status,
           current_period_end: subscription.current_period_end,
-          plan: subscription.plan,
-          scheduled_plan: subscription.scheduled_plan,
-          scheduled_plan_date: subscription.scheduled_plan_date,
         } : undefined,
         currentUsage: totalUsage,
         userUsageStats: userUsageStats,

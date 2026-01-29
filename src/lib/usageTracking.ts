@@ -1,7 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type PlanType = 'start' | 'pro' | 'elit';
-
 // Joels Bil company ID - undantag från gratis regenerering
 const JOELS_BIL_COMPANY_ID = '4ef5e6f6-28c8-4291-8c08-9b5d46466598';
 
@@ -9,68 +7,39 @@ const JOELS_BIL_COMPANY_ID = '4ef5e6f6-28c8-4291-8c08-9b5d46466598';
 const ADMIN_TEST_COMPANY_ID = 'e0496e49-c30b-4fbd-a346-d8dfeacdf1ea';
 const ADMIN_TEST_PRICE_PER_IMAGE = 3.2;
 
-export const PLANS = {
-  start: {
-    id: 'start',
-    name: 'Start',
-    monthlyFee: 349,
-    pricePerImage: 5.95,
-    color: 'green',
-    colorClass: 'text-green-500',
-    bgClass: 'bg-green-500/10',
-    borderClass: 'border-green-500/50',
-    isPopular: false,
-    stripePrices: {
-      monthly: 'price_1So6e7RrATtOsqxEBhJWCmr1',
-      metered: 'price_1So6irRrATtOsqxE37JO8Jzh'
-    },
-    recommended: '< 100 bilder/månad',
-    breakEvenImages: 100,
-  },
-  pro: {
-    id: 'pro',
-    name: 'Pro',
-    monthlyFee: 449,
-    pricePerImage: 2.95,
-    color: 'blue',
-    colorClass: 'text-blue-500',
-    bgClass: 'bg-blue-500/10',
-    borderClass: 'border-blue-500/50',
-    isPopular: true,
-    stripePrices: {
-      monthly: 'price_1So6gdRrATtOsqxE1IpvCDQD',
-      metered: 'price_1So6jxRrATtOsqxEBuNnwcpa'
-    },
-    recommended: '100-500 bilder/månad',
-    breakEvenImages: 500,
-  },
-  elit: {
-    id: 'elit',
-    name: 'Elit',
-    monthlyFee: 995,
-    pricePerImage: 1.95,
-    color: 'purple',
-    colorClass: 'text-purple-500',
-    bgClass: 'bg-purple-500/10',
-    borderClass: 'border-purple-500/50',
-    isPopular: false,
-    stripePrices: {
-      monthly: 'price_1So6hGRrATtOsqxE4w8y3VPE',
-      metered: 'price_1So6lARrATtOsqxEHvYXCjbt'
-    },
-    recommended: '500+ bilder/månad',
-    breakEvenImages: Infinity,
+// Cache for billing info to avoid multiple calls in the same session
+let billingInfoCache: { pricePerImage: number; timestamp: number } | null = null;
+const CACHE_TTL_MS = 60000; // 1 minute cache
+
+/**
+ * Fetches the price per image dynamically from Stripe via edge function
+ */
+const getDynamicPricePerImage = async (): Promise<number> => {
+  // Check cache first
+  if (billingInfoCache && Date.now() - billingInfoCache.timestamp < CACHE_TTL_MS) {
+    console.log('[USAGE] Using cached price per image:', billingInfoCache.pricePerImage);
+    return billingInfoCache.pricePerImage;
   }
-} as const;
 
-// Legacy export for backward compatibility
-export const PRICES = {
-  MONTHLY_FEE: 349,
-  EDITED_IMAGE: 5.95,
-};
+  try {
+    const { data, error } = await supabase.functions.invoke("get-billing-info");
+    
+    if (error) {
+      console.error('[USAGE] Error fetching billing info:', error);
+      return 0; // Fallback to 0 if we can't get price
+    }
 
-export const getPlanPricing = (plan: PlanType) => {
-  return PLANS[plan] || PLANS.start;
+    const pricePerImage = data?.planConfig?.pricePerImage || 0;
+    
+    // Cache the result
+    billingInfoCache = { pricePerImage, timestamp: Date.now() };
+    
+    console.log('[USAGE] Fetched dynamic price per image:', pricePerImage);
+    return pricePerImage;
+  } catch (err) {
+    console.error('[USAGE] Failed to fetch billing info:', err);
+    return 0;
+  }
 };
 
 export const trackUsage = async (
@@ -127,17 +96,6 @@ export const trackUsage = async (
     const year = now.getFullYear();
     const month = `${year}-${String(monthDate + 1).padStart(2, '0')}-01`;
 
-    // Get subscription to determine plan and pricing
-    const { data: subscription } = await supabase
-      .from("subscriptions")
-      .select("plan")
-      .eq("company_id", company.id)
-      .eq("status", "active")
-      .maybeSingle();
-
-    const plan = (subscription?.plan as PlanType) || 'start';
-    const planPricing = getPlanPricing(plan);
-
     // Get or create usage stats for current month
     const { data: existingStats, error: fetchError } = await supabase
       .from("usage_stats")
@@ -151,14 +109,17 @@ export const trackUsage = async (
       return;
     }
 
-    // Track each edited image with plan-specific pricing
-    // Admin test account uses custom pricing override
-    const pricePerImage = company.id === ADMIN_TEST_COMPANY_ID 
-      ? ADMIN_TEST_PRICE_PER_IMAGE 
-      : planPricing.pricePerImage;
+    // Get price per image dynamically from Stripe
+    let pricePerImage: number;
     
     if (company.id === ADMIN_TEST_COMPANY_ID) {
+      // Admin test account uses fixed test pricing
+      pricePerImage = ADMIN_TEST_PRICE_PER_IMAGE;
       console.log('[USAGE] Using admin test pricing: 3.2 kr/image');
+    } else {
+      // All other accounts get dynamic pricing from Stripe
+      pricePerImage = await getDynamicPricePerImage();
+      console.log(`[USAGE] Using dynamic Stripe pricing: ${pricePerImage} kr/image`);
     }
 
     const newCount = (existingStats?.edited_images_count || 0) + 1;

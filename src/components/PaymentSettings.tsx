@@ -2,14 +2,12 @@ import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
-import { Loader2, ExternalLink, Image, TrendingUp, User, Sparkles, AlertCircle, CheckCircle2, CreditCard, Crown, RefreshCw } from "lucide-react";
+import { Loader2, ExternalLink, Image, TrendingUp, User, Sparkles, AlertCircle, CheckCircle2, CreditCard, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { PaymentSettingsSkeleton } from "./PaymentSettingsSkeleton";
-import { PLANS, PlanType } from "@/lib/usageTracking";
 import { openExternalUrl } from "@/lib/nativeCapabilities";
 import { isNativeApp } from "@/lib/utils";
-import { ChangePlanDialog } from "./ChangePlanDialog";
 import { analytics } from "@/lib/analytics";
 
 interface PlanConfig {
@@ -23,7 +21,6 @@ interface BillingInfo {
   hasCustomer: boolean;
   customerId?: string;
   hasPaymentMethod?: boolean;
-  plan?: string;
   planConfig?: PlanConfig;
   trial?: {
     isInTrial: boolean;
@@ -35,9 +32,6 @@ interface BillingInfo {
   subscription?: {
     status: string;
     current_period_end?: string;
-    plan?: string;
-    scheduled_plan?: string;
-    scheduled_plan_date?: string;
   };
   currentUsage?: {
     editedImages: number;
@@ -166,7 +160,7 @@ export const PaymentSettings = () => {
     };
   }, []);
 
-  // Get plan config from billing info (dynamic from Stripe) or fallback
+  // Get plan config from billing info (dynamic from Stripe)
   const planConfig = billingInfo?.planConfig || { name: 'Anpassad', monthlyFee: 0, pricePerImage: 0, color: 'primary' };
 
   if (userRole !== "admin") {
@@ -236,29 +230,6 @@ export const PaymentSettings = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* 
-        ========================================
-        HIDDEN: Plan selector and change plan functionality
-        Kept for future use when self-service model is re-enabled
-        ========================================
-      */}
-      {/* 
-      {billingInfo?.hasPaymentMethod && !isNativeApp() && (
-        <Button variant="outline" size="sm" onClick={() => setChangePlanDialogOpen(true)} className="flex items-center gap-1">
-          <RefreshCw className="h-4 w-4" />
-          Byt plan
-        </Button>
-      )}
-      
-      <ChangePlanDialog 
-        open={changePlanDialogOpen} 
-        onOpenChange={setChangePlanDialogOpen} 
-        currentPlan={currentPlan} 
-        currentPeriodEnd={billingInfo?.subscription?.current_period_end}
-        onPlanChanged={fetchBillingInfo} 
-      />
-      */}
 
       {/* Trial Status */}
       {billingInfo?.trial?.isInTrial && (

@@ -39,7 +39,7 @@ serve(async (req) => {
     // Get user's company
     const { data: userCompany, error: companyError } = await supabase
       .from("user_companies")
-      .select("company_id")
+      .select("company_id, companies(id, stripe_customer_id)")
       .eq("user_id", user.id)
       .single();
 
@@ -47,10 +47,14 @@ serve(async (req) => {
       throw new Error("Company not found");
     }
 
+    const company = Array.isArray(userCompany.companies)
+      ? userCompany.companies[0]
+      : userCompany.companies;
+
     // Admin test account - skip Stripe usage reporting entirely
     const ADMIN_TEST_COMPANY_ID = 'e0496e49-c30b-4fbd-a346-d8dfeacdf1ea';
     
-    if (userCompany.company_id === ADMIN_TEST_COMPANY_ID) {
+    if (company.id === ADMIN_TEST_COMPANY_ID) {
       console.log("[REPORT-USAGE] Admin test account - skipping Stripe usage reporting");
       return new Response(
         JSON.stringify({ 
@@ -65,17 +69,30 @@ serve(async (req) => {
       );
     }
 
-    // Get company's subscription with plan
-    const { data: subscription, error: subError } = await supabase
-      .from("subscriptions")
-      .select("*, plan")
-      .eq("company_id", userCompany.company_id)
-      .eq("status", "active")
-      .single();
+    if (!company.stripe_customer_id) {
+      console.log("[REPORT-USAGE] No Stripe customer ID - skipping usage reporting");
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          skipped: true,
+          reason: "No Stripe customer ID"
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    }
 
-    // If no active subscription, user is in trial - skip Stripe usage reporting
-    if (subError || !subscription) {
-      console.log("[REPORT-USAGE] No active subscription found - user likely in trial period, skipping Stripe usage report");
+    // Get active subscription from Stripe
+    const subscriptions = await stripe.subscriptions.list({
+      customer: company.stripe_customer_id,
+      status: "active",
+      limit: 1,
+    });
+
+    if (subscriptions.data.length === 0) {
+      console.log("[REPORT-USAGE] No active subscription found - user likely in trial period");
       return new Response(
         JSON.stringify({ 
           success: true,
@@ -89,47 +106,87 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[REPORT-USAGE] Subscription plan: ${subscription.plan || 'start'}`);
-    console.log(`[REPORT-USAGE] Stripe customer ID: ${subscription.stripe_customer_id}`);
+    const subscription = subscriptions.data[0];
+    console.log(`[REPORT-USAGE] Found subscription: ${subscription.id}`);
 
     // Parse request body
     const { quantity = 1 } = await req.json();
 
-    // Use the new Billing Meter Events API
-    // First, we need to get the meter ID for our usage tracking
-    // For now, we'll track usage in the database and report via invoice item approach
-    
-    // Alternative approach: Create an invoice item for the metered usage
-    // This is a simpler approach that works without the new meter system
-    
-    // Get the unit amount based on plan (in öre/cents)
-    const planPricing: Record<string, number> = {
-      start: 595,  // 5.95 SEK
-      pro: 295,    // 2.95 SEK
-      elit: 195,   // 1.95 SEK
-    };
-    
-    const plan = subscription.plan || 'start';
-    const unitAmount = planPricing[plan] || planPricing.start;
-    
-    console.log(`[REPORT-USAGE] Plan: ${plan}, unit amount: ${unitAmount} öre`);
-    
-    // Create invoice item for the usage with amount directly
-    const invoiceItem = await stripe.invoiceItems.create({
-      customer: subscription.stripe_customer_id,
-      unit_amount: unitAmount,
-      currency: 'sek',
-      quantity: quantity,
-      description: `AI bildredigering (${quantity} ${quantity === 1 ? 'bild' : 'bilder'})`,
-    });
+    // Find the metered subscription item
+    const meteredItem = subscription.items.data.find((item: any) => 
+      item.price.recurring?.usage_type === 'metered'
+    );
 
-    console.log(`[REPORT-USAGE] Created invoice item for ${quantity} image(s):`, invoiceItem.id);
+    if (!meteredItem) {
+      console.error("[REPORT-USAGE] No metered price found in subscription");
+      throw new Error("No metered price found in subscription");
+    }
+
+    console.log(`[REPORT-USAGE] Found metered item: ${meteredItem.id}, price: ${meteredItem.price.id}`);
+
+    // Get the meter ID from the price
+    const meterId = (meteredItem.price.recurring as any)?.meter;
+
+    if (meterId) {
+      // Use Billing Meter Events API (new method)
+      console.log(`[REPORT-USAGE] Using Meter Events API with meter: ${meterId}`);
+      
+      try {
+        // Get meter details to find event_name
+        const meter = await stripe.billing.meters.retrieve(meterId);
+        const eventName = meter.event_name;
+        
+        console.log(`[REPORT-USAGE] Meter event name: ${eventName}`);
+        
+        // Create meter event
+        const meterEvent = await stripe.billing.meterEvents.create({
+          event_name: eventName,
+          payload: {
+            value: String(quantity),
+            stripe_customer_id: company.stripe_customer_id,
+          },
+          timestamp: Math.floor(Date.now() / 1000),
+        });
+
+        console.log(`[REPORT-USAGE] Created meter event: ${meterEvent.identifier}`);
+
+        return new Response(
+          JSON.stringify({ 
+            success: true,
+            method: "meter_event",
+            meterEventId: meterEvent.identifier,
+            quantity: quantity
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          }
+        );
+      } catch (meterError: any) {
+        console.error("[REPORT-USAGE] Meter Events API failed:", meterError.message);
+        // Fall through to usage record method
+      }
+    }
+
+    // Fallback: Use Usage Records API (legacy metered billing)
+    console.log(`[REPORT-USAGE] Using Usage Records API as fallback`);
+    
+    const usageRecord = await stripe.subscriptionItems.createUsageRecord(
+      meteredItem.id,
+      {
+        quantity: quantity,
+        timestamp: Math.floor(Date.now() / 1000),
+        action: 'increment',
+      }
+    );
+
+    console.log(`[REPORT-USAGE] Created usage record: ${usageRecord.id}`);
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        invoiceItemId: invoiceItem.id,
-        plan: plan,
+        method: "usage_record",
+        usageRecordId: usageRecord.id,
         quantity: quantity
       }),
       {
