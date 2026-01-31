@@ -159,9 +159,36 @@ const CarDetail = () => {
   const { lightImpact, successNotification } = useHaptics();
   const fetchDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Helper: timeout wrapper for API calls
+  const withTimeout = <T,>(promise: Promise<T>, ms: number, errorMessage: string): Promise<T> => {
+    const timeout = new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error(errorMessage)), ms)
+    );
+    return Promise.race([promise, timeout]);
+  };
+
+  // Reset photos stuck in processing for more than 10 minutes
+  const resetStuckPhotos = async () => {
+    if (!id) return;
+    
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    
+    const { error } = await supabase
+      .from("photos")
+      .update({ is_processing: false })
+      .eq("car_id", id)
+      .eq("is_processing", true)
+      .lt("updated_at", tenMinutesAgo);
+      
+    if (error) {
+      console.error("Error resetting stuck photos:", error);
+    }
+  };
+
   useEffect(() => {
     if (id) {
       fetchCarData();
+      resetStuckPhotos(); // Auto-reset stuck photos on page load
       checkPaymentMethod();
       fetchBackgroundSettings();
       fetchInteriorColorHistory();
@@ -602,9 +629,11 @@ const CarDetail = () => {
           segmentFormData.append("photo_id", photo.id);
 
           console.log("Step 1: Calling segment-car API...");
-          const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
-            body: segmentFormData,
-          });
+          const { data: segmentData, error: segmentError } = await withTimeout(
+            supabase.functions.invoke("segment-car", { body: segmentFormData }),
+            60000, // 60 second timeout
+            "Segmentering tog för lång tid, försök igen"
+          );
 
           if (segmentError) throw segmentError;
           if (!segmentData?.url) throw new Error("No URL returned from segment-car");
@@ -628,9 +657,11 @@ const CarDetail = () => {
           reflectionFormData.append("car_id", car!.id);
           reflectionFormData.append("photo_id", photo.id);
 
-          const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
-            body: reflectionFormData,
-          });
+          const { data: reflectionData, error: reflectionError } = await withTimeout(
+            supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
+            90000, // 90 second timeout for reflection (Gemini can be slow)
+            "Reflektioner tog för lång tid, försök igen"
+          );
 
           if (reflectionError) throw reflectionError;
           if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
@@ -765,9 +796,11 @@ const CarDetail = () => {
           segmentFormData.append("photo_id", photo.id);
 
           console.log("Interior Step 1: Calling segment-car API...");
-          const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
-            body: segmentFormData,
-          });
+          const { data: segmentData, error: segmentError } = await withTimeout(
+            supabase.functions.invoke("segment-car", { body: segmentFormData }),
+            60000,
+            "Segmentering tog för lång tid, försök igen"
+          );
 
           if (segmentError) throw segmentError;
           if (!segmentData?.url) throw new Error("No URL returned from segment-car");
@@ -894,9 +927,11 @@ const CarDetail = () => {
           segmentFormData.append("car_id", car!.id);
           segmentFormData.append("photo_id", photo.id);
 
-          const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
-            body: segmentFormData,
-          });
+          const { data: segmentData, error: segmentError } = await withTimeout(
+            supabase.functions.invoke("segment-car", { body: segmentFormData }),
+            60000,
+            "Segmentering tog för lång tid, försök igen"
+          );
 
           if (segmentError) throw segmentError;
           if (!segmentData?.url) throw new Error("No URL returned from segment-car");
@@ -927,9 +962,11 @@ const CarDetail = () => {
         reflectionFormData.append("car_id", car!.id);
         reflectionFormData.append("photo_id", photo.id);
 
-        const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
-          body: reflectionFormData,
-        });
+        const { data: reflectionData, error: reflectionError } = await withTimeout(
+          supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
+          90000,
+          "Reflektioner tog för lång tid, försök igen"
+        );
 
         if (reflectionError) throw reflectionError;
         if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
@@ -1016,9 +1053,11 @@ const CarDetail = () => {
         reflectionFormData.append("car_id", car!.id);
         reflectionFormData.append("photo_id", photo.id);
 
-        const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
-          body: reflectionFormData,
-        });
+        const { data: reflectionData, error: reflectionError } = await withTimeout(
+          supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
+          90000,
+          "Reflektioner tog för lång tid, försök igen"
+        );
 
         if (reflectionError) throw reflectionError;
         if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
@@ -1101,9 +1140,11 @@ const CarDetail = () => {
         segmentFormData.append("car_id", car!.id);
         segmentFormData.append("photo_id", photo.id);
 
-        const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
-          body: segmentFormData,
-        });
+        const { data: segmentData, error: segmentError } = await withTimeout(
+          supabase.functions.invoke("segment-car", { body: segmentFormData }),
+          60000,
+          "Segmentering tog för lång tid, försök igen"
+        );
 
         if (segmentError) throw segmentError;
         if (!segmentData?.url) throw new Error("No URL returned from segment-car");
