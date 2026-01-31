@@ -1,138 +1,106 @@
 
 
-## Plan: Ta bort hårdkodade planer och fixa korrekt prissättning
+## Plan: Fixa fastnade bilder och förhindra framtida problem
 
-### Problemet
-**ALLA kunder har custom-avtal** men koden har hårdkodade "start/pro/elit" planer som orsakar fel prissättning:
-- Joels Bil har 500 kr/mån + 5 kr/bild i Stripe
-- Koden använder hårdkodad `start`-plan (5.95 kr/bild) → **FEL PRIS**
+### Omedelbar åtgärd
 
-### Lösningen: 4 huvudsteg
+Joels Bil har 5 bilder som har fastnat i "bearbetningsläge" i över 9 timmar. Dessa måste återställas omedelbart.
 
----
+### Problem 1: Bilder fastnar om användaren stänger webbläsaren
 
-### Steg 1: Ta bort PLANS från usageTracking.ts
+Nuvarande flöde:
+1. Användaren klickar "Redigera"
+2. `is_processing = true` sätts i databasen
+3. Asynkron bakgrundsbearbetning startar (segment → composite → reflection)
+4. Om användaren stänger fliken mitt i - bearbetningen avbryts utan att `is_processing` återställs
 
-**Fil:** `src/lib/usageTracking.ts`
+### Problem 2: Ingen tidsgräns på API-anrop
 
-Ta bort:
-- `PlanType` typ-definition
-- Hela `PLANS` objektet (rad 12-64)
-- `PRICES` legacy-objekt (rad 67-70)
-- `getPlanPricing` funktion (rad 72-74)
-
-Ändra `trackUsage()`:
-- Hämta pris dynamiskt från Stripe via edge function istället för hårdkodade planer
-- Anropa `get-billing-info` för att få det verkliga priset per bild
+Om `segment-car`, `compositeCarOnBackground` eller `add-reflection` hänger sig, finns ingen timeout. Bilden fastnar för alltid.
 
 ---
 
-### Steg 2: Fixa report-usage-to-stripe edge function
+## Lösning: Tre delar
 
-**Fil:** `supabase/functions/report-usage-to-stripe/index.ts`
+### Del 1: Återställ fastnade bilder nu (SQL)
 
-Problem: Hårdkodade priser (5.95/2.95/1.95 kr)
+Kör följande för att omedelbart låsa upp Joels Bils fastnade bilder:
 
-**Lösning:** Använd Stripe Billing Meter Events API istället för invoice items med hårdkodat pris:
-
-1. Hämta meter event name från prenumerationens metered price
-2. Skicka meter event med `stripe.billing.meterEvents.create()`
-3. Stripe beräknar kostnaden automatiskt baserat på kundens faktiska pris
-
-```
-Före: invoiceItems.create({ unit_amount: 595 }) // Fel!
-Efter: billing.meterEvents.create({ event_name, payload: { value: "1", stripe_customer_id } })
+```sql
+UPDATE photos 
+SET is_processing = false
+WHERE is_processing = true 
+AND updated_at < NOW() - INTERVAL '30 minutes';
 ```
 
----
+### Del 2: Automatisk återhämtning vid sidladdning
 
-### Steg 3: Städa bort oanvända plan-filer och funktioner
+Lägg till logik i `CarDetail.tsx` som automatiskt återställer bilder som varit "processing" i mer än 10 minuter när sidan laddas.
 
-**Filer att ändra/ta bort:**
+**Fil: `src/pages/CarDetail.tsx`**
 
-| Fil | Åtgärd |
-|-----|--------|
-| `src/components/ChangePlanDialog.tsx` | Ta bort (oanvänd, redan gömd i UI) |
-| `src/components/TrialExpiredPaywall.tsx` | Ta bort PLANS-kod (redan kommenterad) |
-| `src/components/PaymentSettings.tsx` | Ta bort `PLANS` import |
-| `supabase/functions/create-checkout-session/index.ts` | Ta bort (ersatt av create-customer-checkout) |
-| `supabase/functions/create-stripe-customer/index.ts` | Ta bort PLAN_PRICES, förenkla |
-| `supabase/functions/update-subscription/index.ts` | Ta bort (ingen plan-switching) |
-| `supabase/functions/stripe-webhook/index.ts` | Ta bort PLAN_PRICES, scheduled downgrade-logik |
-| `supabase/functions/get-billing-info/index.ts` | Ta bort FALLBACK_PLAN_PRICING |
-
----
-
-### Steg 4: Uppdatera subscriptions-tabellen
-
-Ta bort kolumnen `plan` och relaterade kolumner:
-- `plan` (text) - inte längre relevant
-- `scheduled_plan` (text) - ingen plan-switching
-- `scheduled_plan_date` (timestamp) - ingen plan-switching
-
----
-
-## Teknisk implementation
-
-### A. Ny trackUsage() logik
+Ny funktion efter `fetchCarData`:
 
 ```typescript
-// src/lib/usageTracking.ts
-
-export const trackUsage = async (type: "edited_image", carId?: string) => {
-  // ... existing auth and trial checks ...
+const resetStuckPhotos = async () => {
+  // Reset photos stuck in processing for more than 10 minutes
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
   
-  // Get dynamic price from Stripe via edge function
-  const { data: billingInfo } = await supabase.functions.invoke("get-billing-info");
-  const pricePerImage = billingInfo?.planConfig?.pricePerImage || 0;
-  
-  // Track in usage_stats with actual price
-  const newCost = (existingStats?.edited_images_cost || 0) + pricePerImage;
-  
-  // Report to Stripe meter
-  await supabase.functions.invoke("report-usage-to-stripe", {
-    body: { quantity: 1 }
-  });
+  const { error } = await supabase
+    .from("photos")
+    .update({ is_processing: false })
+    .eq("car_id", id)
+    .eq("is_processing", true)
+    .lt("updated_at", tenMinutesAgo);
+    
+  if (error) {
+    console.error("Error resetting stuck photos:", error);
+  }
 };
 ```
 
-### B. Ny report-usage-to-stripe logik
-
+Anropa i `useEffect`:
 ```typescript
-// supabase/functions/report-usage-to-stripe/index.ts
-
-// 1. Get customer's subscription
-const subscriptions = await stripe.subscriptions.list({
-  customer: company.stripe_customer_id,
-  status: "active",
-  limit: 1,
-});
-
-// 2. Find the metered price's meter
-const sub = subscriptions.data[0];
-const meteredItem = sub.items.data.find(item => 
-  item.price.recurring?.usage_type === 'metered'
-);
-const meterId = meteredItem.price.recurring.meter;
-
-// 3. Get meter details to find event_name
-const meter = await stripe.billing.meters.retrieve(meterId);
-const eventName = meter.event_name;
-
-// 4. Create meter event
-await stripe.billing.meterEvents.create({
-  event_name: eventName,
-  payload: {
-    value: String(quantity),
-    stripe_customer_id: company.stripe_customer_id,
-  },
-  timestamp: Math.floor(Date.now() / 1000),
-});
+useEffect(() => {
+  if (id) {
+    fetchCarData();
+    resetStuckPhotos(); // <-- Lägg till denna
+    checkPaymentMethod();
+    // ...
+  }
+}, [id]);
 ```
 
-### C. Förenklad get-billing-info
+### Del 3: Timeout på bearbetningen
 
-Ta bort `FALLBACK_PLAN_PRICING` och alltid hämta pris från Stripe. Om ingen prenumeration finns → returnera 0 kr (trial).
+Lägg till timeout-wrapper för API-anropen för att undvika att de hänger sig för länge.
+
+**Fil: `src/pages/CarDetail.tsx`**
+
+Ny hjälpfunktion:
+
+```typescript
+const withTimeout = <T,>(promise: Promise<T>, ms: number, errorMessage: string): Promise<T> => {
+  const timeout = new Promise<never>((_, reject) => 
+    setTimeout(() => reject(new Error(errorMessage)), ms)
+  );
+  return Promise.race([promise, timeout]);
+};
+```
+
+Använd i `handleEditPhotos`:
+
+```typescript
+// Istället för:
+const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", { body: segmentFormData });
+
+// Använd:
+const { data: segmentData, error: segmentError } = await withTimeout(
+  supabase.functions.invoke("segment-car", { body: segmentFormData }),
+  60000, // 60 sekunder timeout
+  "Segmentering tog för lång tid, försök igen"
+);
+```
 
 ---
 
@@ -140,25 +108,27 @@ Ta bort `FALLBACK_PLAN_PRICING` och alltid hämta pris från Stripe. Om ingen pr
 
 | Fil | Ändring |
 |-----|---------|
-| `src/lib/usageTracking.ts` | Ta bort PLANS, hämta pris dynamiskt |
-| `supabase/functions/report-usage-to-stripe/index.ts` | Använd Meter Events API |
-| `supabase/functions/get-billing-info/index.ts` | Ta bort FALLBACK_PLAN_PRICING |
-| `supabase/functions/stripe-webhook/index.ts` | Ta bort plan-logik |
-| `src/components/PaymentSettings.tsx` | Ta bort PLANS import |
-| `src/components/ChangePlanDialog.tsx` | Ta bort filen |
-| `supabase/functions/create-checkout-session/index.ts` | Ta bort filen |
-| `supabase/functions/update-subscription/index.ts` | Ta bort filen |
-| `supabase/functions/create-stripe-customer/index.ts` | Ta bort PLAN_PRICES |
-| `supabase/config.toml` | Ta bort create-checkout-session, update-subscription |
+| `src/pages/CarDetail.tsx` | Lägg till `resetStuckPhotos()` och `withTimeout()` |
 
----
+## Teknisk sammanfattning
 
-## Korrigering för befintlig data
-
-Joels Bil har 46 bilder fakturerade fel (5.95 kr istället för 5 kr):
-- Felaktigt: 273.70 kr
-- Korrekt: 230 kr
-- **Differens: 43.70 kr för mycket**
-
-Detta måste korrigeras manuellt i Stripe via kreditnota eller justering.
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  NUVARANDE FLÖDE (PROBLEM)                                  │
+├─────────────────────────────────────────────────────────────┤
+│  1. Klick "Redigera" → is_processing = true                 │
+│  2. Asynk bearbetning startar                               │
+│  3. Användare stänger fliken                                │
+│  4. is_processing = true FÖR ALLTID                         │
+└─────────────────────────────────────────────────────────────┘
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│  NYTT FLÖDE (LÖSNING)                                       │
+├─────────────────────────────────────────────────────────────┤
+│  1. Klick "Redigera" → is_processing = true                 │
+│  2. Asynk bearbetning startar MED TIMEOUT                   │
+│  3. Om timeout → error handler → is_processing = false      │
+│  4. Vid sidladdning: auto-reset bilder stuck > 10 min       │
+└─────────────────────────────────────────────────────────────┘
+```
 
