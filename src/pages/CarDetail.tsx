@@ -305,10 +305,10 @@ const CarDetail = () => {
       
       if (error) throw error;
       
-      // User can edit if they're in trial OR have payment method
-      const canEdit = data?.trial?.isInTrial || data?.hasPaymentMethod || false;
-      setHasPaymentMethod(canEdit);
-      setTrialInfo(data?.trial || null);
+      // User can edit if they have payment method OR active subscription (no trial logic)
+      const hasAccess = data?.hasPaymentMethod || data?.hasActiveSubscription || false;
+      setHasPaymentMethod(hasAccess);
+      setTrialInfo(null); // No longer needed
     } catch (error) {
       console.error("Error checking payment method:", error);
       setHasPaymentMethod(false);
@@ -568,9 +568,7 @@ const CarDetail = () => {
     if (!hasPaymentMethod) {
       const { dismiss } = toast({
         title: "Betalmetod krävs",
-        description: trialInfo?.isInTrial 
-          ? "Du måste lägga till en betalmetod innan du kan redigera bilder."
-          : "Din testperiod har löpt ut. Lägg till en betalmetod för att fortsätta redigera bilder.",
+        description: "Kontakta din admin för att få tillgång till redigering.",
         variant: "destructive",
         action: (
           <Button
@@ -586,7 +584,7 @@ const CarDetail = () => {
               }, 300);
             }}
           >
-            Lägg till betalmetod
+            Gå till inställningar
           </Button>
         ),
       });

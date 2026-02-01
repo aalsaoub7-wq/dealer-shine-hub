@@ -59,26 +59,30 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
           return { showPaywall: true, paymentFailed: false };
         }
 
-        const isAdmin = data?.isAdmin ?? true;
+        const isAdmin = data?.isAdmin ?? false; // Safe default: employees never see paywall
+        const hasActiveSubscription = data?.hasActiveSubscription ?? false;
+        
+        // Employees NEVER see paywall - only admins are responsible for billing
+        if (!isAdmin) {
+          return { showPaywall: false, paymentFailed: false };
+        }
         
         // Check if payment failed (past_due status) - block immediately for admins
         const subscriptionStatus = data?.subscription?.status;
-        if (subscriptionStatus === "past_due" && isAdmin) {
+        if (subscriptionStatus === "past_due") {
           return { showPaywall: false, paymentFailed: true };
         }
 
-        // Only show paywall if: trial is over AND no payment method AND no *valid* subscription
-        const isInTrial = data?.trial?.isInTrial ?? true;
         const hasPaymentMethod = data?.hasPaymentMethod ?? false;
         const subscriptionPeriodEnd = data?.subscription?.current_period_end as string | null | undefined;
         const subscriptionEndMs = subscriptionPeriodEnd ? new Date(subscriptionPeriodEnd).getTime() : null;
         
-        // CRITICAL: null subscriptionEndMs means NO subscription - this should NOT allow access
+        // Subscription is valid if it hasn't expired yet
         const subscriptionStillValid =
           subscriptionEndMs !== null && !Number.isNaN(subscriptionEndMs) && subscriptionEndMs > Date.now();
 
-        // Only block admins - employees should still have access
-        if (!isInTrial && !hasPaymentMethod && !subscriptionStillValid && isAdmin) {
+        // Admin: block only if no payment method AND no active subscription AND subscription expired
+        if (!hasPaymentMethod && !hasActiveSubscription && !subscriptionStillValid) {
           return { showPaywall: true, paymentFailed: false };
         }
 
