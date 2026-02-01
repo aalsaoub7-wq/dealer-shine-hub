@@ -59,7 +59,7 @@ export const SEOHead = ({ title, description, canonicalPath }: SEOHeadProps) => 
       if (metaDescription) {
         metaDescription.setAttribute(
           "content",
-          "Professionell bilhanterare för återförsäljare. AI-redigering av bilfoton på 20-30 sekunder."
+          "Luvero redigerar bilfoton med AI. Ta bort bakgrund och lägg till studiobakgrund automatiskt på 20 sekunder. Perfekt för bilhandlare som vill ha professionella bilder."
         );
       }
     };

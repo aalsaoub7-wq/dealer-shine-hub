@@ -380,9 +380,9 @@ const Auth = () => {
       <Card className="w-full max-w-md bg-gradient-card border-border/50 shadow-glow">
         <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center">
-            <img src={luveroLogo} alt="" className="w-16 h-16" />
+            <img src={luveroLogo} alt="Luvero AI bilredigering logotyp" className="w-16 h-16" />
           </div>
-          <img src={luveroLogoText} alt="" className="h-12 mx-auto" />
+          <img src={luveroLogoText} alt="Luvero" className="h-12 mx-auto" />
         </CardHeader>
         <CardContent>
           {isForgotPassword ? (

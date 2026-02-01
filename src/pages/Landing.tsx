@@ -28,7 +28,7 @@ const jsonLdData = {
       "@type": "ImageObject",
       "url": "https://luvero.se/favicon.png"
     },
-    "description": "Professionell bilhanterare för återförsäljare med AI-driven bakgrundsredigering."
+    "description": "Luvero redigerar bilfoton med AI. Ta bort bakgrund och lägg till studiobakgrund automatiskt. Perfekt för bilhandlare."
   }, {
     "@type": "SoftwareApplication",
     "@id": "https://luvero.se/#software",
@@ -118,8 +118,8 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = '/'}>
-              <img src={luveroLogo} alt="" className="h-8 w-8" width={32} height={32} />
-              <img src={luveroLogoText} alt="" className="h-5" width={100} height={20} />
+              <img src={luveroLogo} alt="Luvero AI bilredigering logotyp" className="h-8 w-8" width={32} height={32} />
+              <img src={luveroLogoText} alt="Luvero" className="h-5" width={100} height={20} />
             </div>
 
             {/* Desktop Navigation */}
@@ -344,8 +344,8 @@ const Landing = () => {
             {/* Feature 6 */}
             <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
             <div className="flex gap-2 mb-4">
-                <img src="/assets/app-store-badge.webp" alt="" className="h-10 w-auto" width={120} height={40} loading="lazy" />
-                <img src="/assets/google-play-badge.webp" alt="" className="h-10 w-auto" width={135} height={40} loading="lazy" />
+                <img src="/assets/app-store-badge.webp" alt="Ladda ner Luvero på App Store" className="h-10 w-auto" width={120} height={40} loading="lazy" />
+                <img src="/assets/google-play-badge.webp" alt="Ladda ner Luvero på Google Play" className="h-10 w-auto" width={135} height={40} loading="lazy" />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">​Finns där appar finns <span className="ml-1 inline-flex items-center rounded-full bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">Beta (Kommer Snart)</span></h3>
               <p className="text-muted-foreground">
