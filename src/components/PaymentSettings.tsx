@@ -14,6 +14,7 @@ interface PlanConfig {
   name: string;
   monthlyFee: number;
   pricePerImage: number;
+  includedImages?: number;
   color: string;
 }
 
@@ -349,25 +350,66 @@ export const PaymentSettings = () => {
           )}
 
           {/* Usage-based cost summary */}
-          <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-            <div>
-              <span className="font-medium">Redigerade bilder (totalt)</span>
-              <p className="text-xs text-muted-foreground">
-                {totalUsage.editedImages} × {planConfig.pricePerImage} kr
-              </p>
-            </div>
-            <span className={`text-xl font-bold ${billingInfo?.trial?.isInTrial ? "text-green-500" : "text-foreground"}`}>
-              {billingInfo?.trial?.isInTrial ? "0.00" : totalUsage.cost.toFixed(2)} kr
-            </span>
-          </div>
+          {(() => {
+            const includedImages = planConfig.includedImages || 0;
+            const imagesWithinLimit = Math.min(totalUsage.editedImages, includedImages);
+            const overageImages = Math.max(0, totalUsage.editedImages - includedImages);
+            const overageCost = overageImages * planConfig.pricePerImage;
+            const displayCost = includedImages > 0 ? overageCost : totalUsage.cost;
+            
+            return (
+              <>
+                {includedImages > 0 ? (
+                  <>
+                    {/* Included images */}
+                    <div className="flex items-center justify-between p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+                      <div>
+                        <span className="font-medium">Inkluderade bilder</span>
+                        <p className="text-xs text-muted-foreground">
+                          {imagesWithinLimit} av {includedImages} använda
+                        </p>
+                      </div>
+                      <span className="text-xl font-bold text-green-500">0 kr</span>
+                    </div>
+                    
+                    {/* Overage images */}
+                    {overageImages > 0 && (
+                      <div className="flex items-center justify-between p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                        <div>
+                          <span className="font-medium">Överskridande bilder</span>
+                          <p className="text-xs text-muted-foreground">
+                            {overageImages} × {planConfig.pricePerImage} kr
+                          </p>
+                        </div>
+                        <span className="text-xl font-bold text-amber-500">{overageCost.toFixed(2)} kr</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  // Standard pay-per-image view
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                    <div>
+                      <span className="font-medium">Redigerade bilder (totalt)</span>
+                      <p className="text-xs text-muted-foreground">
+                        {totalUsage.editedImages} × {planConfig.pricePerImage} kr
+                      </p>
+                    </div>
+                    <span className={`text-xl font-bold ${billingInfo?.trial?.isInTrial ? "text-green-500" : "text-foreground"}`}>
+                      {billingInfo?.trial?.isInTrial ? "0.00" : totalUsage.cost.toFixed(2)} kr
+                    </span>
+                  </div>
+                )}
 
-          {/* Total monthly cost */}
-          <div className="flex justify-between items-center pt-4 border-t-2 border-primary/20">
-            <span className="text-lg font-semibold">Total kostnad denna månad:</span>
-            <span className={`text-2xl font-bold ${billingInfo?.trial?.isInTrial ? "text-green-500" : "text-primary"}`}>
-              {billingInfo?.trial?.isInTrial ? "0" : (planConfig.monthlyFee + totalUsage.cost).toFixed(2)} kr
-            </span>
-          </div>
+                {/* Total monthly cost */}
+                <div className="flex justify-between items-center pt-4 border-t-2 border-primary/20">
+                  <span className="text-lg font-semibold">Total kostnad denna månad:</span>
+                  <span className={`text-2xl font-bold ${billingInfo?.trial?.isInTrial ? "text-green-500" : "text-primary"}`}>
+                    {billingInfo?.trial?.isInTrial ? "0" : (planConfig.monthlyFee + displayCost).toFixed(2)} kr
+                  </span>
+                </div>
+              </>
+            );
+          })()}
         </CardContent>
       </Card>
 

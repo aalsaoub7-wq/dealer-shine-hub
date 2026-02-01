@@ -60,6 +60,7 @@ const Admin = () => {
   const [companyName, setCompanyName] = useState("");
   const [monthlyFee, setMonthlyFee] = useState("");
   const [pricePerImage, setPricePerImage] = useState("");
+  const [includedImages, setIncludedImages] = useState("0");
   const [creating, setCreating] = useState(false);
   const [checkoutUrl, setCheckoutUrl] = useState("");
   const [signupCode, setSignupCode] = useState("");
@@ -308,7 +309,8 @@ const Admin = () => {
         body: {
           companyName: companyName.trim(),
           monthlyFee: Math.round(monthlyFeeNum * 100), // Convert kr to öre
-          pricePerImage: Math.round(pricePerImageNum * 100) // Convert kr to öre
+          pricePerImage: Math.round(pricePerImageNum * 100), // Convert kr to öre
+          includedImages: parseInt(includedImages) || 0
         }
       });
       
@@ -557,6 +559,22 @@ const Admin = () => {
                         onChange={(e) => setPricePerImage(e.target.value)}
                         disabled={creating}
                       />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="includedImages" className="text-sm font-medium">
+                        Inkluderade bilder/mån
+                      </label>
+                      <Input
+                        id="includedImages"
+                        type="number"
+                        placeholder="0 = betala per bild"
+                        value={includedImages}
+                        onChange={(e) => setIncludedImages(e.target.value)}
+                        disabled={creating}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        0 = betala för varje bild. Annars ingår X bilder, överskridande debiteras per bild.
+                      </p>
                     </div>
                   </div>
                   

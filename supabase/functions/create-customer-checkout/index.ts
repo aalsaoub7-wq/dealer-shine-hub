@@ -45,13 +45,13 @@ serve(async (req) => {
     console.log("[CREATE-CUSTOMER-CHECKOUT] Admin verified:", userData.user.email);
 
     // Parse request body
-    const { companyName, monthlyFee, pricePerImage } = await req.json();
+    const { companyName, monthlyFee, pricePerImage, includedImages = 0 } = await req.json();
 
     if (!companyName || !monthlyFee || !pricePerImage) {
       throw new Error("Missing required fields: companyName, monthlyFee, pricePerImage");
     }
 
-    console.log("[CREATE-CUSTOMER-CHECKOUT] Creating for:", companyName, "Monthly:", monthlyFee, "Per image:", pricePerImage);
+    console.log("[CREATE-CUSTOMER-CHECKOUT] Creating for:", companyName, "Monthly:", monthlyFee, "Per image:", pricePerImage, "Included:", includedImages);
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -147,6 +147,7 @@ serve(async (req) => {
         metadata: {
           company_name: companyName,
           product_id: product.id,
+          included_images: String(includedImages),
         },
       },
       success_url: `${origin}/auth?mode=signup&checkout_success=true`,
