@@ -87,6 +87,11 @@ const SharedPhotos = () => {
 
       if (photosError) throw photosError;
 
+      // Sort photos to match the order in photo_ids array
+      const orderedPhotos = collectionData.photo_ids
+        .map((id: string) => photos?.find((p) => p.id === id))
+        .filter((p): p is Photo => p !== undefined);
+
       setCollection({
         title: collectionData.title,
         landing_page_logo_url: collectionData.landing_page_logo_url || null,
@@ -102,7 +107,7 @@ const SharedPhotos = () => {
         landing_page_logo_position: (collectionData.landing_page_logo_position as 'left' | 'center' | 'right') || 'center',
         landing_page_header_height: (collectionData.landing_page_header_height as 'small' | 'medium' | 'large') || 'medium',
         landing_page_header_fit: (collectionData.landing_page_header_fit as 'cover' | 'contain' | 'fill') || 'cover',
-        photos: photos || [],
+        photos: orderedPhotos,
       });
     } catch (error: any) {
       console.error("Error loading shared collection:", error);
