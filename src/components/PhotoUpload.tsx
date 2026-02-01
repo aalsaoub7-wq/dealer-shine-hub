@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Upload, Loader2, Camera, Image } from "lucide-react";
+import { Upload, Loader2, Camera, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { validateImageFile } from "@/lib/validation";
 import { useNativeCamera } from "@/hooks/useNativeCamera";
@@ -48,6 +48,38 @@ const PhotoUpload = ({
     },
   });
   const { lightImpact } = useHaptics();
+
+  // Convert AVIF to JPEG since Remove.bg API doesn't support AVIF
+  const convertToJpegIfNeeded = async (file: File): Promise<File> => {
+    if (file.type !== 'image/avif') {
+      return file;
+    }
+    
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = reject;
+      image.src = URL.createObjectURL(file);
+    });
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(img, 0, 0);
+    
+    URL.revokeObjectURL(img.src);
+    
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((b) => {
+        if (b) resolve(b);
+        else reject(new Error('Failed to convert AVIF to JPEG'));
+      }, 'image/jpeg', 0.95);
+    });
+    
+    const newFileName = file.name.replace(/\.avif$/i, '.jpg');
+    return new File([blob], newFileName, { type: 'image/jpeg' });
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -166,8 +198,11 @@ const PhotoUpload = ({
 
       // Step 2: Upload each file and update corresponding placeholder
       for (let i = 0; i < selectedFiles.length; i++) {
-        const file = selectedFiles[i];
+        const originalFile = selectedFiles[i];
         const photoId = insertedPhotos[i].id;
+        
+        // Convert AVIF to JPEG before upload (Remove.bg doesn't support AVIF)
+        const file = await convertToJpegIfNeeded(originalFile);
         const fileExt = file.name.split(".").pop();
         
         try {
@@ -297,7 +332,7 @@ const PhotoUpload = ({
                   variant="outline"
                   className="h-24 flex-col border-border"
                 >
-                  <Image className="w-8 h-8 mb-2" />
+                  <ImageIcon className="w-8 h-8 mb-2" />
                   <span>Välj från galleri</span>
                 </Button>
               </div>
@@ -313,7 +348,7 @@ const PhotoUpload = ({
               <input
                 type="file"
                 multiple
-                accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
+                accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/avif"
                 onChange={handleFileSelect}
                 className="hidden"
                 id="file-upload"
