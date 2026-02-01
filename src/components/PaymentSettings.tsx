@@ -261,21 +261,7 @@ export const PaymentSettings = () => {
         </Card>
       )}
 
-      {!billingInfo?.trial?.isInTrial && billingInfo?.trial?.daysLeft === 0 && !billingInfo?.hasPaymentMethod && (
-        <Card className="border-destructive/20 bg-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-5 w-5" />
-              Testperiod Löpt Ut
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-destructive">
-              Din testperiod har löpt ut. Lägg till en betalmetod för att fortsätta använda AI-redigering.
-            </p>
-          </CardContent>
-        </Card>
-      )}
+      {/* Trial expired card removed - no trials in system */}
 
       {/* Payment Method Status */}
       <Card className={billingInfo?.hasPaymentMethod ? "border-primary/20 bg-card" : "border-amber-500/20 bg-card"}>
