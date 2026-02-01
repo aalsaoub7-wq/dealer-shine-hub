@@ -262,9 +262,15 @@ const TermsOfService = () => {
               Om någon bestämmelse i dessa villkor bedöms vara ogiltig ska övriga bestämmelser fortsätta att gälla.
             </p>
 
-            <h3 className="text-xl font-semibold text-foreground">14.4 Force majeure</h3>
+            <h3 className="text-xl font-semibold text-foreground">14.4 Missbruk</h3>
             <p className="text-muted-foreground">
-              Vi ska inte hållas ansvariga för förseningar eller underlåtenhet att uppfylla våra skyldigheter 
+              Vid misstänkt missbruk av tjänsten förbehåller vi oss rätten att neka garanti och/eller 
+              återbetalning samt att stänga kontot. Inga straff eller avgifter utgår i samband med detta.
+            </p>
+
+            <h3 className="text-xl font-semibold text-foreground">14.5 Force majeure</h3>
+            <p className="text-muted-foreground">
+              Vi ska inte hållas ansvariga för förseningar eller underlåtenhet att uppfylla våra skyldigheter
               på grund av omständigheter utanför vår rimliga kontroll.
             </p>
           </section>
