@@ -1,62 +1,144 @@
 
 
-## Plan: Fixa bildordning på landningssidan
+## Plan: Förbättra SEO med fokus på AI-bilredigering
 
-### Problemet
+### Vad appen gör
 
-När bilder delas och visas på landningssidan är ordningen sporadisk. Detta beror på att bilderna hämtas utan sortering i `SharedPhotos.tsx`.
+Luvero är en **AI-driven bilredigeringsapp** som:
+- Tar bort bakgrunder från bilfoton automatiskt
+- Lägger till professionella studiobakgrunder
+- Lägger till vattenmärken/logotyper
+- Hjälper bilhandlare att få professionella bilder snabbt
 
-### Rotorsaken
+### Nuvarande problem
 
-| Plats | Kod | Problem |
-|-------|-----|---------|
-| `SharedPhotos.tsx` rad 83-86 | `.in("id", collectionData.photo_ids)` utan `.order()` | **INGEN SORTERING** |
+| Problem | Beskrivning |
+|---------|-------------|
+| Meta description för kort | 91 tecken, bör vara 150-220 |
+| Fel fokus i beskrivning | "bilhanterare" är för generellt, borde fokusera på **AI-redigering** |
+| Saknar nyckelord | "ta bort bakgrund", "studiobakgrund", "redigera bilder" saknas |
+| Bilder saknar alt-text | Logotyper har `alt=""` |
+| 404-sida på engelska | Borde vara på svenska |
 
-När man använder `.in()` i Supabase returneras rader i godtycklig ordning, inte i ordningen som ID:n skickades.
+### Rätt sökord att använda
 
-### Lösning (1 ändring, 4 rader kod)
+Baserat på vad appen faktiskt gör:
 
-Sortera de hämtade bilderna i frontend så att de matchar ordningen i `photo_ids`-arrayen.
+| Nyckelord | Relevans |
+|-----------|----------|
+| AI bilredigering | PRIMÄRT - Huvudfunktionen |
+| ta bort bakgrund | PRIMÄRT - Kärnfunktion |
+| studiobakgrund | PRIMÄRT - Kärnfunktion |
+| bilfoton | SEKUNDÄRT - Målgrupp |
+| bilhandlare/återförsäljare | SEKUNDÄRT - Målgrupp |
+| vattenmärke | TERTIÄRT - Extrafunktion |
 
-**Fil: `src/pages/SharedPhotos.tsx`**
+---
 
-Ändra rad 82-105 från:
+### Ändringar (5 filer, endast text/metadata)
 
-```typescript
-// Get photos
-const { data: photos, error: photosError } = await supabase
-  .from("photos")
-  .select("id, url")
-  .in("id", collectionData.photo_ids);
+#### Steg 1: Uppdatera meta description i index.html
 
-if (photosError) throw photosError;
+**Fil:** `index.html`
 
-setCollection({
-  ...
-  photos: photos || [],
-});
+**Före (91 tecken):**
+```
+Professionell bilhanterare för återförsäljare. AI-redigering av bilfoton på 20-30 sekunder.
 ```
 
-Till:
+**Efter (~180 tecken, rätt sökord):**
+```
+Luvero redigerar bilfoton med AI. Ta bort bakgrund och lägg till studiobakgrund automatiskt på 20 sekunder. Perfekt för bilhandlare som vill ha professionella bilder.
+```
 
+Uppdatera samma text i:
+- `<meta name="description">`
+- `<meta property="og:description">`
+- `<meta name="twitter:description">`
+
+Uppdatera även keywords:
+```
+luvero, ai bilredigering, ta bort bakgrund, studiobakgrund, bilfoton, bilhandlare, redigera bilder, professionella bilbilder, vattenstämpel
+```
+
+---
+
+#### Steg 2: Uppdatera JSON-LD i Landing.tsx
+
+**Fil:** `src/pages/Landing.tsx`
+
+Ändra beskrivningarna i JSON-LD strukturerad data:
+
+**Före:**
+```javascript
+"description": "Professionell bilhanterare för återförsäljare med AI-driven bakgrundsredigering."
+```
+
+**Efter:**
+```javascript
+"description": "Luvero redigerar bilfoton med AI. Ta bort bakgrund och lägg till studiobakgrund automatiskt. Perfekt för bilhandlare."
+```
+
+---
+
+#### Steg 3: Lägg till alt-texter på bilder i Landing.tsx
+
+**Fil:** `src/pages/Landing.tsx`
+
+| Bild | Före | Efter |
+|------|------|-------|
+| luveroLogo (rad 121) | `alt=""` | `alt="Luvero AI bilredigering logotyp"` |
+| luveroLogoText (rad 122) | `alt=""` | `alt="Luvero"` |
+| App Store badge (rad 347) | `alt=""` | `alt="Ladda ner Luvero på App Store"` |
+| Google Play badge (rad 348) | `alt=""` | `alt="Ladda ner Luvero på Google Play"` |
+
+---
+
+#### Steg 4: Förbättra 404-sidan med svenska texter
+
+**Fil:** `src/pages/NotFound.tsx`
+
+**Före:**
+```tsx
+<h1 className="mb-4 text-4xl font-bold">404</h1>
+<p className="mb-4 text-xl text-muted-foreground">Oops! Page not found</p>
+<a href="/" className="text-primary underline hover:text-primary/90">
+  Return to Home
+</a>
+```
+
+**Efter:**
+```tsx
+<h1 className="mb-4 text-4xl font-bold">404 - Sidan hittades inte</h1>
+<p className="mb-4 text-xl text-muted-foreground">
+  Sidan du letade efter finns inte längre.
+</p>
+<div className="flex flex-col gap-2">
+  <a href="/" className="text-primary underline hover:text-primary/90">
+    Tillbaka till startsidan
+  </a>
+  <a href="/auth" className="text-primary underline hover:text-primary/90">
+    Logga in
+  </a>
+</div>
+```
+
+---
+
+#### Steg 5: Uppdatera SEOHead.tsx default-texter
+
+**Fil:** `src/components/SEOHead.tsx`
+
+Uppdatera cleanup-funktionens default description (rad 60-63):
+
+**Före:**
 ```typescript
-// Get photos
-const { data: photos, error: photosError } = await supabase
-  .from("photos")
-  .select("id, url")
-  .in("id", collectionData.photo_ids);
+"Professionell bilhanterare för återförsäljare. AI-redigering av bilfoton på 20-30 sekunder."
+```
 
-if (photosError) throw photosError;
-
-// Sort photos to match the order in photo_ids array
-const orderedPhotos = collectionData.photo_ids
-  .map((id: string) => photos?.find((p) => p.id === id))
-  .filter((p): p is Photo => p !== undefined);
-
-setCollection({
-  ...
-  photos: orderedPhotos,
-});
+**Efter:**
+```typescript
+"Luvero redigerar bilfoton med AI. Ta bort bakgrund och lägg till studiobakgrund automatiskt på 20 sekunder. Perfekt för bilhandlare som vill ha professionella bilder."
 ```
 
 ---
@@ -65,38 +147,32 @@ setCollection({
 
 | Fil | Ändring |
 |-----|---------|
-| `src/pages/SharedPhotos.tsx` | Lägg till sortering av bilderna baserat på `photo_ids` ordning |
+| `index.html` | Längre meta description med rätt sökord |
+| `src/pages/Landing.tsx` | JSON-LD + alt-texter |
+| `src/pages/Auth.tsx` | Alt-texter på logotyper |
+| `src/pages/NotFound.tsx` | Svensk 404-sida |
+| `src/components/SEOHead.tsx` | Uppdaterad default description |
 
 ---
 
 ### Varför detta är LOW RISK
 
-1. **Endast 4 rader ny kod** - Minimal ändring
-2. **Ingen edge function ändras** - All logik i frontend
-3. **Ingen databasändring** - Ingen migration behövs
-4. **Befintlig data fungerar** - Ordningen finns redan sparad i `photo_ids`
-5. **Fallback** - Om en bild inte hittas filtreras den bort, ingen krasch
+1. **Endast text/metadata-ändringar** - Ingen logik ändras
+2. **Ingen databasändring** - Inga migrationer
+3. **Inga edge functions** - All kod är frontend
+4. **Inga nya beroenden** - Samma teknikstack
+5. **Ingen funktionalitet påverkas** - Bara SEO-metadata och alt-texter
 
 ---
 
-### Teknisk förklaring
+### Sökordsförbättring
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│  NUVARANDE FLÖDE (SPORADISK ORDNING)                       │
-├─────────────────────────────────────────────────────────────┤
-│  photo_ids: ["abc", "def", "ghi"]                          │
-│  Supabase .in() returnerar: ["ghi", "abc", "def"]          │
-│  (godtycklig databasordning)                               │
-└─────────────────────────────────────────────────────────────┘
-                           ↓
-┌─────────────────────────────────────────────────────────────┐
-│  NYTT FLÖDE (BEVARAD ORDNING)                              │
-├─────────────────────────────────────────────────────────────┤
-│  photo_ids: ["abc", "def", "ghi"]                          │
-│  Supabase .in() returnerar: ["ghi", "abc", "def"]          │
-│  Frontend sorterar: ["abc", "def", "ghi"]                  │
-│  (matchar ursprunglig ordning)                             │
-└─────────────────────────────────────────────────────────────┘
-```
+| Sökord | Före | Efter |
+|--------|------|-------|
+| "AI bilredigering" | ✅ I title | ✅ I title + description |
+| "ta bort bakgrund" | ❌ Saknas | ✅ I description |
+| "studiobakgrund" | ❌ Saknas | ✅ I description |
+| "bilfoton" | ✅ I title | ✅ I title + description |
+| "bilhandlare" | ❌ Saknas | ✅ I description |
+| "luvero" | ❌ Bara i title | ✅ Först i description |
 
