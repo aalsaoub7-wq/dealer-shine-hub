@@ -1,106 +1,105 @@
 
 
-## Plan: Fixa fastnade bilder och förhindra framtida problem
+## Plan: Ta bort alla trial-kontroller för att förhindra "trial har gått ut" meddelanden
 
-### Omedelbar åtgärd
+### Problemet
 
-Joels Bil har 5 bilder som har fastnat i "bearbetningsläge" i över 9 timmar. Dessa måste återställas omedelbart.
+Din anställda (filip.521.cross@gmail.com) såg "Din testperiod har gått ut" trots att det INTE finns några trials i systemet. Alla kunder har custom-avtal.
 
-### Problem 1: Bilder fastnar om användaren stänger webbläsaren
+### Rotorsaken
 
-Nuvarande flöde:
-1. Användaren klickar "Redigera"
-2. `is_processing = true` sätts i databasen
-3. Asynkron bakgrundsbearbetning startar (segment → composite → reflection)
-4. Om användaren stänger fliken mitt i - bearbetningen avbryts utan att `is_processing` återställs
+Flera ställen i koden har kvar gammal trial-logik som orsakar falska positiva "trial expired" meddelanden:
 
-### Problem 2: Ingen tidsgräns på API-anrop
+| Fil | Problem |
+|-----|---------|
+| `ProtectedRoute.tsx` | Kollar `isInTrial` för att avgöra om paywall ska visas |
+| `CarDetail.tsx` | Kollar `isInTrial` för att avgöra om användaren kan redigera |
+| `PaymentSettings.tsx` | Visar "Testperiod Löpt Ut" card |
 
-Om `segment-car`, `compositeCarOnBackground` eller `add-reflection` hänger sig, finns ingen timeout. Bilden fastnar för alltid.
+### Lösning (MINIMAL & LOW RISK)
+
+Ändra logiken så att redigering tillåts om **NÅGON** av dessa är sann:
+1. `hasPaymentMethod = true` (betalmetod finns)
+2. `hasActiveSubscription = true` (aktiv prenumeration finns)
+3. `isAdmin = false` (anställda ska ALLTID ha tillgång om företaget har access)
+
+**INGEN trial-logik behövs längre.**
 
 ---
 
-## Lösning: Tre delar
+### Steg 1: Fixa ProtectedRoute.tsx (rad 62-83)
 
-### Del 1: Återställ fastnade bilder nu (SQL)
-
-Kör följande för att omedelbart låsa upp Joels Bils fastnade bilder:
-
-```sql
-UPDATE photos 
-SET is_processing = false
-WHERE is_processing = true 
-AND updated_at < NOW() - INTERVAL '30 minutes';
-```
-
-### Del 2: Automatisk återhämtning vid sidladdning
-
-Lägg till logik i `CarDetail.tsx` som automatiskt återställer bilder som varit "processing" i mer än 10 minuter när sidan laddas.
-
-**Fil: `src/pages/CarDetail.tsx`**
-
-Ny funktion efter `fetchCarData`:
-
+**Före:**
 ```typescript
-const resetStuckPhotos = async () => {
-  // Reset photos stuck in processing for more than 10 minutes
-  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-  
-  const { error } = await supabase
-    .from("photos")
-    .update({ is_processing: false })
-    .eq("car_id", id)
-    .eq("is_processing", true)
-    .lt("updated_at", tenMinutesAgo);
-    
-  if (error) {
-    console.error("Error resetting stuck photos:", error);
-  }
-};
+const isAdmin = data?.isAdmin ?? true;  // ⚠️ FARLIGT DEFAULT
+const isInTrial = data?.trial?.isInTrial ?? true;
+// ...
+if (!isInTrial && !hasPaymentMethod && !subscriptionStillValid && isAdmin) {
+  return { showPaywall: true, paymentFailed: false };
+}
 ```
 
-Anropa i `useEffect`:
+**Efter:**
 ```typescript
-useEffect(() => {
-  if (id) {
-    fetchCarData();
-    resetStuckPhotos(); // <-- Lägg till denna
-    checkPaymentMethod();
-    // ...
-  }
-}, [id]);
+const isAdmin = data?.isAdmin ?? false;  // ✅ SÄKERT DEFAULT
+const hasActiveSubscription = data?.hasActiveSubscription ?? false;
+
+// Employees NEVER see paywall - only admins can be blocked
+if (!isAdmin) {
+  return { showPaywall: false, paymentFailed: false };
+}
+
+// Admin: block only if no payment method AND no active subscription
+if (!hasPaymentMethod && !hasActiveSubscription && !subscriptionStillValid) {
+  return { showPaywall: true, paymentFailed: false };
+}
 ```
 
-### Del 3: Timeout på bearbetningen
+---
 
-Lägg till timeout-wrapper för API-anropen för att undvika att de hänger sig för länge.
+### Steg 2: Fixa CarDetail.tsx checkPaymentMethod (rad 301-319)
 
-**Fil: `src/pages/CarDetail.tsx`**
-
-Ny hjälpfunktion:
-
+**Före:**
 ```typescript
-const withTimeout = <T,>(promise: Promise<T>, ms: number, errorMessage: string): Promise<T> => {
-  const timeout = new Promise<never>((_, reject) => 
-    setTimeout(() => reject(new Error(errorMessage)), ms)
-  );
-  return Promise.race([promise, timeout]);
-};
+const canEdit = data?.trial?.isInTrial || data?.hasPaymentMethod || false;
 ```
 
-Använd i `handleEditPhotos`:
-
+**Efter:**
 ```typescript
-// Istället för:
-const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", { body: segmentFormData });
-
-// Använd:
-const { data: segmentData, error: segmentError } = await withTimeout(
-  supabase.functions.invoke("segment-car", { body: segmentFormData }),
-  60000, // 60 sekunder timeout
-  "Segmentering tog för lång tid, försök igen"
-);
+const hasAccess = data?.hasPaymentMethod || data?.hasActiveSubscription || false;
+setHasPaymentMethod(hasAccess);
 ```
+
+---
+
+### Steg 3: Ta bort trial-meddelanden i CarDetail.tsx (rad 567-595)
+
+**Före:**
+```typescript
+if (!hasPaymentMethod) {
+  toast({
+    description: trialInfo?.isInTrial 
+      ? "Du måste lägga till en betalmetod..."
+      : "Din testperiod har löpt ut..."
+  });
+}
+```
+
+**Efter:**
+```typescript
+if (!hasPaymentMethod) {
+  toast({
+    title: "Betalmetod krävs",
+    description: "Kontakta din admin för att få tillgång till redigering."
+  });
+}
+```
+
+---
+
+### Steg 4: Ta bort "Testperiod Löpt Ut" card i PaymentSettings.tsx
+
+Ta bort hela `trialExpired && !loading && (...)` blocket som visar "Testperiod Löpt Ut" kortet.
 
 ---
 
@@ -108,27 +107,23 @@ const { data: segmentData, error: segmentError } = await withTimeout(
 
 | Fil | Ändring |
 |-----|---------|
-| `src/pages/CarDetail.tsx` | Lägg till `resetStuckPhotos()` och `withTimeout()` |
+| `src/components/ProtectedRoute.tsx` | Ändra default `isAdmin` till `false`, ta bort `isInTrial` logik |
+| `src/pages/CarDetail.tsx` | Ändra `canEdit` logik, ta bort trial-meddelanden |
+| `src/components/PaymentSettings.tsx` | Ta bort "Testperiod Löpt Ut" card |
 
-## Teknisk sammanfattning
+---
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│  NUVARANDE FLÖDE (PROBLEM)                                  │
-├─────────────────────────────────────────────────────────────┤
-│  1. Klick "Redigera" → is_processing = true                 │
-│  2. Asynk bearbetning startar                               │
-│  3. Användare stänger fliken                                │
-│  4. is_processing = true FÖR ALLTID                         │
-└─────────────────────────────────────────────────────────────┘
-                           ↓
-┌─────────────────────────────────────────────────────────────┐
-│  NYTT FLÖDE (LÖSNING)                                       │
-├─────────────────────────────────────────────────────────────┤
-│  1. Klick "Redigera" → is_processing = true                 │
-│  2. Asynk bearbetning startar MED TIMEOUT                   │
-│  3. Om timeout → error handler → is_processing = false      │
-│  4. Vid sidladdning: auto-reset bilder stuck > 10 min       │
-└─────────────────────────────────────────────────────────────┘
-```
+## Varför detta är LOW RISK
+
+1. **Ingen ändring i edge functions** - All logik ändras i frontend
+2. **Ingen databasändring** - Ingen migration krävs
+3. **Anställda får ALLTID access** - Vi lägger till explicit check `if (!isAdmin) return { showPaywall: false }`
+4. **Admins blockeras bara om INGEN betalmetod OCH INGEN prenumeration** - Samma som nu, men utan trial-förvirring
+
+## Resultat
+
+Efter dessa ändringar kommer INGEN NÅGONSIN se "testperiod har gått ut" igen, eftersom:
+- Anställda får alltid access (baserat på företagets prenumeration)
+- Admins blockeras bara om de faktiskt saknar betalmetod OCH prenumeration
+- Alla trial-relaterade meddelanden tas bort
 
