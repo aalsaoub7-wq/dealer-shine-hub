@@ -1,129 +1,131 @@
 
+## Plan: Lägg till AVIF-stöd med automatisk konvertering
 
-## Plan: Ta bort alla trial-kontroller för att förhindra "trial har gått ut" meddelanden
-
-### Problemet
-
-Din anställda (filip.521.cross@gmail.com) såg "Din testperiod har gått ut" trots att det INTE finns några trials i systemet. Alla kunder har custom-avtal.
-
-### Rotorsaken
-
-Flera ställen i koden har kvar gammal trial-logik som orsakar falska positiva "trial expired" meddelanden:
-
-| Fil | Problem |
-|-----|---------|
-| `ProtectedRoute.tsx` | Kollar `isInTrial` för att avgöra om paywall ska visas |
-| `CarDetail.tsx` | Kollar `isInTrial` för att avgöra om användaren kan redigera |
-| `PaymentSettings.tsx` | Visar "Testperiod Löpt Ut" card |
-
-### Lösning (MINIMAL & LOW RISK)
-
-Ändra logiken så att redigering tillåts om **NÅGON** av dessa är sann:
-1. `hasPaymentMethod = true` (betalmetod finns)
-2. `hasActiveSubscription = true` (aktiv prenumeration finns)
-3. `isAdmin = false` (anställda ska ALLTID ha tillgång om företaget har access)
-
-**INGEN trial-logik behövs längre.**
+### Sammanfattning
+AVIF-bilder behöver konverteras till JPEG innan de skickas till Remove.bg API:et (som bara stöder JPG/PNG/WebP). Vi gör en **minimal ändring** som konverterar AVIF → JPEG direkt vid uppladdning. Resten av flödet påverkas inte alls.
 
 ---
 
-### Steg 1: Fixa ProtectedRoute.tsx (rad 62-83)
+### Teknisk bakgrund
 
-**Före:**
-```typescript
-const isAdmin = data?.isAdmin ?? true;  // ⚠️ FARLIGT DEFAULT
-const isInTrial = data?.trial?.isInTrial ?? true;
-// ...
-if (!isInTrial && !hasPaymentMethod && !subscriptionStillValid && isAdmin) {
-  return { showPaywall: true, paymentFailed: false };
-}
-```
-
-**Efter:**
-```typescript
-const isAdmin = data?.isAdmin ?? false;  // ✅ SÄKERT DEFAULT
-const hasActiveSubscription = data?.hasActiveSubscription ?? false;
-
-// Employees NEVER see paywall - only admins can be blocked
-if (!isAdmin) {
-  return { showPaywall: false, paymentFailed: false };
-}
-
-// Admin: block only if no payment method AND no active subscription
-if (!hasPaymentMethod && !hasActiveSubscription && !subscriptionStillValid) {
-  return { showPaywall: true, paymentFailed: false };
-}
-```
+| Komponent | AVIF-stöd |
+|-----------|-----------|
+| **Remove.bg API** | ❌ Bara JPG, PNG, WebP |
+| **Canvas API (webbläsare)** | ✅ 95% av webbläsare |
+| **Gemini API** | ✅ Fungerar |
 
 ---
 
-### Steg 2: Fixa CarDetail.tsx checkPaymentMethod (rad 301-319)
+### Lösning: 2 små ändringar
 
-**Före:**
+#### Steg 1: Lägg till "image/avif" i tillåtna format
+
+**Fil:** `src/lib/validation.ts`
+
+Lägg till `"image/avif"` i `ALLOWED_IMAGE_TYPES` arrayen och uppdatera felmeddelandet.
+
 ```typescript
-const canEdit = data?.trial?.isInTrial || data?.hasPaymentMethod || false;
+export const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+  "image/avif",  // ← Ny rad
+];
 ```
 
-**Efter:**
+#### Steg 2: Konvertera AVIF → JPEG vid uppladdning
+
+**Fil:** `src/components/PhotoUpload.tsx`
+
+Lägg till en konverteringsfunktion som körs innan filen laddas upp:
+
 ```typescript
-const hasAccess = data?.hasPaymentMethod || data?.hasActiveSubscription || false;
-setHasPaymentMethod(hasAccess);
-```
-
----
-
-### Steg 3: Ta bort trial-meddelanden i CarDetail.tsx (rad 567-595)
-
-**Före:**
-```typescript
-if (!hasPaymentMethod) {
-  toast({
-    description: trialInfo?.isInTrial 
-      ? "Du måste lägga till en betalmetod..."
-      : "Din testperiod har löpt ut..."
+const convertToJpegIfNeeded = async (file: File): Promise<File> => {
+  // Bara konvertera AVIF-filer
+  if (file.type !== 'image/avif') {
+    return file;
+  }
+  
+  // Ladda bilden i en Image-element
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = URL.createObjectURL(file);
   });
-}
-```
-
-**Efter:**
-```typescript
-if (!hasPaymentMethod) {
-  toast({
-    title: "Betalmetod krävs",
-    description: "Kontakta din admin för att få tillgång till redigering."
+  
+  // Rita på canvas och exportera som JPEG
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext('2d')!;
+  ctx.drawImage(img, 0, 0);
+  
+  // Städa upp
+  URL.revokeObjectURL(img.src);
+  
+  // Konvertera till JPEG blob
+  const blob = await new Promise<Blob>((resolve) => {
+    canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.95);
   });
-}
+  
+  // Returnera som ny File
+  const newFileName = file.name.replace(/\.avif$/i, '.jpg');
+  return new File([blob], newFileName, { type: 'image/jpeg' });
+};
+```
+
+Sedan anropa denna funktion i `handleUpload` innan filen laddas upp till storage.
+
+#### Steg 3: Uppdatera accept-attributet
+
+**Fil:** `src/components/PhotoUpload.tsx`
+
+Lägg till `image/avif` i input-elementets accept-attribut:
+
+```html
+accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/avif"
 ```
 
 ---
 
-### Steg 4: Ta bort "Testperiod Löpt Ut" card i PaymentSettings.tsx
-
-Ta bort hela `trialExpired && !loading && (...)` blocket som visar "Testperiod Löpt Ut" kortet.
-
----
-
-## Filer som ändras
+### Filer som ändras
 
 | Fil | Ändring |
 |-----|---------|
-| `src/components/ProtectedRoute.tsx` | Ändra default `isAdmin` till `false`, ta bort `isInTrial` logik |
-| `src/pages/CarDetail.tsx` | Ändra `canEdit` logik, ta bort trial-meddelanden |
-| `src/components/PaymentSettings.tsx` | Ta bort "Testperiod Löpt Ut" card |
+| `src/lib/validation.ts` | Lägg till `"image/avif"` |
+| `src/components/PhotoUpload.tsx` | Lägg till `convertToJpegIfNeeded()` funktion |
 
 ---
 
-## Varför detta är LOW RISK
+### Varför detta är LOW RISK
 
-1. **Ingen ändring i edge functions** - All logik ändras i frontend
-2. **Ingen databasändring** - Ingen migration krävs
-3. **Anställda får ALLTID access** - Vi lägger till explicit check `if (!isAdmin) return { showPaywall: false }`
-4. **Admins blockeras bara om INGEN betalmetod OCH INGEN prenumeration** - Samma som nu, men utan trial-förvirring
+1. **Ingen edge function ändras** - All konvertering sker i frontend
+2. **Ingen databasändring** - Inga migrationer behövs  
+3. **Existerande format påverkas inte** - JPG/PNG/WebP går rakt igenom
+4. **Beprövad teknik** - Canvas API:et för bildkonvertering används redan i appen (watermark.ts, carCompositing.ts)
+5. **Fallback** - Om konverteringen misslyckas får användaren ett felmeddelande, appen kraschar inte
 
-## Resultat
+---
 
-Efter dessa ändringar kommer INGEN NÅGONSIN se "testperiod har gått ut" igen, eftersom:
-- Anställda får alltid access (baserat på företagets prenumeration)
-- Admins blockeras bara om de faktiskt saknar betalmetod OCH prenumeration
-- Alla trial-relaterade meddelanden tas bort
+### Flödesdiagram
 
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  NUVARANDE FLÖDE (AVIF blockeras)                          │
+├─────────────────────────────────────────────────────────────┤
+│  AVIF → validateImageFile() → "Filtypen stöds inte" ❌     │
+└─────────────────────────────────────────────────────────────┘
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│  NYTT FLÖDE (AVIF → JPEG konvertering)                     │
+├─────────────────────────────────────────────────────────────┤
+│  AVIF → validateImageFile() ✅                             │
+│       → convertToJpegIfNeeded() → JPEG                     │
+│       → Upload till storage (som JPEG)                     │
+│       → Remove.bg → Canvas → Gemini (allt fungerar)        │
+└─────────────────────────────────────────────────────────────┘
+```
