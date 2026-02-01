@@ -1,93 +1,62 @@
 
-## Plan: Lägg till AVIF-stöd med automatisk konvertering
 
-### Sammanfattning
-AVIF-bilder behöver konverteras till JPEG innan de skickas till Remove.bg API:et (som bara stöder JPG/PNG/WebP). Vi gör en **minimal ändring** som konverterar AVIF → JPEG direkt vid uppladdning. Resten av flödet påverkas inte alls.
+## Plan: Fixa bildordning på landningssidan
 
----
+### Problemet
 
-### Teknisk bakgrund
+När bilder delas och visas på landningssidan är ordningen sporadisk. Detta beror på att bilderna hämtas utan sortering i `SharedPhotos.tsx`.
 
-| Komponent | AVIF-stöd |
-|-----------|-----------|
-| **Remove.bg API** | ❌ Bara JPG, PNG, WebP |
-| **Canvas API (webbläsare)** | ✅ 95% av webbläsare |
-| **Gemini API** | ✅ Fungerar |
+### Rotorsaken
 
----
+| Plats | Kod | Problem |
+|-------|-----|---------|
+| `SharedPhotos.tsx` rad 83-86 | `.in("id", collectionData.photo_ids)` utan `.order()` | **INGEN SORTERING** |
 
-### Lösning: 2 små ändringar
+När man använder `.in()` i Supabase returneras rader i godtycklig ordning, inte i ordningen som ID:n skickades.
 
-#### Steg 1: Lägg till "image/avif" i tillåtna format
+### Lösning (1 ändring, 4 rader kod)
 
-**Fil:** `src/lib/validation.ts`
+Sortera de hämtade bilderna i frontend så att de matchar ordningen i `photo_ids`-arrayen.
 
-Lägg till `"image/avif"` i `ALLOWED_IMAGE_TYPES` arrayen och uppdatera felmeddelandet.
+**Fil: `src/pages/SharedPhotos.tsx`**
+
+Ändra rad 82-105 från:
 
 ```typescript
-export const ALLOWED_IMAGE_TYPES = [
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-  "image/heic",
-  "image/heif",
-  "image/avif",  // ← Ny rad
-];
+// Get photos
+const { data: photos, error: photosError } = await supabase
+  .from("photos")
+  .select("id, url")
+  .in("id", collectionData.photo_ids);
+
+if (photosError) throw photosError;
+
+setCollection({
+  ...
+  photos: photos || [],
+});
 ```
 
-#### Steg 2: Konvertera AVIF → JPEG vid uppladdning
-
-**Fil:** `src/components/PhotoUpload.tsx`
-
-Lägg till en konverteringsfunktion som körs innan filen laddas upp:
+Till:
 
 ```typescript
-const convertToJpegIfNeeded = async (file: File): Promise<File> => {
-  // Bara konvertera AVIF-filer
-  if (file.type !== 'image/avif') {
-    return file;
-  }
-  
-  // Ladda bilden i en Image-element
-  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = reject;
-    image.src = URL.createObjectURL(file);
-  });
-  
-  // Rita på canvas och exportera som JPEG
-  const canvas = document.createElement('canvas');
-  canvas.width = img.naturalWidth;
-  canvas.height = img.naturalHeight;
-  const ctx = canvas.getContext('2d')!;
-  ctx.drawImage(img, 0, 0);
-  
-  // Städa upp
-  URL.revokeObjectURL(img.src);
-  
-  // Konvertera till JPEG blob
-  const blob = await new Promise<Blob>((resolve) => {
-    canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.95);
-  });
-  
-  // Returnera som ny File
-  const newFileName = file.name.replace(/\.avif$/i, '.jpg');
-  return new File([blob], newFileName, { type: 'image/jpeg' });
-};
-```
+// Get photos
+const { data: photos, error: photosError } = await supabase
+  .from("photos")
+  .select("id, url")
+  .in("id", collectionData.photo_ids);
 
-Sedan anropa denna funktion i `handleUpload` innan filen laddas upp till storage.
+if (photosError) throw photosError;
 
-#### Steg 3: Uppdatera accept-attributet
+// Sort photos to match the order in photo_ids array
+const orderedPhotos = collectionData.photo_ids
+  .map((id: string) => photos?.find((p) => p.id === id))
+  .filter((p): p is Photo => p !== undefined);
 
-**Fil:** `src/components/PhotoUpload.tsx`
-
-Lägg till `image/avif` i input-elementets accept-attribut:
-
-```html
-accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/avif"
+setCollection({
+  ...
+  photos: orderedPhotos,
+});
 ```
 
 ---
@@ -96,36 +65,38 @@ accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/av
 
 | Fil | Ändring |
 |-----|---------|
-| `src/lib/validation.ts` | Lägg till `"image/avif"` |
-| `src/components/PhotoUpload.tsx` | Lägg till `convertToJpegIfNeeded()` funktion |
+| `src/pages/SharedPhotos.tsx` | Lägg till sortering av bilderna baserat på `photo_ids` ordning |
 
 ---
 
 ### Varför detta är LOW RISK
 
-1. **Ingen edge function ändras** - All konvertering sker i frontend
-2. **Ingen databasändring** - Inga migrationer behövs  
-3. **Existerande format påverkas inte** - JPG/PNG/WebP går rakt igenom
-4. **Beprövad teknik** - Canvas API:et för bildkonvertering används redan i appen (watermark.ts, carCompositing.ts)
-5. **Fallback** - Om konverteringen misslyckas får användaren ett felmeddelande, appen kraschar inte
+1. **Endast 4 rader ny kod** - Minimal ändring
+2. **Ingen edge function ändras** - All logik i frontend
+3. **Ingen databasändring** - Ingen migration behövs
+4. **Befintlig data fungerar** - Ordningen finns redan sparad i `photo_ids`
+5. **Fallback** - Om en bild inte hittas filtreras den bort, ingen krasch
 
 ---
 
-### Flödesdiagram
+### Teknisk förklaring
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│  NUVARANDE FLÖDE (AVIF blockeras)                          │
+│  NUVARANDE FLÖDE (SPORADISK ORDNING)                       │
 ├─────────────────────────────────────────────────────────────┤
-│  AVIF → validateImageFile() → "Filtypen stöds inte" ❌     │
+│  photo_ids: ["abc", "def", "ghi"]                          │
+│  Supabase .in() returnerar: ["ghi", "abc", "def"]          │
+│  (godtycklig databasordning)                               │
 └─────────────────────────────────────────────────────────────┘
                            ↓
 ┌─────────────────────────────────────────────────────────────┐
-│  NYTT FLÖDE (AVIF → JPEG konvertering)                     │
+│  NYTT FLÖDE (BEVARAD ORDNING)                              │
 ├─────────────────────────────────────────────────────────────┤
-│  AVIF → validateImageFile() ✅                             │
-│       → convertToJpegIfNeeded() → JPEG                     │
-│       → Upload till storage (som JPEG)                     │
-│       → Remove.bg → Canvas → Gemini (allt fungerar)        │
+│  photo_ids: ["abc", "def", "ghi"]                          │
+│  Supabase .in() returnerar: ["ghi", "abc", "def"]          │
+│  Frontend sorterar: ["abc", "def", "ghi"]                  │
+│  (matchar ursprunglig ordning)                             │
 └─────────────────────────────────────────────────────────────┘
 ```
+
