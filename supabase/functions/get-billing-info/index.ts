@@ -114,6 +114,10 @@ serve(async (req) => {
         let monthlyFee = 0;
         let pricePerImage = 0;
         let planName = 'Anpassad';
+        
+        // Get included_images from subscription metadata
+        const includedImages = parseInt(stripeSubscription.metadata?.included_images || "0");
+        console.log(`[BILLING-INFO] Included images from metadata: ${includedImages}`);
 
         for (const item of stripeSubscription.items.data) {
           const price = item.price;
@@ -138,6 +142,7 @@ serve(async (req) => {
           name: planName,
           monthlyFee,
           pricePerImage,
+          includedImages,
           color: 'primary',
         };
       } catch (error) {
@@ -187,6 +192,7 @@ serve(async (req) => {
         name: 'Provperiod',
         monthlyFee: 0,
         pricePerImage: 0,
+        includedImages: 0,
         color: 'primary',
       };
     }

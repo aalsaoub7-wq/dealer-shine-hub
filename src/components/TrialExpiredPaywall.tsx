@@ -171,7 +171,7 @@ export const TrialExpiredPaywall = () => {
             <AlertTriangle className="w-12 h-12 text-yellow-500" />
           </div>
           <h1 className="text-2xl font-bold text-foreground">
-            Din testperiod har gått ut
+            Konto ej aktiverat
           </h1>
           <p className="text-muted-foreground">
             Kontakta oss för att aktivera ditt konto
