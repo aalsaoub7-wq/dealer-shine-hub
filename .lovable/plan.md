@@ -1,287 +1,116 @@
 
-## Plan: Lägg till stöd för inkluderade bilder i Admin
 
-### Nuvarande situation (VERIFIERAD)
+## Plan: Fixa "Bilder Behandlas" som fastnar för alltid
 
-Jag har läst igenom alla relevanta filer och bekräftat:
+### Problemet som identifierats
 
-| Fil | Status |
-|-----|--------|
-| `Admin.tsx` | ✅ Har `monthlyFee` + `pricePerImage` - **saknar** `includedImages` |
-| `create-customer-checkout` | ✅ Skapar Stripe subscription med licensed + metered pricing |
-| `get-billing-info` | ✅ Hämtar pricing dynamiskt från Stripe |
-| `report-usage-to-stripe` | ✅ Rapporterar ALL användning till Stripe meter |
-| `PaymentSettings.tsx` | ✅ Visar `totalUsage.editedImages × pricePerImage` |
-| `usageTracking.ts` | ✅ Sparar kostnad i `usage_stats` tabellen |
+Jag har hittat **exakt VAR** problemet ligger:
 
-**Problem som måste fixas:**
-1. `TrialExpiredPaywall.tsx` säger "Din testperiod har gått ut" - ska ändras till neutral text
-2. Inget stöd för inkluderade bilder
+| Rad | Funktion | Problem |
+|-----|----------|---------|
+| **1259** | `handlePositionEditorSave` | Anropar `add-reflection` **UTAN** `withTimeout` |
+| 2089 | Interior Background Dialog | Anropar `segment-car` utan timeout (lägre risk) |
+
+**Varför Joels Bil fastnar:**
+När användaren positionerar om en bil och klickar "Spara", sätts `is_processing: true` (rad 1214), men sedan anropas Gemini AI **utan tidsgräns** (rad 1259). Om Gemini hänger eller tar för lång tid → bilden fastnar i "Bild Behandlas" för alltid.
 
 ---
 
-### Ändringar (6 filer)
+### Åtgärder (MINIMAL, EXTREMT LOW RISK)
 
-| Fil | Ändring |
-|-----|---------|
-| `src/pages/Admin.tsx` | Lägg till input "Inkluderade bilder/mån" |
-| `supabase/functions/create-customer-checkout/index.ts` | Spara `included_images` i subscription metadata |
-| `supabase/functions/get-billing-info/index.ts` | Returnera `includedImages` från Stripe metadata |
-| `supabase/functions/report-usage-to-stripe/index.ts` | Skippa rapportering om inom inkluderad kvot |
-| `src/components/PaymentSettings.tsx` | Visa "X inkluderade" + "Överskridande" |
-| `src/components/TrialExpiredPaywall.tsx` | Ändra text till "Konto ej aktiverat" |
+**Endast 2 rader ändras** i `src/pages/CarDetail.tsx`:
 
----
+#### Fix 1: Lägg till timeout på handlePositionEditorSave (rad 1259)
 
-### Steg 1: Admin.tsx - Lägg till fält
-
-Rad ~62 - ny state:
+**Före:**
 ```typescript
-const [includedImages, setIncludedImages] = useState("0");
+const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
+  body: reflectionFormData,
+});
 ```
 
-Efter `pricePerImage` input - nytt fält:
-```tsx
-<div className="space-y-2">
-  <Label htmlFor="includedImages">Inkluderade bilder/mån</Label>
-  <Input
-    id="includedImages"
-    type="number"
-    placeholder="0 = betala per bild"
-    value={includedImages}
-    onChange={(e) => setIncludedImages(e.target.value)}
-  />
-  <p className="text-xs text-muted-foreground">
-    0 = betala för varje bild. Annars ingår X bilder, överskridande debiteras per bild.
-  </p>
-</div>
+**Efter:**
+```typescript
+const { data: reflectionData, error: reflectionError } = await withTimeout(
+  supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
+  120000, // 2 minuter timeout som användaren bad om
+  "Vår AI fick för många bollar att jonglera"
+);
 ```
 
-Rad ~308-312 - skicka med i body:
+#### Fix 2: Lägg till timeout på Interior Background segmentering (rad 2089)
+
+**Före:**
 ```typescript
-body: {
-  companyName: companyName.trim(),
-  monthlyFee: Math.round(monthlyFeeNum * 100),
-  pricePerImage: Math.round(pricePerImageNum * 100),
-  includedImages: parseInt(includedImages) || 0  // NY
-}
+const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
+  body: segmentFormData,
+});
+```
+
+**Efter:**
+```typescript
+const { data: segmentData, error: segmentError } = await withTimeout(
+  supabase.functions.invoke("segment-car", { body: segmentFormData }),
+  60000, // 60 sekunders timeout (samma som andra segment-anrop)
+  "Vår AI fick för många bollar att jonglera"
+);
 ```
 
 ---
 
-### Steg 2: create-customer-checkout - Spara metadata
-
-Rad ~48 - ta emot parameter:
-```typescript
-const { companyName, monthlyFee, pricePerImage, includedImages = 0 } = await req.json();
-```
-
-Rad ~146-151 - lägg till i subscription_data.metadata:
-```typescript
-subscription_data: {
-  metadata: {
-    company_name: companyName,
-    product_id: product.id,
-    included_images: String(includedImages),  // NY
-  },
-},
-```
-
----
-
-### Steg 3: get-billing-info - Returnera includedImages
-
-I `getDynamicPricing` funktionen (rad ~107):
-```typescript
-const getDynamicPricing = async (stripeSubscriptionId: string) => {
-  const stripeSubscription = await stripe.subscriptions.retrieve(stripeSubscriptionId, {
-    expand: ['items.data.price'],
-  });
-
-  // NY: Hämta included_images
-  const includedImages = parseInt(stripeSubscription.metadata?.included_images || "0");
-  
-  // ... befintlig logik för monthlyFee och pricePerImage ...
-  
-  return {
-    name: planName,
-    monthlyFee,
-    pricePerImage,
-    includedImages,  // NY
-    color: 'primary',
-  };
-};
-```
-
----
-
-### Steg 4: report-usage-to-stripe - Smart rapportering
-
-Efter rad ~109 (efter `const subscription = subscriptions.data[0]`):
-
-```typescript
-// Hämta included_images från subscription metadata
-const includedImages = parseInt(subscription.metadata?.included_images || "0");
-
-if (includedImages > 0) {
-  // Räkna bilder för hela företaget denna månad
-  const currentDate = new Date();
-  const firstDayOfMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-01`;
-  
-  // Hämta alla användare i företaget
-  const { data: companyUsers } = await supabase
-    .from("user_companies")
-    .select("user_id")
-    .eq("company_id", userCompany.company_id);
-  
-  const userIds = (companyUsers || []).map(u => u.user_id);
-  
-  // Hämta total användning
-  const { data: usageStats } = await supabase
-    .from("usage_stats")
-    .select("edited_images_count")
-    .in("user_id", userIds)
-    .eq("month", firstDayOfMonth);
-  
-  const totalUsedThisMonth = (usageStats || []).reduce((sum, s) => sum + (s.edited_images_count || 0), 0);
-  
-  // Om inom gränsen - skippa Stripe
-  if (totalUsedThisMonth <= includedImages) {
-    console.log(`[REPORT-USAGE] Image ${totalUsedThisMonth}/${includedImages} - within limit, skipping Stripe`);
-    return new Response(JSON.stringify({ 
-      success: true,
-      skipped: true,
-      reason: `Within included images (${totalUsedThisMonth}/${includedImages})`
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
-  }
-  
-  console.log(`[REPORT-USAGE] Image ${totalUsedThisMonth}/${includedImages} - OVER limit, reporting`);
-}
-
-// Fortsätt med befintlig Stripe-rapportering...
-```
-
----
-
-### Steg 5: PaymentSettings.tsx - Visa korrekt räknare
-
-Uppdatera PlanConfig interface (rad ~13):
-```typescript
-interface PlanConfig {
-  name: string;
-  monthlyFee: number;
-  pricePerImage: number;
-  includedImages?: number;  // NY
-  color: string;
-}
-```
-
-Innan return (rad ~164):
-```typescript
-const includedImages = planConfig.includedImages || 0;
-const imagesWithinLimit = Math.min(totalUsage.editedImages, includedImages);
-const overageImages = Math.max(0, totalUsage.editedImages - includedImages);
-const overageCost = overageImages * planConfig.pricePerImage;
-```
-
-Ersätt "Redigerade bilder (totalt)" sektionen (rad ~352-362):
-```tsx
-{includedImages > 0 ? (
-  <>
-    {/* Inkluderade bilder */}
-    <div className="flex items-center justify-between p-4 rounded-lg bg-green-500/10 border border-green-500/20">
-      <div>
-        <span className="font-medium">Inkluderade bilder</span>
-        <p className="text-xs text-muted-foreground">
-          {imagesWithinLimit} av {includedImages} använda
-        </p>
-      </div>
-      <span className="text-xl font-bold text-green-500">0 kr</span>
-    </div>
-    
-    {overageImages > 0 && (
-      <div className="flex items-center justify-between p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
-        <div>
-          <span className="font-medium">Överskridande bilder</span>
-          <p className="text-xs text-muted-foreground">
-            {overageImages} × {planConfig.pricePerImage} kr
-          </p>
-        </div>
-        <span className="text-xl font-bold text-amber-500">{overageCost.toFixed(2)} kr</span>
-      </div>
-    )}
-  </>
-) : (
-  // Nuvarande visning för pay-per-image
-  <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-    <div>
-      <span className="font-medium">Redigerade bilder (totalt)</span>
-      <p className="text-xs text-muted-foreground">
-        {totalUsage.editedImages} × {planConfig.pricePerImage} kr
-      </p>
-    </div>
-    <span className="text-xl font-bold">{totalUsage.cost.toFixed(2)} kr</span>
-  </div>
-)}
-```
-
-Uppdatera total kostnad (rad ~367-368):
-```tsx
-const displayCost = includedImages > 0 ? overageCost : totalUsage.cost;
-// Använd displayCost istället för totalUsage.cost i beräkningen
-```
-
----
-
-### Steg 6: TrialExpiredPaywall.tsx - Ta bort trial-text
-
-Ändra text (rad ~173-177):
-```tsx
-<h1 className="text-2xl font-bold text-foreground">
-  Konto ej aktiverat
-</h1>
-<p className="text-muted-foreground">
-  Kontakta oss för att aktivera ditt konto
-</p>
-```
-
----
-
-### Varför detta är LOW RISK
+### Varför detta är EXTREMT LOW RISK
 
 | Kontroll | Status |
 |----------|--------|
-| Befintliga kunder påverkas inte | ✅ `included_images` saknas = 0 = nuvarande beteende |
-| Databasändring krävs | ❌ Ingen - data i Stripe metadata |
-| Edge functions backwards compatible | ✅ `parseInt("0")` fallback |
-| UI fallback | ✅ `includedImages \|\| 0` |
-| Stripe-flödet intakt | ✅ Samma licensed + metered modell |
-| Ingen "trial/Start/Pro/Elit" text | ✅ Verifierat borttaget |
+| Ändrar befintlig logik | ❌ NEJ - bara lägger till timeout-wrapper |
+| Nya funktioner | ❌ NEJ - använder befintlig `withTimeout` |
+| Påverkar lyckade anrop | ❌ NEJ - 2 min är gott om tid för Gemini |
+| Databasändringar | ❌ NEJ |
+| Nya dependencies | ❌ NEJ |
+| Befintliga kunder påverkas | ❌ NEJ - befintligt flöde fungerar som förut |
 
 ---
 
-### Hur det fungerar i praktiken
+### Befintligt skyddsnät (redan på plats)
 
-**Admin skapar kund A (pay-per-image):**
-- Månadsavgift: 2990 kr
-- Pris per bild: 10 kr  
-- Inkluderade: 0
+Systemet har redan backup-lösningar:
 
-→ Alla bilder rapporteras till Stripe
-→ PaymentSettings visar: "50 bilder × 10 kr = 500 kr"
+1. **`resetStuckPhotos()`** - Körs vid sidladdning, nollställer bilder som fastnat >10 min
+2. **Realtime-prenumeration** - Uppdaterar UI automatiskt när `is_processing: false` sätts
+3. **Error handler** - Fångar fel och nollställer `is_processing`
 
-**Admin skapar kund B (inkluderade bilder):**
-- Månadsavgift: 2990 kr
-- Pris per bild: 10 kr
-- Inkluderade: 200
+Det enda som saknades var **timeout** på just dessa två API-anrop.
 
-→ Bild 1-200: Skippas i Stripe-rapportering
-→ Bild 201+: Rapporteras till Stripe
-→ PaymentSettings visar:
-  - "Inkluderade: 150/200 använda = 0 kr"
-  - (eller om över)
-  - "Inkluderade: 200/200 använda = 0 kr"
-  - "Överskridande: 15 × 10 kr = 150 kr"
+---
+
+### Användarpåverkan
+
+| Scenario | Före | Efter |
+|----------|------|-------|
+| Gemini svarar inom 2 min | ✅ Fungerar | ✅ Fungerar (ingen förändring) |
+| Gemini hänger | ❌ Fastnar för alltid | ✅ Timeout efter 2 min + toast |
+
+---
+
+### Toast-meddelande vid timeout
+
+Det exakta meddelandet användaren bad om:
+
+> **"Vår AI fick för många bollar att jonglera"**
+
+Visas med `variant: "info"` (samma stil som andra AI-fel).
+
+---
+
+### Teknisk sammanfattning
+
+Endast **2 punktändringar** i en fil:
+
+```text
+src/pages/CarDetail.tsx
+├── Rad 1259: Lägg till withTimeout(120000) på add-reflection
+└── Rad 2089: Lägg till withTimeout(60000) på segment-car
+```
+
+Totalt ändras ~6 rader kod. Inget annat påverkas.
+
