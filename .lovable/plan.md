@@ -1,33 +1,64 @@
 
-## Fix: Checkbox-storlek på Desktop
+## Lightbox Navigation med Pilar
 
-### Problem
-Checkboxen i `PhotoGalleryDraggable.tsx` har **egna storleksklasser** som skriver över komponentens standardstorlek:
-- `className="... h-12 w-12 md:h-6 md:w-6"`
+### Vad ska göras
+Lägga till vänster/höger-pilar i lightboxen så att du kan bläddra mellan bilder utan att stänga dialogen.
 
-Detta gör att:
-1. På desktop blir checkbox-rutan 24px (`md:h-6 md:w-6`)
-2. Men ikonen i checkbox.tsx försöker vara 40px (`md:h-10 md:w-10`)
-3. = Ikonen "spiller över" rutan → ser "jätteskumt" ut
+### Ändringar
 
-### Lösning
-Ta bort storleks-override i `PhotoGalleryDraggable.tsx` så att checkboxen använder komponentens standardstorlek (som nu är `md:h-16 md:w-16` på desktop).
+**1. `ImageLightbox.tsx`** - Uppdatera props och lägg till navigation
 
-### Ändring
+Nya props:
+- `images: string[]` - Lista med alla bild-URLer
+- `currentIndex: number` - Index för aktuell bild
+- `onNavigate: (index: number) => void` - Callback för att byta bild
 
-**Fil: `src/components/PhotoGalleryDraggable.tsx`** (rad 94)
+Ändringar:
+- Lägg till `ChevronLeft` och `ChevronRight` knappar på sidorna
+- Visa endast pilar om det finns fler bilder att navigera till
+- Lägg till tangentbordsstöd för piltangenter (vänster/höger)
 
-Från:
-```tsx
-<Checkbox ... className="bg-background/80 border-2 h-12 w-12 md:h-6 md:w-6" />
+**2. `PhotoGalleryDraggable.tsx`** - Skicka bildlista till lightbox
+
+Ändringar:
+- Byt från `lightboxUrl: string` till `lightboxIndex: number`
+- Skicka `images`, `currentIndex` och `onNavigate` till `ImageLightbox`
+
+---
+
+### Teknisk implementation
+
+```text
+┌─────────────────────────────────────────┐
+│            ImageLightbox                │
+│  ┌───┐                          ┌───┐   │
+│  │ < │      [Bild visas]        │ > │   │
+│  └───┘                          └───┘   │
+│         ← Piltangenter fungerar →       │
+└─────────────────────────────────────────┘
 ```
 
-Till:
+**ImageLightbox.tsx** - Uppdaterade props:
 ```tsx
-<Checkbox ... className="bg-background/80 border-2" />
+interface ImageLightboxProps {
+  images: string[];
+  currentIndex: number;
+  isOpen: boolean;
+  onClose: () => void;
+  onNavigate: (index: number) => void;
+}
 ```
 
-### Resultat
-- Mobil: 48px (`h-12 w-12`) - oförändrad
-- Desktop: 64px (`md:h-16 md:w-16`) - dubbelt så stor som tidigare `md:h-6`
-- Ikon skalas korrekt med rutan
+**PhotoGalleryDraggable.tsx** - State-ändring:
+```tsx
+// Före:
+const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+// Efter:
+const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+```
+
+### Risk
+- **Låg risk** - Ändringar är isolerade till lightbox-komponenten
+- Inga ändringar i drag-and-drop eller foto-hantering
+- Befintlig funktionalitet (stäng, ladda ner) bevaras
