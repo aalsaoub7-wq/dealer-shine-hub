@@ -1,116 +1,117 @@
 
+Mål
+- Inga bilder ska kunna fastna i “Bild Behandlas” igen.
+- Om AI-flödet inte blir klart inom 2 minuter: bilden ska automatiskt sluta processa och toasten ska visas med exakt text: “Vår AI fick för många bollar att jonglera”.
+- EXTREMT LOW RISK: inga ombyggnader, inga nya tabeller, inga förändringar i lyckade flöden.
 
-## Plan: Fixa "Bilder Behandlas" som fastnar för alltid
+1) Vad som händer just nu (verifierat)
+1.1 Bekräftelse i databasen (Joels Bil / VW Tiguan)
+Jag ser exakt samma 6 foton fortfarande markerade som `is_processing = true` med `updated_at ≈ 15:04:47Z` (dvs flera minuter gamla), trots att AI-funktionerna i backend faktiskt verkar ha producerat filer (loggar visar uppladdade resultat för samma photo_id).
+Det innebär:
+- AI-steget kan lyckas (filen finns uppladdad)
+- men klienten (webb/appen) “fastnar” innan den hinner skriva tillbaka till databasen att `is_processing=false` och uppdatera URL.
 
-### Problemet som identifierats
+1.2 Rotorsak (varför fastnar det “för alltid”)
+I CarDetail.tsx sätts `is_processing: true` i början av en edit.
+Sedan körs en kedja av steg där flera kritiska await:ar saknar timeout:
+- `fetch(photo.url)` + `response.blob()` (ingen timeout)
+- slutliga `.from("photos").update({... is_processing:false ...})` (ingen timeout)
+- ibland även pre-steg (t.ex. interior background segment) har fetch utan timeout
 
-Jag har hittat **exakt VAR** problemet ligger:
+Om något av dessa await:ar hänger (svajig uppkoppling, mobil, tabbar bort appen, request som aldrig returnerar) så körs aldrig catch/finally → `is_processing` lämnas “true” och UI visar “Bild Behandlas” tills någon manuellt nollställer.
 
-| Rad | Funktion | Problem |
-|-----|----------|---------|
-| **1259** | `handlePositionEditorSave` | Anropar `add-reflection` **UTAN** `withTimeout` |
-| 2089 | Interior Background Dialog | Anropar `segment-car` utan timeout (lägre risk) |
+1.3 Varför nuvarande “skyddsnät” inte räcker
+- `resetStuckPhotos()` finns, men reset:ar först efter 10 minuter och bara vid sidladdning.
+- Det löser inte kravet “timeout efter 2 minuter” och hjälper inte om användaren sitter kvar på sidan.
 
-**Varför Joels Bil fastnar:**
-När användaren positionerar om en bil och klickar "Spara", sätts `is_processing: true` (rad 1214), men sedan anropas Gemini AI **utan tidsgräns** (rad 1259). Om Gemini hänger eller tar för lång tid → bilden fastnar i "Bild Behandlas" för alltid.
+2) Minimal fixstrategi (två lager, båda additive)
+För att det här inte ska kunna hända igen behöver vi:
+A) Ett klient-skydd som garanterar 2-minuters-timeout och toast (oavsett var det hänger)
+B) Ett server-skydd som gör att om AI lyckas men klienten inte hinner uppdatera DB, så blir bilden ändå “klar” (detta är exakt scenariot som Joels Bil verkar drabbas av nu)
 
----
+Detta är fortfarande low risk eftersom vi inte ändrar algoritmerna eller flödet – vi lägger bara till “failsafes”.
 
-### Åtgärder (MINIMAL, EXTREMT LOW RISK)
+3) Ändringar (EXTREMT små, avgränsade)
+3.1 CarDetail.tsx: Gör timeouten verklig efter 2 minuter (utan att röra AI-logiken)
+Ändring: uppdatera befintlig `resetStuckPhotos()`:
+- Byt 10 minuter → 2 minuter (120000ms)
+- Låt den returnera vilka photo_id som nollställdes (via `.select("id")` på update)
+- Om minst 1 foto reset:as: visa toast med exakt text:
+  - title: valfritt (t.ex. “Oj!”)
+  - description: “Vår AI fick för många bollar att jonglera”
+  - variant: “info”
 
-**Endast 2 rader ändras** i `src/pages/CarDetail.tsx`:
+Lägg till ett extremt lätt “watchdog”-intervall som bara kör när man är på CarDetail:
+- Starta interval (t.ex. var 10:e sekund) som kör resetStuckPhotos(2 min)
+- Stoppa interval på unmount
+- (Valfritt extra low risk) Kör interval endast om det finns minst ett foto i state som har `is_processing=true` för att minimera belastning.
 
-#### Fix 1: Lägg till timeout på handlePositionEditorSave (rad 1259)
+Detta gör att:
+- oavsett om fetch/blob/DB-update/edge-call hänger → efter max ~2 minuter slutar bilden vara “Bild Behandlas”
+- toasten visas automatiskt utan att användaren behöver ladda om
 
-**Före:**
-```typescript
-const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
-  body: reflectionFormData,
-});
-```
+3.2 add-reflection backend-funktion: Skriv tillbaka “klart” även om klienten dör (fixar exakt nuvarande scenario)
+Ändring: i `supabase/functions/add-reflection/index.ts`, efter att publicUrl är skapad:
+- Om `photoId` finns:
+  1) Läs nuvarande raden i `photos` (minst `url`, `original_url`)
+  2) Uppdatera raden server-side:
+     - `url = publicUrl`
+     - `is_processing = false`
+     - `is_edited = true`
+     - `original_url = (original_url om den redan finns) annars (gamla url:en)`
+- Viktigt för low risk: om DB-update misslyckas → logga och returnera ändå `{ url: publicUrl }` som idag. Dvs inga nya hårda failure modes.
 
-**Efter:**
-```typescript
-const { data: reflectionData, error: reflectionError } = await withTimeout(
-  supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
-  120000, // 2 minuter timeout som användaren bad om
-  "Vår AI fick för många bollar att jonglera"
-);
-```
+Varför detta är kritiskt:
+- Just nu verkar AI faktiskt producera filen, men klienten “fastnar” innan DB-uppdateringen.
+- Med server-side “best effort” DB-update kan en bild inte bli kvar i processing om add-reflection hann bli klar, även om användaren tappar nät, stänger appen, eller klienten hänger.
 
-#### Fix 2: Lägg till timeout på Interior Background segmentering (rad 2089)
+3.3 Standardisera toast-texten (minimal, bara text)
+I CarDetail.tsx finns flera catch-toasts som idag säger “Vår AI fick lite för många bollar…” + “Försök igen.”
+Ändring (low risk): byt dessa beskrivningar till exakt:
+- “Vår AI fick för många bollar att jonglera”
+Så får ni konsekvent UX och exakt den text du kräver.
 
-**Före:**
-```typescript
-const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
-  body: segmentFormData,
-});
-```
+4) Varför detta är EXTREMT LOW RISK
+- Vi ändrar inte hur bilder redigeras (ingen ny AI-logik).
+- Vi ändrar inte databasschema.
+- Vi lägger bara till:
+  1) en tidsbaserad “auto-unlock” av is_processing (som du uttryckligen vill ha efter 2 min)
+  2) en server-side “best effort” DB-write efter lyckad add-reflection (additivt, kan inte påverka lyckade flöden negativt)
 
-**Efter:**
-```typescript
-const { data: segmentData, error: segmentError } = await withTimeout(
-  supabase.functions.invoke("segment-car", { body: segmentFormData }),
-  60000, // 60 sekunders timeout (samma som andra segment-anrop)
-  "Vår AI fick för många bollar att jonglera"
-);
-```
+5) Hur vi verifierar att det aldrig kan fastna igen (end-to-end)
+Test A: Normalt AI-edit
+- Starta AI edit på 1 bild
+- Verifiera att den blir klar som vanligt
+- Verifiera att inga extra toasts kommer i lyckade fall
 
----
+Test B: Simulera klient-häng / tappad uppkoppling
+- Starta AI edit på 1 bild
+- Stäng tabben/appen direkt (eller slå på flygplansläge) under tiden
+Förväntat:
+- add-reflection kan fortfarande hinna bli klar → servern uppdaterar photo-raden → när du öppnar igen är `is_processing=false` och url pekar på redigerad bild
+- Om den inte hann bli klar: watchdogen i CarDetail reset:ar efter 2 minuter och visar toasten
 
-### Varför detta är EXTREMT LOW RISK
+Test C: Verifiera 2-minuters-timeout
+- Medvetet gör nätet instabilt / throttla
+- Om något steg hänger: efter max ~2 min ska overlay släppa och toasten “Vår AI fick för många bollar att jonglera” visas
 
-| Kontroll | Status |
-|----------|--------|
-| Ändrar befintlig logik | ❌ NEJ - bara lägger till timeout-wrapper |
-| Nya funktioner | ❌ NEJ - använder befintlig `withTimeout` |
-| Påverkar lyckade anrop | ❌ NEJ - 2 min är gott om tid för Gemini |
-| Databasändringar | ❌ NEJ |
-| Nya dependencies | ❌ NEJ |
-| Befintliga kunder påverkas | ❌ NEJ - befintligt flöde fungerar som förut |
+6) Akut: “Se till att Joels Bil inte fortfarande är stuck”
+När vi implementerat ovan:
+- Så fort Joels öppnar bilens sida kommer 2-minuters-reset slå till och nollställa alla som är äldre än 2 minuter.
+- Dessutom: för framtida edits där add-reflection hinner bli klar kommer servern självläka DB även om klienten inte hinner skriva tillbaka.
 
----
+7) Rollback-plan (om du vill backa utan risk)
+- CarDetail: återställ intervallet + ändra tillbaka 2 min → 10 min (1 funktion + 1 useEffect)
+- add-reflection: ta bort DB-update-blocket (funktionen fortsätter returnera url exakt som idag)
+Inga migrations, inget dataformat, inget som låser er.
 
-### Befintligt skyddsnät (redan på plats)
+Scope (filer som ändras)
+- src/pages/CarDetail.tsx
+  - 2-min reset + intervall-watchdog + toast vid reset + standardiserad toast-text
+- supabase/functions/add-reflection/index.ts
+  - Additiv DB-update efter lyckad upload (med original_url-säkring)
 
-Systemet har redan backup-lösningar:
-
-1. **`resetStuckPhotos()`** - Körs vid sidladdning, nollställer bilder som fastnat >10 min
-2. **Realtime-prenumeration** - Uppdaterar UI automatiskt när `is_processing: false` sätts
-3. **Error handler** - Fångar fel och nollställer `is_processing`
-
-Det enda som saknades var **timeout** på just dessa två API-anrop.
-
----
-
-### Användarpåverkan
-
-| Scenario | Före | Efter |
-|----------|------|-------|
-| Gemini svarar inom 2 min | ✅ Fungerar | ✅ Fungerar (ingen förändring) |
-| Gemini hänger | ❌ Fastnar för alltid | ✅ Timeout efter 2 min + toast |
-
----
-
-### Toast-meddelande vid timeout
-
-Det exakta meddelandet användaren bad om:
-
-> **"Vår AI fick för många bollar att jonglera"**
-
-Visas med `variant: "info"` (samma stil som andra AI-fel).
-
----
-
-### Teknisk sammanfattning
-
-Endast **2 punktändringar** i en fil:
-
-```text
-src/pages/CarDetail.tsx
-├── Rad 1259: Lägg till withTimeout(120000) på add-reflection
-└── Rad 2089: Lägg till withTimeout(60000) på segment-car
-```
-
-Totalt ändras ~6 rader kod. Inget annat påverkas.
-
+Resultat
+- “Bild Behandlas” kan inte bli permanent längre.
+- Timeout efter 2 minuter är garanterad och toasten visas.
+- Om AI faktiskt lyckades men klienten dog/hängde så blir bilden ändå klar (det som verkar drabba Joels Bil just nu).
