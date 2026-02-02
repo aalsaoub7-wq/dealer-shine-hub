@@ -182,7 +182,7 @@ const PhotoGalleryDraggable = ({
       setItems(photos);
     }
   }, [photos, items]);
-  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [regenerateOptionsPhoto, setRegenerateOptionsPhoto] = useState<Photo | null>(null);
   const [watermarkOptionsId, setWatermarkOptionsId] = useState<string | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, {
@@ -254,7 +254,7 @@ const PhotoGalleryDraggable = ({
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={items.map(p => p.id)} strategy={rectSortingStrategy}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items.map((photo, index) => <SortablePhotoCard key={photo.id} photo={photo} index={index} onDelete={handleDelete} onImageClick={setLightboxUrl} isSelected={selectedPhotos.includes(photo.id)} onSelect={(photoId, selected) => {
+            {items.map((photo, index) => <SortablePhotoCard key={photo.id} photo={photo} index={index} onDelete={handleDelete} onImageClick={() => setLightboxIndex(index)} isSelected={selectedPhotos.includes(photo.id)} onSelect={(photoId, selected) => {
             if (selected) {
               onSelectionChange([...selectedPhotos, photoId]);
             } else {
@@ -274,7 +274,7 @@ const PhotoGalleryDraggable = ({
           </div>
         </SortableContext>
       </DndContext>
-      {lightboxUrl && <ImageLightbox imageUrl={lightboxUrl} isOpen={!!lightboxUrl} onClose={() => setLightboxUrl(null)} />}
+      {lightboxIndex !== null && <ImageLightbox images={items.map(p => p.url)} currentIndex={lightboxIndex} isOpen={lightboxIndex !== null} onClose={() => setLightboxIndex(null)} onNavigate={setLightboxIndex} />}
       <RegenerateOptionsDialog open={!!regenerateOptionsPhoto} onOpenChange={open => !open && setRegenerateOptionsPhoto(null)} editType={regenerateOptionsPhoto?.edit_type} onRegenerateReflection={() => {
       if (regenerateOptionsPhoto && onRegenerateReflection) {
         onRegenerateReflection(regenerateOptionsPhoto.id);
