@@ -146,6 +146,44 @@ serve(async (req) => {
 
     console.log("Successfully uploaded edited image, URL:", publicUrl);
 
+    // Server-side "best effort" DB update - if photoId is present, update the photo row
+    // This ensures the photo becomes "complete" even if the client disconnects/hangs
+    if (photoId) {
+      try {
+        // First read current photo to preserve original_url if it exists
+        const { data: currentPhoto } = await supabaseAdmin
+          .from("photos")
+          .select("url, original_url")
+          .eq("id", photoId)
+          .single();
+
+        if (currentPhoto) {
+          const updateData = {
+            url: publicUrl,
+            is_processing: false,
+            is_edited: true,
+            updated_at: new Date().toISOString(),
+            // Preserve original_url if it exists, otherwise use the old URL
+            original_url: currentPhoto.original_url || currentPhoto.url,
+          };
+
+          const { error: updateError } = await supabaseAdmin
+            .from("photos")
+            .update(updateData)
+            .eq("id", photoId);
+
+          if (updateError) {
+            console.error("Server-side photo update failed (non-blocking):", updateError);
+          } else {
+            console.log("Server-side photo update succeeded for photoId:", photoId);
+          }
+        }
+      } catch (dbError) {
+        // Log but don't fail - this is "best effort"
+        console.error("Server-side DB update error (non-blocking):", dbError);
+      }
+    }
+
     return new Response(
       JSON.stringify({
         url: publicUrl,

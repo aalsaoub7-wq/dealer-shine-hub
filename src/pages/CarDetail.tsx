@@ -167,22 +167,39 @@ const CarDetail = () => {
     return Promise.race([promise, timeout]);
   };
 
-  // Reset photos stuck in processing for more than 10 minutes
-  const resetStuckPhotos = async () => {
-    if (!id) return;
+  // Reset photos stuck in processing for more than 2 minutes
+  // Returns array of reset photo IDs (if any)
+  const resetStuckPhotos = async (): Promise<string[]> => {
+    if (!id) return [];
     
-    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
     
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("photos")
       .update({ is_processing: false })
       .eq("car_id", id)
       .eq("is_processing", true)
-      .lt("updated_at", tenMinutesAgo);
+      .lt("updated_at", twoMinutesAgo)
+      .select("id");
       
     if (error) {
       console.error("Error resetting stuck photos:", error);
+      return [];
     }
+    
+    const resetIds = data?.map(p => p.id) || [];
+    
+    // Show toast if any photos were auto-reset
+    if (resetIds.length > 0) {
+      console.log("Auto-reset stuck photos:", resetIds);
+      toast({
+        title: "Oj!",
+        description: "Vår AI fick för många bollar att jonglera",
+        variant: "info",
+      });
+    }
+    
+    return resetIds;
   };
 
   useEffect(() => {
@@ -216,11 +233,18 @@ const CarDetail = () => {
         )
         .subscribe();
 
+      // Watchdog interval: check every 10 seconds for stuck photos
+      // This ensures photos can't stay stuck for more than ~2 minutes
+      const watchdogInterval = setInterval(() => {
+        resetStuckPhotos();
+      }, 10000); // 10 seconds
+
       return () => {
         supabase.removeChannel(channel);
         if (fetchDebounceRef.current) {
           clearTimeout(fetchDebounceRef.current);
         }
+        clearInterval(watchdogInterval);
       };
     }
   }, [id]);
@@ -709,7 +733,7 @@ const CarDetail = () => {
           
           toast({
             title: "Oj!",
-            description: "Vår AI fick lite för många bollar att jonglera. Försök igen.",
+            description: "Vår AI fick för många bollar att jonglera",
             variant: "info",
           });
         }
@@ -865,7 +889,7 @@ const CarDetail = () => {
           
           toast({
             title: "Oj!",
-            description: "Vår AI fick lite för många bollar att jonglera. Försök igen.",
+            description: "Vår AI fick för många bollar att jonglera",
             variant: "info",
           });
         }
@@ -999,7 +1023,7 @@ const CarDetail = () => {
 
         toast({
           title: "Oj!",
-          description: "Vår AI fick lite för många bollar att jonglera. Försök igen.",
+          description: "Vår AI fick för många bollar att jonglera",
           variant: "info",
         });
       }
@@ -1089,7 +1113,7 @@ const CarDetail = () => {
 
         toast({
           title: "Oj!",
-          description: "Vår AI fick lite för många bollar att jonglera. Försök igen.",
+          description: "Vår AI fick för många bollar att jonglera",
           variant: "info",
         });
       }
@@ -1296,7 +1320,7 @@ const CarDetail = () => {
 
       toast({
         title: "Oj!",
-        description: "Vår AI fick lite för många bollar att jonglera. Försök igen.",
+        description: "Vår AI fick för många bollar att jonglera",
         variant: "info",
       });
       setPositionEditorSaving(false);
