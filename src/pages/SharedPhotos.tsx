@@ -441,9 +441,11 @@ const SharedPhotos = () => {
 
       {/* Image Lightbox */}
       <ImageLightbox
-        imageUrl={selectedImageUrl}
+        images={collection.photos.map(p => p.url)}
+        currentIndex={collection.photos.findIndex(p => p.url === selectedImageUrl)}
         isOpen={isLightboxOpen}
         onClose={() => setIsLightboxOpen(false)}
+        onNavigate={(index) => setSelectedImageUrl(collection.photos[index]?.url || "")}
       />
     </div>
   );
