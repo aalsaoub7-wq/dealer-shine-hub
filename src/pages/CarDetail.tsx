@@ -1256,9 +1256,11 @@ const CarDetail = () => {
         reflectionFormData.append("car_id", car.id);
         reflectionFormData.append("photo_id", photoId);
 
-        const { data: reflectionData, error: reflectionError } = await supabase.functions.invoke("add-reflection", {
-          body: reflectionFormData,
-        });
+        const { data: reflectionData, error: reflectionError } = await withTimeout(
+          supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
+          120000, // 2 minuter timeout
+          "Vår AI fick för många bollar att jonglera"
+        );
 
         if (reflectionError) throw reflectionError;
         if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
@@ -2086,9 +2088,11 @@ const CarDetail = () => {
                 segmentFormData.append("car_id", car!.id);
                 segmentFormData.append("photo_id", photo.id);
                 
-                const { data: segmentData, error: segmentError } = await supabase.functions.invoke("segment-car", {
-                  body: segmentFormData,
-                });
+                const { data: segmentData, error: segmentError } = await withTimeout(
+                  supabase.functions.invoke("segment-car", { body: segmentFormData }),
+                  60000, // 60 sekunders timeout
+                  "Vår AI fick för många bollar att jonglera"
+                );
                 
                 if (segmentError) throw segmentError;
                 if (!segmentData?.url) throw new Error("No URL returned");
