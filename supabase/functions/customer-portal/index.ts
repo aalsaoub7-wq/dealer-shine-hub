@@ -79,11 +79,76 @@ serve(async (req) => {
         .eq("id", company.id);
     }
 
-    const origin = req.headers.get("origin") || "https://luflow.lovable.app";
-    const portalSession = await stripe.billingPortal.sessions.create({
+    // Check if customer has active subscription with binding period
+    let canCancel = true;
+    let bindingEndDateStr: string | null = null;
+
+    try {
+      const subscriptions = await stripe.subscriptions.list({
+        customer: customerId,
+        status: "active",
+        limit: 1,
+      });
+
+      if (subscriptions.data.length > 0) {
+        const sub = subscriptions.data[0];
+        bindingEndDateStr = sub.metadata?.binding_end_date || null;
+
+        if (bindingEndDateStr) {
+          const bindingEndDate = new Date(bindingEndDateStr);
+          const today = new Date();
+          canCancel = bindingEndDate <= today;
+          console.log("[CUSTOMER-PORTAL] Binding end date:", bindingEndDateStr, "Can cancel:", canCancel);
+        }
+      }
+    } catch (subError) {
+      console.error("[CUSTOMER-PORTAL] Error checking subscription:", subError);
+      // Default to allowing cancellation if we can't check
+      canCancel = true;
+    }
+
+    const origin = req.headers.get("origin") || "https://luvero.se";
+
+    // Create dynamic portal configuration based on binding period
+    let portalConfigId: string | undefined;
+
+    try {
+      const portalConfig = await stripe.billingPortal.configurations.create({
+        features: {
+          subscription_cancel: {
+            enabled: canCancel,
+            mode: "at_period_end",
+          },
+          payment_method_update: {
+            enabled: true,
+          },
+          invoice_history: {
+            enabled: true,
+          },
+        },
+        business_profile: {
+          headline: canCancel
+            ? "Hantera din prenumeration"
+            : `Bindningstid t.o.m. ${bindingEndDateStr}`,
+        },
+      });
+      portalConfigId = portalConfig.id;
+      console.log("[CUSTOMER-PORTAL] Created portal config:", portalConfigId, "canCancel:", canCancel);
+    } catch (configError) {
+      console.error("[CUSTOMER-PORTAL] Error creating portal config:", configError);
+      // Continue without custom config - will use default
+    }
+
+    const portalSessionParams: Stripe.BillingPortal.SessionCreateParams = {
       customer: customerId,
       return_url: `${origin}/`,
-    });
+    };
+
+    if (portalConfigId) {
+      portalSessionParams.configuration = portalConfigId;
+    }
+
+    const portalSession = await stripe.billingPortal.sessions.create(portalSessionParams);
 
     console.log("Customer portal session created:", portalSession.id);
 

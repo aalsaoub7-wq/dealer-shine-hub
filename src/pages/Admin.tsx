@@ -61,6 +61,7 @@ const Admin = () => {
   const [monthlyFee, setMonthlyFee] = useState("");
   const [pricePerImage, setPricePerImage] = useState("");
   const [includedImages, setIncludedImages] = useState("0");
+  const [bindingMonths, setBindingMonths] = useState("0");
   const [creating, setCreating] = useState(false);
   const [checkoutUrl, setCheckoutUrl] = useState("");
   const [signupCode, setSignupCode] = useState("");
@@ -310,7 +311,8 @@ const Admin = () => {
           companyName: companyName.trim(),
           monthlyFee: Math.round(monthlyFeeNum * 100), // Convert kr to öre
           pricePerImage: Math.round(pricePerImageNum * 100), // Convert kr to öre
-          includedImages: parseInt(includedImages) || 0
+          includedImages: parseInt(includedImages) || 0,
+          bindingMonths: parseInt(bindingMonths) || 0
         }
       });
       
@@ -574,6 +576,23 @@ const Admin = () => {
                       />
                       <p className="text-xs text-muted-foreground">
                         0 = betala för varje bild. Annars ingår X bilder, överskridande debiteras per bild.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="bindingMonths" className="text-sm font-medium">
+                        Bindningstid (månader)
+                      </label>
+                      <Input
+                        id="bindingMonths"
+                        type="number"
+                        min="0"
+                        placeholder="0 = ingen bindning"
+                        value={bindingMonths}
+                        onChange={(e) => setBindingMonths(e.target.value)}
+                        disabled={creating}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        0 = ingen bindning. Kunden kan inte avsluta prenumerationen under bindningstiden.
                       </p>
                     </div>
                   </div>
