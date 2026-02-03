@@ -47,20 +47,33 @@ serve(async (req) => {
       throw new Error(`Failed to fetch companies: ${companiesError.message}`);
     }
 
-    // Fetch signup codes
+    // Fetch ALL signup codes (including pending)
     const { data: signupCodes, error: codesError } = await supabaseClient
       .from("signup_codes")
-      .select("stripe_customer_id, code");
+      .select("stripe_customer_id, code, company_name, created_at, checkout_url");
 
     if (codesError) {
       throw new Error(`Failed to fetch signup codes: ${codesError.message}`);
     }
 
-    // Create map of stripe_customer_id to signup code
-    const codeMap: Record<string, string> = {};
+    // Create map of stripe_customer_id to signup code data
+    const codeMap: Record<string, { code: string; checkout_url: string | null }> = {};
+    const pendingCodes: Array<{ code: string; company_name: string | null; created_at: string | null; checkout_url: string | null }> = [];
+    
     for (const sc of signupCodes || []) {
-      if (sc.stripe_customer_id) {
-        codeMap[sc.stripe_customer_id] = sc.code;
+      if (sc.stripe_customer_id === "pending") {
+        // This is a pending customer (checkout link created but not yet registered)
+        pendingCodes.push({
+          code: sc.code,
+          company_name: sc.company_name,
+          created_at: sc.created_at,
+          checkout_url: sc.checkout_url
+        });
+      } else if (sc.stripe_customer_id) {
+        codeMap[sc.stripe_customer_id] = {
+          code: sc.code,
+          checkout_url: sc.checkout_url
+        };
       }
     }
 
@@ -69,8 +82,8 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    // Build customer list with pricing from Stripe
-    const customers = await Promise.all(
+    // Build customer list with pricing from Stripe (active customers)
+    const activeCustomers = await Promise.all(
       (companies || []).map(async (company) => {
         let monthlyFee: number | null = null;
         let pricePerImage: number | null = null;
@@ -103,17 +116,37 @@ serve(async (req) => {
           }
         }
 
+        const codeData = company.stripe_customer_id ? codeMap[company.stripe_customer_id] : null;
+
         return {
           id: company.id,
           name: company.name,
           stripe_customer_id: company.stripe_customer_id,
-          signup_code: company.stripe_customer_id ? codeMap[company.stripe_customer_id] || null : null,
+          signup_code: codeData?.code || null,
+          checkout_url: codeData?.checkout_url || null,
+          status: "active" as const,
           created_at: company.created_at,
           monthlyFee,
           pricePerImage,
         };
       })
     );
+
+    // Build pending customers list
+    const pendingCustomers = pendingCodes.map((pc) => ({
+      id: `pending-${pc.code}`,
+      name: pc.company_name || "Okänt företag",
+      stripe_customer_id: null,
+      signup_code: pc.code,
+      checkout_url: pc.checkout_url,
+      status: "pending" as const,
+      created_at: pc.created_at || new Date().toISOString(),
+      monthlyFee: null,
+      pricePerImage: null,
+    }));
+
+    // Combine and return
+    const customers = [...activeCustomers, ...pendingCustomers];
 
     return new Response(JSON.stringify({ customers }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

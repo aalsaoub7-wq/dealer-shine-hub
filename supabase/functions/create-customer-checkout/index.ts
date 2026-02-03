@@ -167,6 +167,20 @@ serve(async (req) => {
 
     console.log("[CREATE-CUSTOMER-CHECKOUT] Checkout session created:", session.id);
 
+    // Save checkout_url to signup_codes for admin visibility
+    if (session.url) {
+      const { error: updateError } = await supabaseAdmin.from("signup_codes").update({
+        checkout_url: session.url
+      }).eq("code", signupCode);
+      
+      if (updateError) {
+        console.error("[CREATE-CUSTOMER-CHECKOUT] Failed to save checkout_url:", updateError);
+        // Non-critical, continue
+      } else {
+        console.log("[CREATE-CUSTOMER-CHECKOUT] Checkout URL saved to signup_codes");
+      }
+    }
+
     return new Response(
       JSON.stringify({ url: session.url, signupCode }),
       {

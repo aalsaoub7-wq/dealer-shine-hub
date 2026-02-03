@@ -19,6 +19,8 @@ interface Customer {
   name: string;
   stripe_customer_id: string | null;
   signup_code: string | null;
+  checkout_url: string | null;
+  status: 'active' | 'pending';
   created_at: string;
   monthlyFee: number | null;
   pricePerImage: number | null;
@@ -67,6 +69,7 @@ const Admin = () => {
   const [signupCode, setSignupCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedCheckoutUrl, setCopiedCheckoutUrl] = useState<string | null>(null);
   
   // Create background form
   const [newBgName, setNewBgName] = useState("");
@@ -365,6 +368,16 @@ const Admin = () => {
       await navigator.clipboard.writeText(code);
       setCopiedUnlockCode(code);
       setTimeout(() => setCopiedUnlockCode(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  const copyCustomerCheckoutUrl = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedCheckoutUrl(url);
+      setTimeout(() => setCopiedCheckoutUrl(null), 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
     }
@@ -684,9 +697,11 @@ const Admin = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Företag</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead>Månadsavgift</TableHead>
                         <TableHead>Pris/bild</TableHead>
                         <TableHead>Signup-kod</TableHead>
+                        <TableHead>Checkout</TableHead>
                         <TableHead>Skapad</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -694,6 +709,17 @@ const Admin = () => {
                       {filteredCustomers.map((customer) => (
                         <TableRow key={customer.id}>
                           <TableCell className="font-medium">{customer.name}</TableCell>
+                          <TableCell>
+                            {customer.status === 'active' ? (
+                              <span className="inline-flex items-center gap-1 text-green-600">
+                                <Check className="h-3 w-3" /> Aktiv
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-amber-600">
+                                ⏳ Väntar
+                              </span>
+                            )}
+                          </TableCell>
                           <TableCell>
                             {customer.monthlyFee !== null ? (
                               <span>{customer.monthlyFee.toLocaleString("sv-SE")} kr</span>
@@ -713,6 +739,24 @@ const Admin = () => {
                               <code className="px-2 py-1 bg-muted rounded text-sm">
                                 {customer.signup_code}
                               </code>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {customer.checkout_url ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => copyCustomerCheckoutUrl(customer.checkout_url!)}
+                                className="h-8 px-2"
+                              >
+                                {copiedCheckoutUrl === customer.checkout_url ? (
+                                  <Check className="h-4 w-4 text-green-600" />
+                                ) : (
+                                  <Copy className="h-4 w-4" />
+                                )}
+                              </Button>
                             ) : (
                               <span className="text-muted-foreground">—</span>
                             )}
