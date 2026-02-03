@@ -45,13 +45,22 @@ serve(async (req) => {
     console.log("[CREATE-CUSTOMER-CHECKOUT] Admin verified:", userData.user.email);
 
     // Parse request body
-    const { companyName, monthlyFee, pricePerImage, includedImages = 0 } = await req.json();
+    const { companyName, monthlyFee, pricePerImage, includedImages = 0, bindingMonths = 0 } = await req.json();
 
     if (!companyName || !monthlyFee || !pricePerImage) {
       throw new Error("Missing required fields: companyName, monthlyFee, pricePerImage");
     }
 
-    console.log("[CREATE-CUSTOMER-CHECKOUT] Creating for:", companyName, "Monthly:", monthlyFee, "Per image:", pricePerImage, "Included:", includedImages);
+    console.log("[CREATE-CUSTOMER-CHECKOUT] Creating for:", companyName, "Monthly:", monthlyFee, "Per image:", pricePerImage, "Included:", includedImages, "Binding:", bindingMonths);
+
+    // Calculate binding end date if binding period is set
+    let bindingEndDate: string | null = null;
+    if (bindingMonths > 0) {
+      const endDate = new Date();
+      endDate.setMonth(endDate.getMonth() + bindingMonths);
+      bindingEndDate = endDate.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      console.log("[CREATE-CUSTOMER-CHECKOUT] Binding end date:", bindingEndDate);
+    }
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -148,6 +157,8 @@ serve(async (req) => {
           company_name: companyName,
           product_id: product.id,
           included_images: String(includedImages),
+          binding_months: String(bindingMonths),
+          binding_end_date: bindingEndDate || "",
         },
       },
       success_url: `${origin}/auth?mode=signup&checkout_success=true`,
