@@ -581,6 +581,7 @@ export type Database = {
       }
       signup_codes: {
         Row: {
+          checkout_url: string | null
           code: string
           company_name: string | null
           created_at: string | null
@@ -590,6 +591,7 @@ export type Database = {
           used_by: string | null
         }
         Insert: {
+          checkout_url?: string | null
           code: string
           company_name?: string | null
           created_at?: string | null
@@ -599,6 +601,7 @@ export type Database = {
           used_by?: string | null
         }
         Update: {
+          checkout_url?: string | null
           code?: string
           company_name?: string | null
           created_at?: string | null
