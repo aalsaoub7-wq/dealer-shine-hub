@@ -1,19 +1,34 @@
 
 
-## Fix: Share-preview funktionen är inte deployad
+## Fix: share-preview deploya korrekt
 
-### Problemet
-Edge-funktionen `share-preview` finns i koden men har aldrig deployats korrekt (den fick ett timeout-fel vid första försöket). Resultatet: delningslänken leder till en felsida istället för att visa en förhandsvisning och sedan skicka vidare till den riktiga sidan.
-
-### Lösningen
-Enkel fix -- inga kodändringar behövs. Funktionen finns redan skriven och ser korrekt ut.
-
-1. **Deploya `share-preview` edge-funktionen** -- tvinga en ny deploy av den befintliga koden
-2. **Verifiera att den svarar korrekt** -- testa med ett anrop för att bekräfta att den returnerar HTML (inte 404)
-3. **Testa delningsflödet** -- dela bilder från en bil och bekräfta att länken fungerar
+### Rotorsak
+Edge-funktionen `share-preview` returnerar 404 ("Requested function was not found") -- den har aldrig lyckats deployas. Anledningen är troligen att importen `@supabase/supabase-js@2.49.1` (specifik patch-version) orsakar bundle-timeout. Alla andra fungerande funktioner i projektet använder `@supabase/supabase-js@2` utan patch-version.
 
 ### Vad som ändras
-- Ingenting i koden -- bara en deploy av det som redan finns
+
+**1. Fixa importen i `supabase/functions/share-preview/index.ts`**
+- Ändra `https://esm.sh/@supabase/supabase-js@2.49.1` till `https://esm.sh/@supabase/supabase-js@2` (matchar alla andra fungerande funktioner)
+
+**2. Deploya funktionen**
+- Force-deploya `share-preview` efter importändringen
+
+**3. Verifiera**
+- Testa funktionen med ett testanrop för att bekräfta att den returnerar HTML istället för 404
+
+### Vad som INTE ändras
+- Logiken i funktionen -- den är korrekt
+- CarDetail.tsx -- delningskoden är redan korrekt kopplad
+- Config.toml -- redan korrekt konfigurerad
+- Inga andra funktioner påverkas
 
 ### Risk
-Ingen risk alls -- koden finns redan, den behöver bara deployas.
+Minimal -- en enda import-rad ändras till samma mönster som alla andra fungerande funktioner använder.
+
+### Teknisk detalj
+Rad 2 i `share-preview/index.ts` ändras:
+```text
+Före:  import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+Efter: import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+```
+
