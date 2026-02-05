@@ -510,8 +510,8 @@ const CarDetail = () => {
 
       if (error) throw error;
 
-      // Generate shareable URL
-      const shareUrl = `${window.location.origin}/shared/${tokenData}`;
+      // Generate shareable URL via edge function for correct WhatsApp/social previews
+      const shareUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/share-preview?token=${tokenData}`;
 
       // Try native share first
       const shared = await nativeShare(
