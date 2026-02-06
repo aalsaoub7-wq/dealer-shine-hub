@@ -1,52 +1,30 @@
 
 
-## Fix: share-preview returnerar 404
+## Fix share-preview: Byt till standard serve-wrapper
 
 ### Problem
-`share-preview` returnerar 404 ("Requested function was not found") trots att filen finns och config.toml är korrekt. Alla andra funktioner fungerar.
+`share-preview` returnerar fortfarande 404 eftersom den använder `Deno.serve()` direkt. Den förra godkända ändringen applicerades aldrig -- filen är oförändrad.
 
-### Orsak
-`share-preview` använder `Deno.serve()` direkt, medan ALLA andra fungerande funktioner (t.ex. `get-billing-info`, `init-templates`) använder:
-```text
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-serve(async (req) => { ... });
-```
-Supabase edge runtime känner inte igen `Deno.serve()` som en giltig entry point och returnerar 404.
-
-### Vad som ändras
+### Ändring
 
 **En enda fil**: `supabase/functions/share-preview/index.ts`
 
-Ändringarna:
-1. Lägg till `import { serve }` från deno std (rad 1)
-2. Byt `Deno.serve(async (req) => {` till `serve(async (req) => {`
-3. All logik (hämta data, bygga OG-taggar, redirect) förblir exakt samma
+Rad 1: Lägg till import:
+```
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+```
+
+Rad 10: Byt `Deno.serve(async (req) => {` till `serve(async (req) => {`
+
+All övrig logik (CORS, databasfrågor, OG-taggar, redirect) förblir identisk.
 
 ### Vad som INTE ändras
 - Ingen annan fil rörs
-- CarDetail.tsx -- orörd
 - config.toml -- orörd
 - Inga andra edge-funktioner påverkas
 - Ingen databas ändras
+- Ingen frontend-kod ändras
 
-### Teknisk detalj
-
-Före (fungerar INTE -- 404):
-```text
-Deno.serve(async (req) => {
-  ...
-});
-```
-
-Efter (samma mönster som alla 29 andra fungerande funktioner):
-```text
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-serve(async (req) => {
-  ...
-});
-```
-
-### Verifiering
-Efter deploy: anropa funktionen direkt med en test-token och bekräfta att den returnerar HTML med status 200 istället för 404.
+### Verifiering efter deploy
+Anropa funktionen direkt med en test-token för att bekräfta att den svarar med status 200 och HTML istället för 404.
 
