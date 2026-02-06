@@ -84,5 +84,8 @@ verify_jwt = true
 [functions.create-initial-stripe-customer]
 verify_jwt = false
 
+[functions.trigger-auto-stripe-customer]
+verify_jwt = false
+
 [functions.share-preview]
 verify_jwt = false
