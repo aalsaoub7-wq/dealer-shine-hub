@@ -1,3 +1,4 @@
+// Share preview - returns HTML with OG tags for social media crawlers
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 function esc(s: string): string {
