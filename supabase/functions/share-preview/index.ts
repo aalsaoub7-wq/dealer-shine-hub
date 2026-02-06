@@ -1,5 +1,3 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -28,34 +26,41 @@ Deno.serve(async (req) => {
 
     console.log("share-preview: looking up token", token);
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    // Fetch shared collection by token
+    const colRes = await fetch(
+      `${supabaseUrl}/rest/v1/shared_collections?share_token=eq.${encodeURIComponent(token)}&select=title,photo_ids,landing_page_description&limit=1`,
+      {
+        headers: {
+          apikey: serviceRoleKey,
+          Authorization: `Bearer ${serviceRoleKey}`,
+        },
+      }
     );
 
-    const { data: col, error: colError } = await supabase
-      .from("shared_collections")
-      .select("title, photo_ids, landing_page_description")
-      .eq("share_token", token)
-      .maybeSingle();
-
-    if (colError) {
-      console.error("share-preview: DB error", colError);
-      return new Response("DB error", { status: 500, headers: corsHeaders });
-    }
+    const cols = await colRes.json();
+    const col = cols?.[0];
 
     if (!col) {
+      console.log("share-preview: token not found", token);
       return new Response("Not found", { status: 404, headers: corsHeaders });
     }
 
     let ogImage = "";
     if (col.photo_ids?.length) {
-      const { data: p } = await supabase
-        .from("photos")
-        .select("url")
-        .eq("id", col.photo_ids[0])
-        .maybeSingle();
-      if (p?.url) ogImage = p.url;
+      const photoRes = await fetch(
+        `${supabaseUrl}/rest/v1/photos?id=eq.${encodeURIComponent(col.photo_ids[0])}&select=url&limit=1`,
+        {
+          headers: {
+            apikey: serviceRoleKey,
+            Authorization: `Bearer ${serviceRoleKey}`,
+          },
+        }
+      );
+      const photos = await photoRes.json();
+      if (photos?.[0]?.url) ogImage = photos[0].url;
     }
 
     const title = col.title || "Bilder";
