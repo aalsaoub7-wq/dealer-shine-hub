@@ -1,59 +1,52 @@
 
 
-## Fix: Deploya om ALLA backend-funktioner
+## Fix: share-preview returnerar 404
 
 ### Problem
-Alla backend-funktioner har fallit ur deployment (returnerar 404). Detta orsakar:
-1. **"Konto ej aktiverat"** -- `get-billing-info` svarar inte, och appen tolkar det som att betalningen saknas
-2. **Dela-länken fungerar inte** -- `share-preview` returnerar 404
+`share-preview` returnerar 404 ("Requested function was not found") trots att filen finns och config.toml är korrekt. Alla andra funktioner fungerar.
 
-### Rotorsak
-Under senaste ändringarna av share-preview har samtliga edge-funktioner tappats ur deployment.
+### Orsak
+`share-preview` använder `Deno.serve()` direkt, medan ALLA andra fungerande funktioner (t.ex. `get-billing-info`, `init-templates`) använder:
+```text
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+serve(async (req) => { ... });
+```
+Supabase edge runtime känner inte igen `Deno.serve()` som en giltig entry point och returnerar 404.
 
-### Vad som behöver göras
+### Vad som ändras
 
-**Steg 1: Deploya om ALLA 27 edge-funktioner**
+**En enda fil**: `supabase/functions/share-preview/index.ts`
 
-Samtliga funktioner deployeras i ett svep:
-- add-reflection
-- blocket-sync
-- check-admin-ip
-- create-background-template
-- create-customer-checkout
-- create-initial-stripe-customer
-- create-stripe-customer
-- customer-portal
-- delete-account
-- edit-photo
-- generate-car-description
-- get-admin-customers
-- get-billing-info
-- get-verification-status
-- init-templates
-- manage-leads
-- remove-logo-background
-- report-usage-to-stripe
-- request-password-reset
-- reset-password
-- save-admin-ip
-- segment-car
-- send-email-verification
-- send-phone-otp
-- share-preview
-- stripe-webhook
-- track-trial-usage
-- translate-text
-- trigger-auto-stripe-customer
-- verify-code
-
-**Steg 2: Verifiera kritiska funktioner**
-- Testa `get-billing-info` -- detta fixar "Konto ej aktiverat"-problemet
-- Testa `share-preview` -- detta fixar delningslänkarna
+Ändringarna:
+1. Lägg till `import { serve }` från deno std (rad 1)
+2. Byt `Deno.serve(async (req) => {` till `serve(async (req) => {`
+3. All logik (hämta data, bygga OG-taggar, redirect) förblir exakt samma
 
 ### Vad som INTE ändras
-- Ingen kod ändras -- alla filer är korrekta
+- Ingen annan fil rörs
+- CarDetail.tsx -- orörd
+- config.toml -- orörd
+- Inga andra edge-funktioner påverkas
 - Ingen databas ändras
-- Ingen frontend-kod ändras
 
-### Risk
-Ingen -- funktionernas kod har inte ändrats, de behöver bara deployas om.
+### Teknisk detalj
+
+Före (fungerar INTE -- 404):
+```text
+Deno.serve(async (req) => {
+  ...
+});
+```
+
+Efter (samma mönster som alla 29 andra fungerande funktioner):
+```text
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+serve(async (req) => {
+  ...
+});
+```
+
+### Verifiering
+Efter deploy: anropa funktionen direkt med en test-token och bekräfta att den returnerar HTML med status 200 istället för 404.
+
