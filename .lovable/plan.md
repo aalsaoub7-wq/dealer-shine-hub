@@ -1,30 +1,26 @@
 
 
-## Fix share-preview: Byt till standard serve-wrapper
+## Plan: Ta bort Carcenter Lidköping från systemet
 
-### Problem
-`share-preview` returnerar fortfarande 404 eftersom den använder `Deno.serve()` direkt. Den förra godkända ändringen applicerades aldrig -- filen är oförändrad.
+### Nuläge
+- **signup_codes**: En rad med `code: CARCEN-SE34`, `company_name: Carcenter Lidköping AB`, `stripe_customer_id: pending`
+- **companies**: Ingen data (de har inte registrerat sig)
+- **Stripe**: En pending customer skapades troligen, men utan aktiv prenumeration
 
-### Ändring
+### Åtgärd
+Köra en enkel DELETE-query mot `signup_codes`:
 
-**En enda fil**: `supabase/functions/share-preview/index.ts`
-
-Rad 1: Lägg till import:
+```sql
+DELETE FROM signup_codes 
+WHERE code = 'CARCEN-SE34';
 ```
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-```
 
-Rad 10: Byt `Deno.serve(async (req) => {` till `serve(async (req) => {`
+### Vad som händer
+- Raden i `signup_codes` tas bort
+- Checkout-länken blir ogiltig (om någon klickar på den fungerar den inte)
+- Kunden försvinner från Admin-tabellen "Befintliga kunder"
+- Inget annat påverkas
 
-All övrig logik (CORS, databasfrågor, OG-taggar, redirect) förblir identisk.
-
-### Vad som INTE ändras
-- Ingen annan fil rörs
-- config.toml -- orörd
-- Inga andra edge-funktioner påverkas
-- Ingen databas ändras
-- Ingen frontend-kod ändras
-
-### Verifiering efter deploy
-Anropa funktionen direkt med en test-token för att bekräfta att den svarar med status 200 och HTML istället för 404.
+### Risk
+**Ingen risk** - detta är bara en pending-rad utan kopplingar till andra tabeller.
 
