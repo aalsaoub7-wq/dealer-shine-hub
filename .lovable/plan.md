@@ -1,48 +1,59 @@
 
 
-## Fix: Delningslänkar visar rå HTML-kod istället för att rendera sidan
+## Fix: Deploya om ALLA backend-funktioner
+
+### Problem
+Alla backend-funktioner har fallit ur deployment (returnerar 404). Detta orsakar:
+1. **"Konto ej aktiverat"** -- `get-billing-info` svarar inte, och appen tolkar det som att betalningen saknas
+2. **Dela-länken fungerar inte** -- `share-preview` returnerar 404
 
 ### Rotorsak
-Edge-funktionen `share-preview` fungerar -- den kör och hämtar data från databasen korrekt. MEN `Content-Type: text/html`-headern försvinner på vägen, så webbläsaren visar rå HTML-kod som text istället för att rendera sidan och göra omdirigeringen.
+Under senaste ändringarna av share-preview har samtliga edge-funktioner tappats ur deployment.
 
-Orsaken: `share-preview` använder `Deno.serve()` direkt, medan ALLA andra fungerande edge-funktioner i projektet använder `import { serve } from "https://deno.land/std@0.168.0/http/server.ts"`. Supabase edge runtime hanterar dessa olika när det gäller response-headers.
+### Vad som behöver göras
 
-### Vad som ändras
+**Steg 1: Deploya om ALLA 27 edge-funktioner**
 
-**En enda fil**: `supabase/functions/share-preview/index.ts`
+Samtliga funktioner deployeras i ett svep:
+- add-reflection
+- blocket-sync
+- check-admin-ip
+- create-background-template
+- create-customer-checkout
+- create-initial-stripe-customer
+- create-stripe-customer
+- customer-portal
+- delete-account
+- edit-photo
+- generate-car-description
+- get-admin-customers
+- get-billing-info
+- get-verification-status
+- init-templates
+- manage-leads
+- remove-logo-background
+- report-usage-to-stripe
+- request-password-reset
+- reset-password
+- save-admin-ip
+- segment-car
+- send-email-verification
+- send-phone-otp
+- share-preview
+- stripe-webhook
+- track-trial-usage
+- translate-text
+- trigger-auto-stripe-customer
+- verify-code
 
-Ändringar:
-1. Byt till `import { serve }` istället för `Deno.serve` -- samma mönster som alla andra fungerande funktioner
-2. Använd `new Headers()` för att explicit sätta `Content-Type: text/html; charset=utf-8` så att headern inte kan försvinna
-3. Logiken (hämta data, bygga OG-taggar, omdirigera) ändras INTE alls
+**Steg 2: Verifiera kritiska funktioner**
+- Testa `get-billing-info` -- detta fixar "Konto ej aktiverat"-problemet
+- Testa `share-preview` -- detta fixar delningslänkarna
 
 ### Vad som INTE ändras
-- Ingen annan fil rörs
-- Delningslogiken i CarDetail.tsx -- redan korrekt
-- Config.toml -- redan korrekt
-- Inga andra edge-funktioner påverkas
-- Databasefrågor och OG-tagg-generering -- samma som innan
-
-### Verifiering
-1. Deploya den uppdaterade funktionen
-2. Hämta URL:en direkt och bekräfta att webbläsaren renderar HTML (visar "Omdirigerar" och skickar vidare) istället för att visa rå kod
-3. Testa delningsflödet: välj bilder, klicka Dela, öppna länken
+- Ingen kod ändras -- alla filer är korrekta
+- Ingen databas ändras
+- Ingen frontend-kod ändras
 
 ### Risk
-Minimal -- samma beprövade mönster som 20+ andra fungerande edge-funktioner i projektet. Logiken ändras inte, bara hur HTTP-servern startas och hur headers sätts.
-
-### Teknisk detalj
-
-```text
-Före (fungerar INTE):
-  Deno.serve(async (req) => { ... })
-  headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders }
-
-Efter (fungerar, samma som alla andra funktioner):
-  import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-  serve(async (req) => { ... })
-  const headers = new Headers();
-  headers.set("Content-Type", "text/html; charset=utf-8");
-  headers.set("Access-Control-Allow-Origin", "*");
-  headers.set("Access-Control-Allow-Headers", "...");
-```
+Ingen -- funktionernas kod har inte ändrats, de behöver bara deployas om.
