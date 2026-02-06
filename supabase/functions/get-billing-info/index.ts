@@ -59,14 +59,83 @@ serve(async (req) => {
     }
 
     // Get user's company with trial_end_date and trial image limits
-    const { data: userCompany } = await supabaseClient
+    let { data: userCompany } = await supabaseClient
       .from("user_companies")
       .select("company_id, companies(id, name, stripe_customer_id, trial_end_date, trial_images_remaining, trial_images_used)")
       .eq("user_id", user.id)
       .single();
 
     if (!userCompany?.companies) {
-      throw new Error("No company found for user");
+      // Self-healing: if trigger failed, try to create company from signup code
+      console.log(`[BILLING-INFO] No company found for user ${user.id}, attempting self-healing...`);
+      
+      const { data: { user: adminUser } } = await supabaseClient.auth.admin.getUser(user.id);
+      const signupCode = adminUser?.user_metadata?.signup_code;
+      
+      if (signupCode) {
+        console.log(`[BILLING-INFO] Found signup_code in metadata: ${signupCode}`);
+        
+        const { data: codeRecord } = await supabaseClient
+          .from("signup_codes")
+          .select("id, stripe_customer_id, company_name")
+          .eq("code", signupCode)
+          .is("used_at", null)
+          .maybeSingle();
+        
+        if (codeRecord) {
+          console.log(`[BILLING-INFO] Found unused signup code, creating company for user ${user.id}`);
+          
+          // Create company
+          const { data: newCompany, error: companyError } = await supabaseClient
+            .from("companies")
+            .insert({
+              name: codeRecord.company_name || `Company - ${user.email}`,
+              stripe_customer_id: codeRecord.stripe_customer_id,
+              trial_end_date: null,
+              trial_images_remaining: 0,
+            })
+            .select("id, name, stripe_customer_id, trial_end_date, trial_images_remaining, trial_images_used")
+            .single();
+          
+          if (companyError || !newCompany) {
+            console.error("[BILLING-INFO] Self-healing: failed to create company", companyError);
+            throw new Error("No company found for user");
+          }
+          
+          // Link user to company
+          await supabaseClient
+            .from("user_companies")
+            .insert({ user_id: user.id, company_id: newCompany.id });
+          
+          // Give admin role
+          await supabaseClient
+            .from("user_roles")
+            .insert({ user_id: user.id, company_id: newCompany.id, role: "admin" });
+          
+          // Mark signup code as used
+          await supabaseClient
+            .from("signup_codes")
+            .update({ used_at: new Date().toISOString(), used_by: user.id })
+            .eq("id", codeRecord.id);
+          
+          // Remove lead entry
+          await supabaseClient
+            .from("leads")
+            .delete()
+            .eq("email", user.email || "");
+          
+          console.log(`[BILLING-INFO] Self-healing complete. Company ${newCompany.id} created for user ${user.id}`);
+          
+          // Re-assign so the rest of the function works
+          userCompany = { company_id: newCompany.id, companies: newCompany } as any;
+        } else {
+          console.log("[BILLING-INFO] No unused signup code found, cannot self-heal");
+          throw new Error("No company found for user");
+        }
+      } else {
+        console.log("[BILLING-INFO] No signup_code in user metadata, cannot self-heal");
+        throw new Error("No company found for user");
+      }
     }
 
     const company = Array.isArray(userCompany.companies)
