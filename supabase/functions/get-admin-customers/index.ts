@@ -50,7 +50,7 @@ serve(async (req) => {
     // Fetch ALL signup codes (including pending)
     const { data: signupCodes, error: codesError } = await supabaseClient
       .from("signup_codes")
-      .select("stripe_customer_id, code, company_name, created_at, checkout_url");
+      .select("stripe_customer_id, code, company_name, created_at, checkout_url, used_at");
 
     if (codesError) {
       throw new Error(`Failed to fetch signup codes: ${codesError.message}`);
@@ -59,17 +59,28 @@ serve(async (req) => {
     // Create map of stripe_customer_id to signup code data
     const codeMap: Record<string, { code: string; checkout_url: string | null }> = {};
     const pendingCodes: Array<{ code: string; company_name: string | null; created_at: string | null; checkout_url: string | null }> = [];
+    const paidPendingCodes: Array<{ code: string; company_name: string | null; created_at: string | null; checkout_url: string | null; stripe_customer_id: string }> = [];
     
     for (const sc of signupCodes || []) {
       if (sc.stripe_customer_id === "pending") {
-        // This is a pending customer (checkout link created but not yet registered)
+        // Checkout link created but not yet paid
         pendingCodes.push({
           code: sc.code,
           company_name: sc.company_name,
           created_at: sc.created_at,
           checkout_url: sc.checkout_url
         });
+      } else if (sc.stripe_customer_id && !sc.used_at) {
+        // Paid but not yet registered (has real stripe ID but code unused)
+        paidPendingCodes.push({
+          code: sc.code,
+          company_name: sc.company_name,
+          created_at: sc.created_at,
+          checkout_url: sc.checkout_url,
+          stripe_customer_id: sc.stripe_customer_id
+        });
       } else if (sc.stripe_customer_id) {
+        // Paid and registered — match against companies
         codeMap[sc.stripe_customer_id] = {
           code: sc.code,
           checkout_url: sc.checkout_url
@@ -145,8 +156,21 @@ serve(async (req) => {
       pricePerImage: null,
     }));
 
+    // Build paid-but-not-registered customers list
+    const paidPendingCustomers = paidPendingCodes.map((pc) => ({
+      id: `pending-${pc.code}`,
+      name: pc.company_name || "Okänt företag",
+      stripe_customer_id: pc.stripe_customer_id,
+      signup_code: pc.code,
+      checkout_url: pc.checkout_url,
+      status: "pending" as const,
+      created_at: pc.created_at || new Date().toISOString(),
+      monthlyFee: null,
+      pricePerImage: null,
+    }));
+
     // Combine and return
-    const customers = [...activeCustomers, ...pendingCustomers];
+    const customers = [...activeCustomers, ...pendingCustomers, ...paidPendingCustomers];
 
     return new Response(JSON.stringify({ customers }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
