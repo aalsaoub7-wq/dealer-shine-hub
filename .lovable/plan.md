@@ -1,39 +1,29 @@
 
 
-## Fix: Ta bort trial-triggern som alltid ger nya kunder en 21-dagars provperiod
+## Byt ut reflection-prompten (1 fil, 1 rad)
 
-### Rotorsak
+### Vad som andras
 
-Det finns en BEFORE INSERT-trigger pa `companies`-tabellen som ALLTID overskrider `trial_end_date` till `created_at + 21 dagar`, oavsett vad som skickas in:
+**`supabase/functions/add-reflection/index.ts`** — rad 66
 
-```text
-set_trial_end_date_trigger -> set_trial_end_date()
-  NEW.trial_end_date := NEW.created_at + interval '21 days';
+Nuvarande prompt:
+```
+"This is a high-resolution professional car dealership photo (2560x1707 pixels, 3:2 aspect ratio). Add a subtle soft and fading mirror-like reflection of the vehicle on the polished showroom floor beneath it. Keep all other elements unchanged - maintain the exact same car, background, lighting, and resolution. Only add the floor reflection effect. Output the image at the same 2K resolution."
 ```
 
-Det spelar ingen roll att vi satter `trial_end_date: NULL` i SQL eller i self-healing-koden — triggern overskrider vardet varje gang ett foretag skapas.
-
-### Atgard (1 SQL-migration, 0 kodfiler)
-
-En enda SQL-migration som gor tva saker:
-
-1. **Droppar triggern och funktionen** — ingen ny kund far nagonsin en trial igen
-2. **Fixar Aram Carcenters data** — satter `trial_end_date = NULL` sa att de inte ser trial-information
-
-```text
-DROP TRIGGER set_trial_end_date_trigger ON companies;
-DROP FUNCTION set_trial_end_date();
-UPDATE companies SET trial_end_date = NULL WHERE name = 'Aram Carcenter';
+Ny prompt (verbatim):
+```
+"This is a high-resolution professional car dealership photo (2560x1707 pixels, 3:2 aspect ratio). Add a subtle soft and fading mirror-like reflection of the vehicle on the polished showroom floor beneath it. Keep all other elements unchanged - maintain the exact same car, background, lighting, and resolution. Only add the floor reflection effect. Output the image at the same 2K resolution. The mirror like reflection should be of only the bottom half of the car, and it should be FADING, so it looks natural. Meaning, the reflection at the beginning should be clear, and then fade the higher up it is on the car and it should be suitable with the ground. Fix this."
 ```
 
-### Vad som hander
+### Inget annat andras
 
-- Aram ser inte langre nagon trial-info
-- Framtida foretag (bade fran self-healing och manuella SQL-migrationer) far `trial_end_date = NULL` som avsett
-- Befintliga aktiva kunder paverkas INTE (deras `trial_end_date` ar redan NULL eller har redan passerat)
-- Ingen kodandring i frontend eller edge functions
+- Samma modell (`google/gemini-3-pro-image-preview`)
+- Samma konfiguration (aspect ratio, output size)
+- Samma uppladdningslogik, DB-uppdatering, felhantering
+- Bara textstrangens innehall pa rad 66 byts ut
 
 ### Risk
 
-**Minimal** — triggern gor bara skada (ger alla nya foretag en oonskal trial). Att ta bort den aterstar korrekt beteende. Befintliga data rors inte (forutom Aram-fixen).
+**Ingen** — enda andringen ar textinnehallet i prompten. All logik ar identisk.
 
