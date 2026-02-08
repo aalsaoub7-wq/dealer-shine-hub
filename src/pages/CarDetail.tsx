@@ -1005,9 +1005,9 @@ const CarDetail = () => {
           })
           .eq("id", photoId);
 
-        // Track usage for this regenerated image (counts as billable edit)
+        // Track usage for this regenerated image (uses free regeneration if available)
         try {
-          await trackUsage("edited_image", car!.id);
+          await trackRegenerationUsage(photoId, car!.id);
           analytics.imageRegenerated(car!.id);
         } catch (error) {
           console.error("Error tracking usage for regeneration:", error);

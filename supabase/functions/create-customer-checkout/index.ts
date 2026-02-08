@@ -111,6 +111,7 @@ serve(async (req) => {
       product: product.id,
       unit_amount: monthlyFee, // Already in öre
       currency: "sek",
+      tax_behavior: "inclusive",
       recurring: {
         interval: "month",
       },
@@ -123,6 +124,7 @@ serve(async (req) => {
       product: product.id,
       unit_amount: pricePerImage, // Already in öre
       currency: "sek",
+      tax_behavior: "inclusive",
       recurring: {
         interval: "month",
         usage_type: "metered",

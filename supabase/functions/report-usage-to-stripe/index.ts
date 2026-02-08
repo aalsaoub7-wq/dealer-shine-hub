@@ -13,6 +13,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log(`[REPORT-USAGE] Function invoked at ${new Date().toISOString()}`);
+    
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2024-06-20",
     });
@@ -193,7 +195,7 @@ serve(async (req) => {
           timestamp: Math.floor(Date.now() / 1000),
         });
 
-        console.log(`[REPORT-USAGE] Created meter event: ${meterEvent.identifier}`);
+        console.log(`[REPORT-USAGE] SUCCESS: Meter event created for customer ${company.stripe_customer_id}, identifier: ${meterEvent.identifier}, quantity: ${quantity}`);
 
         return new Response(
           JSON.stringify({ 
@@ -208,7 +210,7 @@ serve(async (req) => {
           }
         );
       } catch (meterError: any) {
-        console.error("[REPORT-USAGE] Meter Events API failed:", meterError.message);
+        console.error(`[REPORT-USAGE] FAILED: Meter Events API error for customer ${company.stripe_customer_id}: ${meterError.message}`);
         // Fall through to usage record method
       }
     }

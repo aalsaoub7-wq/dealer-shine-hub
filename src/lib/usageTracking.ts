@@ -42,6 +42,31 @@ const getDynamicPricePerImage = async (): Promise<number> => {
   }
 };
 
+/**
+ * Reports usage to Stripe with retry logic to prevent lost billing events
+ */
+const reportToStripeWithRetry = async (maxRetries = 3) => {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const { data, error: reportError } = await supabase.functions.invoke(
+        "report-usage-to-stripe",
+        { body: { quantity: 1 } }
+      );
+      if (reportError) {
+        throw reportError;
+      }
+      console.log(`[USAGE] Stripe reporting succeeded on attempt ${attempt}`, data);
+      return;
+    } catch (err) {
+      console.error(`[USAGE] Stripe reporting attempt ${attempt}/${maxRetries} failed:`, err);
+      if (attempt < maxRetries) {
+        await new Promise(r => setTimeout(r, 1000 * attempt));
+      }
+    }
+  }
+  console.error("[USAGE] All Stripe reporting attempts failed - billing event may be lost!");
+};
+
 export const trackUsage = async (
   type: "edited_image",
   carId?: string
@@ -148,22 +173,8 @@ export const trackUsage = async (
       if (error) console.error("Error inserting usage stats:", error);
     }
 
-    // Report usage to Stripe for metered billing (only for paid users)
-    try {
-      const { error: reportError } = await supabase.functions.invoke(
-        "report-usage-to-stripe",
-        {
-          body: { quantity: 1 },
-        }
-      );
-
-      if (reportError) {
-        console.error("Error reporting usage to Stripe:", reportError);
-      }
-    } catch (stripeError) {
-      console.error("Failed to report usage to Stripe:", stripeError);
-      // Don't fail the whole operation if Stripe reporting fails
-    }
+    // Report usage to Stripe for metered billing with retry (only for paid users)
+    await reportToStripeWithRetry();
   } catch (error) {
     console.error("Error tracking usage:", error);
   }
