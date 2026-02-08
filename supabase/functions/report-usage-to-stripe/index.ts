@@ -157,7 +157,9 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { quantity = 1 } = await req.json();
+    const { quantity = 1, billing_event_id } = await req.json();
+
+    console.log(`[REPORT-USAGE] billing_event_id: ${billing_event_id || "none"}`);
 
     // Find the metered subscription item
     const meteredItem = subscription.items.data.find((item: any) => 
@@ -185,17 +187,45 @@ serve(async (req) => {
         
         console.log(`[REPORT-USAGE] Meter event name: ${eventName}`);
         
-        // Create meter event
-        const meterEvent = await stripe.billing.meterEvents.create({
+        // Create meter event WITH idempotency identifier
+        // Stripe deduplicates events with the same identifier within 24 hours
+        const meterEventParams: any = {
           event_name: eventName,
           payload: {
             value: String(quantity),
             stripe_customer_id: company.stripe_customer_id,
           },
           timestamp: Math.floor(Date.now() / 1000),
-        });
+        };
+
+        // Use billing_event_id as identifier for deduplication
+        if (billing_event_id) {
+          meterEventParams.identifier = billing_event_id;
+          console.log(`[REPORT-USAGE] Using idempotency identifier: ${billing_event_id}`);
+        }
+
+        const meterEvent = await stripe.billing.meterEvents.create(meterEventParams);
 
         console.log(`[REPORT-USAGE] SUCCESS: Meter event created for customer ${company.stripe_customer_id}, identifier: ${meterEvent.identifier}, quantity: ${quantity}`);
+
+        // Server-side: Mark billing event as reported in the database
+        if (billing_event_id) {
+          const { error: updateError } = await supabase
+            .from("billing_events")
+            .update({
+              stripe_reported: true,
+              stripe_reported_at: new Date().toISOString(),
+              stripe_event_id: meterEvent.identifier,
+            })
+            .eq("id", billing_event_id);
+
+          if (updateError) {
+            console.error(`[REPORT-USAGE] Failed to mark billing event as reported: ${updateError.message}`);
+            // Not fatal - reconciliation will catch it
+          } else {
+            console.log(`[REPORT-USAGE] Billing event ${billing_event_id} marked as reported`);
+          }
+        }
 
         return new Response(
           JSON.stringify({ 
@@ -228,6 +258,18 @@ serve(async (req) => {
     );
 
     console.log(`[REPORT-USAGE] Created usage record: ${usageRecord.id}`);
+
+    // Server-side: Mark billing event as reported for legacy method too
+    if (billing_event_id) {
+      await supabase
+        .from("billing_events")
+        .update({
+          stripe_reported: true,
+          stripe_reported_at: new Date().toISOString(),
+          stripe_event_id: usageRecord.id,
+        })
+        .eq("id", billing_event_id);
+    }
 
     return new Response(
       JSON.stringify({ 

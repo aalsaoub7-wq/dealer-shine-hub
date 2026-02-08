@@ -85,10 +85,19 @@ const Dashboard = () => {
     if (user) {
       fetchCars();
       checkTrialStatus();
-      // Auto-reconcile billing on dashboard load (fire & forget)
-      import("@/lib/usageTracking").then(({ triggerReconciliation }) => {
-        triggerReconciliation().catch(() => {});
-      });
+      // Auto-reconcile billing on dashboard load (scoped to user's company)
+      supabase
+        .from("user_companies")
+        .select("company_id")
+        .eq("user_id", user.id)
+        .single()
+        .then(({ data }) => {
+          if (data?.company_id) {
+            import("@/lib/usageTracking").then(({ triggerReconciliation }) => {
+              triggerReconciliation(data.company_id).catch(() => {});
+            });
+          }
+        });
     }
   }, [user]);
   const checkTrialStatus = async () => {
