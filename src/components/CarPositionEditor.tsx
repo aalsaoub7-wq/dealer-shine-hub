@@ -358,29 +358,29 @@ export const CarPositionEditor = ({
         ctx.arc(rhX, rhY, handleSize, 0, 2 * Math.PI);
         ctx.stroke();
         
-        // Draw diagonal resize arrow icon (↔ diagonal) inside resize handle
+        // Draw diagonal resize arrow icon (top-left ↔ bottom-right) inside resize handle
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 3.5;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         
         const arrowLen = 12;
-        // Diagonal line from bottom-left to top-right
+        // Diagonal line from top-left to bottom-right
         ctx.beginPath();
-        ctx.moveTo(rhX - arrowLen, rhY + arrowLen);
-        ctx.lineTo(rhX + arrowLen, rhY - arrowLen);
+        ctx.moveTo(rhX - arrowLen, rhY - arrowLen);
+        ctx.lineTo(rhX + arrowLen, rhY + arrowLen);
         ctx.stroke();
-        // Arrowhead top-right
+        // Arrowhead bottom-right
         ctx.beginPath();
-        ctx.moveTo(rhX + arrowLen - 7, rhY - arrowLen);
-        ctx.lineTo(rhX + arrowLen, rhY - arrowLen);
-        ctx.lineTo(rhX + arrowLen, rhY - arrowLen + 7);
+        ctx.moveTo(rhX + arrowLen - 7, rhY + arrowLen);
+        ctx.lineTo(rhX + arrowLen, rhY + arrowLen);
+        ctx.lineTo(rhX + arrowLen, rhY + arrowLen - 7);
         ctx.stroke();
-        // Arrowhead bottom-left
+        // Arrowhead top-left
         ctx.beginPath();
-        ctx.moveTo(rhX - arrowLen + 7, rhY + arrowLen);
-        ctx.lineTo(rhX - arrowLen, rhY + arrowLen);
-        ctx.lineTo(rhX - arrowLen, rhY + arrowLen - 7);
+        ctx.moveTo(rhX - arrowLen + 7, rhY - arrowLen);
+        ctx.lineTo(rhX - arrowLen, rhY - arrowLen);
+        ctx.lineTo(rhX - arrowLen, rhY - arrowLen + 7);
         ctx.stroke();
 
         // Draw rotation handle (top-center)
@@ -408,20 +408,26 @@ export const CarPositionEditor = ({
         ctx.arc(rotHandleX, rotHandleY, handleSize, 0, 2 * Math.PI);
         ctx.stroke();
 
-        // Draw rotation icon (↻)
+        // Draw rotation icon (Material refresh style ↻)
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        // Draw ~270° arc (open at top-right)
+        const iconR = 11;
         ctx.beginPath();
-        ctx.arc(rotHandleX, rotHandleY, 14, -Math.PI * 0.7, Math.PI * 0.5);
+        ctx.arc(rotHandleX, rotHandleY, iconR, Math.PI * 0.15, Math.PI * 1.85);
         ctx.stroke();
-        // Arrowhead
-        const arrowTipX = rotHandleX + 14 * Math.cos(Math.PI * 0.5);
-        const arrowTipY = rotHandleY + 14 * Math.sin(Math.PI * 0.5);
+        // Arrowhead at the end of the arc (top-right, pointing clockwise)
+        const tipAngle = Math.PI * 0.15;
+        const tipX = rotHandleX + iconR * Math.cos(tipAngle);
+        const tipY = rotHandleY + iconR * Math.sin(tipAngle);
+        ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.moveTo(arrowTipX - 6, arrowTipY - 6);
-        ctx.lineTo(arrowTipX, arrowTipY);
-        ctx.lineTo(arrowTipX + 6, arrowTipY - 4);
-        ctx.stroke();
+        ctx.moveTo(tipX, tipY);
+        ctx.lineTo(tipX - 4, tipY - 8);
+        ctx.lineTo(tipX + 6, tipY - 3);
+        ctx.closePath();
+        ctx.fill();
 
         ctx.restore();
       } else if (isSelected && selectedElement === 'background') {
