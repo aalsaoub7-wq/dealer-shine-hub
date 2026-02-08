@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
-import { Loader2, ExternalLink, Image, TrendingUp, User, Sparkles, AlertCircle, CheckCircle2, CreditCard, Crown } from "lucide-react";
+import { Loader2, ExternalLink, Image, TrendingUp, User, AlertCircle, CheckCircle2, CreditCard, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { PaymentSettingsSkeleton } from "./PaymentSettingsSkeleton";
@@ -23,13 +23,6 @@ interface BillingInfo {
   customerId?: string;
   hasPaymentMethod?: boolean;
   planConfig?: PlanConfig;
-  trial?: {
-    isInTrial: boolean;
-    daysLeft: number;
-    endDate: string;
-    imagesRemaining: number;
-    imagesUsed: number;
-  };
   subscription?: {
     status: string;
     current_period_end?: string;
@@ -232,38 +225,6 @@ export const PaymentSettings = () => {
         </CardContent>
       </Card>
 
-      {/* Trial Status */}
-      {billingInfo?.trial?.isInTrial && (
-        <Card className="border-primary/20 bg-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              Testperiod Aktiv
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <p className="text-sm text-foreground">
-                Du har <strong>{billingInfo.trial.daysLeft} dagar</strong> kvar av din gratisperiod
-              </p>
-              <p className="text-sm text-foreground">
-                Bilder kvar: <strong>{Math.min(billingInfo.trial.imagesRemaining, 50)}</strong> av 50
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Testperiod löper ut: {new Date(billingInfo.trial.endDate).toLocaleDateString("sv-SE")}
-              </p>
-              {!billingInfo.hasPaymentMethod && (
-                <p className="text-xs text-amber-400 mt-2">
-                  Lägg till en betalmetod innan din testperiod löper ut för att fortsätta använda AI-redigering
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Trial expired card removed - no trials in system */}
-
       {/* Payment Method Status */}
       <Card className={billingInfo?.hasPaymentMethod ? "border-primary/20 bg-card" : "border-amber-500/20 bg-card"}>
         <CardHeader>
@@ -303,19 +264,11 @@ export const PaymentSettings = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Trial info notice */}
-          {billingInfo?.trial?.isInTrial && (
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-              <Sparkles className="h-4 w-4 text-green-500" />
-              <p className="text-sm text-green-500">Under testperioden debiteras inga kostnader</p>
-            </div>
-          )}
-
           {/* Monthly Fee */}
           <div className="flex items-center justify-between p-4 rounded-lg bg-primary/5 border border-primary/20">
             <span className="font-medium">Månadsavgift ({planConfig.name})</span>
-            <span className={`text-xl font-bold ${billingInfo?.trial?.isInTrial ? "text-green-500" : "text-primary"}`}>
-              {billingInfo?.trial?.isInTrial ? "0" : planConfig.monthlyFee} kr
+            <span className="text-xl font-bold text-primary">
+              {planConfig.monthlyFee} kr
             </span>
           </div>
 
@@ -339,8 +292,8 @@ export const PaymentSettings = () => {
                 <span className="text-sm font-medium text-muted-foreground">
                   Kostnad:
                 </span>
-                <span className={`text-base font-semibold ${billingInfo?.trial?.isInTrial ? "text-green-500" : "text-foreground"}`}>
-                  {billingInfo?.trial?.isInTrial ? "0.00" : userStat.cost.toFixed(2)} kr
+                <span className="text-base font-semibold text-foreground">
+                  {userStat.cost.toFixed(2)} kr
                 </span>
               </div>
             </div>
@@ -394,8 +347,8 @@ export const PaymentSettings = () => {
                         {totalUsage.editedImages} × {planConfig.pricePerImage} kr
                       </p>
                     </div>
-                    <span className={`text-xl font-bold ${billingInfo?.trial?.isInTrial ? "text-green-500" : "text-foreground"}`}>
-                      {billingInfo?.trial?.isInTrial ? "0.00" : totalUsage.cost.toFixed(2)} kr
+                    <span className="text-xl font-bold text-foreground">
+                      {totalUsage.cost.toFixed(2)} kr
                     </span>
                   </div>
                 )}
@@ -403,8 +356,8 @@ export const PaymentSettings = () => {
                 {/* Total monthly cost */}
                 <div className="flex justify-between items-center pt-4 border-t-2 border-primary/20">
                   <span className="text-lg font-semibold">Total kostnad denna månad:</span>
-                  <span className={`text-2xl font-bold ${billingInfo?.trial?.isInTrial ? "text-green-500" : "text-primary"}`}>
-                    {billingInfo?.trial?.isInTrial ? "0" : (planConfig.monthlyFee + displayCost).toFixed(2)} kr
+                  <span className="text-2xl font-bold text-primary">
+                    {(planConfig.monthlyFee + displayCost).toFixed(2)} kr
                   </span>
                 </div>
               </>

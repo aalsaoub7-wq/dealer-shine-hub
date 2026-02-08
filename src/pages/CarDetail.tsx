@@ -115,13 +115,6 @@ const CarDetail = () => {
   const [generatingDescription, setGeneratingDescription] = useState(false);
   const [hasPaymentMethod, setHasPaymentMethod] = useState(false);
   const [checkingPayment, setCheckingPayment] = useState(true);
-  const [trialInfo, setTrialInfo] = useState<{
-    isInTrial: boolean;
-    daysLeft: number;
-    endDate: string;
-    imagesRemaining: number;
-    imagesUsed: number;
-  } | null>(null);
   // Position editor state
   const [positionEditorPhoto, setPositionEditorPhoto] = useState<{
     id: string;
@@ -329,14 +322,12 @@ const CarDetail = () => {
       
       if (error) throw error;
       
-      // User can edit if they have payment method OR active subscription (no trial logic)
+      // User can edit if they have payment method OR active subscription
       const hasAccess = data?.hasPaymentMethod || data?.hasActiveSubscription || false;
       setHasPaymentMethod(hasAccess);
-      setTrialInfo(null); // No longer needed
     } catch (error) {
       console.error("Error checking payment method:", error);
       setHasPaymentMethod(false);
-      setTrialInfo(null);
     } finally {
       setCheckingPayment(false);
     }
@@ -561,33 +552,6 @@ const CarDetail = () => {
   };
 
   const handleEditPhotos = async (photoIds: string[], photoType: "main" | "documentation") => {
-    // Check trial image limit first
-    if (trialInfo?.isInTrial && (trialInfo?.imagesRemaining || 0) <= 0 && !hasPaymentMethod) {
-      const { dismiss } = toast({
-        title: "Bildgräns nådd",
-        description: "Du har använt alla 150 gratis bilder i din testperiod. Lägg till en betalmetod för att fortsätta redigera bilder.",
-        variant: "destructive",
-        action: (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              dismiss();
-              navigate("/dashboard");
-              setTimeout(() => {
-                if ((window as any).openSettingsDialog) {
-                  (window as any).openSettingsDialog("payment");
-                }
-              }, 300);
-            }}
-          >
-            Uppgradera nu
-          </Button>
-        ),
-      });
-      return;
-    }
-
     // Check payment method requirement
     if (!hasPaymentMethod) {
       const { dismiss } = toast({
@@ -744,16 +708,6 @@ const CarDetail = () => {
   const handleInteriorEdit = async (color: string) => {
     setInteriorDialogOpen(false);
     
-    // Check trial image limit first
-    if (trialInfo?.isInTrial && (trialInfo?.imagesRemaining || 0) <= 0 && !hasPaymentMethod) {
-      toast({
-        title: "Bildgräns nådd",
-        description: "Du har använt alla 150 gratis bilder i din testperiod. Lägg till en betalmetod för att fortsätta.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!hasPaymentMethod) {
       toast({
         title: "Betalmetod krävs",
