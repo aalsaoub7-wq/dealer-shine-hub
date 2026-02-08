@@ -410,22 +410,22 @@ export const CarPositionEditor = ({
 
         // Draw rotation icon (Material refresh style ↻)
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.lineCap = 'round';
-        // Draw ~270° arc (open at top-right)
-        const iconR = 11;
+        // Draw ~270° arc
+        const iconR = 22;
         ctx.beginPath();
         ctx.arc(rotHandleX, rotHandleY, iconR, Math.PI * 0.15, Math.PI * 1.85);
         ctx.stroke();
-        // Arrowhead at the end of the arc (top-right, pointing clockwise)
+        // Arrowhead at the end of the arc
         const tipAngle = Math.PI * 0.15;
         const tipX = rotHandleX + iconR * Math.cos(tipAngle);
         const tipY = rotHandleY + iconR * Math.sin(tipAngle);
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
         ctx.moveTo(tipX, tipY);
-        ctx.lineTo(tipX - 4, tipY - 8);
-        ctx.lineTo(tipX + 6, tipY - 3);
+        ctx.lineTo(tipX - 8, tipY - 16);
+        ctx.lineTo(tipX + 12, tipY - 6);
         ctx.closePath();
         ctx.fill();
 
