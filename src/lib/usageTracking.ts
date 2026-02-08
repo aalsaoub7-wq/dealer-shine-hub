@@ -122,10 +122,10 @@ export const trackUsage = async (
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Get user's company to check trial status
+    // Get user's company
     const { data: userCompany } = await supabase
       .from("user_companies")
-      .select("company_id, companies(id, trial_end_date, trial_images_remaining, trial_images_used, stripe_customer_id)")
+      .select("company_id, companies(id, stripe_customer_id)")
       .eq("user_id", user.id)
       .single();
 
@@ -138,30 +138,7 @@ export const trackUsage = async (
       ? userCompany.companies[0]
       : userCompany.companies;
 
-    // Check if user is in trial
     const now = new Date();
-    const trialEndDate = company.trial_end_date ? new Date(company.trial_end_date) : null;
-    const isInTrial = trialEndDate ? now < trialEndDate : false;
-
-    // If in trial, decrement trial images
-    if (isInTrial) {
-      console.log(`[USAGE] User in trial, decrementing trial images via edge function`);
-      
-      // Use edge function with service role to update trial counters (bypasses RLS)
-      const { data, error: trialError } = await supabase.functions.invoke(
-        "track-trial-usage",
-        { body: { companyId: company.id } }
-      );
-
-      if (trialError) {
-        console.error("Error updating trial image counters:", trialError);
-      } else {
-        console.log(`[USAGE] Trial image used. Remaining: ${data?.trial_images_remaining}`);
-      }
-
-      // Do NOT report to Stripe or track usage stats during trial
-      return;
-    }
 
     // === STEP 1: Insert durable billing event (source of truth) ===
     const billingEventId = await insertBillingEvent(company.id, user.id, carId);

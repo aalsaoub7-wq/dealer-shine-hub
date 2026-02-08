@@ -35,14 +35,6 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [trialInfo, setTrialInfo] = useState<{
-    isInTrial: boolean;
-    daysLeft: number;
-    endDate: string;
-    hasPaymentMethod: boolean;
-    imagesRemaining: number;
-    imagesUsed: number;
-  } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const navigate = useNavigate();
   const {
@@ -84,7 +76,6 @@ const Dashboard = () => {
   useEffect(() => {
     if (user) {
       fetchCars();
-      checkTrialStatus();
       // Auto-reconcile billing on dashboard load (scoped to user's company)
       supabase
         .from("user_companies")
@@ -100,27 +91,6 @@ const Dashboard = () => {
         });
     }
   }, [user]);
-  const checkTrialStatus = async () => {
-    try {
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke("get-billing-info");
-      if (error) throw error;
-      if (data?.trial) {
-        setTrialInfo({
-          isInTrial: data.trial.isInTrial,
-          daysLeft: data.trial.daysLeft,
-          endDate: data.trial.endDate,
-          hasPaymentMethod: data.hasPaymentMethod || false,
-          imagesRemaining: data.trial.imagesRemaining || 0,
-          imagesUsed: data.trial.imagesUsed || 0
-        });
-      }
-    } catch (error) {
-      console.error("Error checking trial status:", error);
-    }
-  };
   const openSettingsDialog = (tab: string) => {
     setSettingsOpen(true);
     setTimeout(() => {
@@ -159,7 +129,7 @@ const Dashboard = () => {
     setRefreshing(true);
     lightImpact();
     try {
-      await Promise.all([fetchCars(), checkTrialStatus()]);
+      await fetchCars();
     } finally {
       setRefreshing(false);
     }
@@ -254,24 +224,6 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-3 md:px-4 py-4 md:py-8 animate-fade-in">
-        {/* Trial Status Banner */}
-        {trialInfo?.isInTrial && <div className="mb-6 p-4 bg-gradient-to-r from-red-600 to-black text-white rounded-lg">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-              <div>
-                <p className="font-semibold">Testperiod - {trialInfo.daysLeft} dagar kvar</p>
-                <p className="text-sm opacity-90">
-                  Testa alla funktioner gratis till {new Date(trialInfo.endDate).toLocaleDateString('sv-SE')}
-                </p>
-                <p className="text-sm opacity-90 mt-1">
-                  {trialInfo.imagesRemaining} av 50 gratis bilder kvar
-                </p>
-              </div>
-              {!trialInfo.hasPaymentMethod && <Button variant="secondary" onClick={openCustomerPortal} className="whitespace-nowrap">
-                  Lägg till Betalmetod redan nu
-                </Button>}
-            </div>
-          </div>}
-
         <div className="flex flex-col md:flex-row gap-2 md:gap-4 mb-4 md:mb-8">
           <div className="relative flex-1 group animate-slide-in-right">
             <Search className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-muted-foreground group-focus-within:text-primary transition-colors duration-300" />

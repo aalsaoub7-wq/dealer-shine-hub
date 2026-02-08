@@ -1,0 +1,1 @@
+ALTER TABLE public.companies ALTER COLUMN trial_images_remaining SET DEFAULT 0;

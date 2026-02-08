@@ -58,10 +58,10 @@ serve(async (req) => {
       throw new Error("No user found");
     }
 
-    // Get user's company with trial_end_date and trial image limits
+    // Get user's company
     let { data: userCompany } = await supabaseClient
       .from("user_companies")
-      .select("company_id, companies(id, name, stripe_customer_id, trial_end_date, trial_images_remaining, trial_images_used)")
+      .select("company_id, companies(id, name, stripe_customer_id)")
       .eq("user_id", user.id)
       .single();
 
@@ -94,7 +94,7 @@ serve(async (req) => {
               trial_end_date: null,
               trial_images_remaining: 0,
             })
-            .select("id, name, stripe_customer_id, trial_end_date, trial_images_remaining, trial_images_used")
+            .select("id, name, stripe_customer_id")
             .single();
           
           if (companyError || !newCompany) {
@@ -151,16 +151,6 @@ serve(async (req) => {
       .maybeSingle();
     
     const isAdmin = userRole?.role === "admin";
-
-    // Calculate trial status
-    const now = new Date();
-    const trialEndDate = company.trial_end_date 
-      ? new Date(company.trial_end_date) 
-      : null;
-    const isInTrial = trialEndDate ? now < trialEndDate : false;
-    const daysLeftInTrial = trialEndDate 
-      ? Math.max(0, Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
-      : 0;
 
     // Get subscription info from database
     const { data: subscription } = await supabaseClient
@@ -255,10 +245,10 @@ serve(async (req) => {
       planConfig = ADMIN_TEST_PRICING;
     }
 
-    // Default pricing if nothing found (trial users without subscription)
+    // Default pricing if nothing found
     if (!planConfig) {
       planConfig = {
-        name: 'Provperiod',
+        name: 'Inget abonnemang',
         monthlyFee: 0,
         pricePerImage: 0,
         includedImages: 0,
@@ -277,13 +267,6 @@ serve(async (req) => {
           hasActiveSubscription,
           isAdmin,
           planConfig,
-          trial: {
-            isInTrial,
-            daysLeft: daysLeftInTrial,
-            endDate: trialEndDate?.toISOString(),
-            imagesRemaining: Math.min(company.trial_images_remaining || 0, 50),
-            imagesUsed: company.trial_images_used || 0,
-          }
         }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -418,13 +401,6 @@ serve(async (req) => {
           invoicePdf: inv.invoice_pdf,
         })),
         portalUrl: portalSession.url,
-        trial: {
-          isInTrial,
-          daysLeft: daysLeftInTrial,
-          endDate: trialEndDate?.toISOString(),
-          imagesRemaining: Math.min(company.trial_images_remaining || 0, 50),
-          imagesUsed: company.trial_images_used || 0,
-        }
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
