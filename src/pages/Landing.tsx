@@ -7,6 +7,7 @@ import { Brain, Shield, Globe, Users, ChevronDown, Menu, X, Package, Check, Phon
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 
 // Lazy load heavy below-the-fold components
@@ -902,6 +903,7 @@ const Landing = () => {
           </div>
         </div>
       </footer>
+      <PWAInstallPrompt />
     </div>;
 };
 export default Landing;
