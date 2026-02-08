@@ -8,6 +8,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { PWAInstallButton } from "@/components/PWAInstallButton";
 
 
 // Lazy load heavy below-the-fold components
@@ -352,6 +353,7 @@ const Landing = () => {
               <p className="text-muted-foreground">
                  Luvero finns på både Play Store, App Store och Online!                        
               </p>
+              <PWAInstallButton variant="button" />
             </div>
           </div>
         </div>
@@ -894,6 +896,7 @@ const Landing = () => {
                 <li><a href="/guide" className="hover:text-foreground transition-colors">Guide för appen</a></li>
                 <li><a href="/integritetspolicy" className="hover:text-foreground transition-colors">Integritetspolicy</a></li>
                 <li><a href="/användarvillkor" className="hover:text-foreground transition-colors">Användarvillkor</a></li>
+                <li><PWAInstallButton variant="link" /></li>
               </ul>
             </div>
           </div>
