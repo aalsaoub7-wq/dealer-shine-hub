@@ -70,9 +70,9 @@ export const RegenerateOptionsDialog = ({
                   <Move className="w-5 h-5 text-primary" />
                 </div>
                 <div className="text-left min-w-0 flex-1">
-                  <div className="font-medium break-words">Justera bilens position</div>
+                  <div className="font-medium break-words">Justera position</div>
                   <div className="text-sm text-muted-foreground break-words">
-                    Flytta och ändra storlek på bilen manuellt
+                    Flytta och ändra storlek på bilen och bakgrunden
                   </div>
                 </div>
               </Button>
@@ -110,9 +110,9 @@ export const RegenerateOptionsDialog = ({
                   <Move className="w-5 h-5 text-primary" />
                 </div>
                 <div className="text-left min-w-0 flex-1">
-                  <div className="font-medium break-words">Justera bilens position</div>
+                  <div className="font-medium break-words">Justera position</div>
                   <div className="text-sm text-muted-foreground break-words">
-                    Flytta och ändra storlek på bilen manuellt
+                    Flytta och ändra storlek på bilen och bakgrunden
                   </div>
                 </div>
               </Button>

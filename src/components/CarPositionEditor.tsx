@@ -99,6 +99,7 @@ export const CarPositionEditor = ({
   const [isResizing, setIsResizing] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
   const [isSelected, setIsSelected] = useState(true);
+  const [selectedElement, setSelectedElement] = useState<'car' | 'background'>('car');
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [carRotation, setCarRotation] = useState(0);
@@ -199,24 +200,20 @@ export const CarPositionEditor = ({
       bgImg.onload = () => {
         bgImgRef.current = bgImg;
         bgAspectRatioRef.current = bgImg.width / bgImg.height;
-        // For moveBackground mode, calculate initial centered position
-        if (moveBackground) {
-          const targetAspect = OUTPUT_WIDTH / OUTPUT_HEIGHT;
-          const imgAspect = bgImg.width / bgImg.height;
-          let scale: number;
-          if (imgAspect > targetAspect) {
-            // Image is wider, fit by height
-            scale = OUTPUT_HEIGHT / bgImg.height;
-          } else {
-            // Image is taller, fit by width
-            scale = OUTPUT_WIDTH / bgImg.width;
-          }
-          setBgScale(scale);
-          const scaledWidth = bgImg.width * scale;
-          const scaledHeight = bgImg.height * scale;
-          setBgX((OUTPUT_WIDTH - scaledWidth) / 2);
-          setBgY((OUTPUT_HEIGHT - scaledHeight) / 2);
+        // Calculate initial centered position for background (used in both modes)
+        const targetAspect = OUTPUT_WIDTH / OUTPUT_HEIGHT;
+        const imgAspect = bgImg.width / bgImg.height;
+        let scale: number;
+        if (imgAspect > targetAspect) {
+          scale = OUTPUT_HEIGHT / bgImg.height;
+        } else {
+          scale = OUTPUT_WIDTH / bgImg.width;
         }
+        setBgScale(scale);
+        const scaledWidth = bgImg.width * scale;
+        const scaledHeight = bgImg.height * scale;
+        setBgX((OUTPUT_WIDTH - scaledWidth) / 2);
+        setBgY((OUTPUT_HEIGHT - scaledHeight) / 2);
         checkBothLoaded();
       };
     }
@@ -320,8 +317,11 @@ export const CarPositionEditor = ({
         ctx.stroke();
       }
     } else {
-      // Normal mode: background fixed, car moves
-      ctx.drawImage(bgImgRef.current, 0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
+      // Normal mode: both car and background can be selected/moved
+      // Draw background at its adjustable position
+      const scaledBgWidth = bgImgRef.current.width * bgScale;
+      const scaledBgHeight = bgImgRef.current.height * bgScale;
+      ctx.drawImage(bgImgRef.current, bgX, bgY, scaledBgWidth, scaledBgHeight);
 
       // Draw car with rotation
       const centerX = carX + carWidth / 2;
@@ -332,8 +332,8 @@ export const CarPositionEditor = ({
       ctx.drawImage(carCanvasRef.current, -carWidth / 2, -carHeight / 2, carWidth, carHeight);
       ctx.restore();
 
-      // Draw selection frame if selected (also rotated)
-      if (isSelected) {
+      // Draw selection frame based on selectedElement
+      if (isSelected && selectedElement === 'car') {
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate(carRotation);
@@ -417,9 +417,57 @@ export const CarPositionEditor = ({
         ctx.stroke();
 
         ctx.restore();
+      } else if (isSelected && selectedElement === 'background') {
+        // Blue selection frame around background
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(bgX, bgY, scaledBgWidth, scaledBgHeight);
+        
+        // Blue resize handle (bottom-right of background)
+        const handleSize = isMobile ? 60 : 40;
+        const bhX = bgX + scaledBgWidth;
+        const bhY = bgY + scaledBgHeight;
+        
+        ctx.fillStyle = '#3b82f6';
+        ctx.beginPath();
+        ctx.arc(bhX, bhY, handleSize, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(bhX, bhY, handleSize, 0, 2 * Math.PI);
+        ctx.stroke();
+        
+        // Draw resize arrows
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        
+        const arrowSize = 18;
+        const arrowOffset = arrowSize / Math.sqrt(2);
+        
+        ctx.beginPath();
+        ctx.moveTo(bhX - arrowOffset, bhY - arrowOffset);
+        ctx.lineTo(bhX + arrowOffset, bhY + arrowOffset);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(bhX - arrowOffset, bhY - arrowOffset);
+        ctx.lineTo(bhX - arrowOffset + 8, bhY - arrowOffset);
+        ctx.moveTo(bhX - arrowOffset, bhY - arrowOffset);
+        ctx.lineTo(bhX - arrowOffset, bhY - arrowOffset + 8);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(bhX + arrowOffset, bhY + arrowOffset);
+        ctx.lineTo(bhX + arrowOffset - 8, bhY + arrowOffset);
+        ctx.moveTo(bhX + arrowOffset, bhY + arrowOffset);
+        ctx.lineTo(bhX + arrowOffset, bhY + arrowOffset - 8);
+        ctx.stroke();
       }
     }
-  }, [carX, carY, carWidth, carHeight, bgX, bgY, bgScale, isSelected, isMobile, moveBackground, carRotation]);
+  }, [carX, carY, carWidth, carHeight, bgX, bgY, bgScale, isSelected, selectedElement, isMobile, moveBackground, carRotation]);
 
   // Trigger render when state changes
   useEffect(() => {
@@ -468,58 +516,103 @@ export const CarPositionEditor = ({
         setIsSelected(false);
       }
     } else {
-      // Normal mode: select/drag car
-      // All handle positions must account for rotation
-      const centerX = carX + carWidth / 2;
-      const centerY = carY + carHeight / 2;
-      const cosR = Math.cos(carRotation);
-      const sinR = Math.sin(carRotation);
+      // Normal mode: select/drag car or background
+      const handleSize = isMobile ? 60 : 40;
 
-      // Resize handle (bottom-right corner, rotated)
-      const resLocalX = carWidth / 2;
-      const resLocalY = carHeight / 2;
-      const resWorldX = centerX + resLocalX * cosR - resLocalY * sinR;
-      const resWorldY = centerY + resLocalX * sinR + resLocalY * cosR;
-      
-      const distToResize = Math.sqrt(
-        Math.pow(mouseX - resWorldX, 2) + Math.pow(mouseY - resWorldY, 2)
-      );
-      
-      if (distToResize <= handleSize && isSelected) {
-        setIsResizing(true);
-        return;
-      }
+      if (selectedElement === 'car') {
+        // All handle positions must account for rotation
+        const centerX = carX + carWidth / 2;
+        const centerY = carY + carHeight / 2;
+        const cosR = Math.cos(carRotation);
+        const sinR = Math.sin(carRotation);
 
-      // Rotation handle (top-center, offset above car)
-      const rotHandleOffset = 60;
-      const rotLocalX = 0;
-      const rotLocalY = -carHeight / 2 - rotHandleOffset;
-      const rotWorldX = centerX + rotLocalX * cosR - rotLocalY * sinR;
-      const rotWorldY = centerY + rotLocalX * sinR + rotLocalY * cosR;
-      
-      const distToRotate = Math.sqrt(
-        Math.pow(mouseX - rotWorldX, 2) + Math.pow(mouseY - rotWorldY, 2)
-      );
-      
-      if (distToRotate <= handleSize && isSelected) {
-        setIsRotating(true);
-        return;
-      }
+        // Resize handle (bottom-right corner, rotated)
+        const resLocalX = carWidth / 2;
+        const resLocalY = carHeight / 2;
+        const resWorldX = centerX + resLocalX * cosR - resLocalY * sinR;
+        const resWorldY = centerY + resLocalX * sinR + resLocalY * cosR;
+        
+        const distToResize = Math.sqrt(
+          Math.pow(mouseX - resWorldX, 2) + Math.pow(mouseY - resWorldY, 2)
+        );
+        
+        if (distToResize <= handleSize && isSelected) {
+          setIsResizing(true);
+          return;
+        }
 
-      // Hit-test car body (transform mouse into car-local coords)
-      const localX = (mouseX - centerX) * cosR + (mouseY - centerY) * sinR;
-      const localY = -(mouseX - centerX) * sinR + (mouseY - centerY) * cosR;
-      
-      if (localX >= -carWidth / 2 && localX <= carWidth / 2 && 
-          localY >= -carHeight / 2 && localY <= carHeight / 2) {
-        setIsSelected(true);
-        setIsDragging(true);
-        setDragOffset({ x: mouseX - carX, y: mouseY - carY });
+        // Rotation handle (top-center, offset above car)
+        const rotHandleOffset = 60;
+        const rotLocalX = 0;
+        const rotLocalY = -carHeight / 2 - rotHandleOffset;
+        const rotWorldX = centerX + rotLocalX * cosR - rotLocalY * sinR;
+        const rotWorldY = centerY + rotLocalX * sinR + rotLocalY * cosR;
+        
+        const distToRotate = Math.sqrt(
+          Math.pow(mouseX - rotWorldX, 2) + Math.pow(mouseY - rotWorldY, 2)
+        );
+        
+        if (distToRotate <= handleSize && isSelected) {
+          setIsRotating(true);
+          return;
+        }
+
+        // Hit-test car body (transform mouse into car-local coords)
+        const localX = (mouseX - centerX) * cosR + (mouseY - centerY) * sinR;
+        const localY = -(mouseX - centerX) * sinR + (mouseY - centerY) * cosR;
+        
+        if (localX >= -carWidth / 2 && localX <= carWidth / 2 && 
+            localY >= -carHeight / 2 && localY <= carHeight / 2) {
+          setIsSelected(true);
+          setIsDragging(true);
+          setDragOffset({ x: mouseX - carX, y: mouseY - carY });
+        } else {
+          // Clicked outside car → switch to background
+          setSelectedElement('background');
+          setIsSelected(true);
+          setIsDragging(true);
+          setDragOffset({ x: mouseX - bgX, y: mouseY - bgY });
+        }
       } else {
-        setIsSelected(false);
+        // Background is selected
+        const scaledBgWidth = bgImgRef.current.width * bgScale;
+        const scaledBgHeight = bgImgRef.current.height * bgScale;
+        const bhX = bgX + scaledBgWidth;
+        const bhY = bgY + scaledBgHeight;
+        
+        const distToHandle = Math.sqrt(
+          Math.pow(mouseX - bhX, 2) + Math.pow(mouseY - bhY, 2)
+        );
+        
+        if (distToHandle <= handleSize && isSelected) {
+          setIsResizing(true);
+          return;
+        }
+
+        // Hit-test car body first to switch back
+        const centerX = carX + carWidth / 2;
+        const centerY = carY + carHeight / 2;
+        const cosR = Math.cos(carRotation);
+        const sinR = Math.sin(carRotation);
+        const localX = (mouseX - centerX) * cosR + (mouseY - centerY) * sinR;
+        const localY = -(mouseX - centerX) * sinR + (mouseY - centerY) * cosR;
+        
+        if (localX >= -carWidth / 2 && localX <= carWidth / 2 && 
+            localY >= -carHeight / 2 && localY <= carHeight / 2) {
+          // Clicked on car → switch to car
+          setSelectedElement('car');
+          setIsSelected(true);
+          setIsDragging(true);
+          setDragOffset({ x: mouseX - carX, y: mouseY - carY });
+        } else {
+          // Stay on background, start dragging it
+          setIsSelected(true);
+          setIsDragging(true);
+          setDragOffset({ x: mouseX - bgX, y: mouseY - bgY });
+        }
       }
     }
-  }, [carX, carY, carWidth, carHeight, bgX, bgY, bgScale, isSelected, isMobile, moveBackground, carRotation]);
+  }, [carX, carY, carWidth, carHeight, bgX, bgY, bgScale, isSelected, selectedElement, isMobile, moveBackground, carRotation]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current || !bgImgRef.current || (!isDragging && !isResizing && !isRotating)) return;
@@ -547,48 +640,61 @@ export const CarPositionEditor = ({
         setBgY(newY);
       }
     } else {
-      // Rotating the car
-      if (isRotating) {
-        const centerX = carX + carWidth / 2;
-        const centerY = carY + carHeight / 2;
-        const angle = Math.atan2(mouseY - centerY, mouseX - centerX) + Math.PI / 2;
-        setCarRotation(angle);
-        return;
-      }
-
-      // Moving/resizing the car
-      if (isResizing) {
-        const centerX = carX + carWidth / 2;
-        const centerY = carY + carHeight / 2;
-        // Project mouse into local (un-rotated) space for resize
-        const cosR = Math.cos(-carRotation);
-        const sinR = Math.sin(-carRotation);
-        const localMouseX = centerX + (mouseX - centerX) * cosR - (mouseY - centerY) * sinR;
-        const localMouseY = centerY + (mouseX - centerX) * sinR + (mouseY - centerY) * cosR;
-        
-        const dx = Math.max(100, localMouseX - (centerX - carWidth / 2));
-        const dy = Math.max(100, localMouseY - (centerY - carHeight / 2));
-
-        let newWidth = dx;
-        let newHeight = newWidth / carAspectRatio;
-        if (newHeight > dy) {
-          newHeight = dy;
-          newWidth = newHeight * carAspectRatio;
+      // Normal mode: handle car or background based on selectedElement
+      if (selectedElement === 'car') {
+        // Rotating the car
+        if (isRotating) {
+          const centerX = carX + carWidth / 2;
+          const centerY = carY + carHeight / 2;
+          const angle = Math.atan2(mouseY - centerY, mouseX - centerX) + Math.PI / 2;
+          setCarRotation(angle);
+          return;
         }
 
-        setCarWidth(Math.min(OUTPUT_WIDTH * 3, newWidth));
-        setCarHeight(Math.min(OUTPUT_HEIGHT * 3, newHeight));
-        return;
-      }
+        // Resizing the car
+        if (isResizing) {
+          const centerX = carX + carWidth / 2;
+          const centerY = carY + carHeight / 2;
+          const cosR = Math.cos(-carRotation);
+          const sinR = Math.sin(-carRotation);
+          const localMouseX = centerX + (mouseX - centerX) * cosR - (mouseY - centerY) * sinR;
+          const localMouseY = centerY + (mouseX - centerX) * sinR + (mouseY - centerY) * cosR;
+          
+          const dx = Math.max(100, localMouseX - (centerX - carWidth / 2));
+          const dy = Math.max(100, localMouseY - (centerY - carHeight / 2));
 
-      if (isDragging) {
-        const newX = mouseX - dragOffset.x;
-        const newY = mouseY - dragOffset.y;
-        setCarX(newX);
-        setCarY(newY);
+          let newWidth = dx;
+          let newHeight = newWidth / carAspectRatio;
+          if (newHeight > dy) {
+            newHeight = dy;
+            newWidth = newHeight * carAspectRatio;
+          }
+
+          setCarWidth(Math.min(OUTPUT_WIDTH * 3, newWidth));
+          setCarHeight(Math.min(OUTPUT_HEIGHT * 3, newHeight));
+          return;
+        }
+
+        if (isDragging) {
+          setCarX(mouseX - dragOffset.x);
+          setCarY(mouseY - dragOffset.y);
+        }
+      } else {
+        // Background selected
+        if (isResizing) {
+          const dx = Math.max(100, mouseX - bgX);
+          const newScale = dx / bgImgRef.current.width;
+          setBgScale(Math.max(0.1, Math.min(5, newScale)));
+          return;
+        }
+
+        if (isDragging) {
+          setBgX(mouseX - dragOffset.x);
+          setBgY(mouseY - dragOffset.y);
+        }
       }
     }
-  }, [isDragging, isResizing, isRotating, carX, carY, carWidth, carHeight, bgX, bgY, dragOffset, carAspectRatio, moveBackground, carRotation]);
+  }, [isDragging, isResizing, isRotating, carX, carY, carWidth, carHeight, bgX, bgY, dragOffset, carAspectRatio, moveBackground, carRotation, selectedElement]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -614,8 +720,10 @@ export const CarPositionEditor = ({
       // Draw car at its fixed position
       ctx.drawImage(carCanvasRef.current, carX, carY, carWidth, carHeight);
     } else {
-      // Normal mode (with rotation)
-      ctx.drawImage(bgImgRef.current, 0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
+      // Normal mode (with background position and car rotation)
+      const scaledBgWidth = bgImgRef.current.width * bgScale;
+      const scaledBgHeight = bgImgRef.current.height * bgScale;
+      ctx.drawImage(bgImgRef.current, bgX, bgY, scaledBgWidth, scaledBgHeight);
       const centerX = carX + carWidth / 2;
       const centerY = carY + carHeight / 2;
       ctx.save();
@@ -654,7 +762,7 @@ export const CarPositionEditor = ({
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-card">
         <h2 className="text-lg font-semibold">
-          {moveBackground ? "Justera bakgrundens position" : "Justera bilens position"}
+          {moveBackground ? "Justera bakgrundens position" : "Justera position"}
         </h2>
         <div className="flex gap-2">
           <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} disabled={isSaving}>
@@ -695,7 +803,7 @@ export const CarPositionEditor = ({
           <p className="text-sm text-muted-foreground text-center sm:text-left">
             {moveBackground 
               ? "Klicka på bakgrunden för att välja den. Dra för att flytta, dra den blåa pricken för att ändra storlek."
-              : "Klicka på bilen för att välja den. Dra för att flytta, dra den röda pricken för att ändra storlek, dra den gröna pricken för att rotera."
+              : "Klicka på bilen eller bakgrunden för att välja. Dra för att flytta, dra handtaget för att ändra storlek."
             }
           </p>
           <div className="flex gap-2">
