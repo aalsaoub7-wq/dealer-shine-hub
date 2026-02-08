@@ -1,4 +1,4 @@
-import { Download, Share } from "lucide-react";
+import { Download, Share, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 
@@ -12,7 +12,7 @@ export function PWAInstallButton({ variant = "button" }: PWAInstallButtonProps) 
 
   if (isNative) return null;
 
-  // Link variant for footer
+  // --- Link variant (footer) ---
   if (variant === "link") {
     if (canInstall) {
       return (
@@ -35,10 +35,16 @@ export function PWAInstallButton({ variant = "button" }: PWAInstallButtonProps) 
         </span>
       );
     }
-    return null;
+    // Fallback – always visible
+    return (
+      <span className="flex items-center gap-2 text-muted-foreground">
+        <Globe className="w-4 h-4" />
+        <span>Öppna i Chrome för att installera</span>
+      </span>
+    );
   }
 
-  // Button variant for feature section
+  // --- Button variant (feature section) ---
   if (canInstall) {
     return (
       <Button
@@ -63,5 +69,11 @@ export function PWAInstallButton({ variant = "button" }: PWAInstallButtonProps) 
     );
   }
 
-  return null;
+  // Fallback – always visible
+  return (
+    <p className="mt-3 text-xs text-muted-foreground flex items-center gap-1.5">
+      <Globe className="h-3.5 w-3.5 shrink-0" />
+      Öppna i Chrome för att installera appen
+    </p>
+  );
 }

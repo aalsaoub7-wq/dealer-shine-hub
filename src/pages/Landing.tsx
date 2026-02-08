@@ -344,14 +344,13 @@ const Landing = () => {
             </div>
 
             {/* Feature 6 */}
-            <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
-            <div className="flex gap-2 mb-4">
-                <img src="/assets/app-store-badge.webp" alt="Ladda ner Luvero på App Store" className="h-10 w-auto" width={120} height={40} loading="lazy" />
-                <img src="/assets/google-play-badge.webp" alt="Ladda ner Luvero på Google Play" className="h-10 w-auto" width={135} height={40} loading="lazy" />
+             <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
+              <div className="mb-4">
+                <Globe className="h-10 w-10 text-primary" />
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">​Finns där appar finns <span className="ml-1 inline-flex items-center rounded-full bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">Beta (Kommer Snart)</span></h3>
+              <h3 className="text-xl font-bold text-foreground mb-3">Installera online</h3>
               <p className="text-muted-foreground">
-                 Luvero finns på både Play Store, App Store och Online!                        
+                Installera Luvero direkt från din webbläsare — ingen app store behövs.
               </p>
               <PWAInstallButton variant="button" />
             </div>
