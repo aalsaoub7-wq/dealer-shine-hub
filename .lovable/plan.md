@@ -1,157 +1,105 @@
 
-# Bulletproof Automated Billing System
+# Critical Billing Bugs Found -- Fix Plan
 
-## Root Cause
+## Bug 1: DOUBLE-BILLING RISK (No Idempotency Keys)
 
-The current system reports billing events from the **browser** (client-side). This is fundamentally unreliable -- if the user closes their tab, loses network, or the browser times out, the event is recorded in the database but never reaches Stripe. The retry logic helps with transient errors but cannot fix the "browser closed" scenario.
+This is the most dangerous bug. The system can bill a customer TWICE for the same image edit.
 
-## Design Principle
+**How it happens:**
+1. User edits an image
+2. `billing_events` row inserted (id = `abc123`)
+3. `report-usage-to-stripe` is called optimistically and creates a meter event in Stripe -- SUCCESS
+4. `markBillingEventReported` tries to update the DB... but the browser closes, or the network hiccups
+5. The `billing_events` row remains `stripe_reported = false`
+6. Next reconciliation finds this unreported event and creates ANOTHER meter event in Stripe
+7. **Result: 2 meter events for 1 edit = double billing**
 
-**The database is the single source of truth.** Every billable action already writes to the `usage_stats` table (a reliable database operation). The system should use this as a **billing queue** and guarantee that every recorded event eventually reaches Stripe -- regardless of what happens on the client.
+**The fix:** Stripe's Meter Events API has an `identifier` parameter specifically for this. From the Stripe docs: *"Use idempotency keys to prevent reporting usage for each event more than one time. Every meter event corresponds to an identifier that you can specify in your request."* Stripe enforces uniqueness within 24 hours.
 
-## Architecture
+**Changes:**
+- Pass the `billing_event_id` from the client to `report-usage-to-stripe`
+- In `report-usage-to-stripe`: use it as `identifier` in `stripe.billing.meterEvents.create()`
+- In `reconcile-usage`: use the `billing_event.id` as `identifier` in each meter event creation
+- Both the optimistic call and the reconciliation will use the SAME identifier, so Stripe deduplicates automatically
 
-```text
-Current (broken):
-  Browser edits image
-    -> DB: usage_stats +1          (reliable)
-    -> Browser calls Stripe edge fn (unreliable -- browser can close!)
-    -> Lost event = lost revenue
+---
 
-New (bulletproof):
-  Browser edits image
-    -> DB: billing_events INSERT   (reliable -- just a DB row)
-    -> DB: usage_stats +1          (reliable)  
-    -> Browser tries Stripe call   (optimistic -- best effort)
-    -> If success: mark event as reported
-    -> If fail: no problem!
+## Bug 2: BACKFILL MODE WILL CAUSE OVERBILLING AGAIN
 
-  Safety net (automatic, server-side):
-    -> On every dashboard/app load: reconcile function runs
-    -> Stripe webhook "invoice.upcoming": reconcile before billing
-    -> Admin panel: manual reconcile button (emergency only)
-    
-  Reconcile function (server-side):
-    -> Counts billing_events WHERE stripe_reported = false
-    -> Reports each one to Stripe
-    -> Marks as reported
-    -> 100% server-to-server = no browser dependency
-```
+The backfill mode in `reconcile-usage` (lines 302-360) still uses the **Preview Invoice API** as its primary method to count existing Stripe events. This is the EXACT same code that caused the 80-event disaster -- it returned 0 because preview invoices don't include pending metered usage from Billing Meters.
+
+The `listEventSummaries` fallback only runs if the Preview Invoice API *fails* (HTTP error). But the bug is that it *succeeds* with a response that shows 0 metered line items.
+
+**The fix:** Replace the Preview Invoice API with `stripe.billing.meters.listEventSummaries()` as the PRIMARY and ONLY method. This API directly queries the meter for actual event counts.
+
+---
+
+## Bug 3: DASHBOARD RECONCILIATION RUNS FOR ALL COMPANIES
+
+Every time ANY user loads their dashboard (line 89-91), `triggerReconciliation()` is called WITHOUT a `company_id`. This means the reconcile function processes ALL companies with every single dashboard load. Problems:
+- Unnecessary Stripe API calls (rate limit risk)
+- Every employee triggers reconciliation for ALL companies
+- Wastes edge function execution time
+
+**The fix:** Pass the user's `company_id` to `triggerReconciliation()` so it only reconciles the relevant company.
+
+---
+
+## Bug 4: CLIENT CAN SKIP BILLING (RLS Vulnerability)
+
+The `billing_events` table has an UPDATE RLS policy that lets users update their own events. The `markBillingEventReported` function updates `stripe_reported = true` from the browser. A knowledgeable user could call this directly to mark all their billing events as reported without them ever reaching Stripe, effectively skipping billing.
+
+**The fix:** Remove the UPDATE policy on `billing_events`. Only server-side code (reconcile function using service role) should be able to mark events as reported. The optimistic "mark as reported" should also move server-side -- `report-usage-to-stripe` should do the DB update itself after successfully creating the meter event.
+
+---
 
 ## Technical Changes
 
-### 1. New database table: `billing_events`
+### 1. `supabase/functions/report-usage-to-stripe/index.ts`
 
-A durable event log where every billable action is recorded. This replaces the fragile "fire and forget" Stripe call as the primary billing mechanism.
-
-```sql
-CREATE TABLE public.billing_events (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  company_id UUID NOT NULL REFERENCES companies(id),
-  user_id UUID NOT NULL,
-  photo_id UUID REFERENCES photos(id),
-  car_id UUID REFERENCES cars(id),
-  event_type TEXT NOT NULL DEFAULT 'edited_image',
-  stripe_reported BOOLEAN NOT NULL DEFAULT false,
-  stripe_reported_at TIMESTAMPTZ,
-  stripe_event_id TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
--- Index for fast reconciliation queries
-CREATE INDEX idx_billing_events_unreported 
-  ON billing_events(company_id, stripe_reported) 
-  WHERE stripe_reported = false;
-
--- Index for period-based queries
-CREATE INDEX idx_billing_events_created 
-  ON billing_events(created_at);
-```
-
-RLS policies will ensure users can only insert events for their own company and cannot modify `stripe_reported` (only the server can do that via service role).
-
-### 2. Update `src/lib/usageTracking.ts`
-
-Change the flow so that:
-1. Insert a row into `billing_events` first (this is the durable record)
-2. Then update `usage_stats` as before (for the dashboard display)
-3. Then try to report to Stripe (optimistic, best-effort)
-4. If Stripe succeeds, update `billing_events.stripe_reported = true`
-
-The key insight: even if steps 3-4 fail completely, the billing event is safely in the database and will be picked up by the reconciliation function.
-
-### 3. New edge function: `reconcile-usage`
-
-A server-side function that:
-1. Queries `billing_events WHERE stripe_reported = false` for a given company (or all companies)
-2. Groups them and reports to Stripe via the Meter Events API
-3. Marks each event as `stripe_reported = true`
-4. Returns a detailed report
-
-This function runs entirely server-to-server (edge function to Stripe API) -- no browser involved, so it cannot fail due to client issues.
-
-It accepts:
-- `company_id` (optional) -- reconcile a specific company, or all companies if omitted
-- `dry_run` (optional) -- just report what would be reconciled without actually doing it
-
-### 4. Automatic reconciliation triggers
-
-The reconciliation runs automatically in three ways:
-
-**a) On app load (Dashboard component):**
-When any user opens the dashboard, a lightweight call to `reconcile-usage` runs for their company. This catches any missed events from their previous session within seconds of their next login.
-
-**b) Stripe webhook `invoice.upcoming`:**
-Stripe sends this event ~3 days before an invoice finalizes. The webhook handler will call `reconcile-usage` for the relevant customer, ensuring all events are reported before billing closes. This is the ultimate safety net -- even if no user logs in for a month, the reconciliation happens before billing.
-
-**c) Admin panel button (emergency only):**
-A "Reconcile Billing" button in the admin panel that can manually trigger reconciliation for any or all companies. This is the fallback you should never need to use.
-
-### 5. Update `stripe-webhook` to handle `invoice.upcoming`
-
-Add a new case to the existing webhook handler:
+- Accept `billing_event_id` in the request body
+- Pass it as `identifier` to `stripe.billing.meterEvents.create()`
+- After successful meter event creation, update `billing_events` table to set `stripe_reported = true` using service role (server-side, not client-side)
 
 ```text
-case "invoice.upcoming":
-  -> Extract customer ID from invoice
-  -> Find company by stripe_customer_id
-  -> Call reconcile-usage for that company
-  -> Log results
+// Before:
+body: { quantity: 1 }
+stripe.billing.meterEvents.create({ event_name, payload, timestamp })
+
+// After:
+body: { quantity: 1, billing_event_id: "abc123" }
+stripe.billing.meterEvents.create({ event_name, payload, timestamp, identifier: "abc123" })
+// + server-side: UPDATE billing_events SET stripe_reported = true WHERE id = "abc123"
 ```
 
-This requires adding `invoice.upcoming` to the webhook event subscriptions in the Stripe Dashboard.
+### 2. `supabase/functions/reconcile-usage/index.ts`
 
-### 6. Backfill Joels Bil's missing events
+- **Backfill mode (lines 302-360)**: Replace Preview Invoice API with `listEventSummaries` as the ONLY method
+- **Normal reconciliation (line 221-228)**: Add `identifier: event.id` to meter event creation
+- Remove the `listEventSummaries` from being a "fallback" and make it the primary approach
 
-After deploying, the reconciliation function will be called for Joels Bil. But since we're introducing `billing_events` now and the old events were never logged there, we need a one-time backfill:
+### 3. `src/lib/usageTracking.ts`
 
-1. The reconciliation function has a special `backfill` mode
-2. It compares `usage_stats.edited_images_count` vs Stripe meter event summaries
-3. If DB total > Stripe total, it creates the missing meter events
-4. This runs once for Joels Bil to fix the 34 missing events (~170 kr)
+- Pass `billingEventId` to `report-usage-to-stripe` edge function: `{ quantity: 1, billing_event_id: billingEventId }`
+- Remove `markBillingEventReported` function (no longer needed -- server handles it)
+- Remove the client-side "mark as reported" call from `reportToStripeOptimistic`
+- Pass `company_id` from the loaded company data to `triggerReconciliation()` on dashboard load
 
-After this one-time fix, all future events flow through `billing_events` and the reconciliation just checks `stripe_reported = false`.
+### 4. `src/pages/Dashboard.tsx`
 
-## Files to Create/Modify
+- Get user's `company_id` and pass it to `triggerReconciliation(companyId)`
 
-| File | Action | Purpose |
-|------|--------|---------|
-| Database migration | Create | `billing_events` table + indexes + RLS |
-| `src/lib/usageTracking.ts` | Modify | Insert into `billing_events`, optimistic Stripe call, mark as reported |
-| `supabase/functions/reconcile-usage/index.ts` | Create | Server-side reconciliation + backfill logic |
-| `supabase/functions/stripe-webhook/index.ts` | Modify | Add `invoice.upcoming` handler |
-| `src/pages/Dashboard.tsx` | Modify | Auto-reconcile on load |
-| `src/pages/Admin.tsx` | Modify | Add manual reconcile button |
-| `supabase/config.toml` | Modify | Register `reconcile-usage` function |
+### 5. Database migration
 
-## Why This Is Low Risk
+- Remove the UPDATE RLS policy on `billing_events` (only service role should update)
 
-1. **Additive only** -- We add a new table and function; existing billing flow is enhanced, not replaced
-2. **Idempotent** -- Reconciliation checks what is already reported and only fills gaps
-3. **No double-billing** -- Each `billing_events` row is a unique event with a unique ID; `stripe_reported` flag prevents re-reporting
-4. **Graceful degradation** -- If the reconciliation function itself fails, the next trigger point (app load, webhook, admin) will catch it
-5. **Three layers of safety** -- Client-side optimistic report, auto-reconcile on app load, and Stripe webhook before invoicing
+---
 
-## Manual Step Required (One-Time)
+## Summary
 
-After deployment, you need to add `invoice.upcoming` to your Stripe webhook event subscriptions in the Stripe Dashboard (Developers > Webhooks > your endpoint > Add events). This enables the pre-invoice reconciliation trigger.
+| Bug | Severity | Fix |
+|-----|----------|-----|
+| No idempotency keys -- double billing possible | CRITICAL | Pass billing_event.id as `identifier` to Stripe |
+| Backfill uses Preview Invoice API (returns 0) | CRITICAL | Switch to `listEventSummaries` |
+| Dashboard reconciles ALL companies | MEDIUM | Pass user's company_id |
+| Client can mark events as reported (skip billing) | MEDIUM | Remove UPDATE RLS policy, move to server-side |
