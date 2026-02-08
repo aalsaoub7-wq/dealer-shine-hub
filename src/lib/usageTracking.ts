@@ -82,44 +82,27 @@ const insertBillingEvent = async (
 };
 
 /**
- * Marks a billing event as reported to Stripe (optimistic update).
- */
-const markBillingEventReported = async (eventId: string) => {
-  try {
-    await supabase
-      .from("billing_events")
-      .update({
-        stripe_reported: true,
-        stripe_reported_at: new Date().toISOString(),
-      })
-      .eq("id", eventId);
-    console.log('[USAGE] Billing event marked as reported:', eventId);
-  } catch (err) {
-    console.error('[USAGE] Failed to mark billing event as reported:', err);
-    // Not critical - reconciliation will handle it
-  }
-};
-
-/**
  * Reports usage to Stripe with retry logic (optimistic, best-effort).
  * If this fails, the reconciliation function will catch it.
+ * 
+ * IMPORTANT: The billing_event_id is passed as the Stripe meter event identifier
+ * for idempotency. Both this optimistic call and the reconciliation function
+ * use the same identifier, so Stripe deduplicates automatically within 24h.
+ * 
+ * The server-side edge function handles marking the billing event as reported
+ * after successfully creating the meter event (no client-side DB update needed).
  */
 const reportToStripeOptimistic = async (billingEventId: string | null, maxRetries = 3) => {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const { data, error: reportError } = await supabase.functions.invoke(
         "report-usage-to-stripe",
-        { body: { quantity: 1 } }
+        { body: { quantity: 1, billing_event_id: billingEventId } }
       );
       if (reportError) {
         throw reportError;
       }
       console.log(`[USAGE] Stripe reporting succeeded on attempt ${attempt}`, data);
-      
-      // Mark the billing event as reported
-      if (billingEventId) {
-        await markBillingEventReported(billingEventId);
-      }
       return;
     } catch (err) {
       console.error(`[USAGE] Stripe reporting attempt ${attempt}/${maxRetries} failed:`, err);
@@ -303,8 +286,8 @@ export const trackRegenerationUsage = async (
 };
 
 /**
- * Triggers server-side reconciliation for a company.
- * Called automatically on dashboard load and can be called manually from admin.
+ * Triggers server-side reconciliation for a specific company.
+ * Called automatically on dashboard load (scoped to user's company).
  */
 export const triggerReconciliation = async (companyId?: string, backfill = false): Promise<any> => {
   try {

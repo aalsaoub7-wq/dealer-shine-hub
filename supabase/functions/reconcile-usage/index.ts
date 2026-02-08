@@ -215,7 +215,7 @@ serve(async (req) => {
             }
           }
 
-          // Report billable events to Stripe one by one
+          // Report billable events to Stripe one by one WITH idempotency identifier
           for (const event of eventsToReport) {
             try {
               const meterEvent = await stripe.billing.meterEvents.create({
@@ -225,9 +225,12 @@ serve(async (req) => {
                   stripe_customer_id: company.stripe_customer_id!,
                 },
                 timestamp: Math.floor(new Date(event.created_at).getTime() / 1000),
+                // Use billing_event.id as idempotency key
+                // Stripe deduplicates within 24h rolling window
+                identifier: event.id,
               });
 
-              // Mark as reported
+              // Mark as reported (server-side with service role)
               await supabase
                 .from("billing_events")
                 .update({
@@ -272,7 +275,6 @@ serve(async (req) => {
           }
 
           // Get usage_stats total for the billing period
-          // The billing period may span two calendar months
           const periodStartDate = new Date(periodStart * 1000);
           const periodEndDate = new Date(periodEnd * 1000);
 
@@ -299,64 +301,29 @@ serve(async (req) => {
             0
           );
 
-          // Get Stripe's actual metered usage from the upcoming invoice
-          // This is more reliable than listEventSummaries which can return empty
+          // === FIX: Use listEventSummaries as PRIMARY method ===
+          // The Preview Invoice API does NOT include pending metered usage
+          // from Billing Meters, which caused the 80-event overbilling disaster.
+          // listEventSummaries directly queries the meter for actual event counts.
           let stripeTotal = 0;
           try {
-            // Use Create Preview Invoice API (replaces deprecated upcoming invoice)
-            const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") || "";
-            const previewResp = await fetch(
-              `https://api.stripe.com/v1/invoices/create_preview`,
-              {
-                method: "POST",
-                headers: {
-                  "Authorization": `Bearer ${stripeKey}`,
-                  "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: `customer=${company.stripe_customer_id}&subscription=${subscription.id}`,
-              }
+            const alignedStart = Math.floor(periodStart / 60) * 60;
+            const alignedEnd = Math.ceil(periodEnd / 60) * 60;
+            const summaries = await stripe.billing.meters.listEventSummaries(meterId, {
+              customer: company.stripe_customer_id!,
+              start_time: alignedStart,
+              end_time: alignedEnd,
+            });
+            stripeTotal = summaries.data.reduce(
+              (sum: number, s: any) => sum + s.aggregated_value,
+              0
             );
-            
-            if (previewResp.ok) {
-              const previewInvoice = await previewResp.json();
-              
-              // Count metered line items
-              const meteredLineItems = (previewInvoice.lines?.data || []).filter(
-                (line: any) => line.price?.id === meteredItem.price.id
-              );
-              
-              stripeTotal = meteredLineItems.reduce(
-                (sum: number, line: any) => sum + (line.quantity || 0),
-                0
-              );
-              
-              log(`Preview invoice metered total: ${stripeTotal} (from ${meteredLineItems.length} line items)`);
-            } else {
-              const errText = await previewResp.text();
-              throw new Error(`Preview invoice API returned ${previewResp.status}: ${errText}`);
-            }
-          } catch (invoiceErr: any) {
-            log(`Could not retrieve upcoming invoice: ${invoiceErr.message}`);
-            // Fall back to meter event summaries
-            try {
-              const alignedStart = Math.floor(periodStart / 60) * 60;
-              const alignedEnd = Math.ceil(periodEnd / 60) * 60;
-              const summaries = await stripe.billing.meters.listEventSummaries(meterId, {
-                customer: company.stripe_customer_id!,
-                start_time: alignedStart,
-                end_time: alignedEnd,
-              });
-              stripeTotal = summaries.data.reduce(
-                (sum: number, s: any) => sum + s.aggregated_value,
-                0
-              );
-              log(`Meter summaries fallback total: ${stripeTotal}`);
-            } catch (summaryErr: any) {
-              log(`Meter summaries also failed: ${summaryErr.message}`);
-              companyResult.errors.push(`Could not determine Stripe usage: ${summaryErr.message}`);
-              results.push(companyResult);
-              continue;
-            }
+            log(`Meter event summaries total: ${stripeTotal}`);
+          } catch (summaryErr: any) {
+            log(`Meter summaries failed: ${summaryErr.message}`);
+            companyResult.errors.push(`Could not determine Stripe usage: ${summaryErr.message}`);
+            results.push(companyResult);
+            continue;
           }
 
           const gap = dbTotal - stripeTotal;
@@ -367,6 +334,8 @@ serve(async (req) => {
 
             for (let i = 0; i < gap; i++) {
               try {
+                // Use a deterministic identifier for backfill events too
+                const backfillIdentifier = `backfill_${company.id}_${months[0]}_${i}`;
                 await stripe.billing.meterEvents.create({
                   event_name: eventName,
                   payload: {
@@ -374,6 +343,7 @@ serve(async (req) => {
                     stripe_customer_id: company.stripe_customer_id!,
                   },
                   timestamp: Math.floor(Date.now() / 1000),
+                  identifier: backfillIdentifier,
                 });
                 companyResult.backfilled_count++;
               } catch (err: any) {
