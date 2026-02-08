@@ -97,9 +97,11 @@ export const CarPositionEditor = ({
   
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  const [isRotating, setIsRotating] = useState(false);
   const [isSelected, setIsSelected] = useState(true);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [carRotation, setCarRotation] = useState(0);
   
   // Car position and size state
   const [carX, setCarX] = useState(0);
@@ -320,28 +322,40 @@ export const CarPositionEditor = ({
     } else {
       // Normal mode: background fixed, car moves
       ctx.drawImage(bgImgRef.current, 0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
-      ctx.drawImage(carCanvasRef.current, carX, carY, carWidth, carHeight);
 
-      // Draw selection frame if selected
+      // Draw car with rotation
+      const centerX = carX + carWidth / 2;
+      const centerY = carY + carHeight / 2;
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.rotate(carRotation);
+      ctx.drawImage(carCanvasRef.current, -carWidth / 2, -carHeight / 2, carWidth, carHeight);
+      ctx.restore();
+
+      // Draw selection frame if selected (also rotated)
       if (isSelected) {
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(carRotation);
+
         ctx.strokeStyle = '#ef4444';
         ctx.lineWidth = 8;
-        ctx.strokeRect(carX, carY, carWidth, carHeight);
+        ctx.strokeRect(-carWidth / 2, -carHeight / 2, carWidth, carHeight);
         
-        // Draw resize handle
+        // Draw resize handle (bottom-right corner)
         const handleSize = isMobile ? 60 : 40;
-        const handleX = carX + carWidth;
-        const handleY = carY + carHeight;
+        const rhX = carWidth / 2;
+        const rhY = carHeight / 2;
         
         ctx.fillStyle = '#ef4444';
         ctx.beginPath();
-        ctx.arc(handleX, handleY, handleSize, 0, 2 * Math.PI);
+        ctx.arc(rhX, rhY, handleSize, 0, 2 * Math.PI);
         ctx.fill();
         
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(handleX, handleY, handleSize, 0, 2 * Math.PI);
+        ctx.arc(rhX, rhY, handleSize, 0, 2 * Math.PI);
         ctx.stroke();
         
         // Draw resize arrows
@@ -353,26 +367,68 @@ export const CarPositionEditor = ({
         const arrowOffset = arrowSize / Math.sqrt(2);
         
         ctx.beginPath();
-        ctx.moveTo(handleX - arrowOffset, handleY - arrowOffset);
-        ctx.lineTo(handleX + arrowOffset, handleY + arrowOffset);
+        ctx.moveTo(rhX - arrowOffset, rhY - arrowOffset);
+        ctx.lineTo(rhX + arrowOffset, rhY + arrowOffset);
         ctx.stroke();
         
         ctx.beginPath();
-        ctx.moveTo(handleX - arrowOffset, handleY - arrowOffset);
-        ctx.lineTo(handleX - arrowOffset + 8, handleY - arrowOffset);
-        ctx.moveTo(handleX - arrowOffset, handleY - arrowOffset);
-        ctx.lineTo(handleX - arrowOffset, handleY - arrowOffset + 8);
+        ctx.moveTo(rhX - arrowOffset, rhY - arrowOffset);
+        ctx.lineTo(rhX - arrowOffset + 8, rhY - arrowOffset);
+        ctx.moveTo(rhX - arrowOffset, rhY - arrowOffset);
+        ctx.lineTo(rhX - arrowOffset, rhY - arrowOffset + 8);
         ctx.stroke();
         
         ctx.beginPath();
-        ctx.moveTo(handleX + arrowOffset, handleY + arrowOffset);
-        ctx.lineTo(handleX + arrowOffset - 8, handleY + arrowOffset);
-        ctx.moveTo(handleX + arrowOffset, handleY + arrowOffset);
-        ctx.lineTo(handleX + arrowOffset, handleY + arrowOffset - 8);
+        ctx.moveTo(rhX + arrowOffset, rhY + arrowOffset);
+        ctx.lineTo(rhX + arrowOffset - 8, rhY + arrowOffset);
+        ctx.moveTo(rhX + arrowOffset, rhY + arrowOffset);
+        ctx.lineTo(rhX + arrowOffset, rhY + arrowOffset - 8);
         ctx.stroke();
+
+        // Draw rotation handle (top-center)
+        const rotHandleOffset = 60;
+        const rotHandleX = 0;
+        const rotHandleY = -carHeight / 2 - rotHandleOffset;
+        
+        // Line from top-center to rotation handle
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(0, -carHeight / 2);
+        ctx.lineTo(rotHandleX, rotHandleY);
+        ctx.stroke();
+        
+        // Green circle
+        ctx.fillStyle = '#22c55e';
+        ctx.beginPath();
+        ctx.arc(rotHandleX, rotHandleY, handleSize, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(rotHandleX, rotHandleY, handleSize, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        // Draw rotation icon (↻)
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(rotHandleX, rotHandleY, 14, -Math.PI * 0.7, Math.PI * 0.5);
+        ctx.stroke();
+        // Arrowhead
+        const arrowTipX = rotHandleX + 14 * Math.cos(Math.PI * 0.5);
+        const arrowTipY = rotHandleY + 14 * Math.sin(Math.PI * 0.5);
+        ctx.beginPath();
+        ctx.moveTo(arrowTipX - 6, arrowTipY - 6);
+        ctx.lineTo(arrowTipX, arrowTipY);
+        ctx.lineTo(arrowTipX + 6, arrowTipY - 4);
+        ctx.stroke();
+
+        ctx.restore();
       }
     }
-  }, [carX, carY, carWidth, carHeight, bgX, bgY, bgScale, isSelected, isMobile, moveBackground]);
+  }, [carX, carY, carWidth, carHeight, bgX, bgY, bgScale, isSelected, isMobile, moveBackground, carRotation]);
 
   // Trigger render when state changes
   useEffect(() => {
@@ -422,20 +478,49 @@ export const CarPositionEditor = ({
       }
     } else {
       // Normal mode: select/drag car
-      const handleX = carX + carWidth;
-      const handleY = carY + carHeight;
+      // All handle positions must account for rotation
+      const centerX = carX + carWidth / 2;
+      const centerY = carY + carHeight / 2;
+      const cosR = Math.cos(carRotation);
+      const sinR = Math.sin(carRotation);
+
+      // Resize handle (bottom-right corner, rotated)
+      const resLocalX = carWidth / 2;
+      const resLocalY = carHeight / 2;
+      const resWorldX = centerX + resLocalX * cosR - resLocalY * sinR;
+      const resWorldY = centerY + resLocalX * sinR + resLocalY * cosR;
       
-      const distanceToHandle = Math.sqrt(
-        Math.pow(mouseX - handleX, 2) + Math.pow(mouseY - handleY, 2)
+      const distToResize = Math.sqrt(
+        Math.pow(mouseX - resWorldX, 2) + Math.pow(mouseY - resWorldY, 2)
       );
       
-      if (distanceToHandle <= handleSize && isSelected) {
+      if (distToResize <= handleSize && isSelected) {
         setIsResizing(true);
         return;
       }
 
-      if (mouseX >= carX && mouseX <= carX + carWidth && 
-          mouseY >= carY && mouseY <= carY + carHeight) {
+      // Rotation handle (top-center, offset above car)
+      const rotHandleOffset = 60;
+      const rotLocalX = 0;
+      const rotLocalY = -carHeight / 2 - rotHandleOffset;
+      const rotWorldX = centerX + rotLocalX * cosR - rotLocalY * sinR;
+      const rotWorldY = centerY + rotLocalX * sinR + rotLocalY * cosR;
+      
+      const distToRotate = Math.sqrt(
+        Math.pow(mouseX - rotWorldX, 2) + Math.pow(mouseY - rotWorldY, 2)
+      );
+      
+      if (distToRotate <= handleSize && isSelected) {
+        setIsRotating(true);
+        return;
+      }
+
+      // Hit-test car body (transform mouse into car-local coords)
+      const localX = (mouseX - centerX) * cosR + (mouseY - centerY) * sinR;
+      const localY = -(mouseX - centerX) * sinR + (mouseY - centerY) * cosR;
+      
+      if (localX >= -carWidth / 2 && localX <= carWidth / 2 && 
+          localY >= -carHeight / 2 && localY <= carHeight / 2) {
         setIsSelected(true);
         setIsDragging(true);
         setDragOffset({ x: mouseX - carX, y: mouseY - carY });
@@ -443,10 +528,10 @@ export const CarPositionEditor = ({
         setIsSelected(false);
       }
     }
-  }, [carX, carY, carWidth, carHeight, bgX, bgY, bgScale, isSelected, isMobile, moveBackground]);
+  }, [carX, carY, carWidth, carHeight, bgX, bgY, bgScale, isSelected, isMobile, moveBackground, carRotation]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current || !bgImgRef.current || (!isDragging && !isResizing)) return;
+    if (!canvasRef.current || !bgImgRef.current || (!isDragging && !isResizing && !isRotating)) return;
 
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
@@ -471,10 +556,27 @@ export const CarPositionEditor = ({
         setBgY(newY);
       }
     } else {
+      // Rotating the car
+      if (isRotating) {
+        const centerX = carX + carWidth / 2;
+        const centerY = carY + carHeight / 2;
+        const angle = Math.atan2(mouseY - centerY, mouseX - centerX) + Math.PI / 2;
+        setCarRotation(angle);
+        return;
+      }
+
       // Moving/resizing the car
       if (isResizing) {
-        const dx = Math.max(100, mouseX - carX);
-        const dy = Math.max(100, mouseY - carY);
+        const centerX = carX + carWidth / 2;
+        const centerY = carY + carHeight / 2;
+        // Project mouse into local (un-rotated) space for resize
+        const cosR = Math.cos(-carRotation);
+        const sinR = Math.sin(-carRotation);
+        const localMouseX = centerX + (mouseX - centerX) * cosR - (mouseY - centerY) * sinR;
+        const localMouseY = centerY + (mouseX - centerX) * sinR + (mouseY - centerY) * cosR;
+        
+        const dx = Math.max(100, localMouseX - (centerX - carWidth / 2));
+        const dy = Math.max(100, localMouseY - (centerY - carHeight / 2));
 
         let newWidth = dx;
         let newHeight = newWidth / carAspectRatio;
@@ -495,11 +597,12 @@ export const CarPositionEditor = ({
         setCarY(newY);
       }
     }
-  }, [isDragging, isResizing, carX, bgX, bgY, dragOffset, carAspectRatio, moveBackground]);
+  }, [isDragging, isResizing, isRotating, carX, carY, carWidth, carHeight, bgX, bgY, dragOffset, carAspectRatio, moveBackground, carRotation]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
     setIsResizing(false);
+    setIsRotating(false);
   }, []);
 
   const handleSave = useCallback(() => {
@@ -520,9 +623,15 @@ export const CarPositionEditor = ({
       // Draw car at its fixed position
       ctx.drawImage(carCanvasRef.current, carX, carY, carWidth, carHeight);
     } else {
-      // Normal mode
+      // Normal mode (with rotation)
       ctx.drawImage(bgImgRef.current, 0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
-      ctx.drawImage(carCanvasRef.current, carX, carY, carWidth, carHeight);
+      const centerX = carX + carWidth / 2;
+      const centerY = carY + carHeight / 2;
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.rotate(carRotation);
+      ctx.drawImage(carCanvasRef.current, -carWidth / 2, -carHeight / 2, carWidth, carHeight);
+      ctx.restore();
     }
 
     exportCanvas.toBlob(
@@ -534,7 +643,7 @@ export const CarPositionEditor = ({
       'image/jpeg',
       0.85
     );
-  }, [carX, carY, carWidth, carHeight, bgX, bgY, bgScale, moveBackground, onSave]);
+  }, [carX, carY, carWidth, carHeight, bgX, bgY, bgScale, moveBackground, onSave, carRotation]);
 
   if (!open) return null;
 
@@ -595,7 +704,7 @@ export const CarPositionEditor = ({
           <p className="text-sm text-muted-foreground text-center sm:text-left">
             {moveBackground 
               ? "Klicka på bakgrunden för att välja den. Dra för att flytta, dra den blåa pricken för att ändra storlek."
-              : "Klicka på bilen för att välja den. Dra för att flytta, dra den röda pricken för att ändra storlek."
+              : "Klicka på bilen för att välja den. Dra för att flytta, dra den röda pricken för att ändra storlek, dra den gröna pricken för att rotera."
             }
           </p>
           <div className="flex gap-2">
