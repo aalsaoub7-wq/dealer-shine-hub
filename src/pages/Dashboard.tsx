@@ -85,6 +85,10 @@ const Dashboard = () => {
     if (user) {
       fetchCars();
       checkTrialStatus();
+      // Auto-reconcile billing on dashboard load (fire & forget)
+      import("@/lib/usageTracking").then(({ triggerReconciliation }) => {
+        triggerReconciliation().catch(() => {});
+      });
     }
   }, [user]);
   const checkTrialStatus = async () => {

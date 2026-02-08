@@ -8,6 +8,38 @@ const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") as string, {
 
 const cryptoProvider = Stripe.createSubtleCryptoProvider();
 
+/**
+ * Triggers the reconcile-usage edge function server-to-server.
+ * Used by invoice.upcoming to ensure all billing events are reported before invoicing.
+ */
+const triggerReconciliation = async (companyId: string) => {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  
+  try {
+    console.log(`[WEBHOOK] Triggering reconciliation for company: ${companyId}`);
+    
+    const response = await fetch(`${supabaseUrl}/functions/v1/reconcile-usage`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${serviceRoleKey}`,
+      },
+      body: JSON.stringify({
+        company_id: companyId,
+        _internal: true,
+      }),
+    });
+
+    const result = await response.json();
+    console.log(`[WEBHOOK] Reconciliation result:`, JSON.stringify(result));
+    return result;
+  } catch (err: any) {
+    console.error(`[WEBHOOK] Reconciliation failed: ${err.message}`);
+    return null;
+  }
+};
+
 serve(async (req) => {
   const signature = req.headers.get("Stripe-Signature");
 
@@ -111,6 +143,36 @@ serve(async (req) => {
           } else {
             console.log("Subscription marked as past_due:", invoice.subscription);
           }
+        }
+        break;
+      }
+
+      case "invoice.upcoming": {
+        // Triggered ~3 days before invoice finalizes
+        // This is the ultimate safety net: reconcile all unreported billing events
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = invoice.customer as string;
+        console.log("Invoice upcoming for customer:", customerId);
+
+        // Find company by Stripe customer ID
+        const { data: company, error: companyError } = await supabaseClient
+          .from("companies")
+          .select("id, name")
+          .eq("stripe_customer_id", customerId)
+          .single();
+
+        if (companyError || !company) {
+          console.error("Could not find company for customer:", customerId);
+          break;
+        }
+
+        console.log(`Invoice upcoming for ${company.name} - triggering reconciliation`);
+
+        // Trigger reconciliation
+        const reconcileResult = await triggerReconciliation(company.id);
+        
+        if (reconcileResult) {
+          console.log(`Reconciliation completed for ${company.name}: reconciled=${reconcileResult.total_reconciled}, errors=${reconcileResult.total_errors}`);
         }
         break;
       }

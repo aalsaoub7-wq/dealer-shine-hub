@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Copy, Check, ArrowLeft, Trash2, Upload, Plus, Search } from "lucide-react";
+import { Loader2, Copy, Check, ArrowLeft, Trash2, Upload, Plus, Search, RefreshCw } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -78,6 +78,10 @@ const Admin = () => {
   const [newBgFile, setNewBgFile] = useState<File | null>(null);
   const [uploadingBg, setUploadingBg] = useState(false);
   const [copiedUnlockCode, setCopiedUnlockCode] = useState<string | null>(null);
+  
+  // Reconcile state
+  const [reconciling, setReconciling] = useState(false);
+  const [reconcileResult, setReconcileResult] = useState<any>(null);
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -489,6 +493,38 @@ const Admin = () => {
     }
   };
 
+  const handleReconcile = async (companyId?: string, backfill = false) => {
+    setReconciling(true);
+    setReconcileResult(null);
+    
+    try {
+      const { triggerReconciliation } = await import("@/lib/usageTracking");
+      const result = await triggerReconciliation(companyId, backfill);
+      setReconcileResult(result);
+      
+      if (result?.total_reconciled > 0 || result?.total_backfilled > 0) {
+        toast({
+          title: "Reconciliation klar",
+          description: `Rapporterade ${result.total_reconciled} events, backfillat ${result.total_backfilled} events`
+        });
+      } else {
+        toast({
+          title: "Allt i synk",
+          description: "Inga missade billing events hittades"
+        });
+      }
+    } catch (err) {
+      console.error("Reconciliation error:", err);
+      toast({
+        title: "Fel",
+        description: "Kunde inte köra reconciliation",
+        variant: "destructive"
+      });
+    } finally {
+      setReconciling(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -514,12 +550,13 @@ const Admin = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="customers" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 md:w-auto md:inline-flex">
+          <TabsList className="grid w-full grid-cols-4 md:w-auto md:inline-flex">
             <TabsTrigger value="customers">Kunder</TabsTrigger>
             <TabsTrigger value="leads">
               Leads {leads.length > 0 && `(${leads.length})`}
             </TabsTrigger>
             <TabsTrigger value="backgrounds">Bakgrunder</TabsTrigger>
+            <TabsTrigger value="billing">Billing</TabsTrigger>
           </TabsList>
 
           {/* Customers Tab */}
@@ -1016,6 +1053,66 @@ const Admin = () => {
                       ))}
                     </TableBody>
                   </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Billing Tab */}
+          <TabsContent value="billing" className="space-y-6 mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <RefreshCw className="h-5 w-5" />
+                  Billing Reconciliation
+                </CardTitle>
+                <CardDescription>
+                  Synka missade billing events med Stripe. Systemet gör detta automatiskt, men du kan trigga det manuellt här.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-3">
+                  <Button 
+                    onClick={() => handleReconcile()} 
+                    disabled={reconciling}
+                  >
+                    {reconciling ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Reconcilerar...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Reconcilera alla kunder
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleReconcile("4ef5e6f6-28c8-4291-8c08-9b5d46466598", true)}
+                    disabled={reconciling}
+                  >
+                    Backfill Joels Bil
+                  </Button>
+                </div>
+
+                {reconcileResult && (
+                  <div className="mt-4 p-4 bg-muted rounded-lg space-y-2">
+                    <p className="font-medium">Resultat:</p>
+                    <p className="text-sm">Reconcilerade: {reconcileResult.total_reconciled}</p>
+                    <p className="text-sm">Backfillade: {reconcileResult.total_backfilled}</p>
+                    <p className="text-sm">Fel: {reconcileResult.total_errors}</p>
+                    {reconcileResult.results?.map((r: any, i: number) => (
+                      <div key={i} className="text-xs p-2 bg-background rounded mt-1">
+                        <p className="font-medium">{r.company_name}</p>
+                        <p>Orapporterade: {r.unreported_count} | Rapporterade: {r.reported_count} | Backfillade: {r.backfilled_count}</p>
+                        {r.errors.length > 0 && (
+                          <p className="text-destructive mt-1">{r.errors.join(", ")}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 )}
               </CardContent>
             </Card>

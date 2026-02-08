@@ -43,9 +43,68 @@ const getDynamicPricePerImage = async (): Promise<number> => {
 };
 
 /**
- * Reports usage to Stripe with retry logic to prevent lost billing events
+ * Inserts a durable billing event into the database.
+ * This is the source of truth for billing - even if Stripe reporting fails,
+ * the reconciliation function will pick it up later.
  */
-const reportToStripeWithRetry = async (maxRetries = 3) => {
+const insertBillingEvent = async (
+  companyId: string,
+  userId: string,
+  carId?: string,
+  photoId?: string
+): Promise<string | null> => {
+  try {
+    const insertData: Record<string, unknown> = {
+      company_id: companyId,
+      user_id: userId,
+      event_type: 'edited_image',
+    };
+    if (carId) insertData.car_id = carId;
+    if (photoId) insertData.photo_id = photoId;
+
+    const { data, error } = await supabase
+      .from("billing_events")
+      .insert(insertData as any)
+      .select("id")
+      .single();
+
+    if (error) {
+      console.error('[USAGE] Failed to insert billing event:', error);
+      return null;
+    }
+
+    console.log('[USAGE] Billing event recorded:', data.id);
+    return data.id;
+  } catch (err) {
+    console.error('[USAGE] Error inserting billing event:', err);
+    return null;
+  }
+};
+
+/**
+ * Marks a billing event as reported to Stripe (optimistic update).
+ */
+const markBillingEventReported = async (eventId: string) => {
+  try {
+    await supabase
+      .from("billing_events")
+      .update({
+        stripe_reported: true,
+        stripe_reported_at: new Date().toISOString(),
+      })
+      .eq("id", eventId);
+    console.log('[USAGE] Billing event marked as reported:', eventId);
+  } catch (err) {
+    console.error('[USAGE] Failed to mark billing event as reported:', err);
+    // Not critical - reconciliation will handle it
+  }
+};
+
+/**
+ * Reports usage to Stripe with retry logic (optimistic, best-effort).
+ * If this fails, the reconciliation function will catch it.
+ */
+const reportToStripeOptimistic = async (billingEventId: string | null, maxRetries = 3) => {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const { data, error: reportError } = await supabase.functions.invoke(
@@ -56,6 +115,11 @@ const reportToStripeWithRetry = async (maxRetries = 3) => {
         throw reportError;
       }
       console.log(`[USAGE] Stripe reporting succeeded on attempt ${attempt}`, data);
+      
+      // Mark the billing event as reported
+      if (billingEventId) {
+        await markBillingEventReported(billingEventId);
+      }
       return;
     } catch (err) {
       console.error(`[USAGE] Stripe reporting attempt ${attempt}/${maxRetries} failed:`, err);
@@ -64,7 +128,7 @@ const reportToStripeWithRetry = async (maxRetries = 3) => {
       }
     }
   }
-  console.error("[USAGE] All Stripe reporting attempts failed - billing event may be lost!");
+  console.warn("[USAGE] All Stripe reporting attempts failed - reconciliation will handle this event");
 };
 
 export const trackUsage = async (
@@ -116,7 +180,10 @@ export const trackUsage = async (
       return;
     }
 
-    // Not in trial - proceed with normal billing
+    // === STEP 1: Insert durable billing event (source of truth) ===
+    const billingEventId = await insertBillingEvent(company.id, user.id, carId);
+
+    // === STEP 2: Update usage_stats for dashboard display ===
     const monthDate = now.getMonth(); // 0-11
     const year = now.getFullYear();
     const month = `${year}-${String(monthDate + 1).padStart(2, '0')}-01`;
@@ -173,8 +240,11 @@ export const trackUsage = async (
       if (error) console.error("Error inserting usage stats:", error);
     }
 
-    // Report usage to Stripe for metered billing with retry (only for paid users)
-    await reportToStripeWithRetry();
+    // === STEP 3: Optimistic Stripe report (best-effort, reconciliation is safety net) ===
+    // Fire and forget - don't await so we don't block the UI
+    reportToStripeOptimistic(billingEventId).catch(err => {
+      console.warn('[USAGE] Optimistic Stripe report failed (will be reconciled):', err);
+    });
   } catch (error) {
     console.error("Error tracking usage:", error);
   }
@@ -229,5 +299,32 @@ export const trackRegenerationUsage = async (
     console.error("Error in trackRegenerationUsage:", error);
     // On error - still charge for safety
     await trackUsage("edited_image", carId);
+  }
+};
+
+/**
+ * Triggers server-side reconciliation for a company.
+ * Called automatically on dashboard load and can be called manually from admin.
+ */
+export const triggerReconciliation = async (companyId?: string, backfill = false): Promise<any> => {
+  try {
+    const body: Record<string, unknown> = {};
+    if (companyId) body.company_id = companyId;
+    if (backfill) body.backfill = true;
+
+    const { data, error } = await supabase.functions.invoke("reconcile-usage", {
+      body,
+    });
+
+    if (error) {
+      console.error("[RECONCILE] Error triggering reconciliation:", error);
+      return null;
+    }
+
+    console.log("[RECONCILE] Reconciliation result:", data);
+    return data;
+  } catch (err) {
+    console.error("[RECONCILE] Failed to trigger reconciliation:", err);
+    return null;
   }
 };
