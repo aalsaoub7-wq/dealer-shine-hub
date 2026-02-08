@@ -1,66 +1,149 @@
 
 
-# Bulletproof: Ta bort ALL trial-logik och fixa default
+# Fix: "Konto ej aktiverat" ska ALDRIG visas for betalande kunder
 
-## Vad som behover fixas
+## Problemanalys
 
-Jag har hittat **4 kvarvarande problem** som maste atgardas for att systemet ska vara helt skottssakert:
+Jag hittade **4 scenarion** dar en betalande kund KAN se "Konto ej aktiverat":
 
-### 1. Databasdefault: `trial_images_remaining` ar fortfarande 50
+### Problem 1: Kunder KAN registrera sig FORE betalning
 
-Kolumnen `trial_images_remaining` har DEFAULT 50 i databasen. Om nagon kodvag skapar ett foretag utan att explicit satta detta till 0, far de 50 "gratis" bilder i systemet.
+`public_signup_codes`-vyn filtrerar INTE bort koder dar `stripe_customer_id = 'pending'`. Det innebar att en kund kan anvanda sin signup-kod och skapa ett konto innan de betalat. Foretaget skapas med `stripe_customer_id = 'pending'`, och nar de sedan betalar uppdateras bara `signup_codes`-tabellen -- INTE `companies`-tabellen. Resultatet: kunden sitter permanent fast bakom paywallen.
 
-**Fix:** Databasmigration som andrar default till 0.
+Exempel fran databasen: "Carcenter Lidkoping AB" har `stripe_customer_id = 'pending'` och `used_at = null` -- de kan registrera sig nu utan att ha betalat.
 
-### 2. Trial-logik i usageTracking.ts kan ge gratis redigering
+**Fix:** Uppdatera `public_signup_codes`-vyn och triggern for att blockera koder med `stripe_customer_id = 'pending'`.
 
-Rad 141-164 i `usageTracking.ts` kollar `isInTrial` och om det ar sant, anropar `track-trial-usage` och returnerar UTAN att rapportera till Stripe. Idag ar `isInTrial` alltid `false` (alla `trial_end_date = NULL`), men om nagon av misstag satter ett datum sa far kunden gratis bilder.
+---
 
-**Fix:** Ta bort hela trial-blocket (rad 141-164) och ta bort `trial_end_date`/`trial_images_remaining`/`trial_images_used` fran queryn. Varje redigering ska ALLTID ga till Stripe.
+### Problem 2: Aram Carcenter har INGEN lokal prenumerationspost
 
-### 3. Trial-UI kvar i Dashboard, CarDetail och PaymentSettings
+`customer.subscription.created`-webhooken fires nar kunden betalar, men foretaget existerar inte i databasen an (kunden har inte registrerat sig). Webhooken misslyckas tyst: "Could not find company for customer: cus_xxx".
 
-Alla tre filer har kvarvarande trial-relaterad UI och state:
-- **Dashboard.tsx**: `trialInfo` state, `checkTrialStatus()`, trial-banner (rad 258-273)
-- **CarDetail.tsx**: `trialInfo` state (rad 118-124), trial-limiter i `handleEditPhotos` (rad 564-565), `handleInteriorEdit` (rad 748)
-- **PaymentSettings.tsx**: Trial-interface (rad 26-32), "Testperiod Aktiv"-kort (rad 236-263), trial-villkor i kostnadsvisning (rad 307-311, 317-318, 342-343, 397-398, 406-407)
+Resultat: Aram Carcenter har idag INGEN rad i `subscriptions`-tabellen. `hasActiveSubscription` ar darfor alltid `false` for dem. De klarar sig BARA for att `hasPaymentMethod = true` -- men om det API-anropet till Stripe misslyckas (natverksproblem, rate limit) sa visas paywallen.
 
-**Fix:** Ta bort all trial-relaterad state, UI och logik fran alla tre filer.
+**Fix:** Lagg till subscription self-healing i `get-billing-info`: om Stripe har en aktiv prenumeration men databasen saknar post, skapa den automatiskt. Anvand ocksa Stripe-resultatet for att satta `hasActiveSubscription = true`.
 
-### 4. get-billing-info returnerar trial-objekt och "Provperiod" fallback
+---
 
-Edge-funktionen returnerar fortfarande ett `trial`-objekt i responsen (rad 280-286, 421-427) och anvander "Provperiod" som fallback-plannamn (rad 261).
+### Problem 3: `hasActiveSubscription` ignorerar Stripe-fallback
 
-**Fix:**
-- Ta bort `trial`-objektet fran bada response-grenarna
-- Ta bort trial-berakning (rad 156-163)
-- Ta bort `trial_end_date`/`trial_images_remaining`/`trial_images_used` fran company-queryn
-- Andra fallback-plannamn fran "Provperiod" till "Inget abonnemang"
+`get-billing-info` gor redan en Stripe-fallback (rad 220-235) som hittar aktiva prenumerationer. Men resultatet anvands BARA for prissattning -- `hasActiveSubscription` pa rad 260 kollar fortfarande BARA den lokala databasen.
 
-### Bonus: Ta bort track-trial-usage edge function
+Aven om Stripe bekraftar att kunden har en aktiv prenumeration, returnerar funktionen `hasActiveSubscription: false`.
 
-`supabase/functions/track-trial-usage/index.ts` ar helt overflodigt nar trial-logiken ar borta. Tas bort for att undvika forvirring.
+**Fix:** Uppdatera `hasActiveSubscription` att ocksa vara `true` om Stripe-fallback hittar en aktiv prenumeration.
+
+---
+
+### Problem 4: Natverksfel = omedelbar paywall
+
+I `ProtectedRoute.tsx` rad 57-59:
+```
+if (error) {
+  return { showPaywall: true, paymentFailed: false };
+}
+```
+
+Om `get-billing-info` failar (nere, timeout, natverksfel) visas paywallen omedelbart. En betalande kund forlorar sin atkomst vid ett tillfalsigt serverproblem.
+
+**Fix:** Lagg till retry-logik for tillfaltiga fel. Visa ett generiskt felmeddelande ("Nagonting gick fel, forsok igen") istallet for "Konto ej aktiverat".
 
 ---
 
 ## Tekniska andringar
 
-| Fil | Andring |
-|-----|---------|
-| Databasmigration | `ALTER TABLE companies ALTER COLUMN trial_images_remaining SET DEFAULT 0` |
-| `src/lib/usageTracking.ts` | Ta bort rad 141-164 (isInTrial-blocket), ta bort trial-kolumner fran company-queryn |
-| `src/pages/Dashboard.tsx` | Ta bort `trialInfo` state, `checkTrialStatus()`, trial-banner |
-| `src/pages/CarDetail.tsx` | Ta bort `trialInfo` state, ta bort trial-check i `handleEditPhotos` och `handleInteriorEdit` |
-| `src/components/PaymentSettings.tsx` | Ta bort trial-interface, trial-kort, trial-villkor i kostnadsvisning |
-| `supabase/functions/get-billing-info/index.ts` | Ta bort trial-berakning, trial-objekt fran respons, andra fallback till "Inget abonnemang" |
-| `supabase/functions/track-trial-usage/index.ts` | Radera helt |
-| `supabase/config.toml` | Ta bort `[functions.track-trial-usage]` |
+### 1. Databasmigration
 
-## Vad som INTE andras
+Uppdatera `public_signup_codes`-vyn att filtrera bort pending-koder OCH uppdatera triggern:
 
-- `handle_new_user_company`-triggern (den sattar redan `trial_end_date = NULL` och `trial_images_remaining = 0`)
-- Self-healing i `get-billing-info` (den sattar redan `trial_end_date: null, trial_images_remaining: 0`)
-- `ProtectedRoute.tsx` (den anvander inte trial-logik langre, den kollar bara `hasPaymentMethod` och `hasActiveSubscription`)
-- `TrialExpiredPaywall.tsx` (den visar redan "Konto ej aktiverat" utan trial-text)
-- Stripe-koppling och billingflode (inga andringar)
+```sql
+-- Uppdatera vyn sa att pending-koder inte syns
+CREATE OR REPLACE VIEW public.public_signup_codes AS
+SELECT id, code, used_at IS NOT NULL as is_used, company_name
+FROM public.signup_codes
+WHERE stripe_customer_id != 'pending';
+
+-- Uppdatera triggern: blockera registrering om stripe_customer_id = 'pending'
+-- (lagg till AND stripe_customer_id != 'pending' i SELECT-queryn)
+```
+
+### 2. `supabase/functions/get-billing-info/index.ts`
+
+- Efter Stripe-fallback (rad 220-235): om en aktiv prenumeration hittas, skapa den lokalt (subscription self-healing)
+- Uppdatera `hasActiveSubscription` att aven vara `true` om Stripe bekraftar aktiv prenumeration
+
+```text
+// Nuvarande (rad 260):
+const hasActiveSubscription = !!(subscription && ["active", "trialing"].includes(subscription.status));
+
+// Ny logik:
+let hasActiveSubscription = !!(subscription && ["active", "trialing"].includes(subscription.status));
+
+// Om Stripe-fallback hittade en aktiv sub men DB saknar: skapa lokal post + satt flaggan
+if (!hasActiveSubscription && stripeSubscriptionId && company.stripe_customer_id) {
+  // Hamta full subscription fran Stripe
+  const stripeSub = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+  if (stripeSub.status === 'active' || stripeSub.status === 'trialing') {
+    // Self-heal: skapa lokal post
+    await supabaseClient.from("subscriptions").upsert({
+      company_id: company.id,
+      stripe_subscription_id: stripeSubscriptionId,
+      stripe_customer_id: company.stripe_customer_id,
+      status: stripeSub.status,
+      current_period_start: new Date(stripeSub.current_period_start * 1000).toISOString(),
+      current_period_end: new Date(stripeSub.current_period_end * 1000).toISOString(),
+    }, { onConflict: 'stripe_subscription_id' });
+    
+    hasActiveSubscription = true;
+  }
+}
+```
+
+### 3. `src/components/ProtectedRoute.tsx`
+
+- Lagg till retry-logik (max 2 forsok) vid natverksfel
+- Skilj pa "inget foretag" (visar paywall) och "backend-fel" (visar felmeddelande med "Forsok igen"-knapp)
+
+```text
+// Nuvarande:
+if (error) {
+  return { showPaywall: true, paymentFailed: false };
+}
+
+// Ny logik med retry:
+const checkTrialAndPayment = async (retryCount = 0): Promise<...> => {
+  const { data, error } = await supabase.functions.invoke("get-billing-info");
+  
+  if (error) {
+    if (retryCount < 2) {
+      await new Promise(r => setTimeout(r, 1500));
+      return checkTrialAndPayment(retryCount + 1);
+    }
+    // Efter 2 retries: visa ett generiskt felmeddelande, INTE paywall
+    return { showPaywall: false, paymentFailed: false, connectionError: true };
+  }
+  // ...
+};
+```
+
+### 4. `supabase/functions/stripe-webhook/index.ts`
+
+I `checkout.session.completed`:
+- Efter att signup-koden uppdateras, forska aven skapa subscription-posten direkt (eftersom foretaget inte existerar an, lagra det temporart sa att self-healing i `get-billing-info` kan anvanda det)
+
+### 5. Ny komponent: `ConnectionErrorScreen`
+
+Enkel felskarm som visas vid temporara anslutningsfel istallet for paywall. Visar "Nagonting gick fel" med en "Forsok igen"-knapp.
+
+---
+
+## Sammanfattning
+
+| Problem | Risk | Fix |
+|---------|------|-----|
+| Pending-koder inte filtrerade i vy/trigger | Permanent paywall | Filtrera bort `stripe_customer_id = 'pending'` |
+| Ingen lokal prenumerationspost | Paywall vid Stripe API-fel | Subscription self-healing i `get-billing-info` |
+| `hasActiveSubscription` ignorerar Stripe | Felaktig status | Satt flaggan baserat pa Stripe-resultat |
+| Natverksfel = omedelbar paywall | Tillfalsig utlasning | Retry-logik + felskarm istallet for paywall |
 
