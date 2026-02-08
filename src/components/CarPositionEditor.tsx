@@ -358,31 +358,22 @@ export const CarPositionEditor = ({
         ctx.arc(rhX, rhY, handleSize, 0, 2 * Math.PI);
         ctx.stroke();
         
-        // Draw resize arrows
+        // Draw circular arrow icon inside resize handle
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 4;
         ctx.lineCap = 'round';
         
-        const arrowSize = 18;
-        const arrowOffset = arrowSize / Math.sqrt(2);
-        
+        const iconRadius = 14;
         ctx.beginPath();
-        ctx.moveTo(rhX - arrowOffset, rhY - arrowOffset);
-        ctx.lineTo(rhX + arrowOffset, rhY + arrowOffset);
+        ctx.arc(rhX, rhY, iconRadius, -Math.PI * 0.7, Math.PI * 0.5);
         ctx.stroke();
-        
+        // Arrowhead
+        const resArrowTipX = rhX + iconRadius * Math.cos(Math.PI * 0.5);
+        const resArrowTipY = rhY + iconRadius * Math.sin(Math.PI * 0.5);
         ctx.beginPath();
-        ctx.moveTo(rhX - arrowOffset, rhY - arrowOffset);
-        ctx.lineTo(rhX - arrowOffset + 8, rhY - arrowOffset);
-        ctx.moveTo(rhX - arrowOffset, rhY - arrowOffset);
-        ctx.lineTo(rhX - arrowOffset, rhY - arrowOffset + 8);
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo(rhX + arrowOffset, rhY + arrowOffset);
-        ctx.lineTo(rhX + arrowOffset - 8, rhY + arrowOffset);
-        ctx.moveTo(rhX + arrowOffset, rhY + arrowOffset);
-        ctx.lineTo(rhX + arrowOffset, rhY + arrowOffset - 8);
+        ctx.moveTo(resArrowTipX - 6, resArrowTipY - 6);
+        ctx.lineTo(resArrowTipX, resArrowTipY);
+        ctx.lineTo(resArrowTipX + 6, resArrowTipY - 4);
         ctx.stroke();
 
         // Draw rotation handle (top-center)
