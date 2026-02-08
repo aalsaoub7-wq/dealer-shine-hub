@@ -83,3 +83,6 @@ verify_jwt = true
 
 [functions.create-initial-stripe-customer]
 verify_jwt = false
+
+[functions.reconcile-usage]
+verify_jwt = false

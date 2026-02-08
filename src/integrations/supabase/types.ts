@@ -194,6 +194,81 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_events: {
+        Row: {
+          car_id: string | null
+          company_id: string
+          created_at: string
+          event_type: string
+          id: string
+          photo_id: string | null
+          stripe_event_id: string | null
+          stripe_reported: boolean
+          stripe_reported_at: string | null
+          user_id: string
+        }
+        Insert: {
+          car_id?: string | null
+          company_id: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          photo_id?: string | null
+          stripe_event_id?: string | null
+          stripe_reported?: boolean
+          stripe_reported_at?: string | null
+          user_id: string
+        }
+        Update: {
+          car_id?: string | null
+          company_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          photo_id?: string | null
+          stripe_event_id?: string | null
+          stripe_reported?: boolean
+          stripe_reported_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_events_car_id_fkey"
+            columns: ["car_id"]
+            isOneToOne: false
+            referencedRelation: "cars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_invite_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_events_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_events_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "public_photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blocket_ad_sync: {
         Row: {
           blocket_ad_id: string | null
