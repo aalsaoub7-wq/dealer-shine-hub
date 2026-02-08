@@ -171,7 +171,7 @@ export const BeforeAfterSlider = () => {
   return (
     <div
       ref={containerRef}
-      className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl border border-border/50 select-none"
+      className="relative w-full aspect-[3/2] rounded-3xl overflow-hidden shadow-2xl border border-border/50 select-none"
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
