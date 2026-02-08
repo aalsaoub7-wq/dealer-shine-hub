@@ -1,49 +1,39 @@
 
 
-# Visa PWA-installknappen och uppdatera "Finns dar appar finns"-kortet
+# PWA: Starta direkt på /dashboard
 
-## Problem
+## Oversikt
 
-PWA-installknappen syns inte for att den bara renderas nar webblasaren stodjer `beforeinstallprompt` (Chrome/Android) eller nar anvandaren ar pa iOS Safari. I alla andra fall returnerar komponenten `null` och inget visas. Det innebar att knappen ar osynlig i de flesta weblasare tills man faktiskt kan installera -- men du vill att den alltid ska vara synlig.
+Gor sa att nar anvandaren oppnar den installerade PWA:n (via hemskarms-ikonen) landar de direkt pa `/dashboard` istallet for landningssidan `/`.
+
+Om anvandaren inte ar inloggad hanterar den befintliga `ProtectedRoute`-komponenten redirect till `/auth` automatiskt.
 
 ## Andringar
 
-### 1. PWAInstallButton.tsx -- Visa alltid en knapp
+### 1. Andra `start_url` i manifestet (`vite.config.ts`)
 
-Andra komponenten sa att den alltid renderar nagot, aven nar `canInstall` ar `false`:
+Andra `start_url` fran `"/"` till `"/dashboard"` i PWA-manifestets konfiguration. Detta ar den URL som oppnas nar anvandaren klickar pa den installerade PWA-ikonen.
 
-- **Om `canInstall` ar true**: Visa "Installera appen"-knapp som triggar install-prompten (som idag)
-- **Om `isIOS` ar true**: Visa iOS-hinten "Dela -> Lagg till pa hemskarm" (som idag)
-- **Fallback (ny)**: Visa en vanlig lank/knapp med texten "Installera appen" som scrollar till instruktioner, eller visar en tooltip/info om att man oppnar sidan i Chrome for att installera. Enklaste losningen: alltid visa knappen -- om `canInstall` ar false oppnas sidan i Chrome som en hint.
+### 2. Lagg till PWA standalone-redirect i `NativeRouter.tsx`
 
-For **button-varianten**: Visa alltid en "Installera online"-knapp. Om `canInstall` ar true triggas prompten. Om inte visas en liten info-text om att oppna i Chrome.
+Utoka den befintliga redirect-logiken (som idag bara kor for Capacitor) sa att den aven galler for PWA i standalone-lage:
 
-For **link-varianten**: Visa alltid "Installera appen"-lanken i footern. Samma logik.
+- Detektera standalone-lage via `window.matchMedia('(display-mode: standalone)')` eller `navigator.standalone` (iOS)
+- Om appen kors i standalone OCH anvandaren ar pa `/`: redirecta till `/dashboard` (ProtectedRoute skickar vidare till `/auth` om ej inloggad)
 
-### 2. Landing.tsx -- Uppdatera feature-kortet (rad 347-357)
+Detta gor att aven om anvandaren navigerar till `/` inifran PWA:n sa skickas de vidare till dashboard.
 
-- **Ta bort** de tva App Store/Google Play badge-bilderna (rad 348-351)
-- **Andra rubriken** fran "Finns dar appar finns" till nagonting som "Installera online" eller liknande
-- **Ta bort** "Beta (Kommer Snart)"-badgen
-- **Andra beskrivningstexten** fran "Luvero finns pa bade Play Store, App Store och Online!" till nagot i stil med "Installera Luvero direkt fran din webblasare -- ingen app store behovs."
-- **Behall** `<PWAInstallButton variant="button" />`
-
-### 3. Landing.tsx -- Footern (rad 899)
-
-Ingen strukturandring -- `<PWAInstallButton variant="link" />` ar redan pa plats. Den kommer att synas tack vare andring 1.
-
-## Filer som andras
+### Filer som andras
 
 | Fil | Andring |
 |-----|---------|
-| `src/components/PWAInstallButton.tsx` | Lagg till fallback-rendering sa knappen alltid visas |
-| `src/pages/Landing.tsx` | Ta bort App Store/Google Play badges, uppdatera rubrik och text i feature-kortet |
+| `vite.config.ts` | Andra `start_url` fran `"/"` till `"/dashboard"` |
+| `src/components/NativeRouter.tsx` | Lagg till standalone-detektering sa PWA ocksa redirectas fran `/` till `/dashboard` |
 
-## Vad som INTE andras
+### Vad som INTE andras
 
-- PWA-konfiguration (vite.config.ts) -- ingen andring
-- Service worker -- ingen andring
-- usePWAInstall hook -- ingen andring
-- Ovriga komponenter och sidor -- ingen andring
+- Landningssidan (`Landing.tsx`) -- forblir tillganglig pa `/` for vanliga webbanvandare
+- `ProtectedRoute` -- ingen andring, hanterar redan redirect till `/auth` for ej inloggade
+- Service worker / caching -- ingen andring
 - Databas -- ingen andring
 
