@@ -256,8 +256,45 @@ serve(async (req) => {
       };
     }
 
-    // Check if there's an active subscription in database
-    const hasActiveSubscription = !!(subscription && ["active", "trialing"].includes(subscription.status));
+    // Check if there's an active subscription - database first, then Stripe fallback
+    let hasActiveSubscription = !!(subscription && ["active", "trialing"].includes(subscription.status));
+
+    // Subscription self-healing: if Stripe has active sub but DB doesn't, create local record
+    if (!hasActiveSubscription && stripeSubscriptionId && company.stripe_customer_id) {
+      try {
+        console.log(`[BILLING-INFO] Self-healing: checking Stripe subscription ${stripeSubscriptionId}`);
+        const stripeSub = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+        
+        if (stripeSub.status === 'active' || stripeSub.status === 'trialing') {
+          console.log(`[BILLING-INFO] Self-healing: Stripe sub is ${stripeSub.status}, creating local record`);
+          
+          const { error: upsertError } = await supabaseClient
+            .from("subscriptions")
+            .upsert({
+              company_id: company.id,
+              stripe_subscription_id: stripeSubscriptionId,
+              stripe_customer_id: company.stripe_customer_id,
+              status: stripeSub.status,
+              current_period_start: new Date(stripeSub.current_period_start * 1000).toISOString(),
+              current_period_end: new Date(stripeSub.current_period_end * 1000).toISOString(),
+            }, { onConflict: 'stripe_subscription_id' });
+          
+          if (upsertError) {
+            console.error("[BILLING-INFO] Self-healing: upsert failed", upsertError);
+          } else {
+            console.log(`[BILLING-INFO] Self-healing: local subscription record created for company ${company.id}`);
+          }
+          
+          hasActiveSubscription = true;
+        }
+      } catch (selfHealError) {
+        console.error("[BILLING-INFO] Self-healing: error retrieving Stripe subscription", selfHealError);
+        // If we found a subscription ID via the list API earlier, it's likely active
+        // Grant access optimistically to avoid blocking paying customers
+        hasActiveSubscription = true;
+        console.log("[BILLING-INFO] Self-healing: granting access optimistically based on earlier Stripe lookup");
+      }
+    }
 
     if (!company.stripe_customer_id && company.id !== ADMIN_TEST_COMPANY_ID) {
       return new Response(

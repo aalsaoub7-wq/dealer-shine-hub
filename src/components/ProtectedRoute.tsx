@@ -1,8 +1,9 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { TrialExpiredPaywall } from "@/components/TrialExpiredPaywall";
 import { PaymentFailedPaywall } from "@/components/PaymentFailedPaywall";
+import { ConnectionErrorScreen } from "@/components/ConnectionErrorScreen";
 import { identifyUser, resetAnalytics, analytics } from "@/lib/analytics";
 
 interface ProtectedRouteProps {
@@ -10,88 +11,129 @@ interface ProtectedRouteProps {
 }
 
 const VERIFICATION_TIMEOUT_MS = 5000;
+const MAX_BILLING_RETRIES = 2;
+const RETRY_DELAY_MS = 1500;
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [showPaywall, setShowPaywall] = useState<boolean>(false);
   const [paymentFailed, setPaymentFailed] = useState<boolean>(false);
+  const [connectionError, setConnectionError] = useState<boolean>(false);
   const [paywallChecked, setPaywallChecked] = useState<boolean>(false);
+  const [retryLoading, setRetryLoading] = useState<boolean>(false);
   const isMountedRef = useRef(true);
   const hasCheckedRef = useRef(false);
 
+  const checkVerificationWithTimeout = useCallback(async (userId: string, isGoogle: boolean): Promise<boolean> => {
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), VERIFICATION_TIMEOUT_MS),
+      );
+
+      const verificationPromise = supabase.functions.invoke("get-verification-status", {
+        body: { userId },
+      });
+
+      const { data, error } = await Promise.race([verificationPromise, timeoutPromise]);
+
+      if (error) {
+        console.error("Error checking verification:", error);
+        return true; // Fallback to allow access
+      }
+
+      if (isGoogle) {
+        return data?.phoneVerified === true;
+      } else {
+        return data?.emailVerified === true && data?.phoneVerified === true;
+      }
+    } catch (err) {
+      console.error("Verification check timeout or error:", err);
+      return true; // Fallback to allow access on timeout
+    }
+  }, []);
+
+  const checkTrialAndPayment = useCallback(async (retryCount = 0): Promise<{ showPaywall: boolean; paymentFailed: boolean; connectionError: boolean }> => {
+    try {
+      const { data, error } = await supabase.functions.invoke("get-billing-info");
+      
+      if (error) {
+        console.error(`Error checking billing info (attempt ${retryCount + 1}/${MAX_BILLING_RETRIES + 1}):`, error);
+        
+        // Retry on transient errors
+        if (retryCount < MAX_BILLING_RETRIES) {
+          await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+          return checkTrialAndPayment(retryCount + 1);
+        }
+        
+        // After all retries exhausted: show connection error, NOT paywall
+        console.error("All billing info retries exhausted, showing connection error screen");
+        return { showPaywall: false, paymentFailed: false, connectionError: true };
+      }
+
+      const isAdmin = data?.isAdmin ?? false;
+      const hasActiveSubscription = data?.hasActiveSubscription ?? false;
+      
+      // Employees NEVER see paywall - only admins are responsible for billing
+      if (!isAdmin) {
+        return { showPaywall: false, paymentFailed: false, connectionError: false };
+      }
+      
+      // Check if payment failed (past_due status) - block immediately for admins
+      const subscriptionStatus = data?.subscription?.status;
+      if (subscriptionStatus === "past_due") {
+        return { showPaywall: false, paymentFailed: true, connectionError: false };
+      }
+
+      const hasPaymentMethod = data?.hasPaymentMethod ?? false;
+      const subscriptionPeriodEnd = data?.subscription?.current_period_end as string | null | undefined;
+      const subscriptionEndMs = subscriptionPeriodEnd ? new Date(subscriptionPeriodEnd).getTime() : null;
+      
+      // Subscription is valid if it hasn't expired yet
+      const subscriptionStillValid =
+        subscriptionEndMs !== null && !Number.isNaN(subscriptionEndMs) && subscriptionEndMs > Date.now();
+
+      // Admin: block only if no payment method AND no active subscription AND subscription expired
+      if (!hasPaymentMethod && !hasActiveSubscription && !subscriptionStillValid) {
+        return { showPaywall: true, paymentFailed: false, connectionError: false };
+      }
+
+      return { showPaywall: false, paymentFailed: false, connectionError: false };
+    } catch (err) {
+      console.error(`Unexpected error in checkTrialAndPayment (attempt ${retryCount + 1}):`, err);
+      
+      if (retryCount < MAX_BILLING_RETRIES) {
+        await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+        return checkTrialAndPayment(retryCount + 1);
+      }
+      
+      return { showPaywall: false, paymentFailed: false, connectionError: true };
+    }
+  }, []);
+
+  const runBillingCheck = useCallback(async () => {
+    const result = await checkTrialAndPayment();
+    if (isMountedRef.current) {
+      setShowPaywall(result.showPaywall);
+      setPaymentFailed(result.paymentFailed);
+      setConnectionError(result.connectionError);
+      setPaywallChecked(true);
+      if (result.showPaywall) {
+        analytics.trialExpired();
+      }
+    }
+  }, [checkTrialAndPayment]);
+
+  const handleRetry = useCallback(async () => {
+    setRetryLoading(true);
+    setConnectionError(false);
+    setPaywallChecked(false);
+    await runBillingCheck();
+    setRetryLoading(false);
+  }, [runBillingCheck]);
+
   useEffect(() => {
     isMountedRef.current = true;
-
-    const checkVerificationWithTimeout = async (userId: string, isGoogle: boolean): Promise<boolean> => {
-      try {
-        const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("timeout")), VERIFICATION_TIMEOUT_MS),
-        );
-
-        const verificationPromise = supabase.functions.invoke("get-verification-status", {
-          body: { userId },
-        });
-
-        const { data, error } = await Promise.race([verificationPromise, timeoutPromise]);
-
-        if (error) {
-          console.error("Error checking verification:", error);
-          return true; // Fallback to allow access
-        }
-
-        if (isGoogle) {
-          return data?.phoneVerified === true;
-        } else {
-          return data?.emailVerified === true && data?.phoneVerified === true;
-        }
-      } catch (err) {
-        console.error("Verification check timeout or error:", err);
-        return true; // Fallback to allow access on timeout
-      }
-    };
-
-    const checkTrialAndPayment = async (): Promise<{ showPaywall: boolean; paymentFailed: boolean }> => {
-      try {
-        const { data, error } = await supabase.functions.invoke("get-billing-info");
-        if (error) {
-          console.error("Error checking billing info:", error);
-          return { showPaywall: true, paymentFailed: false };
-        }
-
-        const isAdmin = data?.isAdmin ?? false; // Safe default: employees never see paywall
-        const hasActiveSubscription = data?.hasActiveSubscription ?? false;
-        
-        // Employees NEVER see paywall - only admins are responsible for billing
-        if (!isAdmin) {
-          return { showPaywall: false, paymentFailed: false };
-        }
-        
-        // Check if payment failed (past_due status) - block immediately for admins
-        const subscriptionStatus = data?.subscription?.status;
-        if (subscriptionStatus === "past_due") {
-          return { showPaywall: false, paymentFailed: true };
-        }
-
-        const hasPaymentMethod = data?.hasPaymentMethod ?? false;
-        const subscriptionPeriodEnd = data?.subscription?.current_period_end as string | null | undefined;
-        const subscriptionEndMs = subscriptionPeriodEnd ? new Date(subscriptionPeriodEnd).getTime() : null;
-        
-        // Subscription is valid if it hasn't expired yet
-        const subscriptionStillValid =
-          subscriptionEndMs !== null && !Number.isNaN(subscriptionEndMs) && subscriptionEndMs > Date.now();
-
-        // Admin: block only if no payment method AND no active subscription AND subscription expired
-        if (!hasPaymentMethod && !hasActiveSubscription && !subscriptionStillValid) {
-          return { showPaywall: true, paymentFailed: false };
-        }
-
-        return { showPaywall: false, paymentFailed: false };
-      } catch (err) {
-        console.error("Error checking trial/payment:", err);
-        return { showPaywall: false, paymentFailed: false };
-      }
-    };
 
     const checkAuth = async () => {
       if (hasCheckedRef.current) return;
@@ -124,15 +166,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
       // Only check paywall if verified
       if (verified && isMountedRef.current) {
-        const result = await checkTrialAndPayment();
-        if (isMountedRef.current) {
-          setShowPaywall(result.showPaywall);
-          setPaymentFailed(result.paymentFailed);
-          setPaywallChecked(true);
-          if (result.showPaywall) {
-            analytics.trialExpired();
-          }
-        }
+        await runBillingCheck();
       } else {
         setPaywallChecked(true);
       }
@@ -153,6 +187,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         setIsVerified(null);
         setShowPaywall(false);
         setPaymentFailed(false);
+        setConnectionError(false);
         setPaywallChecked(true);
         resetAnalytics();
         return;
@@ -172,12 +207,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
       // Only check paywall if verified
       if (verified && isMountedRef.current) {
-        const result = await checkTrialAndPayment();
-        if (isMountedRef.current) {
-          setShowPaywall(result.showPaywall);
-          setPaymentFailed(result.paymentFailed);
-          setPaywallChecked(true);
-        }
+        await runBillingCheck();
       } else {
         setPaywallChecked(true);
       }
@@ -208,12 +238,17 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/verify" replace />;
   }
 
+  // Connection error - show friendly retry screen instead of paywall
+  if (connectionError) {
+    return <ConnectionErrorScreen onRetry={handleRetry} loading={retryLoading} />;
+  }
+
   // Payment failed - immediate block (admin only)
   if (paymentFailed) {
     return <PaymentFailedPaywall />;
   }
 
-  // Trial expired and no payment method (admin only)
+  // Account not activated (admin only)
   if (showPaywall) {
     return <TrialExpiredPaywall />;
   }
