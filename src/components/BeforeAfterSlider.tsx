@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeftRight, Loader2 } from 'lucide-react';
-import beforeImage from '@/assets/before-car-tiguan.jpg';
-import afterImage from '@/assets/after-car.webp';
+import beforeImage from '@/assets/before-car.jpeg';
+import afterImage from '@/assets/after-car.png';
 
 export const BeforeAfterSlider = () => {
   const [sliderPosition, setSliderPosition] = useState(50);
@@ -200,7 +200,7 @@ export const BeforeAfterSlider = () => {
           onLoad={handleImageLoad}
         />
         {/* Before Label */}
-        <div className="absolute top-4 left-4 px-3 py-1 rounded-lg bg-black/60 backdrop-blur-sm text-white text-sm font-medium">
+        <div className="absolute top-4 left-4 px-4 py-1.5 rounded-lg bg-red-600/90 backdrop-blur-sm text-white text-sm font-bold tracking-wide shadow-lg border border-red-500/50">
           FÖRE
         </div>
       </div>
@@ -227,7 +227,7 @@ export const BeforeAfterSlider = () => {
           onLoad={handleImageLoad}
         />
         {/* After Label */}
-        <div className="absolute top-4 right-4 px-3 py-1 rounded-lg bg-black/60 backdrop-blur-sm text-white text-sm font-medium">
+        <div className="absolute top-4 right-4 px-4 py-1.5 rounded-lg bg-emerald-600/90 backdrop-blur-sm text-white text-sm font-bold tracking-wide shadow-lg border border-emerald-500/50">
           EFTER
         </div>
       </div>
