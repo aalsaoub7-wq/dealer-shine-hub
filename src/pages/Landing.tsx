@@ -351,7 +351,7 @@ const Landing = () => {
               <div className="mb-4">
                 <Download className="h-10 w-10 text-primary" />
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">Installera online</h3>
+              <h3 className="text-xl font-bold text-foreground mb-3">Installera Appen!</h3>
               <p className="text-muted-foreground">
                 Installera Luvero direkt från din webbläsare — ingen app store behövs.
               </p>
