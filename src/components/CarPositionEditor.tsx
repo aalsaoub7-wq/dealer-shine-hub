@@ -358,22 +358,29 @@ export const CarPositionEditor = ({
         ctx.arc(rhX, rhY, handleSize, 0, 2 * Math.PI);
         ctx.stroke();
         
-        // Draw circular arrow icon inside resize handle
+        // Draw diagonal resize arrow icon (↔ diagonal) inside resize handle
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 3.5;
         ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
         
-        const iconRadius = 14;
+        const arrowLen = 12;
+        // Diagonal line from bottom-left to top-right
         ctx.beginPath();
-        ctx.arc(rhX, rhY, iconRadius, -Math.PI * 0.7, Math.PI * 0.5);
+        ctx.moveTo(rhX - arrowLen, rhY + arrowLen);
+        ctx.lineTo(rhX + arrowLen, rhY - arrowLen);
         ctx.stroke();
-        // Arrowhead
-        const resArrowTipX = rhX + iconRadius * Math.cos(Math.PI * 0.5);
-        const resArrowTipY = rhY + iconRadius * Math.sin(Math.PI * 0.5);
+        // Arrowhead top-right
         ctx.beginPath();
-        ctx.moveTo(resArrowTipX - 6, resArrowTipY - 6);
-        ctx.lineTo(resArrowTipX, resArrowTipY);
-        ctx.lineTo(resArrowTipX + 6, resArrowTipY - 4);
+        ctx.moveTo(rhX + arrowLen - 7, rhY - arrowLen);
+        ctx.lineTo(rhX + arrowLen, rhY - arrowLen);
+        ctx.lineTo(rhX + arrowLen, rhY - arrowLen + 7);
+        ctx.stroke();
+        // Arrowhead bottom-left
+        ctx.beginPath();
+        ctx.moveTo(rhX - arrowLen + 7, rhY + arrowLen);
+        ctx.lineTo(rhX - arrowLen, rhY + arrowLen);
+        ctx.lineTo(rhX - arrowLen, rhY + arrowLen - 7);
         ctx.stroke();
 
         // Draw rotation handle (top-center)
