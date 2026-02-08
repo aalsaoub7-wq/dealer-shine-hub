@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => ({
         name: "Luvero - AI Bilredigering",
         short_name: "Luvero",
         description: "Professionella bilfoton på sekunder med AI-driven bakgrundsredigering",
-        start_url: "/",
+        start_url: "/dashboard",
         display: "standalone",
         theme_color: "#0a0a0f",
         background_color: "#0a0a0f",

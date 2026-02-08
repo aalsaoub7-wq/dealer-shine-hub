@@ -3,25 +3,40 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { isNativeApp } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 
+const isPwaStandalone = (): boolean => {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (navigator as any).standalone === true
+  );
+};
+
 export const NativeRouter = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    // ENDAST körs i native app
-    if (!isNativeApp()) {
-      return; // Webb förblir oförändrad
+    // Körs i native app ELLER PWA standalone-läge
+    const shouldRedirect = isNativeApp() || isPwaStandalone();
+
+    if (!shouldRedirect) {
+      return; // Vanlig webb förblir oförändrad
     }
 
-    // I native: redirecta från landing page till auth eller dashboard
+    // Redirecta från landing page till dashboard (ProtectedRoute hanterar auth)
     if (location.pathname === '/') {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          navigate('/dashboard', { replace: true });
-        } else {
-          navigate('/auth', { replace: true });
-        }
-      });
+      if (isNativeApp()) {
+        // Native: kolla session explicit
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session) {
+            navigate('/dashboard', { replace: true });
+          } else {
+            navigate('/auth', { replace: true });
+          }
+        });
+      } else {
+        // PWA standalone: gå direkt till dashboard, ProtectedRoute redirectar till /auth om ej inloggad
+        navigate('/dashboard', { replace: true });
+      }
     }
   }, [location.pathname, navigate]);
 
