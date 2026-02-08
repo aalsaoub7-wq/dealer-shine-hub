@@ -1,149 +1,108 @@
 
 
-# Fix: "Konto ej aktiverat" ska ALDRIG visas for betalande kunder
+# PWA: Gor Luvero installerbar fran webblasaren
 
-## Problemanalys
+## Oversikt
 
-Jag hittade **4 scenarion** dar en betalande kund KAN se "Konto ej aktiverat":
+Gor sa att besokare pa luvero.se kan "installera" appen direkt fran webblasaren (Android Chrome, Desktop Chrome/Edge, och iOS via "Lagg till pa hemskarm"). Detta ar komplementart till de befintliga Capacitor-apparna -- PWA:n ar for webbanvandare, Capacitor ar for App Store/Google Play.
 
-### Problem 1: Kunder KAN registrera sig FORE betalning
+## Vad som implementeras
 
-`public_signup_codes`-vyn filtrerar INTE bort koder dar `stripe_customer_id = 'pending'`. Det innebar att en kund kan anvanda sin signup-kod och skapa ett konto innan de betalat. Foretaget skapas med `stripe_customer_id = 'pending'`, och nar de sedan betalar uppdateras bara `signup_codes`-tabellen -- INTE `companies`-tabellen. Resultatet: kunden sitter permanent fast bakom paywallen.
+### 1. Installera `vite-plugin-pwa`
 
-Exempel fran databasen: "Carcenter Lidkoping AB" har `stripe_customer_id = 'pending'` och `used_at = null` -- de kan registrera sig nu utan att ha betalat.
+Lagg till `vite-plugin-pwa` som dev-dependency. Denna plugin hanterar:
+- Automatisk generering av `manifest.webmanifest`
+- Automatisk generering av service worker (via Workbox)
+- Caching-strategier for app-shell och assets
+- Auto-update med prompt
 
-**Fix:** Uppdatera `public_signup_codes`-vyn och triggern for att blockera koder med `stripe_customer_id = 'pending'`.
+### 2. Konfigurera Vite (`vite.config.ts`)
 
----
+Lagg till `VitePWA()` i plugins-arrayen med:
+- `registerType: 'prompt'` -- visar en "Uppdatering tillganglig"-banner istallet for att tvinga reload
+- Manifest med Luvero-brandade varden:
+  - `name: "Luvero - AI Bilredigering"`
+  - `short_name: "Luvero"`
+  - `start_url: "/"`
+  - `display: "standalone"`
+  - `theme_color: "#0a0a0f"`
+  - `background_color: "#0a0a0f"`
+  - Icons: 192x192, 512x512, 512x512 maskable
+- Workbox runtime caching:
+  - `CacheFirst` for statiska assets (bilder, JS, CSS)
+  - `NetworkFirst` for API-anrop (forhindrar cachning av auth/data)
+  - Navigations-fallback till `index.html` (SPA-stod)
 
-### Problem 2: Aram Carcenter har INGEN lokal prenumerationspost
+### 3. Skapa PWA-ikoner
 
-`customer.subscription.created`-webhooken fires nar kunden betalar, men foretaget existerar inte i databasen an (kunden har inte registrerat sig). Webhooken misslyckas tyst: "Could not find company for customer: cus_xxx".
+Skapa `public/icons/` mapp med:
+- `icon-192.png` (192x192) -- baserat pa befintlig favicon.png
+- `icon-512.png` (512x512) -- baserat pa befintlig favicon.png
+- `icon-512-maskable.png` (512x512 med padding for maskable) -- baserat pa befintlig favicon.png
 
-Resultat: Aram Carcenter har idag INGEN rad i `subscriptions`-tabellen. `hasActiveSubscription` ar darfor alltid `false` for dem. De klarar sig BARA for att `hasPaymentMethod = true` -- men om det API-anropet till Stripe misslyckas (natverksproblem, rate limit) sa visas paywallen.
+Initialt anvands den befintliga favicon-designen (rod/vit L-logotyp). Ikonerna kan bytas ut senare.
 
-**Fix:** Lagg till subscription self-healing i `get-billing-info`: om Stripe har en aktiv prenumeration men databasen saknar post, skapa den automatiskt. Anvand ocksa Stripe-resultatet for att satta `hasActiveSubscription = true`.
+### 4. Uppdatera `index.html`
 
----
-
-### Problem 3: `hasActiveSubscription` ignorerar Stripe-fallback
-
-`get-billing-info` gor redan en Stripe-fallback (rad 220-235) som hittar aktiva prenumerationer. Men resultatet anvands BARA for prissattning -- `hasActiveSubscription` pa rad 260 kollar fortfarande BARA den lokala databasen.
-
-Aven om Stripe bekraftar att kunden har en aktiv prenumeration, returnerar funktionen `hasActiveSubscription: false`.
-
-**Fix:** Uppdatera `hasActiveSubscription` att ocksa vara `true` om Stripe-fallback hittar en aktiv prenumeration.
-
----
-
-### Problem 4: Natverksfel = omedelbar paywall
-
-I `ProtectedRoute.tsx` rad 57-59:
+Lagg till i `<head>`:
+```html
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
 ```
-if (error) {
-  return { showPaywall: true, paymentFailed: false };
-}
-```
 
-Om `get-billing-info` failar (nere, timeout, natverksfel) visas paywallen omedelbart. En betalande kund forlorar sin atkomst vid ett tillfalsigt serverproblem.
+Manifest-lanken lags till automatiskt av `vite-plugin-pwa`.
 
-**Fix:** Lagg till retry-logik for tillfaltiga fel. Visa ett generiskt felmeddelande ("Nagonting gick fel, forsok igen") istallet for "Konto ej aktiverat".
+### 5. Registrera Service Worker (`src/main.tsx`)
+
+Anvand `registerSW` fran `virtual:pwa-register` med `isNativeApp()`-guard:
+- Om `isNativeApp()` ar `true`: skippa SW-registrering (Capacitor hanterar sin egen caching)
+- Om web: registrera SW och lyssna pa uppdateringar
+
+### 6. Skapa `PWAInstallPrompt`-komponent
+
+En liten, icke-patvingande komponent som:
+- Lyssnar pa `beforeinstallprompt`-eventet (Chrome/Edge/Android)
+- Visar en "Installera appen"-knapp NAR install ar tillgangligt
+- Pa klick: anropar `prompt()` och doljer knappen om installerad/avvisad
+- Detekterar iOS Safari och visar istallet en hint: "Pa iPhone: Dela -> Lagg till pa hemskarm"
+- Visar en "Uppdatering tillganglig - Ladda om"-banner nar en ny service worker ar redo
+
+### 7. Lagg till `PWAInstallPrompt` i Landing-sidan
+
+Placera komponenten diskret i Landing-sidans header (bredvid "Logga in"-knappen) eller som en liten floating banner langst ner.
 
 ---
 
 ## Tekniska andringar
 
-### 1. Databasmigration
+| Fil | Andring |
+|-----|---------|
+| `package.json` | Lagg till `vite-plugin-pwa` som devDependency |
+| `vite.config.ts` | Lagg till `VitePWA()` plugin med manifest och workbox-konfiguration |
+| `index.html` | Lagg till `theme-color`, Apple PWA-meta-taggar, `apple-touch-icon` |
+| `src/main.tsx` | Lagg till SW-registrering med Capacitor-guard |
+| `public/icons/icon-192.png` | Ny ikon (192x192) |
+| `public/icons/icon-512.png` | Ny ikon (512x512) |
+| `public/icons/icon-512-maskable.png` | Ny maskable ikon (512x512) |
+| `src/components/PWAInstallPrompt.tsx` | Ny komponent for install-prompt och update-banner |
+| `src/pages/Landing.tsx` | Importera och rendera `PWAInstallPrompt` |
 
-Uppdatera `public_signup_codes`-vyn att filtrera bort pending-koder OCH uppdatera triggern:
+## Vad som INTE andras
 
-```sql
--- Uppdatera vyn sa att pending-koder inte syns
-CREATE OR REPLACE VIEW public.public_signup_codes AS
-SELECT id, code, used_at IS NOT NULL as is_used, company_name
-FROM public.signup_codes
-WHERE stripe_customer_id != 'pending';
+- Capacitor-konfigurationen (capacitor.config.ts) -- inga andringar
+- NativeLayout/NativeRouter -- inga andringar
+- Auth-flodet -- service workern anvander `NetworkFirst` for API-anrop
+- Befintliga routes och komponenter -- inga andringar
+- Databasschema -- inga andringar
 
--- Uppdatera triggern: blockera registrering om stripe_customer_id = 'pending'
--- (lagg till AND stripe_customer_id != 'pending' i SELECT-queryn)
-```
+## Capacitor-kompatibilitet
 
-### 2. `supabase/functions/get-billing-info/index.ts`
+Service workern registreras INTE nar appen kors inuti Capacitor (kontrolleras via `isNativeApp()`). Detta forhindrar konflikter med Capacitors egen webview-hantering. PWA-funktionaliteten ar exklusiv for webblasaren.
 
-- Efter Stripe-fallback (rad 220-235): om en aktiv prenumeration hittas, skapa den lokalt (subscription self-healing)
-- Uppdatera `hasActiveSubscription` att aven vara `true` om Stripe bekraftar aktiv prenumeration
+## Begransningar i Lovable-miljon
 
-```text
-// Nuvarande (rad 260):
-const hasActiveSubscription = !!(subscription && ["active", "trialing"].includes(subscription.status));
-
-// Ny logik:
-let hasActiveSubscription = !!(subscription && ["active", "trialing"].includes(subscription.status));
-
-// Om Stripe-fallback hittade en aktiv sub men DB saknar: skapa lokal post + satt flaggan
-if (!hasActiveSubscription && stripeSubscriptionId && company.stripe_customer_id) {
-  // Hamta full subscription fran Stripe
-  const stripeSub = await stripe.subscriptions.retrieve(stripeSubscriptionId);
-  if (stripeSub.status === 'active' || stripeSub.status === 'trialing') {
-    // Self-heal: skapa lokal post
-    await supabaseClient.from("subscriptions").upsert({
-      company_id: company.id,
-      stripe_subscription_id: stripeSubscriptionId,
-      stripe_customer_id: company.stripe_customer_id,
-      status: stripeSub.status,
-      current_period_start: new Date(stripeSub.current_period_start * 1000).toISOString(),
-      current_period_end: new Date(stripeSub.current_period_end * 1000).toISOString(),
-    }, { onConflict: 'stripe_subscription_id' });
-    
-    hasActiveSubscription = true;
-  }
-}
-```
-
-### 3. `src/components/ProtectedRoute.tsx`
-
-- Lagg till retry-logik (max 2 forsok) vid natverksfel
-- Skilj pa "inget foretag" (visar paywall) och "backend-fel" (visar felmeddelande med "Forsok igen"-knapp)
-
-```text
-// Nuvarande:
-if (error) {
-  return { showPaywall: true, paymentFailed: false };
-}
-
-// Ny logik med retry:
-const checkTrialAndPayment = async (retryCount = 0): Promise<...> => {
-  const { data, error } = await supabase.functions.invoke("get-billing-info");
-  
-  if (error) {
-    if (retryCount < 2) {
-      await new Promise(r => setTimeout(r, 1500));
-      return checkTrialAndPayment(retryCount + 1);
-    }
-    // Efter 2 retries: visa ett generiskt felmeddelande, INTE paywall
-    return { showPaywall: false, paymentFailed: false, connectionError: true };
-  }
-  // ...
-};
-```
-
-### 4. `supabase/functions/stripe-webhook/index.ts`
-
-I `checkout.session.completed`:
-- Efter att signup-koden uppdateras, forska aven skapa subscription-posten direkt (eftersom foretaget inte existerar an, lagra det temporart sa att self-healing i `get-billing-info` kan anvanda det)
-
-### 5. Ny komponent: `ConnectionErrorScreen`
-
-Enkel felskarm som visas vid temporara anslutningsfel istallet for paywall. Visar "Nagonting gick fel" med en "Forsok igen"-knapp.
-
----
-
-## Sammanfattning
-
-| Problem | Risk | Fix |
-|---------|------|-----|
-| Pending-koder inte filtrerade i vy/trigger | Permanent paywall | Filtrera bort `stripe_customer_id = 'pending'` |
-| Ingen lokal prenumerationspost | Paywall vid Stripe API-fel | Subscription self-healing i `get-billing-info` |
-| `hasActiveSubscription` ignorerar Stripe | Felaktig status | Satt flaggan baserat pa Stripe-resultat |
-| Natverksfel = omedelbar paywall | Tillfalsig utlasning | Retry-logik + felskarm istallet for paywall |
+- Service workers kraver HTTPS for att fungera. Pa Lovable preview (https://*.lovable.app) och den publicerade domanen (luvero.se) fungerar detta.
+- I lokal utveckling (localhost) fungerar service workers aven utan HTTPS.
 
