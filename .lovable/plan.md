@@ -1,66 +1,49 @@
 
 
-# PWA-installknapp i "Finns dar appar finns"-sektionen och footern
+# Visa PWA-installknappen och uppdatera "Finns dar appar finns"-kortet
 
-## Vad som andras
+## Problem
 
-Just nu ar PWA-installprompten en flytande banner langst ner pa skarmen. Du vill istallet ha synliga installknappar pa tva platser:
+PWA-installknappen syns inte for att den bara renderas nar webblasaren stodjer `beforeinstallprompt` (Chrome/Android) eller nar anvandaren ar pa iOS Safari. I alla andra fall returnerar komponenten `null` och inget visas. Det innebar att knappen ar osynlig i de flesta weblasare tills man faktiskt kan installera -- men du vill att den alltid ska vara synlig.
 
-1. **"Finns dar appar finns"-kortet** (feature 6) -- lagg till en "Installera online"-knapp bredvid App Store/Google Play-badgarna
-2. **Footern** -- lagg till en installera-lank i en av kolumnerna
+## Andringar
 
-## Tekniska andringar
+### 1. PWAInstallButton.tsx -- Visa alltid en knapp
 
-### 1. Refaktorera `PWAInstallPrompt.tsx`
+Andra komponenten sa att den alltid renderar nagot, aven nar `canInstall` ar `false`:
 
-Bryt ut PWA-logiken till en **hook** (`usePWAInstall`) som returnerar:
-- `canInstall` -- om `beforeinstallprompt` har avfyrats
-- `isIOS` -- om anvandaren ar pa iOS Safari
-- `handleInstall` -- funktion for att visa install-prompten
-- `showUpdateBanner` / `handleUpdate` -- for uppdateringsbannern
+- **Om `canInstall` ar true**: Visa "Installera appen"-knapp som triggar install-prompten (som idag)
+- **Om `isIOS` ar true**: Visa iOS-hinten "Dela -> Lagg till pa hemskarm" (som idag)
+- **Fallback (ny)**: Visa en vanlig lank/knapp med texten "Installera appen" som scrollar till instruktioner, eller visar en tooltip/info om att man oppnar sidan i Chrome for att installera. Enklaste losningen: alltid visa knappen -- om `canInstall` ar false oppnas sidan i Chrome som en hint.
 
-Behall den flytande uppdateringsbannern som en separat komponent, men ta bort den flytande installprompten (den ersatts av de inbyggda knapparna).
+For **button-varianten**: Visa alltid en "Installera online"-knapp. Om `canInstall` ar true triggas prompten. Om inte visas en liten info-text om att oppna i Chrome.
 
-### 2. Skapa `PWAInstallButton.tsx`
+For **link-varianten**: Visa alltid "Installera appen"-lanken i footern. Samma logik.
 
-En enkel knappkomponent som anvander `usePWAInstall`-hooken:
-- Pa Chrome/Android: visar en "Installera online"-knapp med `Download`-ikon
-- Pa iOS: visar en hint-text ("Dela -> Lagg till pa hemskarm")
-- Nar PWA inte stods eller redan installerad: doljs helt
+### 2. Landing.tsx -- Uppdatera feature-kortet (rad 347-357)
 
-### 3. Uppdatera "Finns dar appar finns"-kortet (Landing.tsx rad 346-355)
+- **Ta bort** de tva App Store/Google Play badge-bilderna (rad 348-351)
+- **Andra rubriken** fran "Finns dar appar finns" till nagonting som "Installera online" eller liknande
+- **Ta bort** "Beta (Kommer Snart)"-badgen
+- **Andra beskrivningstexten** fran "Luvero finns pa bade Play Store, App Store och Online!" till nagot i stil med "Installera Luvero direkt fran din webblasare -- ingen app store behovs."
+- **Behall** `<PWAInstallButton variant="button" />`
 
-Lagg till `PWAInstallButton` under de befintliga App Store/Google Play-badgarna:
+### 3. Landing.tsx -- Footern (rad 899)
 
-```text
-[App Store badge] [Google Play badge]
-[Installera online-knapp]    <-- NY
-```
+Ingen strukturandring -- `<PWAInstallButton variant="link" />` ar redan pa plats. Den kommer att synas tack vare andring 1.
 
-### 4. Uppdatera footern (Landing.tsx rad 890-898)
-
-Lagg till en "Installera appen"-lank i "Hjalp & Juridiskt"-kolumnen (eller skapa en ny rad under footern):
-
-```text
-Hjalp & Juridiskt
-- Guide for appen
-- Integritetspolicy
-- Anvandarvillkor
-- Installera appen    <-- NY (visas bara om PWA ar tillganglig)
-```
-
-### Filer som andras
+## Filer som andras
 
 | Fil | Andring |
 |-----|---------|
-| `src/components/PWAInstallPrompt.tsx` | Bryt ut logik till `usePWAInstall` hook, behall uppdateringsbanner |
-| `src/components/PWAInstallButton.tsx` | Ny komponent -- inline installknapp |
-| `src/pages/Landing.tsx` | Lagg till `PWAInstallButton` i feature-kortet och footern |
+| `src/components/PWAInstallButton.tsx` | Lagg till fallback-rendering sa knappen alltid visas |
+| `src/pages/Landing.tsx` | Ta bort App Store/Google Play badges, uppdatera rubrik och text i feature-kortet |
 
-### Vad som INTE andras
+## Vad som INTE andras
 
-- Vite/PWA-konfiguration -- ingen andring
-- Service worker-registrering -- ingen andring
+- PWA-konfiguration (vite.config.ts) -- ingen andring
+- Service worker -- ingen andring
+- usePWAInstall hook -- ingen andring
 - Ovriga komponenter och sidor -- ingen andring
 - Databas -- ingen andring
 
