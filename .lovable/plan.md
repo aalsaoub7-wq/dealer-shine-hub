@@ -1,105 +1,66 @@
 
-# Critical Billing Bugs Found -- Fix Plan
 
-## Bug 1: DOUBLE-BILLING RISK (No Idempotency Keys)
+# Bulletproof: Ta bort ALL trial-logik och fixa default
 
-This is the most dangerous bug. The system can bill a customer TWICE for the same image edit.
+## Vad som behover fixas
 
-**How it happens:**
-1. User edits an image
-2. `billing_events` row inserted (id = `abc123`)
-3. `report-usage-to-stripe` is called optimistically and creates a meter event in Stripe -- SUCCESS
-4. `markBillingEventReported` tries to update the DB... but the browser closes, or the network hiccups
-5. The `billing_events` row remains `stripe_reported = false`
-6. Next reconciliation finds this unreported event and creates ANOTHER meter event in Stripe
-7. **Result: 2 meter events for 1 edit = double billing**
+Jag har hittat **4 kvarvarande problem** som maste atgardas for att systemet ska vara helt skottssakert:
 
-**The fix:** Stripe's Meter Events API has an `identifier` parameter specifically for this. From the Stripe docs: *"Use idempotency keys to prevent reporting usage for each event more than one time. Every meter event corresponds to an identifier that you can specify in your request."* Stripe enforces uniqueness within 24 hours.
+### 1. Databasdefault: `trial_images_remaining` ar fortfarande 50
 
-**Changes:**
-- Pass the `billing_event_id` from the client to `report-usage-to-stripe`
-- In `report-usage-to-stripe`: use it as `identifier` in `stripe.billing.meterEvents.create()`
-- In `reconcile-usage`: use the `billing_event.id` as `identifier` in each meter event creation
-- Both the optimistic call and the reconciliation will use the SAME identifier, so Stripe deduplicates automatically
+Kolumnen `trial_images_remaining` har DEFAULT 50 i databasen. Om nagon kodvag skapar ett foretag utan att explicit satta detta till 0, far de 50 "gratis" bilder i systemet.
 
----
+**Fix:** Databasmigration som andrar default till 0.
 
-## Bug 2: BACKFILL MODE WILL CAUSE OVERBILLING AGAIN
+### 2. Trial-logik i usageTracking.ts kan ge gratis redigering
 
-The backfill mode in `reconcile-usage` (lines 302-360) still uses the **Preview Invoice API** as its primary method to count existing Stripe events. This is the EXACT same code that caused the 80-event disaster -- it returned 0 because preview invoices don't include pending metered usage from Billing Meters.
+Rad 141-164 i `usageTracking.ts` kollar `isInTrial` och om det ar sant, anropar `track-trial-usage` och returnerar UTAN att rapportera till Stripe. Idag ar `isInTrial` alltid `false` (alla `trial_end_date = NULL`), men om nagon av misstag satter ett datum sa far kunden gratis bilder.
 
-The `listEventSummaries` fallback only runs if the Preview Invoice API *fails* (HTTP error). But the bug is that it *succeeds* with a response that shows 0 metered line items.
+**Fix:** Ta bort hela trial-blocket (rad 141-164) och ta bort `trial_end_date`/`trial_images_remaining`/`trial_images_used` fran queryn. Varje redigering ska ALLTID ga till Stripe.
 
-**The fix:** Replace the Preview Invoice API with `stripe.billing.meters.listEventSummaries()` as the PRIMARY and ONLY method. This API directly queries the meter for actual event counts.
+### 3. Trial-UI kvar i Dashboard, CarDetail och PaymentSettings
 
----
+Alla tre filer har kvarvarande trial-relaterad UI och state:
+- **Dashboard.tsx**: `trialInfo` state, `checkTrialStatus()`, trial-banner (rad 258-273)
+- **CarDetail.tsx**: `trialInfo` state (rad 118-124), trial-limiter i `handleEditPhotos` (rad 564-565), `handleInteriorEdit` (rad 748)
+- **PaymentSettings.tsx**: Trial-interface (rad 26-32), "Testperiod Aktiv"-kort (rad 236-263), trial-villkor i kostnadsvisning (rad 307-311, 317-318, 342-343, 397-398, 406-407)
 
-## Bug 3: DASHBOARD RECONCILIATION RUNS FOR ALL COMPANIES
+**Fix:** Ta bort all trial-relaterad state, UI och logik fran alla tre filer.
 
-Every time ANY user loads their dashboard (line 89-91), `triggerReconciliation()` is called WITHOUT a `company_id`. This means the reconcile function processes ALL companies with every single dashboard load. Problems:
-- Unnecessary Stripe API calls (rate limit risk)
-- Every employee triggers reconciliation for ALL companies
-- Wastes edge function execution time
+### 4. get-billing-info returnerar trial-objekt och "Provperiod" fallback
 
-**The fix:** Pass the user's `company_id` to `triggerReconciliation()` so it only reconciles the relevant company.
+Edge-funktionen returnerar fortfarande ett `trial`-objekt i responsen (rad 280-286, 421-427) och anvander "Provperiod" som fallback-plannamn (rad 261).
+
+**Fix:**
+- Ta bort `trial`-objektet fran bada response-grenarna
+- Ta bort trial-berakning (rad 156-163)
+- Ta bort `trial_end_date`/`trial_images_remaining`/`trial_images_used` fran company-queryn
+- Andra fallback-plannamn fran "Provperiod" till "Inget abonnemang"
+
+### Bonus: Ta bort track-trial-usage edge function
+
+`supabase/functions/track-trial-usage/index.ts` ar helt overflodigt nar trial-logiken ar borta. Tas bort for att undvika forvirring.
 
 ---
 
-## Bug 4: CLIENT CAN SKIP BILLING (RLS Vulnerability)
+## Tekniska andringar
 
-The `billing_events` table has an UPDATE RLS policy that lets users update their own events. The `markBillingEventReported` function updates `stripe_reported = true` from the browser. A knowledgeable user could call this directly to mark all their billing events as reported without them ever reaching Stripe, effectively skipping billing.
+| Fil | Andring |
+|-----|---------|
+| Databasmigration | `ALTER TABLE companies ALTER COLUMN trial_images_remaining SET DEFAULT 0` |
+| `src/lib/usageTracking.ts` | Ta bort rad 141-164 (isInTrial-blocket), ta bort trial-kolumner fran company-queryn |
+| `src/pages/Dashboard.tsx` | Ta bort `trialInfo` state, `checkTrialStatus()`, trial-banner |
+| `src/pages/CarDetail.tsx` | Ta bort `trialInfo` state, ta bort trial-check i `handleEditPhotos` och `handleInteriorEdit` |
+| `src/components/PaymentSettings.tsx` | Ta bort trial-interface, trial-kort, trial-villkor i kostnadsvisning |
+| `supabase/functions/get-billing-info/index.ts` | Ta bort trial-berakning, trial-objekt fran respons, andra fallback till "Inget abonnemang" |
+| `supabase/functions/track-trial-usage/index.ts` | Radera helt |
+| `supabase/config.toml` | Ta bort `[functions.track-trial-usage]` |
 
-**The fix:** Remove the UPDATE policy on `billing_events`. Only server-side code (reconcile function using service role) should be able to mark events as reported. The optimistic "mark as reported" should also move server-side -- `report-usage-to-stripe` should do the DB update itself after successfully creating the meter event.
+## Vad som INTE andras
 
----
+- `handle_new_user_company`-triggern (den sattar redan `trial_end_date = NULL` och `trial_images_remaining = 0`)
+- Self-healing i `get-billing-info` (den sattar redan `trial_end_date: null, trial_images_remaining: 0`)
+- `ProtectedRoute.tsx` (den anvander inte trial-logik langre, den kollar bara `hasPaymentMethod` och `hasActiveSubscription`)
+- `TrialExpiredPaywall.tsx` (den visar redan "Konto ej aktiverat" utan trial-text)
+- Stripe-koppling och billingflode (inga andringar)
 
-## Technical Changes
-
-### 1. `supabase/functions/report-usage-to-stripe/index.ts`
-
-- Accept `billing_event_id` in the request body
-- Pass it as `identifier` to `stripe.billing.meterEvents.create()`
-- After successful meter event creation, update `billing_events` table to set `stripe_reported = true` using service role (server-side, not client-side)
-
-```text
-// Before:
-body: { quantity: 1 }
-stripe.billing.meterEvents.create({ event_name, payload, timestamp })
-
-// After:
-body: { quantity: 1, billing_event_id: "abc123" }
-stripe.billing.meterEvents.create({ event_name, payload, timestamp, identifier: "abc123" })
-// + server-side: UPDATE billing_events SET stripe_reported = true WHERE id = "abc123"
-```
-
-### 2. `supabase/functions/reconcile-usage/index.ts`
-
-- **Backfill mode (lines 302-360)**: Replace Preview Invoice API with `listEventSummaries` as the ONLY method
-- **Normal reconciliation (line 221-228)**: Add `identifier: event.id` to meter event creation
-- Remove the `listEventSummaries` from being a "fallback" and make it the primary approach
-
-### 3. `src/lib/usageTracking.ts`
-
-- Pass `billingEventId` to `report-usage-to-stripe` edge function: `{ quantity: 1, billing_event_id: billingEventId }`
-- Remove `markBillingEventReported` function (no longer needed -- server handles it)
-- Remove the client-side "mark as reported" call from `reportToStripeOptimistic`
-- Pass `company_id` from the loaded company data to `triggerReconciliation()` on dashboard load
-
-### 4. `src/pages/Dashboard.tsx`
-
-- Get user's `company_id` and pass it to `triggerReconciliation(companyId)`
-
-### 5. Database migration
-
-- Remove the UPDATE RLS policy on `billing_events` (only service role should update)
-
----
-
-## Summary
-
-| Bug | Severity | Fix |
-|-----|----------|-----|
-| No idempotency keys -- double billing possible | CRITICAL | Pass billing_event.id as `identifier` to Stripe |
-| Backfill uses Preview Invoice API (returns 0) | CRITICAL | Switch to `listEventSummaries` |
-| Dashboard reconciles ALL companies | MEDIUM | Pass user's company_id |
-| Client can mark events as reported (skip billing) | MEDIUM | Remove UPDATE RLS policy, move to server-side |
