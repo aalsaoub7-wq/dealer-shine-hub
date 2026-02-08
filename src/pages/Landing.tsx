@@ -3,20 +3,23 @@ import { useNavigate } from "react-router-dom";
 import luveroLogo from "@/assets/luvero-logo-new.png";
 import luveroLogoText from "@/assets/luvero-logo-text.png";
 import adstuffLogo from "@/assets/adstuff-logo.png";
-import { Brain, Shield, Globe, Users, ChevronDown, Menu, X, Package, Check, Phone, Mail } from "lucide-react";
+import { Brain, Shield, Globe, Users, ChevronDown, Menu, X, Package, Check, Phone, Mail, Download } from "lucide-react";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { PWAInstallButton } from "@/components/PWAInstallButton";
 
-
 // Lazy load heavy below-the-fold components
 import { TypewriterText } from "@/components/TypewriterText";
 import LogoMarquee from "@/components/LogoMarquee";
 import { analytics } from "@/lib/analytics";
-const ExclusiveProgram = lazy(() => import("@/components/ExclusiveProgram").then(m => ({ default: m.ExclusiveProgram })));
-const StatsParallaxSection = lazy(() => import("@/components/StatsParallaxSection").then(m => ({ default: m.StatsParallaxSection })));
+const ExclusiveProgram = lazy(() => import("@/components/ExclusiveProgram").then(m => ({
+  default: m.ExclusiveProgram
+})));
+const StatsParallaxSection = lazy(() => import("@/components/StatsParallaxSection").then(m => ({
+  default: m.StatsParallaxSection
+})));
 
 // JSON-LD structured data for SEO
 const jsonLdData = {
@@ -346,7 +349,7 @@ const Landing = () => {
             {/* Feature 6 */}
              <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
               <div className="mb-4">
-                <Globe className="h-10 w-10 text-primary" />
+                <Download className="h-10 w-10 text-primary" />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-3">Installera online</h3>
               <p className="text-muted-foreground">
@@ -720,13 +723,9 @@ const Landing = () => {
 
           <div className="max-w-5xl mx-auto">
             <div className="rounded-3xl overflow-hidden border border-border/50 shadow-2xl bg-card/50 backdrop-blur-sm">
-              <iframe 
-                src="https://calendar.notion.so/meet/alfred-zbpoy1pru/l68e4p14" 
-                className="w-full h-[800px] border-0"
-                title="Boka demo"
-                loading="lazy"
-                style={{ overflow: 'hidden' }}
-              />
+              <iframe src="https://calendar.notion.so/meet/alfred-zbpoy1pru/l68e4p14" className="w-full h-[800px] border-0" title="Boka demo" loading="lazy" style={{
+              overflow: 'hidden'
+            }} />
             </div>
           </div>
         </div>
