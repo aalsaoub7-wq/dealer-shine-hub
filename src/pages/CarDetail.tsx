@@ -154,7 +154,7 @@ const CarDetail = () => {
   const [pendingEditPhotos, setPendingEditPhotos] = useState<{ids: string[], type: "main" | "documentation"} | null>(null);
   const [pendingPlateAction, setPendingPlateAction] = useState<
     { type: "regenerate"; photoId: string } |
-    { type: "positionSave"; compositionBlob: Blob } |
+    { type: "positionSave"; compositionBlob: Blob; photoId: string } |
     null
   >(null);
   const { toast } = useToast();
