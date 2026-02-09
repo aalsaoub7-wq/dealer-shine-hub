@@ -1201,126 +1201,71 @@ const CarDetail = () => {
   const handlePositionEditorSave = async (compositionBlob: Blob) => {
     if (!positionEditorPhoto || !car) return;
 
+    const photoId = positionEditorPhoto.id;
     const isInterior = positionEditorPhoto.editType === 'interior';
 
     if (isInterior) {
-      // Interior photos go directly (no Gemini), execute immediately
-      await executePositionSaveInternal(compositionBlob, false);
+      // Interior photos go directly (no Gemini), no plate dialog needed
+      setPositionEditorSaving(true);
+      try {
+        await supabase.from("photos").update({ is_processing: true }).eq("id", photoId);
+        const bgImageUrl = positionEditorPhoto.backgroundImageUrl;
+        setPositionEditorPhoto(null);
+        setPositionEditorSaving(false);
+
+        const fileName = `interior-${Date.now()}.jpg`;
+        const filePath = `edited/${car.id}/${fileName}`;
+        const { error: uploadError } = await supabase.storage.from("car-photos").upload(filePath, compositionBlob, { contentType: "image/jpeg", upsert: true });
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage.from("car-photos").getPublicUrl(filePath);
+        await supabase.from("photos").update({ url: urlData.publicUrl, is_processing: false, edit_type: 'interior', interior_background_url: bgImageUrl || null }).eq("id", photoId);
+        try { await trackRegenerationUsage(photoId, car.id); } catch (e) { console.error("Error tracking usage:", e); }
+        successNotification();
+      } catch (error) {
+        console.error("Error saving positioned image:", error);
+        await supabase.from("photos").update({ is_processing: false }).eq("id", photoId);
+        toast({ title: "Oj!", description: "Vår AI fick för många bollar att jonglera", variant: "info" });
+        setPositionEditorSaving(false);
+      }
     } else {
       // Studio photos go through Gemini - show plate choice dialog first
-      // Store the blob and editor state before closing
-      setPendingPlateAction({ type: "positionSave", compositionBlob });
+      setPendingPlateAction({ type: "positionSave", compositionBlob, photoId });
       setPositionEditorPhoto(null);
       setPositionEditorSaving(false);
       setPlateChoiceOpen(true);
     }
   };
 
-  // Internal handler that executes the actual position save
-  const executePositionSaveInternal = async (compositionBlob: Blob, removePlate: boolean) => {
-    // For studio calls from plate dialog, positionEditorPhoto may already be cleared
-    // We need the photoId - get it from either current state or the pending action context
-    const photoId = positionEditorPhoto?.id;
-    const isInterior = positionEditorPhoto?.editType === 'interior';
-    const bgImageUrl = positionEditorPhoto?.backgroundImageUrl;
-
-    if (!photoId || !car) return;
-
-    setPositionEditorSaving(true);
+  // Execute position save for studio photos after plate choice
+  const executePositionSave = async (compositionBlob: Blob, photoId: string, removePlate: boolean) => {
+    if (!car) return;
 
     try {
-      // Mark photo as processing
-      await supabase
-        .from("photos")
-        .update({ is_processing: true })
-        .eq("id", photoId);
+      await supabase.from("photos").update({ is_processing: true }).eq("id", photoId);
 
-      // Close editor and free up the save button immediately
-      setPositionEditorPhoto(null);
-      setPositionEditorSaving(false);
+      const reflectionFormData = new FormData();
+      reflectionFormData.append("image_file", new File([compositionBlob], "composited.jpg", { type: "image/jpeg" }));
+      reflectionFormData.append("car_id", car.id);
+      reflectionFormData.append("photo_id", photoId);
+      reflectionFormData.append("remove_plate", removePlate ? "true" : "false");
 
-      if (isInterior) {
-        // For interior photos, upload directly without Gemini reflection
-        const fileName = `interior-${Date.now()}.jpg`;
-        const filePath = `edited/${car.id}/${fileName}`;
+      const { data: reflectionData, error: reflectionError } = await withTimeout(
+        supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
+        70000,
+        "Vår AI fick för många bollar att jonglera"
+      );
 
-        const { error: uploadError } = await supabase.storage
-          .from("car-photos")
-          .upload(filePath, compositionBlob, {
-            contentType: "image/jpeg",
-            upsert: true,
-          });
+      if (reflectionError) throw reflectionError;
+      if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
 
-        if (uploadError) throw uploadError;
+      await supabase.from("photos").update({ url: reflectionData.url, is_processing: false }).eq("id", photoId);
 
-        const { data: urlData } = supabase.storage
-          .from("car-photos")
-          .getPublicUrl(filePath);
-
-        const publicUrl = urlData.publicUrl;
-
-        // Update photo - save the background image URL if one was used
-        await supabase
-          .from("photos")
-          .update({
-            url: publicUrl,
-            is_processing: false,
-            edit_type: 'interior',
-            interior_background_url: bgImageUrl || null,
-          })
-          .eq("id", photoId);
-      } else {
-        // For studio photos, send composition to add-reflection
-        const reflectionFormData = new FormData();
-        reflectionFormData.append("image_file", new File([compositionBlob], "composited.jpg", { type: "image/jpeg" }));
-        reflectionFormData.append("car_id", car.id);
-        reflectionFormData.append("photo_id", photoId);
-        reflectionFormData.append("remove_plate", removePlate ? "true" : "false");
-
-        const { data: reflectionData, error: reflectionError } = await withTimeout(
-          supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
-          70000, // 70 second timeout
-          "Vår AI fick för många bollar att jonglera"
-        );
-
-        if (reflectionError) throw reflectionError;
-        if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
-
-        // Final image URL is directly from storage
-        const publicUrl = reflectionData.url;
-
-        // Update photo
-        await supabase
-          .from("photos")
-          .update({
-            url: publicUrl,
-            is_processing: false,
-          })
-          .eq("id", photoId);
-      }
-
-      // Track usage - use regeneration tracking for free first regeneration
-      try {
-        await trackRegenerationUsage(photoId, car.id);
-      } catch (error) {
-        console.error("Error tracking usage:", error);
-      }
-
+      try { await trackRegenerationUsage(photoId, car.id); } catch (e) { console.error("Error tracking usage:", e); }
       successNotification();
     } catch (error) {
       console.error("Error saving positioned image:", error);
-      
-      await supabase
-        .from("photos")
-        .update({ is_processing: false })
-        .eq("id", photoId!);
-
-      toast({
-        title: "Oj!",
-        description: "Vår AI fick för många bollar att jonglera",
-        variant: "info",
-      });
-      setPositionEditorSaving(false);
+      await supabase.from("photos").update({ is_processing: false }).eq("id", photoId);
+      toast({ title: "Oj!", description: "Vår AI fick för många bollar att jonglera", variant: "info" });
     }
   };
 
