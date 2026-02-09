@@ -2123,6 +2123,22 @@ const CarDetail = () => {
         colorHistory={interiorColorHistory}
         isProcessing={processingInterior}
       />
+
+      {/* License Plate Choice Dialog */}
+      <LicensePlateChoiceDialog
+        open={plateChoiceOpen}
+        onChoice={(removePlate) => {
+          setPlateChoiceOpen(false);
+          if (pendingEditPhotos) {
+            handleEditPhotos(pendingEditPhotos.ids, pendingEditPhotos.type, removePlate);
+            setPendingEditPhotos(null);
+          }
+        }}
+        onCancel={() => {
+          setPlateChoiceOpen(false);
+          setPendingEditPhotos(null);
+        }}
+      />
     </div>
   );
 };
