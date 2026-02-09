@@ -50,7 +50,7 @@ serve(async (req) => {
     console.log("Calling Gemini for reflection, base64 length:", imageBase64.length, "removePlate:", removePlate);
 
     const plateInstruction = removePlate
-      ? " Also remove or obscure the text/numbers on the license plate so it is not readable, but keep the plate itself intact."
+      ? " Also remove all black letters and numbers from the license plate, making the plate appear completely white/blank with no visible text or characters, but keep the plate shape itself intact."
       : "";
 
     // Call Gemini via Lovable AI Gateway for reflection
