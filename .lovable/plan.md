@@ -1,39 +1,25 @@
 
 
-# PWA: Starta direkt på /dashboard
+# Complement reflection prompt with snow removal
 
-## Oversikt
+## Current prompt
+The prompt instructs Gemini to add a fading floor reflection while keeping everything else unchanged.
 
-Gor sa att nar anvandaren oppnar den installerade PWA:n (via hemskarms-ikonen) landar de direkt pa `/dashboard` istallet for landningssidan `/`.
+## Proposed change
+Add one sentence to the prompt asking Gemini to also remove any snow visible on the tires/wheels of the car. The addition is minimal to avoid disrupting the existing behavior.
 
-Om anvandaren inte ar inloggad hanterar den befintliga `ProtectedRoute`-komponenten redirect till `/auth` automatiskt.
+### New prompt (addition in bold context):
 
-## Andringar
+"This is a high-resolution professional car dealership photo (2560x1707 pixels, 3:2 aspect ratio). Add a subtle soft and fading mirror-like reflection of the vehicle on the polished showroom floor beneath it. **Also remove any snow or slush visible on the tires and wheels of the car so they look clean.** Keep all other elements unchanged - maintain the exact same car, background, lighting, and resolution. Only add the floor reflection effect. Output the image at the same 2K resolution. The mirror like reflection should be of only the bottom half of the car, and it should be FADING, so it looks natural. Meaning, the reflection at the beginning should be clear, and then fade the higher up it is on the car and it should be suitable with the ground. Fix this."
 
-### 1. Andra `start_url` i manifestet (`vite.config.ts`)
+## File changed
 
-Andra `start_url` fran `"/"` till `"/dashboard"` i PWA-manifestets konfiguration. Detta ar den URL som oppnas nar anvandaren klickar pa den installerade PWA-ikonen.
+| File | Change |
+|------|--------|
+| `supabase/functions/add-reflection/index.ts` | Insert one sentence into the prompt on line 66 |
 
-### 2. Lagg till PWA standalone-redirect i `NativeRouter.tsx`
-
-Utoka den befintliga redirect-logiken (som idag bara kor for Capacitor) sa att den aven galler for PWA i standalone-lage:
-
-- Detektera standalone-lage via `window.matchMedia('(display-mode: standalone)')` eller `navigator.standalone` (iOS)
-- Om appen kors i standalone OCH anvandaren ar pa `/`: redirecta till `/dashboard` (ProtectedRoute skickar vidare till `/auth` om ej inloggad)
-
-Detta gor att aven om anvandaren navigerar till `/` inifran PWA:n sa skickas de vidare till dashboard.
-
-### Filer som andras
-
-| Fil | Andring |
-|-----|---------|
-| `vite.config.ts` | Andra `start_url` fran `"/"` till `"/dashboard"` |
-| `src/components/NativeRouter.tsx` | Lagg till standalone-detektering sa PWA ocksa redirectas fran `/` till `/dashboard` |
-
-### Vad som INTE andras
-
-- Landningssidan (`Landing.tsx`) -- forblir tillganglig pa `/` for vanliga webbanvandare
-- `ProtectedRoute` -- ingen andring, hanterar redan redirect till `/auth` for ej inloggade
-- Service worker / caching -- ingen andring
-- Databas -- ingen andring
+## What stays the same
+- All other logic in the edge function
+- No database changes
+- No frontend changes
 
