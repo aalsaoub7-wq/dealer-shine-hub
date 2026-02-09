@@ -149,6 +149,9 @@ const CarDetail = () => {
   const [processingInterior, setProcessingInterior] = useState(false);
   // Available interior backgrounds from current template
   const [availableInteriorBackgrounds, setAvailableInteriorBackgrounds] = useState<string[]>([]);
+  // License plate choice dialog state
+  const [plateChoiceOpen, setPlateChoiceOpen] = useState(false);
+  const [pendingEditPhotos, setPendingEditPhotos] = useState<{ids: string[], type: "main" | "documentation"} | null>(null);
   const { toast } = useToast();
   const { lightImpact, successNotification } = useHaptics();
   const fetchDebounceRef = useRef<NodeJS.Timeout | null>(null);
