@@ -33,6 +33,7 @@ serve(async (req) => {
     const imageFile = formData.get("image_file");
     const carId = formData.get("car_id") as string | null;
     const photoId = formData.get("photo_id") as string | null;
+    const removePlate = formData.get("remove_plate") === "true";
 
     if (!imageFile || !(imageFile instanceof File)) {
       throw new Error("No image file provided");
