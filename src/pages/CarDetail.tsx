@@ -2120,9 +2120,9 @@ const CarDetail = () => {
             setPendingPlateAction(null);
             executeRegenerateReflection(photoId, removePlate);
           } else if (pendingPlateAction?.type === "positionSave") {
-            const blob = pendingPlateAction.compositionBlob;
+            const { compositionBlob, photoId } = pendingPlateAction;
             setPendingPlateAction(null);
-            executePositionSave(blob, removePlate);
+            executePositionSave(compositionBlob, photoId, removePlate);
           }
         }}
         onCancel={() => {
