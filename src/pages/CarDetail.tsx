@@ -181,7 +181,7 @@ const CarDetail = () => {
       .update({ is_processing: false })
       .eq("car_id", id)
       .eq("is_processing", true)
-      .lt("updated_at", seventySecondsAgo)
+      .lt("updated_at", ninetySecondsAgo)
       .select("id");
       
     if (error) {
