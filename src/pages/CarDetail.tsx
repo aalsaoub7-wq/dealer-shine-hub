@@ -38,6 +38,7 @@ import { WatermarkPositionEditor } from "@/components/WatermarkPositionEditor";
 import { InteriorColorDialog } from "@/components/InteriorColorDialog";
 import { InteriorBackgroundDialog } from "@/components/InteriorBackgroundDialog";
 import { BackgroundTemplate } from "@/components/AiSettingsDialog";
+import { LicensePlateChoiceDialog } from "@/components/LicensePlateChoiceDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -148,6 +149,9 @@ const CarDetail = () => {
   const [processingInterior, setProcessingInterior] = useState(false);
   // Available interior backgrounds from current template
   const [availableInteriorBackgrounds, setAvailableInteriorBackgrounds] = useState<string[]>([]);
+  // License plate choice dialog state
+  const [plateChoiceOpen, setPlateChoiceOpen] = useState(false);
+  const [pendingEditPhotos, setPendingEditPhotos] = useState<{ids: string[], type: "main" | "documentation"} | null>(null);
   const { toast } = useToast();
   const { lightImpact, successNotification } = useHaptics();
   const fetchDebounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -551,7 +555,7 @@ const CarDetail = () => {
     }
   };
 
-  const handleEditPhotos = async (photoIds: string[], photoType: "main" | "documentation") => {
+  const handleEditPhotos = async (photoIds: string[], photoType: "main" | "documentation", removePlate: boolean = false) => {
     // Check payment method requirement
     if (!hasPaymentMethod) {
       const { dismiss } = toast({
@@ -642,6 +646,7 @@ const CarDetail = () => {
           reflectionFormData.append("image_file", new File([compositedBlob], "composited.jpg", { type: "image/jpeg" }));
           reflectionFormData.append("car_id", car!.id);
           reflectionFormData.append("photo_id", photo.id);
+          reflectionFormData.append("remove_plate", removePlate ? "true" : "false");
 
           const { data: reflectionData, error: reflectionError } = await withTimeout(
             supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
@@ -1828,7 +1833,10 @@ const CarDetail = () => {
                       <span className="sm:hidden">Interiör ({selectedMainPhotos.length})</span>
                     </Button>
                     <Button
-                      onClick={() => handleEditPhotos(selectedMainPhotos, "main")}
+                      onClick={() => {
+                        setPendingEditPhotos({ ids: selectedMainPhotos, type: "main" });
+                        setPlateChoiceOpen(true);
+                      }}
                       variant="outline"
                       className="border-accent text-accent hover:bg-accent hover:text-accent-foreground text-xs md:text-sm h-12 md:h-10 w-full sm:w-auto sm:shrink-0 whitespace-nowrap"
                     >
@@ -2114,6 +2122,22 @@ const CarDetail = () => {
         onColorSelected={handleInteriorEditWithColorChange}
         colorHistory={interiorColorHistory}
         isProcessing={processingInterior}
+      />
+
+      {/* License Plate Choice Dialog */}
+      <LicensePlateChoiceDialog
+        open={plateChoiceOpen}
+        onChoice={(removePlate) => {
+          setPlateChoiceOpen(false);
+          if (pendingEditPhotos) {
+            handleEditPhotos(pendingEditPhotos.ids, pendingEditPhotos.type, removePlate);
+            setPendingEditPhotos(null);
+          }
+        }}
+        onCancel={() => {
+          setPlateChoiceOpen(false);
+          setPendingEditPhotos(null);
+        }}
       />
     </div>
   );

@@ -33,6 +33,7 @@ serve(async (req) => {
     const imageFile = formData.get("image_file");
     const carId = formData.get("car_id") as string | null;
     const photoId = formData.get("photo_id") as string | null;
+    const removePlate = formData.get("remove_plate") === "true";
 
     if (!imageFile || !(imageFile instanceof File)) {
       throw new Error("No image file provided");
@@ -46,7 +47,11 @@ serve(async (req) => {
     // Use Deno's standard library for proper base64 encoding (handles large files correctly)
     const imageBase64 = base64Encode(imageBuffer);
 
-    console.log("Calling Gemini for reflection, base64 length:", imageBase64.length);
+    console.log("Calling Gemini for reflection, base64 length:", imageBase64.length, "removePlate:", removePlate);
+
+    const plateInstruction = removePlate
+      ? " Also remove or obscure the text/numbers on the license plate so it is not readable, but keep the plate itself intact."
+      : "";
 
     // Call Gemini via Lovable AI Gateway for reflection
     const geminiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -63,7 +68,7 @@ serve(async (req) => {
             content: [
               {
                 type: "text",
-                text: "This is a high-resolution professional car dealership photo (2560x1707 pixels, 3:2 aspect ratio). Add a subtle soft and fading mirror-like reflection of the vehicle on the polished showroom floor beneath it. Also remove any snow or slush visible on the tires and wheels of the car so they look clean. Remove any reflections of surrounding objects visible on the car body paint (such as trees, buildings, people, or other objects), but keep the natural light reflections and glossy highlights on the paint so the car still looks shiny and realistic -- do not make the paint look matte or flat. Do not alter the car's color, shape, or any other details. Keep all other elements unchanged - maintain the exact same car, background, lighting, and resolution. Only add the floor reflection effect. Output the image at the same 2K resolution. The mirror like reflection should be of only the bottom half of the car, and it should be FADING, so it looks natural. Meaning, the reflection at the beginning should be clear, and then fade the higher up it is on the car and it should be suitable with the ground. Fix this.",
+                text: "This is a high-resolution professional car dealership photo (2560x1707 pixels, 3:2 aspect ratio). Add a subtle soft and fading mirror-like reflection of the vehicle on the polished showroom floor beneath it. Also remove any snow or slush visible on the tires and wheels of the car so they look clean. Remove any reflections of surrounding objects visible on the car body paint (such as trees, buildings, people, or other objects), but keep the natural light reflections and glossy highlights on the paint so the car still looks shiny and realistic -- do not make the paint look matte or flat. Do not alter the car's color, shape, or any other details. Keep all other elements unchanged - maintain the exact same car, background, lighting, and resolution. Only add the floor reflection effect. Output the image at the same 2K resolution. The mirror like reflection should be of only the bottom half of the car, and it should be FADING, so it looks natural. Meaning, the reflection at the beginning should be clear, and then fade the higher up it is on the car and it should be suitable with the ground. Fix this." + plateInstruction,
               },
               {
                 type: "image_url",
