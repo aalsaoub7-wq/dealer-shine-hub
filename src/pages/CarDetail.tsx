@@ -152,7 +152,6 @@ const CarDetail = () => {
   // License plate choice dialog state
   const [plateChoiceOpen, setPlateChoiceOpen] = useState(false);
   const [pendingEditPhotos, setPendingEditPhotos] = useState<{ids: string[], type: "main" | "documentation"} | null>(null);
-  const [pendingRegeneratePhotoId, setPendingRegeneratePhotoId] = useState<string | null>(null);
   const { toast } = useToast();
   const { lightImpact, successNotification } = useHaptics();
   const fetchDebounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -991,7 +990,7 @@ const CarDetail = () => {
   };
 
   // Handler for "Generera ny skugga och reflektion" - sends existing composited image through Gemini again
-  const handleRegenerateReflection = async (photoId: string, removePlate: boolean = false) => {
+  const handleRegenerateReflection = async (photoId: string) => {
     const photo = mainPhotos.find(p => p.id === photoId);
     if (!photo) {
       toast({
@@ -1033,7 +1032,6 @@ const CarDetail = () => {
         const reflectionFormData = new FormData();
         reflectionFormData.append("image_file", file);
         reflectionFormData.append("car_id", car!.id);
-        reflectionFormData.append("remove_plate", removePlate ? "true" : "false");
         reflectionFormData.append("photo_id", photo.id);
 
         const { data: reflectionData, error: reflectionError } = await withTimeout(
@@ -1908,10 +1906,7 @@ const CarDetail = () => {
               onUpdate={() => fetchCarData(true)}
               selectedPhotos={selectedMainPhotos}
               onSelectionChange={setSelectedMainPhotos}
-              onRegenerateReflection={(photoId: string) => {
-                setPendingRegeneratePhotoId(photoId);
-                setPlateChoiceOpen(true);
-              }}
+              onRegenerateReflection={handleRegenerateReflection}
               onAdjustPosition={handleOpenPositionEditor}
               onRemoveWatermark={handleRemoveWatermark}
               onAdjustWatermark={handleOpenWatermarkEditor}
@@ -2134,10 +2129,7 @@ const CarDetail = () => {
         open={plateChoiceOpen}
         onChoice={(removePlate) => {
           setPlateChoiceOpen(false);
-          if (pendingRegeneratePhotoId) {
-            handleRegenerateReflection(pendingRegeneratePhotoId, removePlate);
-            setPendingRegeneratePhotoId(null);
-          } else if (pendingEditPhotos) {
+          if (pendingEditPhotos) {
             handleEditPhotos(pendingEditPhotos.ids, pendingEditPhotos.type, removePlate);
             setPendingEditPhotos(null);
           }
@@ -2145,7 +2137,6 @@ const CarDetail = () => {
         onCancel={() => {
           setPlateChoiceOpen(false);
           setPendingEditPhotos(null);
-          setPendingRegeneratePhotoId(null);
         }}
       />
     </div>
