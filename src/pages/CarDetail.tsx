@@ -236,7 +236,7 @@ const CarDetail = () => {
         .subscribe();
 
       // Watchdog interval: check every 10 seconds for stuck photos
-      // This ensures photos can't stay stuck for more than ~70 seconds
+      // This ensures photos can't stay stuck for more than ~90 seconds
       const watchdogInterval = setInterval(() => {
         resetStuckPhotos();
       }, 10000); // 10 seconds
