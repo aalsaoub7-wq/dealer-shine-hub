@@ -38,6 +38,7 @@ import { WatermarkPositionEditor } from "@/components/WatermarkPositionEditor";
 import { InteriorColorDialog } from "@/components/InteriorColorDialog";
 import { InteriorBackgroundDialog } from "@/components/InteriorBackgroundDialog";
 import { BackgroundTemplate } from "@/components/AiSettingsDialog";
+import { LicensePlateChoiceDialog } from "@/components/LicensePlateChoiceDialog";
 import {
   AlertDialog,
   AlertDialogAction,
