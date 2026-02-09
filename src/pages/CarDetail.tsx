@@ -555,7 +555,7 @@ const CarDetail = () => {
     }
   };
 
-  const handleEditPhotos = async (photoIds: string[], photoType: "main" | "documentation") => {
+  const handleEditPhotos = async (photoIds: string[], photoType: "main" | "documentation", removePlate: boolean = false) => {
     // Check payment method requirement
     if (!hasPaymentMethod) {
       const { dismiss } = toast({
