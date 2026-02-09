@@ -1908,7 +1908,10 @@ const CarDetail = () => {
               onUpdate={() => fetchCarData(true)}
               selectedPhotos={selectedMainPhotos}
               onSelectionChange={setSelectedMainPhotos}
-              onRegenerateReflection={handleRegenerateReflection}
+              onRegenerateReflection={(photoId: string) => {
+                setPendingRegeneratePhotoId(photoId);
+                setPlateChoiceOpen(true);
+              }}
               onAdjustPosition={handleOpenPositionEditor}
               onRemoveWatermark={handleRemoveWatermark}
               onAdjustWatermark={handleOpenWatermarkEditor}
