@@ -1,30 +1,63 @@
 
 
-# Sänk total timeout till 70 sekunder
+# Lägg till val för registreringsskylt vid AI-redigering
 
-## Nuläge
+## Översikt
+När användaren klickar "AI redigera" visas en enkel dialog med två knappar: "Behåll reg plåt" och "Ta bort reg plåt". Val 1 fungerar exakt som idag. Val 2 lägger till en mening i Gemini-prompten.
 
-| Komponent | Nuvarande timeout |
-|-----------|------------------|
-| `segment-car` API-anrop | 60 sekunder |
-| `add-reflection` API-anrop | 90 sekunder (på 4 ställen), 120 sekunder (på 1 ställe) |
-| Watchdog (nollställer fastlåsta bilder) | 2 minuter (120 sekunder) |
+## Ändringar (3 filer, minimala)
 
-## Ändringar
+### 1. Ny komponent: `src/components/LicensePlateChoiceDialog.tsx`
+En enkel dialog med två knappar:
+- "Behåll registreringsskylt" -- anropar callback med `false`
+- "Ta bort registreringsskylt" -- anropar callback med `true`
 
-Alla ändringar sker i **en enda fil**: `src/pages/CarDetail.tsx`
+### 2. `src/pages/CarDetail.tsx` -- 3 små ändringar
 
-### 1. Sänk `add-reflection` timeout från 90s/120s till 70s
-- Rad 648: `90000` -> `70000`
-- Rad 943: `90000` -> `70000`
-- Rad 1033: `90000` -> `70000`
-- Rad 1239: `120000` -> `70000`
+**a) State och dialog**
+Lägg till state för att visa dialogen och lagra vilka foton/typ som valts:
+```
+const [plateChoiceOpen, setPlateChoiceOpen] = useState(false);
+const [pendingEditPhotos, setPendingEditPhotos] = useState<{ids: string[], type: "main"|"documentation"} | null>(null);
+```
 
-### 2. Sänk watchdog-gränsen från 2 minuter till 70 sekunder
-- Rad 168: `2 * 60 * 1000` -> `70 * 1000`
-- Rad 230 (kommentar): Uppdatera "~2 minutes" till "~70 seconds"
+**b) Klick-hantering**
+Istället för att direkt anropa `handleEditPhotos` vid knapptrycket, öppna dialogen och spara foton:
+```
+onClick={() => {
+  setPendingEditPhotos({ ids: selectedMainPhotos, type: "main" });
+  setPlateChoiceOpen(true);
+}}
+```
 
-### Vad som INTE ändras
-- `segment-car` timeout (redan 60s, under 70s-gränsen)
-- All annan logik, databas, edge functions, frontend-komponenter
-- Watchdog-intervallet (var 10:e sekund) -- bara tröskeln ändras
+**c) Callback från dialogen**
+När användaren väljer, anropa `handleEditPhotos` med en ny parameter `removePlate`:
+```
+handleEditPhotos(pendingEditPhotos.ids, pendingEditPhotos.type, removePlate)
+```
+
+**d) `handleEditPhotos` -- signatur och FormData**
+Lägg till parameter `removePlate: boolean = false`. I FormData som skickas till `add-reflection`, lägg till:
+```
+reflectionFormData.append("remove_plate", removePlate ? "true" : "false");
+```
+
+### 3. `supabase/functions/add-reflection/index.ts` -- 2 rader
+
+**a) Läs parametern:**
+```
+const removePlate = formData.get("remove_plate") === "true";
+```
+
+**b) Lägg till mening i prompten villkorligt:**
+```
+const plateInstruction = removePlate
+  ? " Also remove or obscure the text/numbers on the license plate so it is not readable, but keep the plate itself intact."
+  : "";
+```
+Sedan interpolera `plateInstruction` i den befintliga prompt-strängen.
+
+## Vad som INTE ändras
+- All befintlig logik, timeouts, watchdog, databas, segment-car, compositing
+- Prompten vid val "Behåll reg plåt" är 100% identisk med nuvarande
+- Inga nya beroenden, inga databasändringar
