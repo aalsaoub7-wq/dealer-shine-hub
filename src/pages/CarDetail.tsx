@@ -1033,6 +1033,7 @@ const CarDetail = () => {
         const reflectionFormData = new FormData();
         reflectionFormData.append("image_file", file);
         reflectionFormData.append("car_id", car!.id);
+        reflectionFormData.append("remove_plate", removePlate ? "true" : "false");
         reflectionFormData.append("photo_id", photo.id);
 
         const { data: reflectionData, error: reflectionError } = await withTimeout(
