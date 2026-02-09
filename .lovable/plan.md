@@ -1,27 +1,20 @@
 
-
-# Förtydliga prompten för borttagning av registreringsskylt
+# Öka timeout för bilder under behandling till 90 sekunder
 
 ## Översikt
-Ändra prompttexten som skickas till Gemini vid val "Ta bort reg skylt" så att den tydligt instruerar att ta bort de svarta bokstäverna och siffrorna och lämna skylten vit.
+Ändra alla timeout-värden från 70 sekunder till 90 sekunder i `src/pages/CarDetail.tsx`.
 
-## Ändring -- EN fil: `supabase/functions/add-reflection/index.ts`
+## Ändringar -- EN fil: `src/pages/CarDetail.tsx`
 
-### Rad 53: Uppdatera `plateInstruction`-strängen
+### 6 ställen att ändra:
 
-**Från:**
-```
-" Also remove or obscure the text/numbers on the license plate so it is not readable, but keep the plate itself intact."
-```
-
-**Till:**
-```
-" Also remove all black letters and numbers from the license plate, making the plate appear completely white/blank with no visible text or characters, but keep the plate shape itself intact."
-```
+1. **Rad 176**: Watchdog-reset tröskeln: `70 * 1000` -> `90 * 1000`
+2. **Rad 239**: Kommentar: "~70 seconds" -> "~90 seconds"
+3. **Rad 658**: `withTimeout` vid initial redigering: `70000` -> `90000`
+4. **Rad 953**: `withTimeout` vid regenerering: `70000` -> `90000`
+5. **Rad 1055**: `withTimeout` vid position-save: `70000` -> `90000`
+6. **Rad 1254**: `withTimeout` vid batch-redigering: `70000` -> `90000`
 
 ## Vad som INTE ändras
-- All annan logik, state, UI, timeouts, watchdog, compositing
-- Prompten vid "Behåll reg skylt" (ingen plateInstruction)
-- Ingen frontend-ändring
-- Inga databasändringar
-
+- Edge-funktioner, prompter, UI, databas, watchdog-intervall (fortfarande var 10:e sekund)
+- All annan logik i hela appen
