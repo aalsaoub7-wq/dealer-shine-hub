@@ -1,63 +1,58 @@
 
 
-# Lägg till val för registreringsskylt vid AI-redigering
+# Lägg till registreringsskylts-val vid regenerering och positionsjustering
 
 ## Översikt
-När användaren klickar "AI redigera" visas en enkel dialog med två knappar: "Behåll reg plåt" och "Ta bort reg plåt". Val 1 fungerar exakt som idag. Val 2 lägger till en mening i Gemini-prompten.
+Visa samma "Behåll reg skylt / Ta bort reg skylt"-dialog innan Gemini anropas vid:
+1. "Generera ny skugga och reflektion"
+2. "Justera position" -> Spara (för studio-bilder)
 
-## Ändringar (3 filer, minimala)
+## Ändringar -- EN fil: `src/pages/CarDetail.tsx`
 
-### 1. Ny komponent: `src/components/LicensePlateChoiceDialog.tsx`
-En enkel dialog med två knappar:
-- "Behåll registreringsskylt" -- anropar callback med `false`
-- "Ta bort registreringsskylt" -- anropar callback med `true`
-
-### 2. `src/pages/CarDetail.tsx` -- 3 små ändringar
-
-**a) State och dialog**
-Lägg till state för att visa dialogen och lagra vilka foton/typ som valts:
+### 1. Ny state för att fånga väntande regenerering/position-save
+Lägg till state som mellanlagrar vilken åtgärd som väntar:
 ```
-const [plateChoiceOpen, setPlateChoiceOpen] = useState(false);
-const [pendingEditPhotos, setPendingEditPhotos] = useState<{ids: string[], type: "main"|"documentation"} | null>(null);
+const [pendingPlateAction, setPendingPlateAction] = useState<
+  { type: "regenerate", photoId: string } |
+  { type: "positionSave", compositionBlob: Blob } |
+  null
+>(null);
 ```
 
-**b) Klick-hantering**
-Istället för att direkt anropa `handleEditPhotos` vid knapptrycket, öppna dialogen och spara foton:
+### 2. `handleRegenerateReflection` -- avbryt och visa dialog
+Istället för att direkt anropa add-reflection, spara photoId och öppna plate-dialogen:
 ```
-onClick={() => {
-  setPendingEditPhotos({ ids: selectedMainPhotos, type: "main" });
-  setPlateChoiceOpen(true);
-}}
+setPendingPlateAction({ type: "regenerate", photoId });
+setPlateChoiceOpen(true);
 ```
+Flytta den faktiska logiken till en ny funktion `executeRegenerateReflection(photoId, removePlate)`.
 
-**c) Callback från dialogen**
-När användaren väljer, anropa `handleEditPhotos` med en ny parameter `removePlate`:
+### 3. `handlePositionEditorSave` -- avbryt och visa dialog (bara studio)
+För studio-bilder (icke-interior), innan add-reflection anropas, spara blob och öppna dialogen:
 ```
-handleEditPhotos(pendingEditPhotos.ids, pendingEditPhotos.type, removePlate)
+setPendingPlateAction({ type: "positionSave", compositionBlob });
+setPlateChoiceOpen(true);
 ```
+Flytta studio-delen av logiken till `executePositionSave(compositionBlob, removePlate)`.
 
-**d) `handleEditPhotos` -- signatur och FormData**
-Lägg till parameter `removePlate: boolean = false`. I FormData som skickas till `add-reflection`, lägg till:
+Interior-bilder (som inte skickas till Gemini) berörs INTE.
+
+### 4. Uppdatera plate-dialogen callback
+Utöka den befintliga `onChoice`-callbacken så den hanterar alla tre scenarion:
+- `pendingEditPhotos` (befintlig -- initial redigering)
+- `pendingPlateAction.type === "regenerate"`
+- `pendingPlateAction.type === "positionSave"`
+
+### 5. Skicka `remove_plate` i FormData
+I de två nya execute-funktionerna, lägg till:
 ```
 reflectionFormData.append("remove_plate", removePlate ? "true" : "false");
 ```
-
-### 3. `supabase/functions/add-reflection/index.ts` -- 2 rader
-
-**a) Läs parametern:**
-```
-const removePlate = formData.get("remove_plate") === "true";
-```
-
-**b) Lägg till mening i prompten villkorligt:**
-```
-const plateInstruction = removePlate
-  ? " Also remove or obscure the text/numbers on the license plate so it is not readable, but keep the plate itself intact."
-  : "";
-```
-Sedan interpolera `plateInstruction` i den befintliga prompt-strängen.
+Edge-funktionen hanterar redan denna parameter -- ingen backend-ändring behövs.
 
 ## Vad som INTE ändras
-- All befintlig logik, timeouts, watchdog, databas, segment-car, compositing
-- Prompten vid val "Behåll reg plåt" är 100% identisk med nuvarande
-- Inga nya beroenden, inga databasändringar
+- Edge-funktionen `add-reflection` (redan stöder `remove_plate`)
+- `LicensePlateChoiceDialog`-komponenten (samma UI)
+- All annan logik: timeouts, watchdog, billing, segment-car, compositing
+- Interior-flödet (skickas aldrig till Gemini)
+
