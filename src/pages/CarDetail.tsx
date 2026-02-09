@@ -152,6 +152,7 @@ const CarDetail = () => {
   // License plate choice dialog state
   const [plateChoiceOpen, setPlateChoiceOpen] = useState(false);
   const [pendingEditPhotos, setPendingEditPhotos] = useState<{ids: string[], type: "main" | "documentation"} | null>(null);
+  const [pendingRegeneratePhotoId, setPendingRegeneratePhotoId] = useState<string | null>(null);
   const { toast } = useToast();
   const { lightImpact, successNotification } = useHaptics();
   const fetchDebounceRef = useRef<NodeJS.Timeout | null>(null);
