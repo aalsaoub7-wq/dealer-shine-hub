@@ -1833,7 +1833,10 @@ const CarDetail = () => {
                       <span className="sm:hidden">Interiör ({selectedMainPhotos.length})</span>
                     </Button>
                     <Button
-                      onClick={() => handleEditPhotos(selectedMainPhotos, "main")}
+                      onClick={() => {
+                        setPendingEditPhotos({ ids: selectedMainPhotos, type: "main" });
+                        setPlateChoiceOpen(true);
+                      }}
                       variant="outline"
                       className="border-accent text-accent hover:bg-accent hover:text-accent-foreground text-xs md:text-sm h-12 md:h-10 w-full sm:w-auto sm:shrink-0 whitespace-nowrap"
                     >
