@@ -1251,7 +1251,7 @@ const CarDetail = () => {
 
       const { data: reflectionData, error: reflectionError } = await withTimeout(
         supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
-        70000,
+        90000,
         "Vår AI fick för många bollar att jonglera"
       );
 
