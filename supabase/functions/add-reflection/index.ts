@@ -47,7 +47,11 @@ serve(async (req) => {
     // Use Deno's standard library for proper base64 encoding (handles large files correctly)
     const imageBase64 = base64Encode(imageBuffer);
 
-    console.log("Calling Gemini for reflection, base64 length:", imageBase64.length);
+    console.log("Calling Gemini for reflection, base64 length:", imageBase64.length, "removePlate:", removePlate);
+
+    const plateInstruction = removePlate
+      ? " Also remove or obscure the text/numbers on the license plate so it is not readable, but keep the plate itself intact."
+      : "";
 
     // Call Gemini via Lovable AI Gateway for reflection
     const geminiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
