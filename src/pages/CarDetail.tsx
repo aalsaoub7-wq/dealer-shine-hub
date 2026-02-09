@@ -2170,11 +2170,20 @@ const CarDetail = () => {
           if (pendingEditPhotos) {
             handleEditPhotos(pendingEditPhotos.ids, pendingEditPhotos.type, removePlate);
             setPendingEditPhotos(null);
+          } else if (pendingPlateAction?.type === "regenerate") {
+            const photoId = pendingPlateAction.photoId;
+            setPendingPlateAction(null);
+            executeRegenerateReflection(photoId, removePlate);
+          } else if (pendingPlateAction?.type === "positionSave") {
+            const blob = pendingPlateAction.compositionBlob;
+            setPendingPlateAction(null);
+            executePositionSave(blob, removePlate);
           }
         }}
         onCancel={() => {
           setPlateChoiceOpen(false);
           setPendingEditPhotos(null);
+          setPendingPlateAction(null);
         }}
       />
     </div>
