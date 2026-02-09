@@ -991,7 +991,7 @@ const CarDetail = () => {
   };
 
   // Handler for "Generera ny skugga och reflektion" - sends existing composited image through Gemini again
-  const handleRegenerateReflection = async (photoId: string) => {
+  const handleRegenerateReflection = async (photoId: string, removePlate: boolean = false) => {
     const photo = mainPhotos.find(p => p.id === photoId);
     if (!photo) {
       toast({
