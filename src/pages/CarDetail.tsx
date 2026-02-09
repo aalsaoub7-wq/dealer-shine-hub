@@ -174,7 +174,7 @@ const CarDetail = () => {
   const resetStuckPhotos = async (): Promise<string[]> => {
     if (!id) return [];
     
-    const seventySecondsAgo = new Date(Date.now() - 70 * 1000).toISOString();
+    const ninetySecondsAgo = new Date(Date.now() - 90 * 1000).toISOString();
     
     const { data, error } = await supabase
       .from("photos")
