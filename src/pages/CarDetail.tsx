@@ -994,7 +994,7 @@ const CarDetail = () => {
     })();
   };
 
-  // Handler for "Generera ny skugga och reflektion" - sends existing composited image through Gemini again
+  // Handler for "Generera ny skugga och reflektion" - opens plate choice dialog first
   const handleRegenerateReflection = async (photoId: string) => {
     const photo = mainPhotos.find(p => p.id === photoId);
     if (!photo) {
@@ -1016,7 +1016,17 @@ const CarDetail = () => {
       return;
     }
 
-    console.log("Regenerating reflection for photo:", photoId);
+    // Show plate choice dialog before proceeding
+    setPendingPlateAction({ type: "regenerate", photoId });
+    setPlateChoiceOpen(true);
+  };
+
+  // Executes the actual regeneration after plate choice is made
+  const executeRegenerateReflection = async (photoId: string, removePlate: boolean) => {
+    const photo = mainPhotos.find(p => p.id === photoId);
+    if (!photo) return;
+
+    console.log("Regenerating reflection for photo:", photoId, "removePlate:", removePlate);
 
     // Mark photo as processing
     await supabase
@@ -1038,6 +1048,7 @@ const CarDetail = () => {
         reflectionFormData.append("image_file", file);
         reflectionFormData.append("car_id", car!.id);
         reflectionFormData.append("photo_id", photo.id);
+        reflectionFormData.append("remove_plate", removePlate ? "true" : "false");
 
         const { data: reflectionData, error: reflectionError } = await withTimeout(
           supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
