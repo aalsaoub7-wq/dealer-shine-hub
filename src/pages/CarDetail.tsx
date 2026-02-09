@@ -165,14 +165,14 @@ const CarDetail = () => {
   const resetStuckPhotos = async (): Promise<string[]> => {
     if (!id) return [];
     
-    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    const seventySecondsAgo = new Date(Date.now() - 70 * 1000).toISOString();
     
     const { data, error } = await supabase
       .from("photos")
       .update({ is_processing: false })
       .eq("car_id", id)
       .eq("is_processing", true)
-      .lt("updated_at", twoMinutesAgo)
+      .lt("updated_at", seventySecondsAgo)
       .select("id");
       
     if (error) {
@@ -227,7 +227,7 @@ const CarDetail = () => {
         .subscribe();
 
       // Watchdog interval: check every 10 seconds for stuck photos
-      // This ensures photos can't stay stuck for more than ~2 minutes
+      // This ensures photos can't stay stuck for more than ~70 seconds
       const watchdogInterval = setInterval(() => {
         resetStuckPhotos();
       }, 10000); // 10 seconds
@@ -645,7 +645,7 @@ const CarDetail = () => {
 
           const { data: reflectionData, error: reflectionError } = await withTimeout(
             supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
-            90000, // 90 second timeout for reflection (Gemini can be slow)
+            70000, // 70 second timeout for reflection
             "Reflektioner tog för lång tid, försök igen"
           );
 
@@ -940,7 +940,7 @@ const CarDetail = () => {
 
         const { data: reflectionData, error: reflectionError } = await withTimeout(
           supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
-          90000,
+          70000,
           "Reflektioner tog för lång tid, försök igen"
         );
 
@@ -1031,7 +1031,7 @@ const CarDetail = () => {
 
         const { data: reflectionData, error: reflectionError } = await withTimeout(
           supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
-          90000,
+          70000,
           "Reflektioner tog för lång tid, försök igen"
         );
 
@@ -1236,7 +1236,7 @@ const CarDetail = () => {
 
         const { data: reflectionData, error: reflectionError } = await withTimeout(
           supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
-          120000, // 2 minuter timeout
+          70000, // 70 second timeout
           "Vår AI fick för många bollar att jonglera"
         );
 
