@@ -2134,7 +2134,10 @@ const CarDetail = () => {
         open={plateChoiceOpen}
         onChoice={(removePlate) => {
           setPlateChoiceOpen(false);
-          if (pendingEditPhotos) {
+          if (pendingRegeneratePhotoId) {
+            handleRegenerateReflection(pendingRegeneratePhotoId, removePlate);
+            setPendingRegeneratePhotoId(null);
+          } else if (pendingEditPhotos) {
             handleEditPhotos(pendingEditPhotos.ids, pendingEditPhotos.type, removePlate);
             setPendingEditPhotos(null);
           }
@@ -2142,6 +2145,7 @@ const CarDetail = () => {
         onCancel={() => {
           setPlateChoiceOpen(false);
           setPendingEditPhotos(null);
+          setPendingRegeneratePhotoId(null);
         }}
       />
     </div>
