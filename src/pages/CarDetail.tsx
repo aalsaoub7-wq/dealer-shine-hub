@@ -646,6 +646,7 @@ const CarDetail = () => {
           reflectionFormData.append("image_file", new File([compositedBlob], "composited.jpg", { type: "image/jpeg" }));
           reflectionFormData.append("car_id", car!.id);
           reflectionFormData.append("photo_id", photo.id);
+          reflectionFormData.append("remove_plate", removePlate ? "true" : "false");
 
           const { data: reflectionData, error: reflectionError } = await withTimeout(
             supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
