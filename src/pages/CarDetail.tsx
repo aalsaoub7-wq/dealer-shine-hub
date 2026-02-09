@@ -1201,8 +1201,30 @@ const CarDetail = () => {
   const handlePositionEditorSave = async (compositionBlob: Blob) => {
     if (!positionEditorPhoto || !car) return;
 
-    const photoId = positionEditorPhoto.id;
     const isInterior = positionEditorPhoto.editType === 'interior';
+
+    if (isInterior) {
+      // Interior photos go directly (no Gemini), execute immediately
+      await executePositionSaveInternal(compositionBlob, false);
+    } else {
+      // Studio photos go through Gemini - show plate choice dialog first
+      // Store the blob and editor state before closing
+      setPendingPlateAction({ type: "positionSave", compositionBlob });
+      setPositionEditorPhoto(null);
+      setPositionEditorSaving(false);
+      setPlateChoiceOpen(true);
+    }
+  };
+
+  // Internal handler that executes the actual position save
+  const executePositionSaveInternal = async (compositionBlob: Blob, removePlate: boolean) => {
+    // For studio calls from plate dialog, positionEditorPhoto may already be cleared
+    // We need the photoId - get it from either current state or the pending action context
+    const photoId = positionEditorPhoto?.id;
+    const isInterior = positionEditorPhoto?.editType === 'interior';
+    const bgImageUrl = positionEditorPhoto?.backgroundImageUrl;
+
+    if (!photoId || !car) return;
 
     setPositionEditorSaving(true);
 
@@ -1214,7 +1236,6 @@ const CarDetail = () => {
         .eq("id", photoId);
 
       // Close editor and free up the save button immediately
-      // (each photo tracks its own is_processing state in the database)
       setPositionEditorPhoto(null);
       setPositionEditorSaving(false);
 
@@ -1245,7 +1266,7 @@ const CarDetail = () => {
             url: publicUrl,
             is_processing: false,
             edit_type: 'interior',
-            interior_background_url: positionEditorPhoto.backgroundImageUrl || null,
+            interior_background_url: bgImageUrl || null,
           })
           .eq("id", photoId);
       } else {
@@ -1254,6 +1275,7 @@ const CarDetail = () => {
         reflectionFormData.append("image_file", new File([compositionBlob], "composited.jpg", { type: "image/jpeg" }));
         reflectionFormData.append("car_id", car.id);
         reflectionFormData.append("photo_id", photoId);
+        reflectionFormData.append("remove_plate", removePlate ? "true" : "false");
 
         const { data: reflectionData, error: reflectionError } = await withTimeout(
           supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
@@ -1291,7 +1313,7 @@ const CarDetail = () => {
       await supabase
         .from("photos")
         .update({ is_processing: false })
-        .eq("id", photoId);
+        .eq("id", photoId!);
 
       toast({
         title: "Oj!",
