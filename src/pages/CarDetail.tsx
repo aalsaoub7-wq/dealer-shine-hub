@@ -655,7 +655,7 @@ const CarDetail = () => {
 
           const { data: reflectionData, error: reflectionError } = await withTimeout(
             supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
-            70000, // 70 second timeout for reflection
+            90000, // 90 second timeout for reflection
             "Reflektioner tog för lång tid, försök igen"
           );
 
