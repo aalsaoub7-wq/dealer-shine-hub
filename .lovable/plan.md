@@ -1,25 +1,30 @@
 
 
-# Uppdatera reflektionsinstruktionen i prompten
+# Sänk total timeout till 70 sekunder
 
-## Problem
-Den nuvarande prompten säger "Remove all reflections visible on the car body paint" vilket gör att bilen kan se matt och onaturlig ut -- den tappar sin glans.
+## Nuläge
 
-## Lösning
-Byt ut den meningen mot en mer nyanserad instruktion som säger att oönskade omgivningsreflektioner (byggnader, träd, objekt) ska tas bort, men att bilen ska behålla sin naturliga glans och ljusreflektioner så att lacken fortfarande ser blank och realistisk ut.
+| Komponent | Nuvarande timeout |
+|-----------|------------------|
+| `segment-car` API-anrop | 60 sekunder |
+| `add-reflection` API-anrop | 90 sekunder (på 4 ställen), 120 sekunder (på 1 ställe) |
+| Watchdog (nollställer fastlåsta bilder) | 2 minuter (120 sekunder) |
 
-### Ny mening (ersätter den gamla):
+## Ändringar
 
-**Gammalt:** "Remove all reflections visible on the car body paint, but do not alter the car's color, shape, or any other details."
+Alla ändringar sker i **en enda fil**: `src/pages/CarDetail.tsx`
 
-**Nytt:** "Remove any reflections of surrounding objects visible on the car body paint (such as trees, buildings, people, or other objects), but keep the natural light reflections and glossy highlights on the paint so the car still looks shiny and realistic -- do not make the paint look matte or flat."
+### 1. Sänk `add-reflection` timeout från 90s/120s till 70s
+- Rad 648: `90000` -> `70000`
+- Rad 943: `90000` -> `70000`
+- Rad 1033: `90000` -> `70000`
+- Rad 1239: `120000` -> `70000`
 
-## Fil som ändras
+### 2. Sänk watchdog-gränsen från 2 minuter till 70 sekunder
+- Rad 168: `2 * 60 * 1000` -> `70 * 1000`
+- Rad 230 (kommentar): Uppdatera "~2 minutes" till "~70 seconds"
 
-| Fil | Ändring |
-|-----|---------|
-| `supabase/functions/add-reflection/index.ts` | Byt ut en mening i prompten på rad 66 |
-
-## Vad som inte ändras
-- All annan logik, databas, frontend
-
+### Vad som INTE ändras
+- `segment-car` timeout (redan 60s, under 70s-gränsen)
+- All annan logik, databas, edge functions, frontend-komponenter
+- Watchdog-intervallet (var 10:e sekund) -- bara tröskeln ändras
