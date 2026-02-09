@@ -1,16 +1,14 @@
 
 
-# Complement reflection prompt with snow removal
+# Add subtle reflection removal to the prompt
 
-## Current prompt
-The prompt instructs Gemini to add a fading floor reflection while keeping everything else unchanged.
+## Change
 
-## Proposed change
-Add one sentence to the prompt asking Gemini to also remove any snow visible on the tires/wheels of the car. The addition is minimal to avoid disrupting the existing behavior.
+Add one sentence to the existing prompt in `supabase/functions/add-reflection/index.ts` (line 66) instructing Gemini to subtly reduce any unwanted reflections on the car body without altering anything else.
 
-### New prompt (addition in bold context):
+### Updated prompt (new addition highlighted):
 
-"This is a high-resolution professional car dealership photo (2560x1707 pixels, 3:2 aspect ratio). Add a subtle soft and fading mirror-like reflection of the vehicle on the polished showroom floor beneath it. **Also remove any snow or slush visible on the tires and wheels of the car so they look clean.** Keep all other elements unchanged - maintain the exact same car, background, lighting, and resolution. Only add the floor reflection effect. Output the image at the same 2K resolution. The mirror like reflection should be of only the bottom half of the car, and it should be FADING, so it looks natural. Meaning, the reflection at the beginning should be clear, and then fade the higher up it is on the car and it should be suitable with the ground. Fix this."
+"...Also remove any snow or slush visible on the tires and wheels of the car so they look clean. **Subtly reduce any unwanted reflections visible on the car body paint, but do not alter the car's color, shape, or any other details.** Keep all other elements unchanged..."
 
 ## File changed
 
@@ -19,7 +17,5 @@ Add one sentence to the prompt asking Gemini to also remove any snow visible on 
 | `supabase/functions/add-reflection/index.ts` | Insert one sentence into the prompt on line 66 |
 
 ## What stays the same
-- All other logic in the edge function
-- No database changes
-- No frontend changes
+- All other logic, database, frontend unchanged
 
