@@ -1,37 +1,45 @@
 
 
-# Förbättra iOS PWA-installationsinstruktionen
+# Fixa PWA safe area på iPhone
 
 ## Problem
-Texten "Dela -> Lägg till på hemskärmen" är otydlig. Användare förstår inte var dela-knappen finns eller att det är en manuell process i Safari.
+När appen öppnas som PWA (standalone) på iPhone hamnar innehållet under notchen/statusbaren. Det beror på att:
+
+1. `index.html` har `apple-mobile-web-app-status-bar-style="black-translucent"` -- det gör statusbaren transparent och innehållet ritas under den
+2. `NativeLayout` lägger bara till safe area-padding när `isNativeApp()` är true (Capacitor), men i PWA-läge returnerar den false
+3. Inget i CSS:en kompenserar för safe area i PWA standalone-läge
 
 ## Lösning
-Ersätt den korta textraden med en tydlig steg-för-steg-guide som visas i en popup/dialog när man klickar på en knapp.
+Lägg till CSS som applicerar `padding-top: env(safe-area-inset-top)` i PWA standalone-läge via en media query. Detta påverkar INTE vanlig webbläsarvy.
 
-## Ändringar -- 1 fil: `src/components/PWAInstallButton.tsx`
+## Ändringar -- 2 filer
 
-### Ny upplevelse för iOS-användare
-Istället för den kryptiska texten, visa en **knapp** som öppnar en **dialog** med tydliga steg:
+### 1. `src/index.css` -- Lägg till PWA standalone safe area-stöd
 
-**Knappen:** "Så installerar du på iPhone" (klickbar)
+Lägg till en ny CSS-regel som aktiveras ENBART i standalone-läge (PWA):
 
-**Dialogen innehåller:**
-1. Rubrik: "Installera Luvero på iPhone"
-2. Steg 1: "Öppna luvero.se i **Safari**" (med Safari-ikon)
-3. Steg 2: "Tryck på **dela-ikonen** i verktygsfältet" (visa den faktiska ikonen -- fyrkant med pil uppåt)
-4. Steg 3: "Scrolla ner och tryck **Lägg till på hemskärmen**"
-5. Steg 4: "Klart! Appen finns nu på din hemskärm"
+```css
+/* PWA Standalone safe area - iPhone notch */
+@media all and (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+```
 
-### Tekniska detaljer
-- Använd befintlig `Dialog`-komponent från `@radix-ui/react-dialog` (redan installerad)
-- Ikoner: `Share`, `Plus`, `Smartphone` från `lucide-react`
-- Uppdatera både `variant="button"` och `variant="link"` för iOS-fallet
-- Knappen i link-varianten blir en klickbar text som öppnar samma dialog
-- Ingen ny fil behövs, allt ryms i `PWAInstallButton.tsx`
+Denna media query matchar bara när appen körs som installerad PWA, aldrig i vanlig webbläsare.
 
-### Vad som INTE ändras
-- Android/Chrome install-logik (canInstall)
-- usePWAInstall hook
-- PWAInstallPrompt komponent
-- Landing page layout
-- Allt annat i appen
+### 2. `src/pages/Dashboard.tsx` -- Headern behöver inte ändras
+
+Headern har redan `sticky top-0` och kommer automatiskt att respektera body-paddinget. Ingen ändring behövs här.
+
+## Vad som INTE ändras
+- `NativeLayout.tsx` -- den hanterar Capacitor-appen, inte PWA
+- `index.html` -- `black-translucent` behålls (det ger snyggare PWA-upplevelse)
+- `NativeRouter.tsx`
+- Dashboard, Landing, eller andra sidor
+- Desktop/webbupplevelsen
+
+## Resultat
+I PWA standalone-läge på iPhone skjuts innehållet ner under statusbaren/notchen automatiskt. Vanlig webbvy påverkas inte.
