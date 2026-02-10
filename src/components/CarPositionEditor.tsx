@@ -274,7 +274,7 @@ export const CarPositionEditor = ({
         ctx.strokeRect(bgX, bgY, scaledWidth, scaledHeight);
         
         // Draw resize handle for background
-        const handleSize = isMobile ? 60 : 40;
+        const handleSize = isMobile ? 80 : 40;
         const handleX = bgX + scaledWidth;
         const handleY = bgY + scaledHeight;
         
@@ -343,7 +343,7 @@ export const CarPositionEditor = ({
         ctx.strokeRect(-carWidth / 2, -carHeight / 2, carWidth, carHeight);
         
         // Draw resize handle (bottom-right corner)
-        const handleSize = isMobile ? 60 : 40;
+        const handleSize = isMobile ? 80 : 40;
         const rhX = carWidth / 2;
         const rhY = carHeight / 2;
         
@@ -437,7 +437,7 @@ export const CarPositionEditor = ({
         ctx.strokeRect(bgX, bgY, scaledBgWidth, scaledBgHeight);
         
         // Blue resize handle (bottom-right of background)
-        const handleSize = isMobile ? 60 : 40;
+        const handleSize = isMobile ? 80 : 40;
         const bhX = bgX + scaledBgWidth;
         const bhY = bgY + scaledBgHeight;
         
@@ -502,7 +502,7 @@ export const CarPositionEditor = ({
     const mouseX = (e.clientX - rect.left) * scaleX;
     const mouseY = (e.clientY - rect.top) * scaleY;
 
-    const handleSize = isMobile ? 60 : 40;
+    const handleSize = isMobile ? 80 : 40;
     
     if (moveBackground) {
       // In moveBackground mode, we're selecting/dragging the background
@@ -530,7 +530,7 @@ export const CarPositionEditor = ({
       }
     } else {
       // Normal mode: select/drag car or background
-      const handleSize = isMobile ? 60 : 40;
+      const handleSize = isMobile ? 80 : 40;
 
       if (selectedElement === 'car') {
         // All handle positions must account for rotation
