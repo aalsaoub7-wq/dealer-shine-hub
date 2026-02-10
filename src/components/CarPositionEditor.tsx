@@ -343,7 +343,7 @@ export const CarPositionEditor = ({
         ctx.strokeRect(-carWidth / 2, -carHeight / 2, carWidth, carHeight);
         
         // Draw resize handle (bottom-right corner)
-        const handleSize = isMobile ? 60 : 40;
+        const handleSize = isMobile ? 80 : 40;
         const rhX = carWidth / 2;
         const rhY = carHeight / 2;
         
