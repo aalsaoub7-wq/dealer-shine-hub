@@ -1,37 +1,43 @@
 
-# Inaktivera lightbox vid klick på bild på mobil
+# Fixa PWA-uppdatering: byt till automatisk uppdatering
 
-## Översikt
-På mobil ska man inte kunna öppna lightbox genom att klicka på själva bilden. Lightbox ska bara öppnas via expand-knappen (Maximize2-ikonen). På desktop behålls beteendet som det är.
+## Problem
+I `main.tsx` rad 19-20 anropas `registerSW({ immediate: true })` som updateSW-funktion. Detta registrerar en NY service worker istället for att aktivera den som väntar. Därför händer inget vid klick på "Uppdatera".
 
-## Ändring -- EN fil: `src/components/PhotoGalleryDraggable.tsx`
+## Lösning
+Byt `registerType` från `"prompt"` till `"autoUpdate"` i vite.config.ts. Då aktiveras nya versioner automatiskt i bakgrunden -- ingen banner behövs, ingen klick-interaktion.
 
-### Rad 99: Villkora `onClick` baserat på skärmstorlek
-Importera `useIsMobile` och använd den för att villkora klicket:
+## Ändringar -- 2 filer
 
-**Lägg till import:**
-```typescript
-import { useIsMobile } from "@/hooks/use-mobile";
+### 1. `vite.config.ts` (rad 17)
+Ändra:
+```
+registerType: "prompt",
+```
+Till:
+```
+registerType: "autoUpdate",
 ```
 
-**I `SortablePhotoCard`-komponenten, lägg till:**
+### 2. `src/main.tsx` (rad 12-29)
+Förenkla service worker-registreringen. Ta bort `onNeedRefresh` och det custom event, behåll bara:
 ```typescript
-const isMobile = useIsMobile();
-```
-
-**Rad 99 -- ändra från:**
-```typescript
-onClick={() => onImageClick(photo.url)}
-```
-
-**Till:**
-```typescript
-onClick={() => !isMobile && onImageClick(photo.url)}
+if (!isNativeApp()) {
+  import("virtual:pwa-register").then(({ registerSW }) => {
+    registerSW({
+      onOfflineReady() {
+        console.log("Luvero PWA: Ready for offline use");
+      },
+    });
+  });
+}
 ```
 
 ## Vad som INTE ändras
-- Expand-knappen (Maximize2) på rad 149 -- den fungerar alltid, mobil och desktop
-- ImageLightbox-komponenten
-- SharedPhotos-sidan
-- Desktop-beteendet
-- All annan logik
+- `PWAInstallPrompt.tsx` -- update-bannern visas aldrig mer (showUpdateBanner forblir false), men komponenten behöver inte tas bort
+- `usePWAInstall.ts` -- SW-update-lyssnaren triggas aldrig, men ingen skada
+- Workbox-config, manifest, ikoner, caching-strategi
+- All annan logik i appen
+
+## Resultat
+PWA:n uppdateras automatiskt i bakgrunden. Nästa gång användaren laddar om sidan eller öppnar appen får de den senaste versionen utan att behöva klicka på något.
