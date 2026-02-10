@@ -502,7 +502,7 @@ export const CarPositionEditor = ({
     const mouseX = (e.clientX - rect.left) * scaleX;
     const mouseY = (e.clientY - rect.top) * scaleY;
 
-    const handleSize = isMobile ? 60 : 40;
+    const handleSize = isMobile ? 80 : 40;
     
     if (moveBackground) {
       // In moveBackground mode, we're selecting/dragging the background
