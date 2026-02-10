@@ -210,3 +210,11 @@ All colors MUST be HSL.
     min-width: 44px;
   }
 }
+
+/* PWA Standalone safe area - iPhone notch */
+@media all and (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
