@@ -86,7 +86,7 @@ const SortablePhotoCard = ({
               {photo.is_processing ? "Bild Behandlas" : "Laddar..."}
             </p>
           </div>}
-        <div className={`absolute bottom-2 left-2 z-10 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`} onClick={e => e.stopPropagation()} onPointerDown={e => {
+        <div className={`absolute bottom-2 left-2 z-10 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'}`} onClick={e => e.stopPropagation()} onPointerDown={e => {
         // Prevent iOS focus-scroll on touch
         if (e.pointerType === "touch") {
           e.preventDefault();
