@@ -107,7 +107,7 @@ const SortablePhotoCard = ({
               quality: 75
             })} 
             alt="Bilfoto" 
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 pointer-events-none" 
+            className="w-full h-full object-cover md:group-hover:scale-110 transition-transform duration-700 pointer-events-none" 
             loading="lazy" 
             decoding="async" 
             onLoad={() => setLoadedUrl(photo.url)} 
