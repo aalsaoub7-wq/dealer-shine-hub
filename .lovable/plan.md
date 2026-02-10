@@ -1,20 +1,37 @@
 
-# Öka timeout för bilder under behandling till 90 sekunder
+# Inaktivera lightbox vid klick på bild på mobil
 
 ## Översikt
-Ändra alla timeout-värden från 70 sekunder till 90 sekunder i `src/pages/CarDetail.tsx`.
+På mobil ska man inte kunna öppna lightbox genom att klicka på själva bilden. Lightbox ska bara öppnas via expand-knappen (Maximize2-ikonen). På desktop behålls beteendet som det är.
 
-## Ändringar -- EN fil: `src/pages/CarDetail.tsx`
+## Ändring -- EN fil: `src/components/PhotoGalleryDraggable.tsx`
 
-### 6 ställen att ändra:
+### Rad 99: Villkora `onClick` baserat på skärmstorlek
+Importera `useIsMobile` och använd den för att villkora klicket:
 
-1. **Rad 176**: Watchdog-reset tröskeln: `70 * 1000` -> `90 * 1000`
-2. **Rad 239**: Kommentar: "~70 seconds" -> "~90 seconds"
-3. **Rad 658**: `withTimeout` vid initial redigering: `70000` -> `90000`
-4. **Rad 953**: `withTimeout` vid regenerering: `70000` -> `90000`
-5. **Rad 1055**: `withTimeout` vid position-save: `70000` -> `90000`
-6. **Rad 1254**: `withTimeout` vid batch-redigering: `70000` -> `90000`
+**Lägg till import:**
+```typescript
+import { useIsMobile } from "@/hooks/use-mobile";
+```
+
+**I `SortablePhotoCard`-komponenten, lägg till:**
+```typescript
+const isMobile = useIsMobile();
+```
+
+**Rad 99 -- ändra från:**
+```typescript
+onClick={() => onImageClick(photo.url)}
+```
+
+**Till:**
+```typescript
+onClick={() => !isMobile && onImageClick(photo.url)}
+```
 
 ## Vad som INTE ändras
-- Edge-funktioner, prompter, UI, databas, watchdog-intervall (fortfarande var 10:e sekund)
-- All annan logik i hela appen
+- Expand-knappen (Maximize2) på rad 149 -- den fungerar alltid, mobil och desktop
+- ImageLightbox-komponenten
+- SharedPhotos-sidan
+- Desktop-beteendet
+- All annan logik
