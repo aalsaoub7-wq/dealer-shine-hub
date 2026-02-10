@@ -1,43 +1,37 @@
 
-# Fixa PWA-uppdatering: byt till automatisk uppdatering
+
+# Förbättra iOS PWA-installationsinstruktionen
 
 ## Problem
-I `main.tsx` rad 19-20 anropas `registerSW({ immediate: true })` som updateSW-funktion. Detta registrerar en NY service worker istället for att aktivera den som väntar. Därför händer inget vid klick på "Uppdatera".
+Texten "Dela -> Lägg till på hemskärmen" är otydlig. Användare förstår inte var dela-knappen finns eller att det är en manuell process i Safari.
 
 ## Lösning
-Byt `registerType` från `"prompt"` till `"autoUpdate"` i vite.config.ts. Då aktiveras nya versioner automatiskt i bakgrunden -- ingen banner behövs, ingen klick-interaktion.
+Ersätt den korta textraden med en tydlig steg-för-steg-guide som visas i en popup/dialog när man klickar på en knapp.
 
-## Ändringar -- 2 filer
+## Ändringar -- 1 fil: `src/components/PWAInstallButton.tsx`
 
-### 1. `vite.config.ts` (rad 17)
-Ändra:
-```
-registerType: "prompt",
-```
-Till:
-```
-registerType: "autoUpdate",
-```
+### Ny upplevelse för iOS-användare
+Istället för den kryptiska texten, visa en **knapp** som öppnar en **dialog** med tydliga steg:
 
-### 2. `src/main.tsx` (rad 12-29)
-Förenkla service worker-registreringen. Ta bort `onNeedRefresh` och det custom event, behåll bara:
-```typescript
-if (!isNativeApp()) {
-  import("virtual:pwa-register").then(({ registerSW }) => {
-    registerSW({
-      onOfflineReady() {
-        console.log("Luvero PWA: Ready for offline use");
-      },
-    });
-  });
-}
-```
+**Knappen:** "Så installerar du på iPhone" (klickbar)
 
-## Vad som INTE ändras
-- `PWAInstallPrompt.tsx` -- update-bannern visas aldrig mer (showUpdateBanner forblir false), men komponenten behöver inte tas bort
-- `usePWAInstall.ts` -- SW-update-lyssnaren triggas aldrig, men ingen skada
-- Workbox-config, manifest, ikoner, caching-strategi
-- All annan logik i appen
+**Dialogen innehåller:**
+1. Rubrik: "Installera Luvero på iPhone"
+2. Steg 1: "Öppna luvero.se i **Safari**" (med Safari-ikon)
+3. Steg 2: "Tryck på **dela-ikonen** i verktygsfältet" (visa den faktiska ikonen -- fyrkant med pil uppåt)
+4. Steg 3: "Scrolla ner och tryck **Lägg till på hemskärmen**"
+5. Steg 4: "Klart! Appen finns nu på din hemskärm"
 
-## Resultat
-PWA:n uppdateras automatiskt i bakgrunden. Nästa gång användaren laddar om sidan eller öppnar appen får de den senaste versionen utan att behöva klicka på något.
+### Tekniska detaljer
+- Använd befintlig `Dialog`-komponent från `@radix-ui/react-dialog` (redan installerad)
+- Ikoner: `Share`, `Plus`, `Smartphone` från `lucide-react`
+- Uppdatera både `variant="button"` och `variant="link"` för iOS-fallet
+- Knappen i link-varianten blir en klickbar text som öppnar samma dialog
+- Ingen ny fil behövs, allt ryms i `PWAInstallButton.tsx`
+
+### Vad som INTE ändras
+- Android/Chrome install-logik (canInstall)
+- usePWAInstall hook
+- PWAInstallPrompt komponent
+- Landing page layout
+- Allt annat i appen
