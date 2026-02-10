@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
-      registerType: "prompt",
+      registerType: "autoUpdate",
       includeAssets: ["favicon.png", "favicon.ico", "icons/icon-192.png", "icons/icon-512.png"],
       manifest: {
         name: "Luvero - AI Bilredigering",

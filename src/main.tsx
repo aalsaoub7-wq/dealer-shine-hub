@@ -11,17 +11,6 @@ initPostHog();
 if (!isNativeApp()) {
   import("virtual:pwa-register").then(({ registerSW }) => {
     registerSW({
-      onNeedRefresh() {
-        // Dispatch custom event so PWAInstallPrompt can show update banner
-        window.dispatchEvent(
-          new CustomEvent("sw-update-available", {
-            detail: {
-              updateSW: () =>
-                registerSW({ immediate: true }),
-            },
-          })
-        );
-      },
       onOfflineReady() {
         console.log("Luvero PWA: Ready for offline use");
       },
