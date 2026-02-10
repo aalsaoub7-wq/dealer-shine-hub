@@ -1,45 +1,63 @@
 
 
-# Fixa PWA safe area på iPhone
+# Fixa 3 PWA-problem på iPhone
 
-## Problem
-När appen öppnas som PWA (standalone) på iPhone hamnar innehållet under notchen/statusbaren. Det beror på att:
+## Problem 1: Inställningsdialogen respekterar inte safe area
+Inställningsdialogen (`AiSettingsDialog.tsx`) renderas som en `fixed`-positionerad dialog via Radix UI. Den använder `max-h-[calc(100vh-2rem)]` som inte tar hänsyn till safe area insets i PWA standalone-läge. Innehållet kan hamna under notchen.
 
-1. `index.html` har `apple-mobile-web-app-status-bar-style="black-translucent"` -- det gör statusbaren transparent och innehållet ritas under den
-2. `NativeLayout` lägger bara till safe area-padding när `isNativeApp()` är true (Capacitor), men i PWA-läge returnerar den false
-3. Inget i CSS:en kompenserar för safe area i PWA standalone-läge
+## Problem 2: Hover-effekter triggas vid scroll på touch
+I `PhotoGalleryDraggable.tsx` använder bildkorten CSS-klassen `group-hover:opacity-100` för att visa knappar (radera, maximera, redigera) samt `group-hover:scale-110` på bilden och `group-hover:opacity-20` för en gradient-overlay. På iOS tolkas touch-scroll som hover, vilket gör att allt man scrollar förbi "highlightas".
 
-## Lösning
-Lägg till CSS som applicerar `padding-top: env(safe-area-inset-top)` i PWA standalone-läge via en media query. Detta påverkar INTE vanlig webbläsarvy.
+## Problem 3: Kan inte scrolla i inställningar
+Inställningsdialogen har `max-h-[90vh] overflow-y-auto` i sin className, men `DialogContent`-komponenten har `max-h-[calc(100vh-2rem)]` som bas. Problemet kan vara att iOS PWA standalone-läge inte beräknar `vh` korrekt med safe area, eller att `overflow-y-auto` inte fungerar som förväntat i den fixerade dialogen på iOS. Lösningen är att använda `dvh` (dynamic viewport height) som fungerar bättre på iOS.
 
-## Ändringar -- 2 filer
+## Ändringar -- 3 minimala, isolerade fixar
 
-### 1. `src/index.css` -- Lägg till PWA standalone safe area-stöd
-
-Lägg till en ny CSS-regel som aktiveras ENBART i standalone-läge (PWA):
+### 1. `src/index.css` -- Safe area för fixerade dialoger i PWA-läge
+Lägg till i den befintliga `@media all and (display-mode: standalone)`-blocket:
 
 ```css
-/* PWA Standalone safe area - iPhone notch */
 @media all and (display-mode: standalone) {
   body {
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+
+  /* Dialogs: respect safe area */
+  [data-radix-portal] [role="dialog"] {
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 2rem);
+    margin-top: env(safe-area-inset-top, 0px);
+  }
 }
 ```
 
-Denna media query matchar bara när appen körs som installerad PWA, aldrig i vanlig webbläsare.
+### 2. `src/components/PhotoGalleryDraggable.tsx` -- Byt hover till active för touch
+Ersätt `group-hover` med `group-hover` som enbart aktiveras med `@media (hover: hover)` genom att lägga till en CSS-klass, ELLER den enklaste lösningen: använd Tailwinds inbyggda `@media (hover: hover)` via att byta `group-hover:` till `md:group-hover:` (som i praktiken exkluderar touch-enheter).
 
-### 2. `src/pages/Dashboard.tsx` -- Headern behöver inte ändras
+Ändra rad 81 (Card className):
+- `hover:shadow-intense hover:-translate-y-2` till `md:hover:shadow-intense md:hover:-translate-y-2`
 
-Headern har redan `sticky top-0` och kommer automatiskt att respektera body-paddinget. Ingen ändring behövs här.
+Ändra rad 89 (checkbox opacity):
+- `group-hover:opacity-100` till `md:group-hover:opacity-100`
+
+Ändra rad 110 (bild scale):
+- `group-hover:scale-110` till `md:group-hover:scale-110`
+
+Ändra rad 126 (gradient overlay):
+- `group-hover:opacity-20` till `md:group-hover:opacity-20`
+
+Ändra rad 144 (action buttons):
+- `group-hover:opacity-100` till `md:group-hover:opacity-100`
+
+### 3. `src/components/AiSettingsDialog.tsx` -- Fixar scroll i inställningar
+Ändra rad 750 `DialogContent` className:
+- `max-h-[90vh]` till `max-h-[85dvh]`
+
+`dvh` (dynamic viewport height) fungerar korrekt i iOS standalone PWA-läge, och 85dvh ger utrymme för safe area.
 
 ## Vad som INTE ändras
-- `NativeLayout.tsx` -- den hanterar Capacitor-appen, inte PWA
-- `index.html` -- `black-translucent` behålls (det ger snyggare PWA-upplevelse)
-- `NativeRouter.tsx`
-- Dashboard, Landing, eller andra sidor
-- Desktop/webbupplevelsen
-
-## Resultat
-I PWA standalone-läge på iPhone skjuts innehållet ner under statusbaren/notchen automatiskt. Vanlig webbvy påverkas inte.
+- Inga nya filer
+- Inga ändringar i desktop/webbupplevelsen (hover fungerar som innan på desktop)
+- Ingen ändring av NativeLayout, NativeRouter eller Capacitor-logik
+- Inga ändringar av funktionalitet eller dataflöde
+- Inga beroenden läggs till
