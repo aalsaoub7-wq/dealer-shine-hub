@@ -274,7 +274,7 @@ export const CarPositionEditor = ({
         ctx.strokeRect(bgX, bgY, scaledWidth, scaledHeight);
         
         // Draw resize handle for background
-        const handleSize = isMobile ? 60 : 40;
+        const handleSize = isMobile ? 80 : 40;
         const handleX = bgX + scaledWidth;
         const handleY = bgY + scaledHeight;
         
