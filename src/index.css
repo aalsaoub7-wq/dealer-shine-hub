@@ -217,4 +217,10 @@ All colors MUST be HSL.
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+
+  /* Dialogs: respect safe area */
+  [data-radix-portal] [role="dialog"] {
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 2rem);
+    margin-top: env(safe-area-inset-top, 0px);
+  }
 }

@@ -747,7 +747,7 @@ export const AiSettingsDialog = () => {
             <Settings className="h-4 w-4" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto overflow-x-hidden">
+        <DialogContent className="sm:max-w-[600px] max-h-[85dvh] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
             <DialogTitle>Inställningar</DialogTitle>
           </DialogHeader>
