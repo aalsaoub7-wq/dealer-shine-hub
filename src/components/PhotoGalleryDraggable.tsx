@@ -78,7 +78,7 @@ const SortablePhotoCard = ({
 
   // Show overlay if processing OR if the loaded URL doesn't match current URL
   const showOverlay = photo.is_processing || loadedUrl !== photo.url;
-  return <Card ref={setNodeRef} style={style} className={`bg-gradient-card border-border/50 overflow-hidden group shadow-card hover:shadow-intense hover:-translate-y-2 transition-all duration-500 animate-fade-in-up ${isSelected ? 'ring-2 ring-primary' : ''}`} {...attributes}>
+  return <Card ref={setNodeRef} style={style} className={`bg-gradient-card border-border/50 overflow-hidden group shadow-card md:hover:shadow-intense md:hover:-translate-y-2 transition-all duration-500 animate-fade-in-up ${isSelected ? 'ring-2 ring-primary' : ''}`} {...attributes}>
       <div className="relative aspect-video bg-secondary">
         {showOverlay && <div className="absolute inset-0 bg-background/90 z-20 flex flex-col items-center justify-center">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -86,7 +86,7 @@ const SortablePhotoCard = ({
               {photo.is_processing ? "Bild Behandlas" : "Laddar..."}
             </p>
           </div>}
-        <div className={`absolute bottom-2 left-2 z-10 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} onClick={e => e.stopPropagation()} onPointerDown={e => {
+        <div className={`absolute bottom-2 left-2 z-10 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'}`} onClick={e => e.stopPropagation()} onPointerDown={e => {
         // Prevent iOS focus-scroll on touch
         if (e.pointerType === "touch") {
           e.preventDefault();
@@ -107,7 +107,7 @@ const SortablePhotoCard = ({
               quality: 75
             })} 
             alt="Bilfoto" 
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 pointer-events-none" 
+            className="w-full h-full object-cover md:group-hover:scale-110 transition-transform duration-700 pointer-events-none" 
             loading="lazy" 
             decoding="async" 
             onLoad={() => setLoadedUrl(photo.url)} 
@@ -123,7 +123,7 @@ const SortablePhotoCard = ({
             }} 
           />
         </div>
-        <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-primary opacity-0 md:group-hover:opacity-20 transition-opacity duration-500 pointer-events-none" />
         
         {/* Badges */}
         <div className="absolute top-2 right-2 flex flex-col gap-1">
@@ -141,7 +141,7 @@ const SortablePhotoCard = ({
         </div>
         
         {/* Action buttons */}
-        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 flex gap-2">
+        <div className="absolute bottom-2 right-2 opacity-0 md:group-hover:opacity-100 transition-all duration-300 flex gap-2">
           {photo.has_watermark && onWatermarkOptions && <Button size="icon" variant="secondary" onClick={() => onWatermarkOptions(photo.id)} className="h-12 w-12 sm:h-8 sm:w-8 hover:scale-110 transition-transform duration-300" title="Vattenmärkesalternativ">
               <Stamp className="w-6 h-6 sm:w-4 sm:h-4" />
             </Button>}
