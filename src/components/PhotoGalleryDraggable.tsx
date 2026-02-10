@@ -97,7 +97,7 @@ const SortablePhotoCard = ({
         <div 
           {...listeners}
           className="w-full h-full cursor-grab active:cursor-grabbing"
-          onClick={() => onImageClick(photo.url)}
+          onClick={() => !isMobile && onImageClick(photo.url)}
         >
           <img 
             src={getOptimizedImageUrl(photo.url, {
