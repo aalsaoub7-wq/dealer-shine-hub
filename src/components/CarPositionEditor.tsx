@@ -530,7 +530,7 @@ export const CarPositionEditor = ({
       }
     } else {
       // Normal mode: select/drag car or background
-      const handleSize = isMobile ? 60 : 40;
+      const handleSize = isMobile ? 80 : 40;
 
       if (selectedElement === 'car') {
         // All handle positions must account for rotation
