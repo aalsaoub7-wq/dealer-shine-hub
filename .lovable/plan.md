@@ -1,37 +1,46 @@
 
+# Fixa checkbox-synlighet och safe area i positionsredigeraren
 
-# Fixa bildklick på iPhone
+## Problem 1: Checkbox syns inte på iPhone PWA
+Checkboxen på bildkorten (rad 89) har `opacity-0 md:group-hover:opacity-100` — samma problem som action-knapparna hade. På mobil triggas aldrig `md:group-hover`, så checkboxen förblir osynlig (förutom när den redan är ikryssad).
 
-## Problem
-Två saker blockerar bildklick på mobil:
+## Problem 2: Positionsredigeraren (CarPositionEditor) respekterar inte safe area
+Redigeraren använder `fixed inset-0` (rad 774) som täcker hela skärmen. I PWA standalone-läge på iPhone hamnar headern under notchen och footern (med Spara-knappen) under home-indikatorn.
 
-1. Bildklick är medvetet avstängt på mobil (rad 101: `!isMobile && onImageClick(...)`) för att undvika oavsiktliga klick vid scroll
-2. Knapparna (Maximera, Radera, etc.) är dolda bakom `md:group-hover:opacity-100` -- men på mobil triggas aldrig `md:group-hover`, så knapparna syns ALDRIG
+## Ändringar — 2 filer, minimala och isolerade
 
-Resultat: det finns inget sätt att öppna en bild på mobil.
+### 1. `src/components/PhotoGalleryDraggable.tsx` — Gör checkbox synlig på mobil
 
-## Lösning
-Gör knapparna alltid synliga på mobil, men behåll hover-beteendet på desktop. Bildklick via att trycka direkt på bilden förblir avstängt på mobil (det var medvetet för att undvika scroll-problem).
+Rad 89, ändra opacity-klassen:
 
-## Ändring -- 1 fil: `src/components/PhotoGalleryDraggable.tsx`
-
-### Rad 144: Ändra opacity-klassen för action buttons
 Från:
 ```
-opacity-0 md:group-hover:opacity-100
+isSelected ? 'opacity-100' : 'opacity-0 md:group-hover:opacity-100'
 ```
 Till:
 ```
-opacity-100 md:opacity-0 md:group-hover:opacity-100
+isSelected ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'
 ```
 
-Detta gör att:
-- **Mobil**: Knapparna (Maximera, Radera, Redigera) syns alltid
-- **Desktop**: Knapparna är dolda och visas vid hover, precis som innan
+Samma mönster som action-knapparna redan använder (rad 144). Checkboxen syns alltid på mobil, hover-beteende på desktop.
 
-### Vad som INTE ändras
-- Bildklick via att trycka på själva bilden (förblir avstängt på mobil, det var medvetet)
-- Checkbox-logik
-- Drag-and-drop
-- Desktop-upplevelsen
-- Inga andra filer
+### 2. `src/index.css` — Safe area för fullskärms-editorer i PWA-läge
+
+Lägg till i det befintliga `@media all and (display-mode: standalone)`-blocket:
+
+```css
+/* Full-screen editors (position editor etc): respect safe area */
+.fixed.inset-0 {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+```
+
+Detta gör att alla `fixed inset-0`-element (som CarPositionEditor och WatermarkPositionEditor) automatiskt får safe area-padding i PWA standalone-läge. Påverkar inte desktop eller vanlig webbläsare.
+
+## Vad som INTE ändras
+- Inga nya filer
+- Ingen ändring av desktop-upplevelsen
+- Ingen ändring av funktionalitet eller dataflöde
+- CarPositionEditor-logiken rörs inte — enbart CSS-fix
+- Inga beroenden
