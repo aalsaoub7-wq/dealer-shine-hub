@@ -223,4 +223,10 @@ All colors MUST be HSL.
     max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 2rem);
     margin-top: env(safe-area-inset-top, 0px);
   }
+
+  /* Full-screen editors (position editor etc): respect safe area */
+  .fixed.inset-0 {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 }
