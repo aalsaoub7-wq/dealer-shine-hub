@@ -141,7 +141,7 @@ const SortablePhotoCard = ({
         </div>
         
         {/* Action buttons */}
-        <div className="absolute bottom-2 right-2 opacity-0 md:group-hover:opacity-100 transition-all duration-300 flex gap-2">
+        <div className="absolute bottom-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300 flex gap-2">
           {photo.has_watermark && onWatermarkOptions && <Button size="icon" variant="secondary" onClick={() => onWatermarkOptions(photo.id)} className="h-12 w-12 sm:h-8 sm:w-8 hover:scale-110 transition-transform duration-300" title="Vattenmärkesalternativ">
               <Stamp className="w-6 h-6 sm:w-4 sm:h-4" />
             </Button>}
