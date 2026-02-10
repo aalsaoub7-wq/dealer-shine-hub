@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,7 @@ const SortablePhotoCard = ({
   onRegenerate,
   onWatermarkOptions
 }: SortablePhotoCardProps) => {
+  const isMobile = useIsMobile();
   // Track which URL has been fully loaded - overlay shows until current URL matches
   const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
   const {
@@ -96,7 +98,7 @@ const SortablePhotoCard = ({
         <div 
           {...listeners}
           className="w-full h-full cursor-grab active:cursor-grabbing"
-          onClick={() => onImageClick(photo.url)}
+          onClick={() => !isMobile && onImageClick(photo.url)}
         >
           <img 
             src={getOptimizedImageUrl(photo.url, {
