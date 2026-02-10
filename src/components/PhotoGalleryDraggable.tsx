@@ -56,6 +56,7 @@ const SortablePhotoCard = ({
   onRegenerate,
   onWatermarkOptions
 }: SortablePhotoCardProps) => {
+  const isMobile = useIsMobile();
   // Track which URL has been fully loaded - overlay shows until current URL matches
   const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
   const {
