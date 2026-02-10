@@ -1,10 +1,76 @@
-import { Download, Share, Globe } from "lucide-react";
+import { Download, Share, Globe, Smartphone, Plus, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface PWAInstallButtonProps {
-  /** Render as a compact text link instead of a button */
   variant?: "button" | "link";
+}
+
+function IOSInstallDialog({ children }: { children: React.ReactNode }) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Smartphone className="h-5 w-5" />
+            Installera Luvero på iPhone
+          </DialogTitle>
+        </DialogHeader>
+        <ol className="space-y-4 mt-2">
+          <li className="flex items-start gap-3">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+              1
+            </span>
+            <span className="pt-0.5">
+              Öppna <span className="font-semibold">luvero.se</span> i{" "}
+              <span className="font-semibold">Safari</span>
+            </span>
+          </li>
+          <li className="flex items-start gap-3">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+              2
+            </span>
+            <span className="pt-0.5">
+              Tryck på{" "}
+              <span className="inline-flex items-center gap-1 font-semibold">
+                dela-ikonen
+                <Share className="h-4 w-4" />
+              </span>{" "}
+              i verktygsfältet längst ner
+            </span>
+          </li>
+          <li className="flex items-start gap-3">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+              3
+            </span>
+            <span className="pt-0.5">
+              Scrolla ner och tryck{" "}
+              <span className="inline-flex items-center gap-1 font-semibold">
+                <Plus className="h-4 w-4" />
+                Lägg till på hemskärmen
+              </span>
+            </span>
+          </li>
+          <li className="flex items-start gap-3">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+              ✓
+            </span>
+            <span className="pt-0.5">
+              Klart! Appen finns nu på din hemskärm 🎉
+            </span>
+          </li>
+        </ol>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export function PWAInstallButton({ variant = "button" }: PWAInstallButtonProps) {
@@ -27,15 +93,14 @@ export function PWAInstallButton({ variant = "button" }: PWAInstallButtonProps) 
     }
     if (isIOS) {
       return (
-        <span className="flex items-center gap-2">
-          <Share className="w-4 h-4" />
-          <span>
-            Dela → <span className="font-medium">Lägg till på hemskärmen</span>
-          </span>
-        </span>
+        <IOSInstallDialog>
+          <button className="hover:text-foreground transition-colors flex items-center gap-2">
+            <Smartphone className="w-4 h-4" />
+            Så installerar du på iPhone
+          </button>
+        </IOSInstallDialog>
       );
     }
-    // Fallback – always visible
     return (
       <span className="flex items-center gap-2 text-muted-foreground">
         <Globe className="w-4 h-4" />
@@ -61,15 +126,15 @@ export function PWAInstallButton({ variant = "button" }: PWAInstallButtonProps) 
 
   if (isIOS) {
     return (
-      <p className="mt-3 text-xs text-muted-foreground flex items-center gap-1.5">
-        <Share className="h-3.5 w-3.5 shrink-0" />
-        På iPhone: <span className="font-medium">Dela</span> →{" "}
-        <span className="font-medium">Lägg till på hemskärmen</span>
-      </p>
+      <IOSInstallDialog>
+        <Button size="sm" variant="outline" className="mt-3 gap-2">
+          <Smartphone className="h-4 w-4" />
+          Så installerar du på iPhone
+        </Button>
+      </IOSInstallDialog>
     );
   }
 
-  // Fallback – always visible
   return (
     <p className="mt-3 text-xs text-muted-foreground flex items-center gap-1.5">
       <Globe className="h-3.5 w-3.5 shrink-0" />
