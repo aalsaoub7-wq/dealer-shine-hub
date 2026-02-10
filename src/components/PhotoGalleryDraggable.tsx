@@ -123,7 +123,7 @@ const SortablePhotoCard = ({
             }} 
           />
         </div>
-        <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-primary opacity-0 md:group-hover:opacity-20 transition-opacity duration-500 pointer-events-none" />
         
         {/* Badges */}
         <div className="absolute top-2 right-2 flex flex-col gap-1">
