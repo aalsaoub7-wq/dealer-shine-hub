@@ -69,7 +69,13 @@ serve(async (req) => {
       // Self-healing: if trigger failed, try to create company from signup code
       console.log(`[BILLING-INFO] No company found for user ${user.id}, attempting self-healing...`);
       
-      const { data: { user: adminUser } } = await supabaseClient.auth.admin.getUser(user.id);
+      let adminUser = null;
+      try {
+        const { data } = await supabaseClient.auth.admin.getUser(user.id);
+        adminUser = data?.user;
+      } catch (err) {
+        console.error("[BILLING-INFO] Self-healing: failed to get user via admin API", err);
+      }
       const signupCode = adminUser?.user_metadata?.signup_code;
       
       if (signupCode) {
