@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useBlocketSync } from "@/hooks/useBlocketSync";
+import { useWaykeSync } from "@/hooks/useWaykeSync";
+import { getOptimizedImageUrl } from "@/lib/imageOptimization";
 import { RefreshCw } from "lucide-react";
 
 import blocketLogo from "@/assets/blocket-logo.png";
@@ -33,7 +35,7 @@ interface Platform {
 const platforms: Platform[] = [
   { id: "blocket", name: "Blocket", logo: blocketLogo },
   { id: "facebook-marketplace", name: "Facebook Marketplace", logo: facebookMarketplaceLogo, comingSoon: true },
-  { id: "wayke", name: "Wayke", logo: waykeLogo, comingSoon: true },
+  { id: "wayke", name: "Wayke", logo: waykeLogo },
   { id: "bytbil", name: "Bytbil", logo: bytbilLogo, comingSoon: true },
   { id: "smart365", name: "Smart365", logo: smart365Logo, comingSoon: true },
   { id: "website", name: "Hemsida", logo: websiteLogo, comingSoon: true },
@@ -51,9 +53,19 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [showSocialMediaPicker, setShowSocialMediaPicker] = useState(false);
   const [showBlocketImagePicker, setShowBlocketImagePicker] = useState(false);
+  const [showWaykeImagePicker, setShowWaykeImagePicker] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [selectedBlocketImages, setSelectedBlocketImages] = useState<string[]>([]);
-  const { isLoading, syncToBlocket, status: blocketStatus } = useBlocketSync(carId);
+  const [selectedWaykeImages, setSelectedWaykeImages] = useState<string[]>([]);
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
+  const { isLoading: blocketLoading, syncToBlocket, status: blocketStatus } = useBlocketSync(carId);
+  const { isLoading: waykeLoading, syncToWayke, status: waykeStatus } = useWaykeSync(carId);
+
+  const isLoading = blocketLoading || waykeLoading;
+
+  const handleImageLoad = (url: string) => {
+    setLoadedImages((prev) => new Set(prev).add(url));
+  };
 
   const getPlatformStatus = (platformId: string) => {
     if (platformId === "blocket" && blocketStatus) {
@@ -64,6 +76,17 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
         return { variant: "destructive" as const, text: "Fel" };
       }
       if (blocketStatus.last_action_state === "pending") {
+        return { variant: "warning" as const, text: "Pågående" };
+      }
+    }
+    if (platformId === "wayke" && waykeStatus) {
+      if (waykeStatus.state === "created" && (waykeStatus.last_action_state === "success" || waykeStatus.last_action_state === "done")) {
+        return { variant: "success" as const, text: "Synkad" };
+      }
+      if (waykeStatus.last_action_state === "error") {
+        return { variant: "destructive" as const, text: "Fel" };
+      }
+      if (waykeStatus.last_action_state === "processing") {
         return { variant: "warning" as const, text: "Pågående" };
       }
     }
@@ -82,13 +105,17 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
 
   const handleSync = async () => {
     if (selectedPlatforms.includes("blocket")) {
-      // Show image picker for Blocket
       const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
       setSelectedBlocketImages(mainPhotos.map(p => p.url));
       setShowBlocketImagePicker(true);
       return;
     }
-    // TODO: Implement sync for other platforms
+    if (selectedPlatforms.includes("wayke")) {
+      const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
+      setSelectedWaykeImages(mainPhotos.map(p => p.url));
+      setShowWaykeImagePicker(true);
+      return;
+    }
     onOpenChange(false);
   };
 
@@ -97,11 +124,32 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
     await syncToBlocket(car, selectedBlocketImages);
     setShowBlocketImagePicker(false);
     setSelectedBlocketImages([]);
+    // If Wayke is also selected, show Wayke picker next
+    if (selectedPlatforms.includes("wayke")) {
+      const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
+      setSelectedWaykeImages(mainPhotos.map(p => p.url));
+      setShowWaykeImagePicker(true);
+    } else {
+      onOpenChange(false);
+    }
+  };
+
+  const handleWaykeSync = async () => {
+    if (selectedWaykeImages.length === 0) return;
+    await syncToWayke(car, selectedWaykeImages);
+    setShowWaykeImagePicker(false);
+    setSelectedWaykeImages([]);
     onOpenChange(false);
   };
 
   const toggleBlocketImage = (imageUrl: string) => {
     setSelectedBlocketImages((prev) =>
+      prev.includes(imageUrl) ? prev.filter((url) => url !== imageUrl) : [...prev, imageUrl]
+    );
+  };
+
+  const toggleWaykeImage = (imageUrl: string) => {
+    setSelectedWaykeImages((prev) =>
       prev.includes(imageUrl) ? prev.filter((url) => url !== imageUrl) : [...prev, imageUrl]
     );
   };
@@ -113,13 +161,66 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
   };
 
   const handleSocialMediaShare = () => {
-    // TODO: Implement social media sharing logic
     setShowSocialMediaPicker(false);
     setSelectedImages([]);
   };
 
+  // Reusable image picker renderer
+  const renderImagePicker = (
+    selectedImagesList: string[],
+    toggleImage: (url: string) => void,
+    filterType: "main" | "all" = "main"
+  ) => {
+    const filteredPhotos = filterType === "main"
+      ? (photos?.filter(p => p.photo_type === "main") || [])
+      : (photos || []);
+
+    return (
+      <div className="grid grid-cols-2 gap-3 pr-4">
+        {filteredPhotos.length > 0 ? (
+          filteredPhotos.map((photo, index) => {
+            const optimizedUrl = getOptimizedImageUrl(photo.url, { width: 300, quality: 75 });
+            return (
+              <div
+                key={photo.id}
+                className={`relative cursor-pointer rounded-lg border-2 transition-all ${
+                  selectedImagesList.includes(photo.url)
+                    ? "border-primary shadow-lg"
+                    : "border-border hover:border-primary/50"
+                }`}
+                onClick={() => toggleImage(photo.url)}
+              >
+                <img
+                  src={optimizedUrl}
+                  alt={`Bil bild ${index + 1}`}
+                  className={`aspect-video w-full rounded-lg object-cover transition-opacity duration-300 ${
+                    loadedImages.has(photo.url) ? "opacity-100" : "opacity-0"
+                  }`}
+                  loading="lazy"
+                  decoding="async"
+                  onLoad={() => handleImageLoad(photo.url)}
+                />
+                {!loadedImages.has(photo.url) && (
+                  <div className="aspect-video w-full rounded-lg bg-muted animate-pulse" />
+                )}
+                {selectedImagesList.includes(photo.url) && (
+                  <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white">
+                    ✓
+                  </div>
+                )}
+              </div>
+            );
+          })
+        ) : (
+          <div className="col-span-2 flex h-[300px] items-center justify-center text-muted-foreground">
+            Inga bilder tillgängliga
+          </div>
+        )}
+      </div>
+    );
+  };
+
   if (showBlocketImagePicker) {
-    const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[600px]">
@@ -134,36 +235,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
           </DialogHeader>
 
           <ScrollArea className="h-[400px]">
-            <div className="grid grid-cols-2 gap-3 pr-4">
-              {mainPhotos.length > 0 ? (
-                mainPhotos.map((photo, index) => (
-                  <div
-                    key={photo.id}
-                    className={`relative cursor-pointer rounded-lg border-2 transition-all ${
-                      selectedBlocketImages.includes(photo.url)
-                        ? "border-primary shadow-lg"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                    onClick={() => toggleBlocketImage(photo.url)}
-                  >
-                    <img
-                      src={photo.url}
-                      alt={`Bil bild ${index + 1}`}
-                      className="aspect-video w-full rounded-lg object-cover"
-                    />
-                    {selectedBlocketImages.includes(photo.url) && (
-                      <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white">
-                        ✓
-                      </div>
-                    )}
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-2 flex h-[300px] items-center justify-center text-muted-foreground">
-                  Inga bilder tillgängliga
-                </div>
-              )}
-            </div>
+            {renderImagePicker(selectedBlocketImages, toggleBlocketImage)}
           </ScrollArea>
 
           <DialogFooter>
@@ -178,13 +250,56 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
               Avbryt
             </Button>
             <Button onClick={handleBlocketSync} disabled={selectedBlocketImages.length === 0 || isLoading}>
-              {isLoading ? (
+              {blocketLoading ? (
                 <>
                   <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
                   Skickar...
                 </>
               ) : (
                 `Skicka till Blocket (${selectedBlocketImages.length})`
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (showWaykeImagePicker) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <img src={waykeLogo} alt="Wayke" className="h-6 w-6 object-contain" />
+              Skicka bilder till Wayke
+            </DialogTitle>
+            <DialogDescription>Välj vilka bilder du vill skicka</DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="h-[400px]">
+            {renderImagePicker(selectedWaykeImages, toggleWaykeImage)}
+          </ScrollArea>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowWaykeImagePicker(false);
+                setSelectedWaykeImages([]);
+              }}
+              disabled={isLoading}
+            >
+              Avbryt
+            </Button>
+            <Button onClick={handleWaykeSync} disabled={selectedWaykeImages.length === 0 || isLoading}>
+              {waykeLoading ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Skickar...
+                </>
+              ) : (
+                `Skicka till Wayke (${selectedWaykeImages.length})`
               )}
             </Button>
           </DialogFooter>
@@ -206,36 +321,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
           </DialogHeader>
 
           <ScrollArea className="h-[400px]">
-            <div className="grid grid-cols-2 gap-3 pr-4">
-              {photos && photos.length > 0 ? (
-                photos.map((photo, index) => (
-                  <div
-                    key={photo.id}
-                    className={`relative cursor-pointer rounded-lg border-2 transition-all ${
-                      selectedImages.includes(photo.url)
-                        ? "border-primary shadow-lg"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                    onClick={() => toggleImageSelection(photo.url)}
-                  >
-                    <img
-                      src={photo.url}
-                      alt={`Bil bild ${index + 1}`}
-                      className="aspect-video w-full rounded-lg object-cover"
-                    />
-                    {selectedImages.includes(photo.url) && (
-                      <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white">
-                        ✓
-                      </div>
-                    )}
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-2 flex h-[300px] items-center justify-center text-muted-foreground">
-                  Inga bilder tillgängliga
-                </div>
-              )}
-            </div>
+            {renderImagePicker(selectedImages, toggleImageSelection, "all")}
           </ScrollArea>
 
           <DialogFooter>
