@@ -40,7 +40,7 @@ export function useBlocketSync(carId: string | null) {
   }, [carId]);
 
   // Synka till Blocket
-  const syncToBlocket = async (car: any) => {
+  const syncToBlocket = async (car: any, imageUrls?: string[]) => {
     if (!carId) return;
 
     // Validera först
@@ -57,7 +57,7 @@ export function useBlocketSync(carId: string | null) {
     setIsLoading(true);
 
     try {
-      const result = await syncCarToBlocket(carId);
+      const result = await syncCarToBlocket(carId, imageUrls);
 
       if (result.ok) {
         toast({

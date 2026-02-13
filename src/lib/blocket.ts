@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
  * Synka en bil till Blocket
  * Anropar edge-funktionen som sköter själva API-kommunikationen
  */
-export async function syncCarToBlocket(carId: string): Promise<{
+export async function syncCarToBlocket(carId: string, imageUrls?: string[]): Promise<{
   ok: boolean;
   message?: string;
   status?: any;
@@ -15,7 +15,7 @@ export async function syncCarToBlocket(carId: string): Promise<{
 }> {
   try {
     const { data, error } = await supabase.functions.invoke("blocket-sync", {
-      body: { carId },
+      body: { carId, imageUrls },
     });
 
     if (error) {

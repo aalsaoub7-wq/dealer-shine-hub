@@ -31,7 +31,7 @@ interface Platform {
 }
 
 const platforms: Platform[] = [
-  { id: "blocket", name: "Blocket", logo: blocketLogo, comingSoon: true },
+  { id: "blocket", name: "Blocket", logo: blocketLogo },
   { id: "facebook-marketplace", name: "Facebook Marketplace", logo: facebookMarketplaceLogo, comingSoon: true },
   { id: "wayke", name: "Wayke", logo: waykeLogo, comingSoon: true },
   { id: "bytbil", name: "Bytbil", logo: bytbilLogo, comingSoon: true },
@@ -50,7 +50,9 @@ interface PlatformSyncDialogProps {
 export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: PlatformSyncDialogProps) {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [showSocialMediaPicker, setShowSocialMediaPicker] = useState(false);
+  const [showBlocketImagePicker, setShowBlocketImagePicker] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [selectedBlocketImages, setSelectedBlocketImages] = useState<string[]>([]);
   const { isLoading, syncToBlocket, status: blocketStatus } = useBlocketSync(carId);
 
   const getPlatformStatus = (platformId: string) => {
@@ -79,12 +81,29 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
   };
 
   const handleSync = async () => {
-    // Currently only Blocket sync is implemented
     if (selectedPlatforms.includes("blocket")) {
-      await syncToBlocket(car);
+      // Show image picker for Blocket
+      const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
+      setSelectedBlocketImages(mainPhotos.map(p => p.url));
+      setShowBlocketImagePicker(true);
+      return;
     }
     // TODO: Implement sync for other platforms
     onOpenChange(false);
+  };
+
+  const handleBlocketSync = async () => {
+    if (selectedBlocketImages.length === 0) return;
+    await syncToBlocket(car, selectedBlocketImages);
+    setShowBlocketImagePicker(false);
+    setSelectedBlocketImages([]);
+    onOpenChange(false);
+  };
+
+  const toggleBlocketImage = (imageUrl: string) => {
+    setSelectedBlocketImages((prev) =>
+      prev.includes(imageUrl) ? prev.filter((url) => url !== imageUrl) : [...prev, imageUrl]
+    );
   };
 
   const toggleImageSelection = (imageUrl: string) => {
@@ -98,6 +117,81 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
     setShowSocialMediaPicker(false);
     setSelectedImages([]);
   };
+
+  if (showBlocketImagePicker) {
+    const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="h-6 w-6 overflow-hidden rounded">
+                <img src={blocketLogo} alt="Blocket" className="h-full w-full object-cover scale-200" />
+              </div>
+              Skicka bilder till Blocket
+            </DialogTitle>
+            <DialogDescription>Välj vilka bilder du vill skicka (max 38)</DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="h-[400px]">
+            <div className="grid grid-cols-2 gap-3 pr-4">
+              {mainPhotos.length > 0 ? (
+                mainPhotos.map((photo, index) => (
+                  <div
+                    key={photo.id}
+                    className={`relative cursor-pointer rounded-lg border-2 transition-all ${
+                      selectedBlocketImages.includes(photo.url)
+                        ? "border-primary shadow-lg"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                    onClick={() => toggleBlocketImage(photo.url)}
+                  >
+                    <img
+                      src={photo.url}
+                      alt={`Bil bild ${index + 1}`}
+                      className="aspect-video w-full rounded-lg object-cover"
+                    />
+                    {selectedBlocketImages.includes(photo.url) && (
+                      <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white">
+                        ✓
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-2 flex h-[300px] items-center justify-center text-muted-foreground">
+                  Inga bilder tillgängliga
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowBlocketImagePicker(false);
+                setSelectedBlocketImages([]);
+              }}
+              disabled={isLoading}
+            >
+              Avbryt
+            </Button>
+            <Button onClick={handleBlocketSync} disabled={selectedBlocketImages.length === 0 || isLoading}>
+              {isLoading ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Skickar...
+                </>
+              ) : (
+                `Skicka till Blocket (${selectedBlocketImages.length})`
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   if (showSocialMediaPicker) {
     return (

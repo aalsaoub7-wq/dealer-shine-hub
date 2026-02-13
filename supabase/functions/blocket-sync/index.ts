@@ -69,6 +69,7 @@ serve(async (req) => {
 
     const body = await req.json();
     const carId = body.carId || body.car_id;
+    const imageUrls: string[] | undefined = body.imageUrls;
     
     if (!carId) {
       return new Response(
@@ -100,7 +101,7 @@ serve(async (req) => {
     console.log("[Blocket Edge Function] Syncing car:", carId, "for user:", user.id);
 
     // Kör sync
-    await BlocketSyncService.syncCar(carId);
+    await BlocketSyncService.syncCar(carId, imageUrls);
 
     // Hämta och returnera status
     const status = await BlocketSyncService.getStatusForCar(carId);
