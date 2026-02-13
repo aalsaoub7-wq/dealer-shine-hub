@@ -1218,7 +1218,7 @@ const CarDetail = () => {
         const { error: uploadError } = await supabase.storage.from("car-photos").upload(filePath, compositionBlob, { contentType: "image/jpeg", upsert: true });
         if (uploadError) throw uploadError;
         const { data: urlData } = supabase.storage.from("car-photos").getPublicUrl(filePath);
-        await supabase.from("photos").update({ url: urlData.publicUrl, is_processing: false, edit_type: 'interior', interior_background_url: bgImageUrl || null }).eq("id", photoId);
+        await supabase.from("photos").update({ url: urlData.publicUrl, is_edited: true, is_processing: false, edit_type: 'interior', interior_background_url: bgImageUrl || null }).eq("id", photoId);
         try { await trackRegenerationUsage(photoId, car.id); } catch (e) { console.error("Error tracking usage:", e); }
         successNotification();
       } catch (error) {
@@ -1333,6 +1333,7 @@ const CarDetail = () => {
               url: publicUrl,
               is_processing: false,
               edit_type: 'interior',
+              interior_background_url: null,
             })
             .eq("id", photo.id);
 
