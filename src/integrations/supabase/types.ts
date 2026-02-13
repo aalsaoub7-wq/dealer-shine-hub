@@ -903,6 +903,53 @@ export type Database = {
         }
         Relationships: []
       }
+      wayke_ad_sync: {
+        Row: {
+          car_id: string
+          created_at: string | null
+          last_action: string | null
+          last_action_state: string | null
+          last_error: string | null
+          last_synced_at: string | null
+          source_id: string
+          state: string
+          updated_at: string | null
+          wayke_vehicle_id: string | null
+        }
+        Insert: {
+          car_id: string
+          created_at?: string | null
+          last_action?: string | null
+          last_action_state?: string | null
+          last_error?: string | null
+          last_synced_at?: string | null
+          source_id: string
+          state?: string
+          updated_at?: string | null
+          wayke_vehicle_id?: string | null
+        }
+        Update: {
+          car_id?: string
+          created_at?: string | null
+          last_action?: string | null
+          last_action_state?: string | null
+          last_error?: string | null
+          last_synced_at?: string | null
+          source_id?: string
+          state?: string
+          updated_at?: string | null
+          wayke_vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wayke_ad_sync_car_id_fkey"
+            columns: ["car_id"]
+            isOneToOne: true
+            referencedRelation: "cars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       public_invite_codes: {
