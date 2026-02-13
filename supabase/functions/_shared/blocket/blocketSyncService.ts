@@ -83,7 +83,7 @@ async function updateSyncRecord(car_id: string, patch: Partial<BlocketAdSync>) {
 
 // ====== MAPPNING Car -> Blocket-annons-payload ======
 
-export function mapCarToBlocketPayload(car: Car): any {
+export function mapCarToBlocketPayload(car: Car, imageUrls?: string[]): any {
   // TODO: Ersätt dessa placeholder-värden med riktiga företagsuppgifter
   // Du kan hämta dessa från companies-tabellen eller konfigurera som env-variabler
   const DEALER_CODE = Deno.env.get("BLOCKET_DEALER_CODE") || "DEMO_DEALER";
@@ -105,7 +105,7 @@ export function mapCarToBlocketPayload(car: Car): any {
           },
         ]
       : undefined,
-    image_urls: car.image_urls || [],
+    image_urls: imageUrls && imageUrls.length > 0 ? imageUrls : (car.image_urls || []),
     contact: {
       name: DEALER_NAME,
       phone: DEALER_PHONE,
@@ -133,7 +133,7 @@ export class BlocketSyncService {
    *  - Bil markeras såld / tas bort (deleted_at sätts)
    *  - publish_on_blocket togglas
    */
-  static async syncCar(carId: string) {
+  static async syncCar(carId: string, imageUrls?: string[]) {
     console.log("[BlocketSync] Starting sync for car:", carId);
     
     const car = await getCarById(carId);
@@ -158,7 +158,7 @@ export class BlocketSyncService {
     }
 
     // Bilen ska vara på Blocket
-    const payload = mapCarToBlocketPayload(car);
+    const payload = mapCarToBlocketPayload(car, imageUrls);
     const sourceId = sync?.source_id || car.id;
 
     if (!sync || sync.state === "deleted" || sync.state === "none") {
