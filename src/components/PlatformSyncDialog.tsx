@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,10 +12,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import { useBlocketSync } from "@/hooks/useBlocketSync";
 import { useWaykeSync } from "@/hooks/useWaykeSync";
 import { getOptimizedImageUrl } from "@/lib/imageOptimization";
+import { supabase } from "@/integrations/supabase/client";
 import { RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 
 import blocketLogo from "@/assets/blocket-logo.png";
 import facebookMarketplaceLogo from "@/assets/facebook-marketplace-logo.png";
@@ -49,6 +52,17 @@ interface PlatformSyncDialogProps {
   photos: Array<{ id: string; url: string; photo_type: string }>;
 }
 
+interface AiSettingsCredentials {
+  blocket_api_token?: string | null;
+  blocket_dealer_code?: string | null;
+  blocket_dealer_name?: string | null;
+  blocket_dealer_phone?: string | null;
+  blocket_dealer_email?: string | null;
+  wayke_client_id?: string | null;
+  wayke_client_secret?: string | null;
+  wayke_branch_id?: string | null;
+}
+
 export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: PlatformSyncDialogProps) {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [showSocialMediaPicker, setShowSocialMediaPicker] = useState(false);
@@ -61,7 +75,44 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
   const { isLoading: blocketLoading, syncToBlocket, status: blocketStatus } = useBlocketSync(carId);
   const { isLoading: waykeLoading, syncToWayke, status: waykeStatus } = useWaykeSync(carId);
 
+  // Credentials state
+  const [credentials, setCredentials] = useState<AiSettingsCredentials | null>(null);
+  const [credentialsLoaded, setCredentialsLoaded] = useState(false);
+  const [showBlocketSetup, setShowBlocketSetup] = useState(false);
+  const [showWaykeSetup, setShowWaykeSetup] = useState(false);
+  const [savingCredentials, setSavingCredentials] = useState(false);
+
+  // Setup form state
+  const [blocketForm, setBlocketForm] = useState({
+    blocket_api_token: "",
+    blocket_dealer_code: "",
+    blocket_dealer_name: "",
+    blocket_dealer_phone: "",
+    blocket_dealer_email: "",
+  });
+  const [waykeForm, setWaykeForm] = useState({
+    wayke_client_id: "",
+    wayke_client_secret: "",
+    wayke_branch_id: "",
+  });
+
   const isLoading = blocketLoading || waykeLoading;
+
+  // Fetch credentials on open
+  useEffect(() => {
+    if (open && car?.company_id) {
+      setCredentialsLoaded(false);
+      supabase
+        .from("ai_settings")
+        .select("blocket_api_token, blocket_dealer_code, blocket_dealer_name, blocket_dealer_phone, blocket_dealer_email, wayke_client_id, wayke_client_secret, wayke_branch_id")
+        .eq("company_id", car.company_id)
+        .maybeSingle()
+        .then(({ data }) => {
+          setCredentials(data as AiSettingsCredentials | null);
+          setCredentialsLoaded(true);
+        });
+    }
+  }, [open, car?.company_id]);
 
   const handleImageLoad = (url: string) => {
     setLoadedImages((prev) => new Set(prev).add(url));
@@ -103,14 +154,102 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
     setSelectedPlatforms(platforms.filter((p) => !p.comingSoon).map((p) => p.id));
   };
 
+  const hasBlocketCredentials = () => {
+    return credentials?.blocket_api_token && credentials?.blocket_dealer_code;
+  };
+
+  const hasWaykeCredentials = () => {
+    return credentials?.wayke_client_id && credentials?.wayke_client_secret && credentials?.wayke_branch_id;
+  };
+
+  const saveBlocketCredentials = async () => {
+    if (!blocketForm.blocket_api_token || !blocketForm.blocket_dealer_code) {
+      toast.error("API-token och dealer-kod krävs");
+      return;
+    }
+    setSavingCredentials(true);
+    try {
+      const { error } = await supabase
+        .from("ai_settings")
+        .update({
+          blocket_api_token: blocketForm.blocket_api_token,
+          blocket_dealer_code: blocketForm.blocket_dealer_code,
+          blocket_dealer_name: blocketForm.blocket_dealer_name || null,
+          blocket_dealer_phone: blocketForm.blocket_dealer_phone || null,
+          blocket_dealer_email: blocketForm.blocket_dealer_email || null,
+        })
+        .eq("company_id", car.company_id);
+
+      if (error) throw error;
+
+      setCredentials(prev => ({
+        ...prev,
+        ...blocketForm,
+      }));
+      setShowBlocketSetup(false);
+      toast.success("Blocket-uppgifter sparade!");
+      // Now proceed to image picker
+      const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
+      setSelectedBlocketImages(mainPhotos.map(p => p.url));
+      setShowBlocketImagePicker(true);
+    } catch (e: any) {
+      toast.error("Kunde inte spara: " + e.message);
+    } finally {
+      setSavingCredentials(false);
+    }
+  };
+
+  const saveWaykeCredentials = async () => {
+    if (!waykeForm.wayke_client_id || !waykeForm.wayke_client_secret || !waykeForm.wayke_branch_id) {
+      toast.error("Alla fält krävs");
+      return;
+    }
+    setSavingCredentials(true);
+    try {
+      const { error } = await supabase
+        .from("ai_settings")
+        .update({
+          wayke_client_id: waykeForm.wayke_client_id,
+          wayke_client_secret: waykeForm.wayke_client_secret,
+          wayke_branch_id: waykeForm.wayke_branch_id,
+        })
+        .eq("company_id", car.company_id);
+
+      if (error) throw error;
+
+      setCredentials(prev => ({
+        ...prev,
+        ...waykeForm,
+      }));
+      setShowWaykeSetup(false);
+      toast.success("Wayke-uppgifter sparade!");
+      // Now proceed to image picker
+      const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
+      setSelectedWaykeImages(mainPhotos.map(p => p.url));
+      setShowWaykeImagePicker(true);
+    } catch (e: any) {
+      toast.error("Kunde inte spara: " + e.message);
+    } finally {
+      setSavingCredentials(false);
+    }
+  };
+
   const handleSync = async () => {
     if (selectedPlatforms.includes("blocket")) {
+      if (!hasBlocketCredentials()) {
+        setShowBlocketSetup(true);
+        return;
+      }
       const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
       setSelectedBlocketImages(mainPhotos.map(p => p.url));
       setShowBlocketImagePicker(true);
       return;
     }
     if (selectedPlatforms.includes("wayke")) {
+      if (!hasWaykeCredentials()) {
+        setShowWaykeSetup(true);
+        return;
+      }
       const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
       setSelectedWaykeImages(mainPhotos.map(p => p.url));
       setShowWaykeImagePicker(true);
@@ -126,9 +265,13 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
     setSelectedBlocketImages([]);
     // If Wayke is also selected, show Wayke picker next
     if (selectedPlatforms.includes("wayke")) {
-      const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
-      setSelectedWaykeImages(mainPhotos.map(p => p.url));
-      setShowWaykeImagePicker(true);
+      if (!hasWaykeCredentials()) {
+        setShowWaykeSetup(true);
+      } else {
+        const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
+        setSelectedWaykeImages(mainPhotos.map(p => p.url));
+        setShowWaykeImagePicker(true);
+      }
     } else {
       onOpenChange(false);
     }
@@ -219,6 +362,141 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
       </div>
     );
   };
+
+  // Blocket setup form
+  if (showBlocketSetup) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="h-6 w-6 overflow-hidden rounded">
+                <img src={blocketLogo} alt="Blocket" className="h-full w-full object-cover scale-200" />
+              </div>
+              Konfigurera Blocket
+            </DialogTitle>
+            <DialogDescription>
+              Ange dina Blocket-uppgifter. Du behöver bara göra detta en gång.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="blocket_api_token">API-token *</Label>
+              <Input
+                id="blocket_api_token"
+                type="password"
+                placeholder="Din Blocket API-token"
+                value={blocketForm.blocket_api_token}
+                onChange={(e) => setBlocketForm(f => ({ ...f, blocket_api_token: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="blocket_dealer_code">Dealer-kod *</Label>
+              <Input
+                id="blocket_dealer_code"
+                placeholder="T.ex. DEMO_DEALER"
+                value={blocketForm.blocket_dealer_code}
+                onChange={(e) => setBlocketForm(f => ({ ...f, blocket_dealer_code: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="blocket_dealer_name">Kontaktnamn</Label>
+              <Input
+                id="blocket_dealer_name"
+                placeholder="Ditt namn"
+                value={blocketForm.blocket_dealer_name}
+                onChange={(e) => setBlocketForm(f => ({ ...f, blocket_dealer_name: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="blocket_dealer_phone">Telefon</Label>
+              <Input
+                id="blocket_dealer_phone"
+                placeholder="0700000000"
+                value={blocketForm.blocket_dealer_phone}
+                onChange={(e) => setBlocketForm(f => ({ ...f, blocket_dealer_phone: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="blocket_dealer_email">E-post</Label>
+              <Input
+                id="blocket_dealer_email"
+                type="email"
+                placeholder="info@example.com"
+                value={blocketForm.blocket_dealer_email}
+                onChange={(e) => setBlocketForm(f => ({ ...f, blocket_dealer_email: e.target.value }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBlocketSetup(false)} disabled={savingCredentials}>
+              Avbryt
+            </Button>
+            <Button onClick={saveBlocketCredentials} disabled={savingCredentials}>
+              {savingCredentials ? "Sparar..." : "Spara och fortsätt"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Wayke setup form
+  if (showWaykeSetup) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <img src={waykeLogo} alt="Wayke" className="h-6 w-6 object-contain" />
+              Konfigurera Wayke
+            </DialogTitle>
+            <DialogDescription>
+              Ange dina Wayke-uppgifter. Du behöver bara göra detta en gång. Kontakta info@wayke.se för att få dina uppgifter.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="wayke_client_id">Client ID *</Label>
+              <Input
+                id="wayke_client_id"
+                placeholder="Din Wayke Client ID"
+                value={waykeForm.wayke_client_id}
+                onChange={(e) => setWaykeForm(f => ({ ...f, wayke_client_id: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="wayke_client_secret">Client Secret *</Label>
+              <Input
+                id="wayke_client_secret"
+                type="password"
+                placeholder="Din Wayke Client Secret"
+                value={waykeForm.wayke_client_secret}
+                onChange={(e) => setWaykeForm(f => ({ ...f, wayke_client_secret: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="wayke_branch_id">Branch ID *</Label>
+              <Input
+                id="wayke_branch_id"
+                placeholder="UUID för din branch"
+                value={waykeForm.wayke_branch_id}
+                onChange={(e) => setWaykeForm(f => ({ ...f, wayke_branch_id: e.target.value }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowWaykeSetup(false)} disabled={savingCredentials}>
+              Avbryt
+            </Button>
+            <Button onClick={saveWaykeCredentials} disabled={savingCredentials}>
+              {savingCredentials ? "Sparar..." : "Spara och fortsätt"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   if (showBlocketImagePicker) {
     return (

@@ -74,9 +74,30 @@ serve(async (req) => {
       );
     }
 
+    // Fetch per-company credentials from ai_settings using service role
+    const serviceClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: aiSettings } = await serviceClient
+      .from("ai_settings")
+      .select("wayke_client_id, wayke_client_secret, wayke_branch_id")
+      .eq("company_id", car.company_id)
+      .maybeSingle();
+
+    const credentials = {
+      clientId: aiSettings?.wayke_client_id || Deno.env.get("WAYKE_CLIENT_ID") || "",
+      clientSecret: aiSettings?.wayke_client_secret || Deno.env.get("WAYKE_CLIENT_SECRET") || "",
+      branchId: aiSettings?.wayke_branch_id || Deno.env.get("WAYKE_BRANCH_ID") || "",
+    };
+
+    if (!credentials.clientId || !credentials.clientSecret || !credentials.branchId) {
+      return new Response(
+        JSON.stringify({ ok: false, error: "Wayke-uppgifter saknas. Konfigurera dem i synkdialogen." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     console.log("[Wayke Edge Function] Syncing car:", carId, "for user:", userId);
 
-    await WaykeSyncService.syncCar(carId, imageUrls);
+    await WaykeSyncService.syncCar(carId, imageUrls, credentials);
     const status = await WaykeSyncService.getStatusForCar(carId);
 
     return new Response(

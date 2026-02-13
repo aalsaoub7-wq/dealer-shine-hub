@@ -3,7 +3,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-export async function syncCarToWayke(carId: string, imageUrls?: string[]): Promise<{
+export async function syncCarToWayke(carId: string, imageUrls?: string[], companyId?: string): Promise<{
   ok: boolean;
   message?: string;
   status?: any;
@@ -11,7 +11,7 @@ export async function syncCarToWayke(carId: string, imageUrls?: string[]): Promi
 }> {
   try {
     const { data, error } = await supabase.functions.invoke("wayke-sync", {
-      body: { carId, imageUrls },
+      body: { carId, imageUrls, companyId },
     });
 
     if (error) {

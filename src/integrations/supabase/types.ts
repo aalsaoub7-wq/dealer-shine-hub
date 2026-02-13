@@ -39,6 +39,11 @@ export type Database = {
         Row: {
           background_prompt: string
           background_template_id: string | null
+          blocket_api_token: string | null
+          blocket_dealer_code: string | null
+          blocket_dealer_email: string | null
+          blocket_dealer_name: string | null
+          blocket_dealer_phone: string | null
           company_id: string
           created_at: string
           custom_background_seed: string | null
@@ -66,10 +71,18 @@ export type Database = {
           watermark_size: number | null
           watermark_x: number | null
           watermark_y: number | null
+          wayke_branch_id: string | null
+          wayke_client_id: string | null
+          wayke_client_secret: string | null
         }
         Insert: {
           background_prompt?: string
           background_template_id?: string | null
+          blocket_api_token?: string | null
+          blocket_dealer_code?: string | null
+          blocket_dealer_email?: string | null
+          blocket_dealer_name?: string | null
+          blocket_dealer_phone?: string | null
           company_id: string
           created_at?: string
           custom_background_seed?: string | null
@@ -97,10 +110,18 @@ export type Database = {
           watermark_size?: number | null
           watermark_x?: number | null
           watermark_y?: number | null
+          wayke_branch_id?: string | null
+          wayke_client_id?: string | null
+          wayke_client_secret?: string | null
         }
         Update: {
           background_prompt?: string
           background_template_id?: string | null
+          blocket_api_token?: string | null
+          blocket_dealer_code?: string | null
+          blocket_dealer_email?: string | null
+          blocket_dealer_name?: string | null
+          blocket_dealer_phone?: string | null
           company_id?: string
           created_at?: string
           custom_background_seed?: string | null
@@ -128,6 +149,9 @@ export type Database = {
           watermark_size?: number | null
           watermark_x?: number | null
           watermark_y?: number | null
+          wayke_branch_id?: string | null
+          wayke_client_id?: string | null
+          wayke_client_secret?: string | null
         }
         Relationships: [
           {
