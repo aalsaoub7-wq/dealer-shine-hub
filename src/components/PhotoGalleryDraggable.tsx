@@ -177,8 +177,8 @@ const PhotoGalleryDraggable = ({
   // Sync internal state when photos prop changes (after upload/edit/watermark)
   // Smart comparison to prevent re-renders when only display_order changes from drag-drop
   useEffect(() => {
-    const currentIds = items.map(i => `${i.id}-${i.url}-${i.is_processing}`).join(',');
-    const newIds = photos.map(p => `${p.id}-${p.url}-${p.is_processing}`).join(',');
+    const currentIds = items.map(i => `${i.id}-${i.url}-${i.is_processing}-${i.edit_type}-${i.has_watermark}-${i.interior_background_url}`).join(',');
+    const newIds = photos.map(p => `${p.id}-${p.url}-${p.is_processing}-${p.edit_type}-${p.has_watermark}-${p.interior_background_url}`).join(',');
     
     if (currentIds !== newIds) {
       setItems(photos);
