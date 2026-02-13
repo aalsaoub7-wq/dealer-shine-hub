@@ -1,57 +1,43 @@
 
-# Fix: Interior edited pictures getting mixed up
 
-## Root Cause
+# Fix: Make interior editing as reliable as AI redigera
 
-Two issues contribute to interior photos getting mixed up:
+## Gaps found by comparing `handleEditPhotos` (reliable) vs interior flows
 
-**1. Missing photo ID in upload filenames (primary cause)**
+### Gap 1: `handleInteriorEditWithColorChange` doesn't clear `interior_background_url`
+When changing from a background-image interior edit to a solid-color edit, the old `interior_background_url` stays in the DB. Next time the user clicks "Edit" on that photo, the position editor loads the OLD background image instead of showing solid color mode. This is a direct cause of "mixed up" behavior.
 
-When saving interior edits via color change or position adjustment, the upload filename is `interior-${Date.now()}.jpg` -- no photo ID. If two operations happen close together, they write to nearly identical paths and can overwrite each other. The batch interior edit flow correctly uses `interior-${photo.id}-${Date.now()}.jpg`, but the single-photo flows do not.
-
-**2. Incomplete gallery sync comparison**
-
-The `PhotoGalleryDraggable` component's internal `items` state syncs with the `photos` prop by comparing `id-url-is_processing`. It does not check `edit_type`, `has_watermark`, or `interior_background_url`, so these fields can become stale in the display.
-
-## Changes (2 files, ~4 lines each)
-
-### File 1: `src/pages/CarDetail.tsx`
-
-**Line 1311** -- in `handleInteriorEditWithColorChange`:
-```
+**Fix** (line ~1332 in `CarDetail.tsx`):
+```typescript
 // Before:
-const fileName = `interior-${Date.now()}.jpg`;
-// After:
-const fileName = `interior-${photo.id}-${Date.now()}.jpg`;
-```
-
-**Line 1216** -- in `handlePositionEditorSave`:
-```
-// Before:
-const fileName = `interior-${Date.now()}.jpg`;
-// After:
-const fileName = `interior-${photoId}-${Date.now()}.jpg`;
-```
-
-### File 2: `src/components/PhotoGalleryDraggable.tsx`
-
-**Lines 180-181** -- sync comparison:
-```
-// Before:
-const currentIds = items.map(i => `${i.id}-${i.url}-${i.is_processing}`).join(',');
-const newIds = photos.map(p => `${p.id}-${p.url}-${p.is_processing}`).join(',');
+.update({
+  url: publicUrl,
+  is_processing: false,
+  edit_type: 'interior',
+})
 
 // After:
-const currentIds = items.map(i => `${i.id}-${i.url}-${i.is_processing}-${i.edit_type}-${i.has_watermark}-${i.interior_background_url}`).join(',');
-const newIds = photos.map(p => `${p.id}-${p.url}-${p.is_processing}-${p.edit_type}-${p.has_watermark}-${p.interior_background_url}`).join(',');
+.update({
+  url: publicUrl,
+  is_processing: false,
+  edit_type: 'interior',
+  interior_background_url: null,  // Clear - solid color was used
+})
 ```
 
-## What does NOT change
+### Gap 2: `handlePositionEditorSave` (interior path) doesn't set `is_edited: true`
+AI redigera always sets `is_edited: true`. The interior position save skips it, so the photo may not show the "Redigerad"/"Interior" badge correctly after repositioning.
 
-- No new files or dependencies
-- No schema or migration changes
-- No changes to edge functions
-- No changes to Auth, ProtectedRoute, or any other pages
-- No changes to the interior editing logic flow
-- Batch interior edit flow is already correct and untouched
-- All existing users unaffected
+**Fix** (line ~1221 in `CarDetail.tsx`):
+```typescript
+// Before:
+.update({ url: urlData.publicUrl, is_processing: false, edit_type: 'interior', interior_background_url: bgImageUrl || null })
+
+// After:
+.update({ url: urlData.publicUrl, is_edited: true, is_processing: false, edit_type: 'interior', interior_background_url: bgImageUrl || null })
+```
+
+## Summary
+
+Two one-line additions in `CarDetail.tsx`. No new files, no schema changes, no edge function changes. Same error handling pattern already in place. These close the remaining gaps between interior and studio editing reliability.
+
