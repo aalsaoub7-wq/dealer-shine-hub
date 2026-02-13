@@ -336,7 +336,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
                 <img
                   src={optimizedUrl}
                   alt={`Bil bild ${index + 1}`}
-                  className={`aspect-video w-full rounded-lg object-cover transition-opacity duration-300 ${
+                  className={`aspect-[3/2] w-full rounded-lg object-cover transition-opacity duration-300 ${
                     loadedImages.has(photo.url) ? "opacity-100" : "opacity-0"
                   }`}
                   loading="lazy"
@@ -344,7 +344,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
                   onLoad={() => handleImageLoad(photo.url)}
                 />
                 {!loadedImages.has(photo.url) && (
-                  <div className="aspect-video w-full rounded-lg bg-muted animate-pulse" />
+                  <div className="aspect-[3/2] w-full rounded-lg bg-muted animate-pulse" />
                 )}
                 {selectedImagesList.includes(photo.url) && (
                   <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white">
