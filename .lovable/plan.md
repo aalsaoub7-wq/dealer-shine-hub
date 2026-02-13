@@ -1,110 +1,108 @@
 
 
-# Enable Wayke API Integration -- Send Images to Wayke
+# Per-Company Credentials for Blocket & Wayke
 
-## Overview
+## Problem
 
-Add Wayke as a working sync destination alongside Blocket, following the exact same UI patterns and code structure. Users will be able to select photos and send them to Wayke directly from the app.
+Currently, Blocket uses global `BLOCKET_API_TOKEN` / `BLOCKET_DEALER_CODE` etc. from environment secrets, and Wayke uses global `WAYKE_CLIENT_ID` / `WAYKE_CLIENT_SECRET` / `WAYKE_BRANCH_ID`. But each company/user has their own credentials -- these need to be stored per-company in the database and entered once via a smooth setup form.
 
-## Wayke API Key Differences from Blocket
+## Solution
 
-- **Authentication**: OAuth2 client credentials flow (client_id + client_secret -> JWT token from `https://auth.wayke.se/connect/token`), NOT a static API key
-- **Base URLs**: `dealer-api.wayke.se` for vehicle operations, `api.wayke.se/media/v2` for image uploads
-- **Branch ID**: Required UUID identifying the dealer's branch in Wayke
-- **Image handling**: Two-step process: 1) Upload image by URL via `/media/v2/image-url`, 2) Link to vehicle via `ad.media[].fileUrls[]` in vehicle create/patch
-
-## Required Secrets (3 new)
-
-Before implementation works, you'll need to provide:
-1. **WAYKE_CLIENT_ID** -- OAuth2 client ID (obtained from Wayke at info@wayke.se)
-2. **WAYKE_CLIENT_SECRET** -- OAuth2 client secret (obtained from Wayke)
-3. **WAYKE_BRANCH_ID** -- Your branch UUID in Wayke (obtained from Wayke)
+Store platform credentials in the `ai_settings` table (already has per-company CRUD with RLS). Add a one-time settings form that appears when a user first tries to sync to Blocket or Wayke and their credentials are missing.
 
 ## Changes
 
-### 1. `src/components/PlatformSyncDialog.tsx`
-- Set Wayke `comingSoon: false` (line 36)
-- Add Wayke image picker state and handlers (same pattern as Blocket image picker)
-- Use `getOptimizedImageUrl` with `loading="lazy"` and `decoding="async"` on **both** Blocket and Wayke image pickers for smooth loading
-- Import and call a new `useWaykeSync` hook
-- Show Wayke sync status badges (same pattern as Blocket)
+### 1. Database migration -- Add credential columns to `ai_settings`
 
-### 2. New file: `src/hooks/useWaykeSync.ts`
-- Copy of `useBlocketSync.ts` adapted for Wayke
-- Calls `syncCarToWayke` / `getWaykeStatus` / `subscribeToWaykeStatus` from a new `src/lib/wayke.ts`
-- Same toast patterns, same validation (make, model, year, price required)
+Add 7 new nullable text columns:
 
-### 3. New file: `src/lib/wayke.ts`
-- Copy of `src/lib/blocket.ts` adapted for Wayke
-- `syncCarToWayke(carId, imageUrls)` -- invokes `wayke-sync` edge function
-- `getWaykeStatus(carId)` -- reads from `wayke_ad_sync` table
-- `subscribeToWaykeStatus(carId, callback)` -- realtime subscription on `wayke_ad_sync`
-- `validateCarForWayke(car)` -- same required fields as Blocket
+- `blocket_api_token` -- JWT auth token for Blocket API
+- `blocket_dealer_code` -- Dealer code from Blocket
+- `blocket_dealer_name` -- Contact name
+- `blocket_dealer_phone` -- Contact phone
+- `blocket_dealer_email` -- Contact email
+- `wayke_client_id` -- OAuth2 client ID for Wayke
+- `wayke_client_secret` -- OAuth2 client secret for Wayke
+- `wayke_branch_id` -- Branch UUID for Wayke
 
-### 4. New database table: `wayke_ad_sync`
-- Same schema as `blocket_ad_sync` but with `wayke_vehicle_id` instead of `blocket_ad_id`
-- Columns: `car_id`, `source_id`, `wayke_vehicle_id`, `state`, `last_action`, `last_action_state`, `last_error`, `last_synced_at`, `created_at`, `updated_at`
-- RLS policies: same pattern as `blocket_ad_sync` (company-scoped via cars table join)
+### 2. `src/components/PlatformSyncDialog.tsx`
 
-### 5. New edge function: `supabase/functions/wayke-sync/index.ts`
-- Same structure as `blocket-sync/index.ts` (CORS, auth check, car access check)
-- Reads `carId` and `imageUrls` from request body
-- Calls `WaykeSyncService.syncCar(carId, imageUrls)`
+Add a credentials setup form that appears **before** the image picker when credentials are missing:
 
-### 6. New file: `supabase/functions/_shared/wayke/waykeClient.ts`
-- OAuth2 token acquisition: `POST https://auth.wayke.se/connect/token` with `client_id`, `client_secret`, `grant_type=client_credentials`, `scope=api-resource`
-- Token caching (reuse until expired)
-- Vehicle API calls:
-  - `createVehicle(branchId, payload)` -- `POST https://dealer-api.wayke.se/vehicle`
-  - `updateVehicle(waykeId, payload)` -- `PATCH https://dealer-api.wayke.se/vehicle/{id}`
-  - `getVehicle(waykeId)` -- `GET https://dealer-api.wayke.se/vehicle/{id}/ad`
-  - `updateVehicleStatus(waykeId, status)` -- `PUT https://dealer-api.wayke.se/vehicle/{id}/ad/status`
-  - `uploadImageByUrl(url, branchId, waykeId, sortOrder)` -- `POST https://api.wayke.se/media/v2/image-url`
+- On clicking "Synka" with Blocket selected, check if `ai_settings` has `blocket_api_token` and `blocket_dealer_code` set
+- If missing, show a form with fields: API-token, Dealer-kod, Kontaktnamn, Telefon, E-post
+- User fills in once, saves to `ai_settings`, then proceeds to image picker
+- Same pattern for Wayke: check `wayke_client_id`, `wayke_client_secret`, `wayke_branch_id`
+- If missing, show Wayke setup form, save, then proceed to image picker
+- Once saved, credentials are remembered and the form never appears again
 
-### 7. New file: `supabase/functions/_shared/wayke/waykeSyncService.ts`
-- Same structure as `blocketSyncService.ts`
-- `syncCar(carId, imageUrls)`:
-  1. Fetch car from DB
-  2. Check if vehicle exists in Wayke (via `wayke_ad_sync` table)
-  3. If new: create vehicle, then upload images by URL, save sync record
-  4. If existing: update vehicle with new images
-  5. If deleted: set status to "Deleted" on Wayke
-- `mapCarToWaykePayload(car, imageUrls)` -- maps car data to Wayke's vehicle format:
-  - `branch`: branchId from env
-  - `marketCode`: "SE"
-  - `status`: "Published"
-  - `vehicle`: `{registrationNumber, vin, mileage}`
-  - `ad`: `{price, shortDescription, description, media: [{fileUrls: imageUrls}]}`
+Fetch `ai_settings` for the car's company on dialog open.
 
-### 8. New file: `supabase/functions/_shared/wayke/waykeTypes.ts`
-- Type definitions for `WaykeAdSync` (mirrors `BlocketAdSync`)
+### 3. `src/lib/blocket.ts` and `src/lib/wayke.ts`
 
-### 9. `supabase/config.toml`
-- Add `[functions.wayke-sync]` with `verify_jwt = true`
+Update `syncCarToBlocket` and `syncCarToWayke` to also pass the `companyId` to the edge function so it can look up credentials.
+
+### 4. `supabase/functions/blocket-sync/index.ts`
+
+- Read `companyId` from request body (already have it from car lookup)
+- Fetch `ai_settings` for that company using service role client
+- Extract `blocket_api_token`, `blocket_dealer_code`, etc.
+- Pass credentials to `BlocketSyncService.syncCar`
+
+### 5. `supabase/functions/_shared/blocket/blocketSyncService.ts`
+
+- Accept credentials object in `syncCar` and `mapCarToBlocketPayload`
+- Use per-company credentials instead of `Deno.env.get()`
+- Fall back to env vars if DB values are empty (backwards compatible)
+
+### 6. `supabase/functions/_shared/blocket/blocketClient.ts`
+
+- Modify `blocketFetch` to accept a token parameter instead of always reading from env
+- Or add a method that accepts a token override
+
+### 7. `supabase/functions/wayke-sync/index.ts`
+
+- Fetch `ai_settings` for the car's company
+- Extract `wayke_client_id`, `wayke_client_secret`, `wayke_branch_id`
+- Pass to `WaykeSyncService.syncCar`
+
+### 8. `supabase/functions/_shared/wayke/waykeSyncService.ts`
+
+- Accept credentials object in `syncCar` and `mapCarToWaykePayload`
+- Use per-company credentials instead of `Deno.env.get()`
+
+### 9. `supabase/functions/_shared/wayke/waykeClient.ts`
+
+- Modify `getAccessToken` and `waykeFetch` to accept credential parameters instead of always reading from env
+- Token caching keyed by client_id to support multiple companies
 
 ## What does NOT change
 
-- No changes to CarDetail.tsx
+- No changes to CarDetail.tsx or any other page
 - No changes to interior/AI editing flows
-- No changes to auth, routing, or any other page
-- No changes to Blocket integration code
-- No changes to any existing component except PlatformSyncDialog.tsx
-- No changes to database schema of existing tables
+- No changes to auth, routing, database RLS policies
+- No changes to any component besides PlatformSyncDialog.tsx
+- Existing global env secrets still work as fallback
+- Social media sharing flow unchanged
+- All other platforms remain "Kommer snart"
 
-## Flow after implementation
+## UX Flow
 
 ```text
-User clicks "Synka" on car detail page
-  -> PlatformSyncDialog opens
-  -> User checks "Wayke" checkbox
-  -> User clicks "Synka"
-  -> Image picker appears (smooth loading with optimized URLs)
-  -> User selects photos
-  -> User clicks "Skicka till Wayke"
-  -> syncToWayke(car, selectedUrls) called
-  -> wayke-sync edge function authenticates via OAuth2
-  -> Creates/updates vehicle on Wayke with images in ad.media
-  -> Status saved to wayke_ad_sync table
-  -> UI updates via realtime subscription
+First time:
+  User clicks "Synka" -> selects Blocket -> clicks "Synka"
+  -> Settings form appears (5 fields for Blocket)
+  -> User fills in credentials from Blocket support
+  -> Clicks "Spara och fortsatt"
+  -> Credentials saved to ai_settings
+  -> Image picker appears as normal
+  -> Sync proceeds with saved credentials
+
+Subsequent times:
+  User clicks "Synka" -> selects Blocket -> clicks "Synka"
+  -> Image picker appears directly (credentials already saved)
+  -> Sync uses saved credentials
 ```
+
+Same pattern for Wayke (3 fields: Client ID, Client Secret, Branch ID).
 
