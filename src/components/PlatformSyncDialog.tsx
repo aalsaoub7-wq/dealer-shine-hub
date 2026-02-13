@@ -376,7 +376,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
               Konfigurera Blocket
             </DialogTitle>
             <DialogDescription>
-              Ange dina Blocket-uppgifter. Du behöver bara göra detta en gång.
+              Ange dina Blocket-uppgifter. Du behöver bara göra detta en gång. Kontakta Blockets butikssupport (butikssupport@blocket.se) för att få din API-token och dealer-kod.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
