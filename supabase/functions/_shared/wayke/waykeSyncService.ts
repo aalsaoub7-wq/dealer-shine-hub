@@ -1,8 +1,9 @@
 // waykeSyncService.ts
-// Sync service for Wayke, mirroring blocketSyncService.ts pattern.
+// Sync service for Wayke, supports per-company credentials.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { WaykeClient } from "./waykeClient.ts";
+import type { WaykeCredentials } from "./waykeClient.ts";
 import type { WaykeAdSync } from "./waykeTypes.ts";
 import type { Car } from "../blocket/blocketTypes.ts";
 
@@ -57,12 +58,7 @@ async function updateSyncRecord(carId: string, patch: Partial<WaykeAdSync>) {
   }
 }
 
-function mapCarToWaykePayload(car: Car, imageUrls: string[]): any {
-  const branchId = Deno.env.get("WAYKE_BRANCH_ID");
-  if (!branchId) {
-    throw new Error("[WaykeSync] WAYKE_BRANCH_ID must be set in environment secrets.");
-  }
-
+function mapCarToWaykePayload(car: Car, imageUrls: string[], branchId: string): any {
   return {
     branch: branchId,
     marketCode: "SE",
@@ -92,19 +88,22 @@ function mapCarToWaykePayload(car: Car, imageUrls: string[]): any {
 }
 
 export class WaykeSyncService {
-  static async syncCar(carId: string, imageUrls?: string[]) {
+  static async syncCar(carId: string, imageUrls?: string[], creds?: WaykeCredentials) {
     console.log("[WaykeSync] Starting sync for car:", carId);
+
+    if (!creds || !creds.clientId || !creds.clientSecret || !creds.branchId) {
+      throw new Error("[WaykeSync] Wayke credentials are required.");
+    }
 
     const car = await getCarById(carId);
     const sync = await getWaykeSyncByCarId(carId);
     const urls = imageUrls && imageUrls.length > 0 ? imageUrls : (car.image_urls || []);
 
     if (car.deleted_at) {
-      // Car is deleted, remove from Wayke if it exists
       if (sync && sync.wayke_vehicle_id && sync.state !== "deleted") {
         console.log("[WaykeSync] Car deleted, removing from Wayke");
         try {
-          await WaykeClient.updateVehicleStatus(sync.wayke_vehicle_id, "Deleted");
+          await WaykeClient.updateVehicleStatus(sync.wayke_vehicle_id, "Deleted", creds);
         } catch (e: any) {
           console.warn("[WaykeSync] Error deleting from Wayke:", e.message);
         }
@@ -118,22 +117,18 @@ export class WaykeSyncService {
       return;
     }
 
-    const payload = mapCarToWaykePayload(car, urls);
+    const payload = mapCarToWaykePayload(car, urls, creds.branchId);
 
     if (!sync || sync.state === "deleted" || sync.state === "none") {
-      // Create new vehicle on Wayke
-      console.log("[WaykeSync] Creating new vehicle on Wayke");
-      await this.createOnWayke(payload, car, urls);
+      await this.createOnWayke(payload, car, urls, creds);
     } else {
-      // Update existing vehicle
-      console.log("[WaykeSync] Updating existing vehicle on Wayke");
-      await this.updateOnWayke(sync.wayke_vehicle_id!, payload, car, urls);
+      await this.updateOnWayke(sync.wayke_vehicle_id!, payload, car, urls, creds);
     }
   }
 
-  private static async createOnWayke(payload: any, car: Car, imageUrls: string[]) {
+  private static async createOnWayke(payload: any, car: Car, imageUrls: string[], creds: WaykeCredentials) {
     try {
-      const result = await WaykeClient.createVehicle(payload);
+      const result = await WaykeClient.createVehicle(payload, creds);
       const vehicleId = result?.id || result?.vehicleId || null;
 
       await upsertSyncRecord({
@@ -147,12 +142,10 @@ export class WaykeSyncService {
         last_error: null,
       });
 
-      // Upload images by URL if we have a vehicleId
       if (vehicleId && imageUrls.length > 0) {
-        const branchId = Deno.env.get("WAYKE_BRANCH_ID")!;
         for (let i = 0; i < imageUrls.length; i++) {
           try {
-            await WaykeClient.uploadImageByUrl(imageUrls[i], branchId, vehicleId, i + 1);
+            await WaykeClient.uploadImageByUrl(imageUrls[i], creds.branchId, vehicleId, i + 1, creds);
           } catch (e: any) {
             console.warn(`[WaykeSync] Failed to upload image ${i + 1}:`, e.message);
           }
@@ -175,16 +168,14 @@ export class WaykeSyncService {
     }
   }
 
-  private static async updateOnWayke(vehicleId: string, payload: any, car: Car, imageUrls: string[]) {
+  private static async updateOnWayke(vehicleId: string, payload: any, car: Car, imageUrls: string[], creds: WaykeCredentials) {
     try {
-      await WaykeClient.updateVehicle(vehicleId, payload);
+      await WaykeClient.updateVehicle(vehicleId, payload, creds);
 
-      // Re-upload images
       if (imageUrls.length > 0) {
-        const branchId = Deno.env.get("WAYKE_BRANCH_ID")!;
         for (let i = 0; i < imageUrls.length; i++) {
           try {
-            await WaykeClient.uploadImageByUrl(imageUrls[i], branchId, vehicleId, i + 1);
+            await WaykeClient.uploadImageByUrl(imageUrls[i], creds.branchId, vehicleId, i + 1, creds);
           } catch (e: any) {
             console.warn(`[WaykeSync] Failed to upload image ${i + 1}:`, e.message);
           }
