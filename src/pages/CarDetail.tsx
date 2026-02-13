@@ -1213,7 +1213,7 @@ const CarDetail = () => {
         setPositionEditorPhoto(null);
         setPositionEditorSaving(false);
 
-        const fileName = `interior-${Date.now()}.jpg`;
+        const fileName = `interior-${photoId}-${Date.now()}.jpg`;
         const filePath = `edited/${car.id}/${fileName}`;
         const { error: uploadError } = await supabase.storage.from("car-photos").upload(filePath, compositionBlob, { contentType: "image/jpeg", upsert: true });
         if (uploadError) throw uploadError;
@@ -1308,7 +1308,7 @@ const CarDetail = () => {
           );
 
           // Upload
-          const fileName = `interior-${Date.now()}.jpg`;
+          const fileName = `interior-${photo.id}-${Date.now()}.jpg`;
           const filePath = `edited/${car!.id}/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
