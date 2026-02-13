@@ -15,7 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { useBlocketSync } from "@/hooks/useBlocketSync";
 import { useWaykeSync } from "@/hooks/useWaykeSync";
-import { getOptimizedImageUrl } from "@/lib/imageOptimization";
+
 import { supabase } from "@/integrations/supabase/client";
 import { RefreshCw } from "lucide-react";
 import { toast } from "sonner";
@@ -322,7 +322,6 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
       <div className="grid grid-cols-2 gap-3 pr-4">
         {filteredPhotos.length > 0 ? (
           filteredPhotos.map((photo, index) => {
-            const optimizedUrl = getOptimizedImageUrl(photo.url, { width: 300, quality: 75 });
             return (
               <div
                 key={photo.id}
@@ -334,9 +333,9 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
                 onClick={() => toggleImage(photo.url)}
               >
                 <img
-                  src={optimizedUrl}
+                  src={photo.url}
                   alt={`Bil bild ${index + 1}`}
-                  className={`aspect-[3/2] w-full rounded-lg object-cover transition-opacity duration-300 ${
+                  className={`aspect-video w-full rounded-lg object-cover transition-opacity duration-300 ${
                     loadedImages.has(photo.url) ? "opacity-100" : "opacity-0"
                   }`}
                   loading="lazy"
@@ -344,7 +343,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
                   onLoad={() => handleImageLoad(photo.url)}
                 />
                 {!loadedImages.has(photo.url) && (
-                  <div className="aspect-[3/2] w-full rounded-lg bg-muted animate-pulse" />
+                  <div className="aspect-video w-full rounded-lg bg-muted animate-pulse" />
                 )}
                 {selectedImagesList.includes(photo.url) && (
                   <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white">
