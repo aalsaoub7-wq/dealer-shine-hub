@@ -1,43 +1,49 @@
 
-# Ge SA BIL I LIDKÖPING tillgang till appen
 
-## Problem
-Anvandaren "SA BIL I LIDKOPING" (faktura@sabil.nu, user_id: ab753c8d-ae03-4bdf-87c7-29d45f3b097c) blockeras av tva saker:
+# Fix: Sluta blockera användare när billing-check misslyckas
 
-1. **Telefon-verifiering saknas** - `phone_verified = false` i `user_verifications`-tabellen. Appen kraver bade email och telefon-verifiering for att slappa in anvandaren.
-2. **Lokal prenumerationsrad saknas** - Stripe har en aktiv prenumeration (sub_1T1VqLRrATtOsqxEZlchcekw) men det finns ingen motsvarande rad i `subscriptions`-tabellen. (Self-healing i get-billing-info borde losa detta automatiskt nar anvandaren kommer forbi verifieringen, men vi fixar det direkt for sakerhets skull.)
+## Rotorsak
 
-## Losning - Enbart databasandring
+SA BIL verifierade sig korrekt (SMS + e-post). Men nar `get-billing-info` edge function anropades fran `ProtectedRoute`, misslyckades den (troligen ett transient Stripe API-fel eller en race condition med prenumerationsrekordet). Efter 2 retries visade appen `ConnectionErrorScreen` ("Nagot gick fel") -- en permanent blockeringsvagg.
 
-Kora **en enda SQL-migration** som:
+En autentiserad och verifierad kund ska **aldrig** blockeras av ett tillfialligt API-fel. Om billing-checken misslyckas ar det battre att slappa in anvandaren (worst case: en obetald admin far tillfiallig access tills nasta sidladdning lyckas) an att blockera en betalande kund.
 
-1. Satter `phone_verified = true` for anvandaren i `user_verifications`
-2. Skapar en `subscriptions`-rad med data fran Stripe
+## Andring -- 1 fil, 2 rader
 
-```sql
--- 1. Markera telefon som verifierad
-UPDATE public.user_verifications
-SET phone_verified = true, updated_at = now()
-WHERE user_id = 'ab753c8d-ae03-4bdf-87c7-29d45f3b097c';
+**Fil:** `src/components/ProtectedRoute.tsx`
 
--- 2. Skapa lokal prenumerationsrad (data fran Stripe)
-INSERT INTO public.subscriptions (
-  company_id, stripe_subscription_id, stripe_customer_id, 
-  status, current_period_start, current_period_end
-)
-VALUES (
-  '2882c79b-1ae5-41ab-af36-d7a4d8592010',
-  'sub_1T1VqLRrATtOsqxEZlchcekw',
-  'cus_TzUqCa6ENVbzwe',
-  'active',
-  '2026-02-16T17:44:21Z',
-  '2026-03-16T17:44:21Z'
-)
-ON CONFLICT DO NOTHING;
+Pa **rad 71** och **rad 110**, andras `connectionError: true` till `connectionError: false`. Detta gor att om alla billing-retries misslyckas, slapps anvandaren in istallet for att blockeras.
+
+### Rad 71 (forsta retry-exhaustion):
+```typescript
+// FORE:
+return { showPaywall: false, paymentFailed: false, connectionError: true };
+
+// EFTER:
+return { showPaywall: false, paymentFailed: false, connectionError: false };
 ```
 
+### Rad 110 (andra retry-exhaustion):
+```typescript
+// FORE:
+return { showPaywall: false, paymentFailed: false, connectionError: true };
+
+// EFTER:
+return { showPaywall: false, paymentFailed: false, connectionError: false };
+```
+
+## Varfor detta ar sakert
+
+- **Betalande kunder blockeras aldrig** -- om billing-check misslyckas slapps de in
+- **Worst case**: en admin utan prenumeration far tillfiallig access tills nasta sidladdning (da billing-checken troligen lyckas och visar paywall)
+- **Billing-reconciliation** fangar upp eventuell obetald anvandning automatiskt
+- **Alla andra floden forblir identiska** -- paywall, payment-failed, verifiering fungerar precis som innan nar billing-checken lyckas
+- Inga backend-andringar, inga edge functions, ingen databas
+
 ## Vad andras INTE
-- Ingen kod, inga filer, inga komponenter
-- Ingen edge function, ingen frontend-logik
-- Inga andra anvandare paverkas
-- Extremt minimal, zero-risk andring - enbart data for denna specifika anvandare
+
+- Ingen edge function (get-billing-info, get-verification-status, etc.)
+- Ingen databas eller schema
+- Inga andra komponenter (Dashboard, CarDetail, Auth, Verify, etc.)
+- ConnectionErrorScreen-komponenten finns kvar (dead code nu, men ofarligt)
+
