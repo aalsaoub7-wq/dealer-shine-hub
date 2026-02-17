@@ -68,7 +68,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         
         // After all retries exhausted: show connection error, NOT paywall
         console.error("All billing info retries exhausted, showing connection error screen");
-        return { showPaywall: false, paymentFailed: false, connectionError: true };
+        return { showPaywall: false, paymentFailed: false, connectionError: false };
       }
 
       const isAdmin = data?.isAdmin ?? false;
@@ -107,7 +107,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         return checkTrialAndPayment(retryCount + 1);
       }
       
-      return { showPaywall: false, paymentFailed: false, connectionError: true };
+      return { showPaywall: false, paymentFailed: false, connectionError: false };
     }
   }, []);
 
