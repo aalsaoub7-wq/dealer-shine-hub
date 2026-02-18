@@ -608,11 +608,31 @@ const CarDetail = () => {
         .eq("id", photo.id);
     }
 
-    // Process photos independently in background
-    photosToProcess.forEach((photo) => {
-      // Process each photo independently without blocking
-      (async () => {
-        try {
+    // Process photos with concurrency limit (max 2 at a time) to avoid overwhelming APIs
+    const MAX_CONCURRENT = 2;
+    const queue = [...photosToProcess];
+    const QUEUE_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes safety timeout
+
+    const processNext = async (): Promise<void> => {
+      const photo = queue.shift();
+      if (!photo) return;
+
+      // Safety timeout: if this photo hasn't completed in 10 min, reset it
+      const safetyTimer = setTimeout(async () => {
+        console.error(`Photo ${photo.id} timed out after 10 minutes`);
+        await supabase
+          .from("photos")
+          .update({ is_processing: false })
+          .eq("id", photo.id);
+      }, QUEUE_TIMEOUT_MS);
+
+      // Touch updated_at to reset watchdog timer before starting
+      await supabase
+        .from("photos")
+        .update({ is_processing: true })
+        .eq("id", photo.id);
+
+      try {
           // STEP 1: Segment - Remove background using PhotoRoom (now returns URL directly!)
           const response = await fetch(photo.url);
           const blob = await response.blob();
@@ -697,7 +717,10 @@ const CarDetail = () => {
           } catch (error) {
             console.error("Error tracking usage:", error);
           }
-        } catch (error) {
+
+          clearTimeout(safetyTimer);
+      } catch (error) {
+          clearTimeout(safetyTimer);
           console.error(`Error editing photo ${photo.id}:`, error);
           // Clear processing state on error
           await supabase
@@ -710,9 +733,16 @@ const CarDetail = () => {
             description: "Vår AI fick för många bollar att jonglera",
             variant: "info",
           });
-        }
-      })();
-    });
+      }
+
+      await processNext();
+    };
+
+    const workers = Array.from(
+      { length: Math.min(MAX_CONCURRENT, queue.length) },
+      () => processNext()
+    );
+    Promise.all(workers);
   };
 
   const handleInteriorEdit = async (color: string) => {
@@ -767,10 +797,31 @@ const CarDetail = () => {
         .eq("id", photo.id);
     }
 
-    // Process photos independently in background
-    photos.forEach((photo) => {
-      (async () => {
-        try {
+    // Process photos with concurrency limit (max 2 at a time) to avoid overwhelming APIs
+    const MAX_CONCURRENT_INTERIOR = 2;
+    const interiorQueue = [...photos];
+    const INTERIOR_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes safety timeout
+
+    const processNextInterior = async (): Promise<void> => {
+      const photo = interiorQueue.shift();
+      if (!photo) return;
+
+      // Safety timeout: if this photo hasn't completed in 10 min, reset it
+      const safetyTimer = setTimeout(async () => {
+        console.error(`Interior photo ${photo.id} timed out after 10 minutes`);
+        await supabase
+          .from("photos")
+          .update({ is_processing: false })
+          .eq("id", photo.id);
+      }, INTERIOR_TIMEOUT_MS);
+
+      // Touch updated_at to reset watchdog timer before starting
+      await supabase
+        .from("photos")
+        .update({ is_processing: true })
+        .eq("id", photo.id);
+
+      try {
           // STEP 1: Segment - Remove background using Remove.bg
           const response = await fetch(photo.url);
           const blob = await response.blob();
@@ -844,7 +895,10 @@ const CarDetail = () => {
           } catch (error) {
             console.error("Error tracking usage:", error);
           }
-        } catch (error) {
+
+          clearTimeout(safetyTimer);
+      } catch (error) {
+          clearTimeout(safetyTimer);
           console.error(`Error editing interior photo ${photo.id}:`, error);
           await supabase
             .from("photos")
@@ -856,9 +910,16 @@ const CarDetail = () => {
             description: "Vår AI fick för många bollar att jonglera",
             variant: "info",
           });
-        }
-      })();
-    });
+      }
+
+      await processNextInterior();
+    };
+
+    const interiorWorkers = Array.from(
+      { length: Math.min(MAX_CONCURRENT_INTERIOR, interiorQueue.length) },
+      () => processNextInterior()
+    );
+    Promise.all(interiorWorkers);
 
     setProcessingInterior(false);
   };
