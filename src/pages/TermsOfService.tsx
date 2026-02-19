@@ -76,27 +76,24 @@ const TermsOfService = () => {
             <h2 className="text-2xl font-semibold text-foreground">4. Priser och betalning</h2>
             <h3 className="text-xl font-semibold text-foreground">4.1 Prissättning</h3>
             <p className="text-muted-foreground">
-              <strong>Det som muntligen överenskommes vid ert inledande möte med Luvero gällande prissättning och bindningstid är det som gäller för ert avtal.</strong> Muntliga avtal är juridiskt bindande enligt principen <em>pacta sunt servanda</em> (avtal ska hållas). Alla priser och villkor bestäms individuellt vid mötet. Detta inkluderar men är inte begränsat till:
+              Priset för tjänsten framgår av den Stripe-betalningslänk som Luvero skickar ut till er inför tecknandet av abonnemanget. Genom att genomföra köpet via betalningslänken accepterar ni det pris som anges där. Det är detta pris som gäller för ert avtal. Priserna inkluderar:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li><strong>Månadsavgift:</strong> Enligt överenskommelse i ert avtal</li>
-              <li><strong>AI-redigering:</strong> Pris per redigerad bild enligt överenskommelse</li>
-              <li><strong>Lagerhållning:</strong> Enligt överenskommelse i ert avtal</li>
-              <li><strong>Teammedlemmar:</strong> Enligt överenskommelse i ert avtal</li>
+              <li><strong>Månadsavgift:</strong> Enligt betalningslänken</li>
+              <li><strong>AI-redigering:</strong> Pris per redigerad bild enligt betalningslänken</li>
+              <li><strong>Lagerhållning:</strong> Ingår i abonnemanget</li>
+              <li><strong>Teammedlemmar:</strong> Obegränsat antal ingår i abonnemanget</li>
             </ul>
-            <p className="text-muted-foreground">
-              Kontakta oss för ett möte där vi tillsammans går igenom prissättning och villkor anpassade för er verksamhet.
-            </p>
 
             <h3 className="text-xl font-semibold text-foreground">4.2 Bindningstid och uppsägning</h3>
             <p className="text-muted-foreground">
-              <strong>Den bindningstid som muntligen överenskommes vid ert möte med Luvero är den som gäller enligt principen <em>pacta sunt servanda</em>.</strong> Du godkänner att:
+              Alla abonnemang har en bindningstid på <strong>12 månader</strong> räknat från köpdatum. Genom att genomföra köpet via Luveros betalningslänk accepterar ni denna bindningstid. Du godkänner att:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li>Bindningstid gäller enligt vad som muntligen överenskommits vid ert möte</li>
-              <li>Uppsägning under bindningstiden kan medföra avgifter enligt det muntliga avtalet</li>
-              <li>Uppsägningstid gäller enligt vad som muntligen överenskommits vid ert möte</li>
-              <li>Du är bunden av de villkor som muntligen överenskommits enligt <em>pacta sunt servanda</em></li>
+              <li>Bindningstiden är 12 månader från och med köpdatum</li>
+              <li>Uppsägning under bindningstiden är inte möjlig via kundportalen</li>
+              <li>Efter bindningstidens slut övergår abonnemanget till löpande månadsvis med 1 månads uppsägningstid</li>
+              <li>Du är bunden av dessa villkor från och med att köpet genomförts</li>
             </ul>
 
             <h3 className="text-xl font-semibold text-foreground">4.3 Fakturering</h3>
@@ -210,9 +207,7 @@ const TermsOfService = () => {
             <h2 className="text-2xl font-semibold text-foreground">11. Uppsägning</h2>
             <h3 className="text-xl font-semibold text-foreground">11.1 Av dig</h3>
             <p className="text-muted-foreground">
-              Uppsägning av ditt konto måste ske i enlighet med villkoren i ditt specifika avtal. 
-              Observera att bindningstid kan gälla och att uppsägning under bindningstiden kan 
-              medföra avgifter. Uppsägning träder i kraft enligt vad som anges i ditt avtal.
+              Alla abonnemang löper med 12 månaders bindningstid. Uppsägning är inte möjlig under bindningstiden. Efter bindningstidens slut kan abonnemanget sägas upp med 1 månads uppsägningstid via vår kundportal eller genom att kontakta support@luvero.se.
             </p>
 
             <h3 className="text-xl font-semibold text-foreground">11.2 Av oss</h3>
@@ -249,7 +244,7 @@ const TermsOfService = () => {
             <h2 className="text-2xl font-semibold text-foreground">14. Övrigt</h2>
             <h3 className="text-xl font-semibold text-foreground">14.1 Hela avtalet</h3>
             <p className="text-muted-foreground">
-              Dessa villkor tillsammans med vår integritetspolicy utgör hela avtalet mellan dig och Luvero.
+              Dessa villkor, tillsammans med integritetspolicyn och det pris som angetts i den av Luvero utskickade betalningslänken, utgör hela avtalet mellan dig och Luvero.
             </p>
 
             <h3 className="text-xl font-semibold text-foreground">14.2 Överlåtelse</h3>
