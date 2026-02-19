@@ -1,103 +1,64 @@
 
+# Ändringar i /användarvillkor (TermsOfService.tsx)
 
-# Fix: Concurrency-kö + 10-minuters timeout for bildbehandling
+Följande avsnitt innehåller text om muntliga överenskommelser och variabel bindningstid som måste ersättas. Bara denna fil rörs.
 
-## Problem
+## Vad som ändras
 
-Nar en anvandare valjer t.ex. 8 bilder att redigera skickas alla 16 API-anrop samtidigt, vilket overvaldigar Gemini/Remove.bg och orsakar timeouts och "for manga bollar att jonglera"-felmeddelanden.
+### Sektion 4.1 Prissättning (rad 78-89)
 
-## Losning -- 1 fil, 2 forEach-loopar byts ut
+**Nuvarande text (fel):**
+> "Det som muntligen överenskommes vid ert inledande möte med Luvero gällande prissättning och bindningstid är det som gäller..."
+> Listpunkter: "Enligt överenskommelse i ert avtal" (x4)
+> "Kontakta oss för ett möte..."
 
-**Fil:** `src/pages/CarDetail.tsx`
+**Ny text:**
+> Priset för tjänsten framgår av den Stripe-betalningslänk som Luvero skickar ut till er inför tecknandet av abonnemanget. Genom att genomföra köpet via betalningslänken accepterar ni det pris som anges där. Det är detta pris som gäller för ert avtal. Priserna inkluderar:
+- Månadsavgift: Enligt betalningslänken
+- AI-redigering: Pris per redigerad bild enligt betalningslänken
+- Lagerhållning: Ingår i abonnemanget
+- Teammedlemmar: Obegränsat antal ingår i abonnemanget
 
-### Andringar
+---
 
-#### 1. `handleEditPhotos` (rad 612-715)
+### Sektion 4.2 Bindningstid och uppsägning (rad 91-100)
 
-Byt `photosToProcess.forEach(...)` mot en ko som processar max 2 bilder at gangen. Varje worker "touchar" fotots `updated_at` precis innan den borjar (sa att watchdogens 90s-klokka nollstalls). Lagg aven till en 10-minuters sakerhetstimeout per foto i kon -- om en bild inte blivit klar inom 10 minuter aterstalls den.
+**Nuvarande text (fel):**
+> "Den bindningstid som muntligen överenskommes vid ert möte med Luvero är den som gäller..."
+> Listpunkter refererar till "muntlig överenskommelse"
 
-**Befintlig kod som INTE andras:**
-- Rad 604-609 (markerar alla foton som `is_processing: true` direkt) -- behalls exakt som idag
-- All processningslogik per foto (segment, composite, reflection, update) -- identisk
-- Error handling och toast -- identisk
+**Ny text:**
+> Alla abonnemang har en bindningstid på **12 månader** räknat från köpdatum. Genom att genomföra köpet via Luveros betalningslänk accepterar ni denna bindningstid. Du godkänner att:
+- Bindningstiden är 12 månader från och med köpdatum
+- Uppsägning under bindningstiden är inte möjlig via kundportalen
+- Efter bindningstidens slut övergår abonnemanget till löpande månadsvis med 1 månads uppsägningstid
+- Du är bunden av dessa villkor från och med att köpet genomförts
 
-**Vad som andras:** Bara forEach-loopen (rad 612-715) ersatts med:
+---
 
-```typescript
-const MAX_CONCURRENT = 2;
-const queue = [...photosToProcess];
-const QUEUE_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
+### Sektion 11.1 Uppsägning av dig (rad 212-216)
 
-const processNext = async () => {
-  const photo = queue.shift();
-  if (!photo) return;
+**Nuvarande text (fel):**
+> "Observera att bindningstid kan gälla och att uppsägning under bindningstiden kan medföra avgifter. Uppsägning träder i kraft enligt vad som anges i ditt avtal."
 
-  // Safety timeout: if this photo hasn't completed in 10 min, reset it
-  const safetyTimer = setTimeout(async () => {
-    console.error(`Photo ${photo.id} timed out after 10 minutes`);
-    await supabase
-      .from("photos")
-      .update({ is_processing: false })
-      .eq("id", photo.id);
-  }, QUEUE_TIMEOUT_MS);
+**Ny text:**
+> Alla abonnemang löper med 12 månaders bindningstid. Uppsägning är inte möjlig under bindningstiden. Efter bindningstidens slut kan abonnemanget sägas upp med 1 månads uppsägningstid via vår kundportal eller genom att kontakta support@luvero.se.
 
-  // Touch updated_at to reset watchdog timer
-  await supabase
-    .from("photos")
-    .update({ is_processing: true })
-    .eq("id", photo.id);
+---
 
-  try {
-    // ... exakt samma processningslogik som idag (rad 616-699) ...
-    clearTimeout(safetyTimer);
-  } catch (error) {
-    clearTimeout(safetyTimer);
-    // ... exakt samma error handling som idag (rad 700-712) ...
-  }
+### Sektion 14.1 Hela avtalet (rad 251-253)
 
-  await processNext();
-};
+**Nuvarande text:**
+> "Dessa villkor tillsammans med vår integritetspolicy utgör hela avtalet..."
 
-const workers = Array.from(
-  { length: Math.min(MAX_CONCURRENT, queue.length) },
-  () => processNext()
-);
-Promise.all(workers);
-```
+**Tillägg:**
+> Dessa villkor, tillsammans med integritetspolicyn och det pris som angetts i den av Luvero utskickade betalningslänken, utgör hela avtalet mellan dig och Luvero.
 
-#### 2. `handleInteriorEdit` (rad 771-861)
+---
 
-Exakt samma monster appliceras pa interiorredigeringens forEach-loop. Samma MAX_CONCURRENT = 2, samma touch-trick, samma 10-minuters timeout.
+## Vad som INTE ändras
 
-**Befintlig kod som INTE andras:**
-- Rad 762-768 (markerar alla foton som `is_processing: true` direkt)
-- All processningslogik per foto (segment, composite, upload)
-- Error handling och toast
-
-### Tidslinje med 8 bilder (ca 45s/bild)
-
-```text
-Tid    Bild 1-2                    Bild 3-8
-0s     Touched + processas         is_processing=true sedan 0s (UI: "Bild Behandlas")
-45s    KLARA, bild 3-4 touched     Watchdog ser updated_at < 45s -- ingen reset
-90s    Bild 3-4 KLARA, 5-6 touched Watchdog ser updated_at < 0s -- ingen reset
-135s   Bild 5-6 KLARA, 7-8 touched
-180s   Alla KLARA
-```
-
-Vid 90s: watchdogen kollar bild 5-8, men de alla har `updated_at` fran 0s (markerades vid start). Bild 5-6 touchas vid 90s sa deras updated_at nollstalls. Bild 7-8 ar dock fortfarande vid 0s = 90s gammalt -- **precis pa gransen**. Darfor ar touch-mekanismen viktig: den sker precis innan processning startar, sa att watchdogen aldrig hinner trigga.
-
-### 10-minuters timeout
-
-Om nagonting gar snett (t.ex. en worker kraschar tyst utan att na catch-blocket), nollstalls fotot automatiskt efter 10 minuter. Timern rensas (`clearTimeout`) sa fort processningen lyckas eller failar normalt, sa den triggas bara vid riktigt ovanliga scenarier.
-
-## Vad som INTE andras
-
-- Inga edge functions
-- Ingen databas/schema
-- Ingen watchdog-logik (`resetStuckPhotos` forblir oforandrad)
-- Ingen ny state-variabel
-- Ingen UI-andring (alla bilder visar "Bild Behandlas" direkt, precis som idag)
-- Stanga flik / navigera bort fungerar exakt som idag
-- Toast-meddelanden, error handling, usage tracking -- allt oforandrat
-- Bara **1 fil** rors, bara **2 forEach-loopar** byts ut
+- All övrig text i sektion 1, 2, 3, 5–10, 12–15 rörs inte
+- Sektion 4.3 Fakturering och 4.4 Testperiod rörs inte
+- Ingen annan fil i projektet rörs
+- Layout, styling och struktur är identisk
