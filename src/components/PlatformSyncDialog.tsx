@@ -686,7 +686,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7"
+                        className="h-9 w-9"
                         onClick={(e) => {
                           e.stopPropagation();
                           setBlocketForm({
@@ -699,7 +699,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
                           setShowBlocketSetup(true);
                         }}
                       >
-                        <SquarePen className="h-3.5 w-3.5" />
+                        <SquarePen className="h-4 w-4" />
                       </Button>
                     )}
                     {platform.id === "wayke" && hasWaykeCredentials() && (
