@@ -17,7 +17,7 @@ import { useBlocketSync } from "@/hooks/useBlocketSync";
 import { useWaykeSync } from "@/hooks/useWaykeSync";
 
 import { supabase } from "@/integrations/supabase/client";
-import { RefreshCw, Pencil } from "lucide-react";
+import { RefreshCw, SquarePen } from "lucide-react";
 import { toast } from "sonner";
 
 import blocketLogo from "@/assets/blocket-logo.png";
@@ -699,7 +699,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
                           setShowBlocketSetup(true);
                         }}
                       >
-                        <Pencil className="h-3.5 w-3.5" />
+                        <SquarePen className="h-3.5 w-3.5" />
                       </Button>
                     )}
                     {platform.id === "wayke" && hasWaykeCredentials() && (
@@ -717,7 +717,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
                           setShowWaykeSetup(true);
                         }}
                       >
-                        <Pencil className="h-3.5 w-3.5" />
+                        <SquarePen className="h-3.5 w-3.5" />
                       </Button>
                     )}
                     {platform.comingSoon ? (
