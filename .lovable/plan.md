@@ -1,64 +1,74 @@
 
-# Ändringar i /användarvillkor (TermsOfService.tsx)
 
-Följande avsnitt innehåller text om muntliga överenskommelser och variabel bindningstid som måste ersättas. Bara denna fil rörs.
+# Lägg till "Redigera"-knapp för plattformsuppgifter
 
 ## Vad som ändras
 
-### Sektion 4.1 Prissättning (rad 78-89)
+**Fil:** `src/components/PlatformSyncDialog.tsx`
 
-**Nuvarande text (fel):**
-> "Det som muntligen överenskommes vid ert inledande möte med Luvero gällande prissättning och bindningstid är det som gäller..."
-> Listpunkter: "Enligt överenskommelse i ert avtal" (x4)
-> "Kontakta oss för ett möte..."
+### Ändring i platform-raden (rad 684-691)
 
-**Ny text:**
-> Priset för tjänsten framgår av den Stripe-betalningslänk som Luvero skickar ut till er inför tecknandet av abonnemanget. Genom att genomföra köpet via betalningslänken accepterar ni det pris som anges där. Det är detta pris som gäller för ert avtal. Priserna inkluderar:
-- Månadsavgift: Enligt betalningslänken
-- AI-redigering: Pris per redigerad bild enligt betalningslänken
-- Lagerhållning: Ingår i abonnemanget
-- Teammedlemmar: Obegränsat antal ingår i abonnemanget
+Lägg till en liten "Redigera"-knapp (penna-ikon) mellan plattformsnamnet och status-badge:n. Knappen visas **bara** om plattformen redan har sparade credentials.
 
----
+- For Blocket: visas om `hasBlocketCredentials()` returnerar truthy. Klick oeppnar `setShowBlocketSetup(true)` och fyller i formularet med befintliga varden.
+- For Wayke: visas om `hasWaykeCredentials()` returnerar truthy. Klick oeppnar `setShowWaykeSetup(true)` och fyller i formularet med befintliga varden.
+- For alla andra plattformar (comingSoon): ingen knapp visas.
 
-### Sektion 4.2 Bindningstid och uppsägning (rad 91-100)
+### Tekniska detaljer
 
-**Nuvarande text (fel):**
-> "Den bindningstid som muntligen överenskommes vid ert möte med Luvero är den som gäller..."
-> Listpunkter refererar till "muntlig överenskommelse"
+1. Importera `Pencil` fran `lucide-react` (redan installerat).
+2. I `platforms.map()`-blocket, efter `<Label>` och fore status-badge-logiken, lagg till:
 
-**Ny text:**
-> Alla abonnemang har en bindningstid på **12 månader** räknat från köpdatum. Genom att genomföra köpet via Luveros betalningslänk accepterar ni denna bindningstid. Du godkänner att:
-- Bindningstiden är 12 månader från och med köpdatum
-- Uppsägning under bindningstiden är inte möjlig via kundportalen
-- Efter bindningstidens slut övergår abonnemanget till löpande månadsvis med 1 månads uppsägningstid
-- Du är bunden av dessa villkor från och med att köpet genomförts
+```tsx
+{platform.id === "blocket" && hasBlocketCredentials() && (
+  <Button
+    variant="ghost"
+    size="icon"
+    className="h-7 w-7"
+    onClick={(e) => {
+      e.stopPropagation();
+      setBlocketForm({
+        blocket_api_token: credentials?.blocket_api_token || "",
+        blocket_dealer_code: credentials?.blocket_dealer_code || "",
+        blocket_dealer_name: credentials?.blocket_dealer_name || "",
+        blocket_dealer_phone: credentials?.blocket_dealer_phone || "",
+        blocket_dealer_email: credentials?.blocket_dealer_email || "",
+      });
+      setShowBlocketSetup(true);
+    }}
+  >
+    <Pencil className="h-3.5 w-3.5" />
+  </Button>
+)}
+{platform.id === "wayke" && hasWaykeCredentials() && (
+  <Button
+    variant="ghost"
+    size="icon"
+    className="h-7 w-7"
+    onClick={(e) => {
+      e.stopPropagation();
+      setWaykeForm({
+        wayke_client_id: credentials?.wayke_client_id || "",
+        wayke_client_secret: credentials?.wayke_client_secret || "",
+        wayke_branch_id: credentials?.wayke_branch_id || "",
+      });
+      setShowWaykeSetup(true);
+    }}
+  >
+    <Pencil className="h-3.5 w-3.5" />
+  </Button>
+)}
+```
 
----
+### Vad som INTE rors
 
-### Sektion 11.1 Uppsägning av dig (rad 212-216)
+- Befintlig setup-logik (nar man fyller i credentials forsta gangen)
+- Befintliga setup-dialoger for Blocket och Wayke
+- Sparfunktioner (`saveBlocketCredentials`, `saveWaykeCredentials`)
+- All annan logik i filen
+- Inga andra filer
 
-**Nuvarande text (fel):**
-> "Observera att bindningstid kan gälla och att uppsägning under bindningstiden kan medföra avgifter. Uppsägning träder i kraft enligt vad som anges i ditt avtal."
+### Riskniva
 
-**Ny text:**
-> Alla abonnemang löper med 12 månaders bindningstid. Uppsägning är inte möjlig under bindningstiden. Efter bindningstidens slut kan abonnemanget sägas upp med 1 månads uppsägningstid via vår kundportal eller genom att kontakta support@luvero.se.
+Extremt lag. Tva villkorliga knappar laggs till i renderingen. Ingen logik andras -- de ateranvander befintliga `setShowBlocketSetup`/`setShowWaykeSetup` och fyller i formularet med redan laddade credentials.
 
----
-
-### Sektion 14.1 Hela avtalet (rad 251-253)
-
-**Nuvarande text:**
-> "Dessa villkor tillsammans med vår integritetspolicy utgör hela avtalet..."
-
-**Tillägg:**
-> Dessa villkor, tillsammans med integritetspolicyn och det pris som angetts i den av Luvero utskickade betalningslänken, utgör hela avtalet mellan dig och Luvero.
-
----
-
-## Vad som INTE ändras
-
-- All övrig text i sektion 1, 2, 3, 5–10, 12–15 rörs inte
-- Sektion 4.3 Fakturering och 4.4 Testperiod rörs inte
-- Ingen annan fil i projektet rörs
-- Layout, styling och struktur är identisk
