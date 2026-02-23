@@ -17,7 +17,7 @@ import { useBlocketSync } from "@/hooks/useBlocketSync";
 import { useWaykeSync } from "@/hooks/useWaykeSync";
 
 import { supabase } from "@/integrations/supabase/client";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 import blocketLogo from "@/assets/blocket-logo.png";
@@ -682,6 +682,44 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
                     >
                       {platform.name}
                     </Label>
+                    {platform.id === "blocket" && hasBlocketCredentials() && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setBlocketForm({
+                            blocket_api_token: credentials?.blocket_api_token || "",
+                            blocket_dealer_code: credentials?.blocket_dealer_code || "",
+                            blocket_dealer_name: credentials?.blocket_dealer_name || "",
+                            blocket_dealer_phone: credentials?.blocket_dealer_phone || "",
+                            blocket_dealer_email: credentials?.blocket_dealer_email || "",
+                          });
+                          setShowBlocketSetup(true);
+                        }}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                    {platform.id === "wayke" && hasWaykeCredentials() && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setWaykeForm({
+                            wayke_client_id: credentials?.wayke_client_id || "",
+                            wayke_client_secret: credentials?.wayke_client_secret || "",
+                            wayke_branch_id: credentials?.wayke_branch_id || "",
+                          });
+                          setShowWaykeSetup(true);
+                        }}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                     {platform.comingSoon ? (
                       <Badge variant="secondary">Kommer snart</Badge>
                     ) : status ? (
