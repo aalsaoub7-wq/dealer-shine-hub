@@ -1,74 +1,47 @@
 
+# Aktivera Bytbil-synk via befintlig Blocket API
 
-# Lägg till "Redigera"-knapp för plattformsuppgifter
+## Bakgrund
 
-## Vad som ändras
+Enligt den uppdaterade API-dokumentationen hanteras Blocket och Bytbil av **samma API** (Pro Import API v3). En annons som skapas for registrerade fordon (category_id 1020) publiceras automatiskt pa bade Blocket och Bytbil. Ingen separat integration behovs -- det ar redan implementerat i backend.
 
-**Fil:** `src/components/PlatformSyncDialog.tsx`
+## Vad som andras
 
-### Ändring i platform-raden (rad 684-691)
+**Fil: `src/components/PlatformSyncDialog.tsx`**
 
-Lägg till en liten "Redigera"-knapp (penna-ikon) mellan plattformsnamnet och status-badge:n. Knappen visas **bara** om plattformen redan har sparade credentials.
+### 1. Ta bort `comingSoon` fran Bytbil (rad 42)
+- Andra `{ id: "bytbil", name: "Bytbil", logo: bytbilLogo, comingSoon: true }` till `{ id: "bytbil", name: "Bytbil", logo: bytbilLogo }`
 
-- For Blocket: visas om `hasBlocketCredentials()` returnerar truthy. Klick oeppnar `setShowBlocketSetup(true)` och fyller i formularet med befintliga varden.
-- For Wayke: visas om `hasWaykeCredentials()` returnerar truthy. Klick oeppnar `setShowWaykeSetup(true)` och fyller i formularet med befintliga varden.
-- For alla andra plattformar (comingSoon): ingen knapp visas.
+### 2. Bytbil delar credentials med Blocket
+- `hasBlocketCredentials()` ateranvands for Bytbil
+- Nar man klickar pa Bytbil och credentials saknas visas Blocket-setup (samma uppgifter)
+- Nar credentials finns visas bildvaljaren precis som for Blocket
 
-### Tekniska detaljer
+### 3. Bytbil-synk anropar samma edge function
+- Bytbil-synk anvander exakt samma `syncToBlocket()` funktion och samma bildvaljare
+- Ny state: `showBytbilImagePicker`, `selectedBytbilImages`
+- Ny handler `handleBytbilSync` som anropar `syncToBlocket(car, selectedBytbilImages)` (samma funktion)
 
-1. Importera `Pencil` fran `lucide-react` (redan installerat).
-2. I `platforms.map()`-blocket, efter `<Label>` och fore status-badge-logiken, lagg till:
+### 4. Status for Bytbil
+- `getPlatformStatus("bytbil")` returnerar samma status som Blocket (de delar sync-record)
 
-```tsx
-{platform.id === "blocket" && hasBlocketCredentials() && (
-  <Button
-    variant="ghost"
-    size="icon"
-    className="h-7 w-7"
-    onClick={(e) => {
-      e.stopPropagation();
-      setBlocketForm({
-        blocket_api_token: credentials?.blocket_api_token || "",
-        blocket_dealer_code: credentials?.blocket_dealer_code || "",
-        blocket_dealer_name: credentials?.blocket_dealer_name || "",
-        blocket_dealer_phone: credentials?.blocket_dealer_phone || "",
-        blocket_dealer_email: credentials?.blocket_dealer_email || "",
-      });
-      setShowBlocketSetup(true);
-    }}
-  >
-    <Pencil className="h-3.5 w-3.5" />
-  </Button>
-)}
-{platform.id === "wayke" && hasWaykeCredentials() && (
-  <Button
-    variant="ghost"
-    size="icon"
-    className="h-7 w-7"
-    onClick={(e) => {
-      e.stopPropagation();
-      setWaykeForm({
-        wayke_client_id: credentials?.wayke_client_id || "",
-        wayke_client_secret: credentials?.wayke_client_secret || "",
-        wayke_branch_id: credentials?.wayke_branch_id || "",
-      });
-      setShowWaykeSetup(true);
-    }}
-  >
-    <Pencil className="h-3.5 w-3.5" />
-  </Button>
-)}
-```
+### 5. Edit-knapp for Bytbil
+- Visa samma edit-knapp som Blocket (pennaikon) nar `hasBlocketCredentials()` ar true
+- Klick oppnar Blocket-setup-formularet (samma credentials)
 
-### Vad som INTE rors
+## Vad som INTE andras
+- Ingen backend-kod andras (edge functions, sync service, client)
+- Ingen databasandring
+- Wayke-logik rors inte
+- Blocket-logik rors inte (Bytbil ateranvander den)
 
-- Befintlig setup-logik (nar man fyller i credentials forsta gangen)
-- Befintliga setup-dialoger for Blocket och Wayke
-- Sparfunktioner (`saveBlocketCredentials`, `saveWaykeCredentials`)
-- All annan logik i filen
-- Inga andra filer
+## Teknisk detalj
 
-### Riskniva
+Bytbil-flodets steg:
+1. Anvandaren valjer "Bytbil" i plattformslistan
+2. Om Blocket-credentials saknas -> visa Blocket-setup (med text "Blocket/Bytbil")
+3. Om credentials finns -> visa bildvaljare ("Skicka bilder till Bytbil")
+4. Synka via `syncToBlocket()` -- samma API-anrop, publiceras automatiskt pa bada plattformar
 
-Extremt lag. Tva villkorliga knappar laggs till i renderingen. Ingen logik andras -- de ateranvander befintliga `setShowBlocketSetup`/`setShowWaykeSetup` och fyller i formularet med redan laddade credentials.
-
+## Riskniva
+Extremt lag. Bytbil ateranvander 100% av befintlig Blocket-logik. Inga nya API-anrop, inga nya edge functions, inga databasandringar.
