@@ -39,7 +39,7 @@ const platforms: Platform[] = [
   { id: "blocket", name: "Blocket", logo: blocketLogo },
   { id: "facebook-marketplace", name: "Facebook Marketplace", logo: facebookMarketplaceLogo, comingSoon: true },
   { id: "wayke", name: "Wayke", logo: waykeLogo },
-  { id: "bytbil", name: "Bytbil", logo: bytbilLogo, comingSoon: true },
+  { id: "bytbil", name: "Bytbil", logo: bytbilLogo },
   { id: "smart365", name: "Smart365", logo: smart365Logo, comingSoon: true },
   { id: "website", name: "Hemsida", logo: websiteLogo, comingSoon: true },
 ];
@@ -68,9 +68,11 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
   const [showSocialMediaPicker, setShowSocialMediaPicker] = useState(false);
   const [showBlocketImagePicker, setShowBlocketImagePicker] = useState(false);
   const [showWaykeImagePicker, setShowWaykeImagePicker] = useState(false);
+  const [showBytbilImagePicker, setShowBytbilImagePicker] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [selectedBlocketImages, setSelectedBlocketImages] = useState<string[]>([]);
   const [selectedWaykeImages, setSelectedWaykeImages] = useState<string[]>([]);
+  const [selectedBytbilImages, setSelectedBytbilImages] = useState<string[]>([]);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   const { isLoading: blocketLoading, syncToBlocket, status: blocketStatus } = useBlocketSync(carId);
   const { isLoading: waykeLoading, syncToWayke, status: waykeStatus } = useWaykeSync(carId);
@@ -120,6 +122,17 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
 
   const getPlatformStatus = (platformId: string) => {
     if (platformId === "blocket" && blocketStatus) {
+      if (blocketStatus.state === "created" && blocketStatus.last_action_state === "success") {
+        return { variant: "success" as const, text: "Synkad" };
+      }
+      if (blocketStatus.last_action_state === "error") {
+        return { variant: "destructive" as const, text: "Fel" };
+      }
+      if (blocketStatus.last_action_state === "pending") {
+        return { variant: "warning" as const, text: "Pågående" };
+      }
+    }
+    if (platformId === "bytbil" && blocketStatus) {
       if (blocketStatus.state === "created" && blocketStatus.last_action_state === "success") {
         return { variant: "success" as const, text: "Synkad" };
       }
@@ -245,6 +258,16 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
       setShowBlocketImagePicker(true);
       return;
     }
+    if (selectedPlatforms.includes("bytbil")) {
+      if (!hasBlocketCredentials()) {
+        setShowBlocketSetup(true);
+        return;
+      }
+      const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
+      setSelectedBytbilImages(mainPhotos.map(p => p.url));
+      setShowBytbilImagePicker(true);
+      return;
+    }
     if (selectedPlatforms.includes("wayke")) {
       if (!hasWaykeCredentials()) {
         setShowWaykeSetup(true);
@@ -263,6 +286,29 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
     await syncToBlocket(car, selectedBlocketImages);
     setShowBlocketImagePicker(false);
     setSelectedBlocketImages([]);
+    // If Bytbil is also selected, show Bytbil picker next
+    if (selectedPlatforms.includes("bytbil")) {
+      const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
+      setSelectedBytbilImages(mainPhotos.map(p => p.url));
+      setShowBytbilImagePicker(true);
+    } else if (selectedPlatforms.includes("wayke")) {
+      if (!hasWaykeCredentials()) {
+        setShowWaykeSetup(true);
+      } else {
+        const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
+        setSelectedWaykeImages(mainPhotos.map(p => p.url));
+        setShowWaykeImagePicker(true);
+      }
+    } else {
+      onOpenChange(false);
+    }
+  };
+
+  const handleBytbilSync = async () => {
+    if (selectedBytbilImages.length === 0) return;
+    await syncToBlocket(car, selectedBytbilImages);
+    setShowBytbilImagePicker(false);
+    setSelectedBytbilImages([]);
     // If Wayke is also selected, show Wayke picker next
     if (selectedPlatforms.includes("wayke")) {
       if (!hasWaykeCredentials()) {
@@ -293,6 +339,12 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
 
   const toggleWaykeImage = (imageUrl: string) => {
     setSelectedWaykeImages((prev) =>
+      prev.includes(imageUrl) ? prev.filter((url) => url !== imageUrl) : [...prev, imageUrl]
+    );
+  };
+
+  const toggleBytbilImage = (imageUrl: string) => {
+    setSelectedBytbilImages((prev) =>
       prev.includes(imageUrl) ? prev.filter((url) => url !== imageUrl) : [...prev, imageUrl]
     );
   };
@@ -542,6 +594,49 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
     );
   }
 
+  if (showBytbilImagePicker) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <img src={bytbilLogo} alt="Bytbil" className="h-6 w-6 object-contain" />
+              Skicka bilder till Bytbil
+            </DialogTitle>
+            <DialogDescription>Välj vilka bilder du vill skicka (max 38)</DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="h-[400px]">
+            {renderImagePicker(selectedBytbilImages, toggleBytbilImage)}
+          </ScrollArea>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowBytbilImagePicker(false);
+                setSelectedBytbilImages([]);
+              }}
+              disabled={isLoading}
+            >
+              Avbryt
+            </Button>
+            <Button onClick={handleBytbilSync} disabled={selectedBytbilImages.length === 0 || isLoading}>
+              {blocketLoading ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Skickar...
+                </>
+              ) : (
+                `Skicka till Bytbil (${selectedBytbilImages.length})`
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   if (showWaykeImagePicker) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -683,6 +778,26 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
                       {platform.name}
                     </Label>
                     {platform.id === "blocket" && hasBlocketCredentials() && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setBlocketForm({
+                            blocket_api_token: credentials?.blocket_api_token || "",
+                            blocket_dealer_code: credentials?.blocket_dealer_code || "",
+                            blocket_dealer_name: credentials?.blocket_dealer_name || "",
+                            blocket_dealer_phone: credentials?.blocket_dealer_phone || "",
+                            blocket_dealer_email: credentials?.blocket_dealer_email || "",
+                          });
+                          setShowBlocketSetup(true);
+                        }}
+                      >
+                        <SquarePen className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {platform.id === "bytbil" && hasBlocketCredentials() && (
                       <Button
                         variant="ghost"
                         size="icon"
