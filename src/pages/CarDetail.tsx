@@ -336,7 +336,9 @@ const CarDetail = () => {
       setHasPaymentMethod(hasAccess);
     } catch (error) {
       console.error("Error checking payment method:", error);
-      setHasPaymentMethod(false);
+      // Fallback to true on transient errors — server-side billing validation
+      // still enforces payment at Stripe reporting time
+      setHasPaymentMethod(true);
     } finally {
       setCheckingPayment(false);
     }
