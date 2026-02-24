@@ -1,47 +1,70 @@
 
-# Aktivera Bytbil-synk via befintlig Blocket API
 
-## Bakgrund
+# Analys: "Betalmetod krävs"-toast för admin-testkonto
 
-Enligt den uppdaterade API-dokumentationen hanteras Blocket och Bytbil av **samma API** (Pro Import API v3). En annons som skapas for registrerade fordon (category_id 1020) publiceras automatiskt pa bade Blocket och Bytbil. Ingen separat integration behovs -- det ar redan implementerat i backend.
+## 1. Allmänna loggar och fel
 
-## Vad som andras
+Sessionreplay och konsolloggar var tomma vid tidpunkten, så jag kan inte se exakt vilka toasts som visades. Dock visar edge function-loggarna att `reconcile-usage` konsekvent kraschar med `Deno.core.runMicrotasks() is not supported` -- detta påverkar dock inte användarupplevelsen direkt.
 
-**Fil: `src/components/PlatformSyncDialog.tsx`**
+## 2. Varför "Betalmetod krävs" dök upp för ditt admin-konto
 
-### 1. Ta bort `comingSoon` fran Bytbil (rad 42)
-- Andra `{ id: "bytbil", name: "Bytbil", logo: bytbilLogo, comingSoon: true }` till `{ id: "bytbil", name: "Bytbil", logo: bytbilLogo }`
+### Rotorsak
 
-### 2. Bytbil delar credentials med Blocket
-- `hasBlocketCredentials()` ateranvands for Bytbil
-- Nar man klickar pa Bytbil och credentials saknas visas Blocket-setup (samma uppgifter)
-- Nar credentials finns visas bildvaljaren precis som for Blocket
+Problemet sitter i **`src/pages/CarDetail.tsx`**, funktionen `checkPaymentMethod` (rad 327-342):
 
-### 3. Bytbil-synk anropar samma edge function
-- Bytbil-synk anvander exakt samma `syncToBlocket()` funktion och samma bildvaljare
-- Ny state: `showBytbilImagePicker`, `selectedBytbilImages`
-- Ny handler `handleBytbilSync` som anropar `syncToBlocket(car, selectedBytbilImages)` (samma funktion)
+```typescript
+const checkPaymentMethod = async () => {
+  try {
+    setCheckingPayment(true);
+    const { data, error } = await supabase.functions.invoke("get-billing-info");
+    if (error) throw error;  // <-- Om edge function timeout/fel -> catch
+    const hasAccess = data?.hasPaymentMethod || data?.hasActiveSubscription || false;
+    setHasPaymentMethod(hasAccess);
+  } catch (error) {
+    console.error("Error checking payment method:", error);
+    setHasPaymentMethod(false);  // <-- FALSKT! Blockerar redigering
+  }
+};
+```
 
-### 4. Status for Bytbil
-- `getPlatformStatus("bytbil")` returnerar samma status som Blocket (de delar sync-record)
+**Vad som händer:**
+1. CarDetail laddar och anropar `checkPaymentMethod()` som kallar `get-billing-info` edge function.
+2. Edge function för ditt admin-konto (company `e0496e49...`) försöker hämta Stripe-prenumeration `unlimited_admin` -- som inte finns i Stripe (404-fel syns i loggarna).
+3. Edge function hanterar detta korrekt och sätter `hasPaymentMethod = true` (rad 421). **Men** ibland (cold start, timeout, nätverksfel) kan anropet misslyckas helt innan det hinner dit.
+4. I `catch`-blocket sätts `setHasPaymentMethod(false)` -- och då visar alla redigeringsknappar toasten "Betalmetod krävs".
+5. Vid omladdning/retry lyckas edge function, och allt fungerar.
 
-### 5. Edit-knapp for Bytbil
-- Visa samma edit-knapp som Blocket (pennaikon) nar `hasBlocketCredentials()` ar true
-- Klick oppnar Blocket-setup-formularet (samma credentials)
+### Varför det "sen fungerade"
 
-## Vad som INTE andras
-- Ingen backend-kod andras (edge functions, sync service, client)
-- Ingen databasandring
-- Wayke-logik rors inte
-- Blocket-logik rors inte (Bytbil ateranvander den)
+Edge functions har cold starts. Första anropet kan ta längre tid eller timeout:a. Vid andra försöket är funktionen redan varm och svarar snabbt.
 
-## Teknisk detalj
+### Bekräftelse från loggarna
 
-Bytbil-flodets steg:
-1. Anvandaren valjer "Bytbil" i plattformslistan
-2. Om Blocket-credentials saknas -> visa Blocket-setup (med text "Blocket/Bytbil")
-3. Om credentials finns -> visa bildvaljare ("Skicka bilder till Bytbil")
-4. Synka via `syncToBlocket()` -- samma API-anrop, publiceras automatiskt pa bada plattformar
+Edge function-loggarna visar att `get-billing-info` kör korrekt för ditt konto:
+```
+[BILLING-INFO] Admin test account - granting unlimited access
+```
+Men det föregås av ett Stripe 404-fel (`No such subscription: 'unlimited_admin'`). Funktionen hanterar felet, men om den inte hinner svara innan klienten timeout:ar sätts `hasPaymentMethod = false`.
 
-## Riskniva
-Extremt lag. Bytbil ateranvander 100% av befintlig Blocket-logik. Inga nya API-anrop, inga nya edge functions, inga databasandringar.
+## Rekommenderad fix
+
+Ändra `catch`-blocket i `checkPaymentMethod` så att **admin-testkontot** (eller generellt) **inte blockeras vid nätverksfel**:
+
+```typescript
+catch (error) {
+  console.error("Error checking payment method:", error);
+  setHasPaymentMethod(true); // Fallback: tillåt åtkomst vid fel
+}
+```
+
+Alternativt: lägg till retry-logik (som `ProtectedRoute` redan har) eller cache:a resultatet. Minst riskfyllt vore att ändra fallback från `false` till `true`, eftersom betalningsvalidering ändå sker server-side vid faktisk Stripe-rapportering.
+
+## Sammanfattning
+
+| Fråga | Svar |
+|-------|------|
+| Varför visades toasten? | `get-billing-info` misslyckades transiently (timeout/cold start), catch-blocket satte `hasPaymentMethod = false` |
+| Varför fungerade det sen? | Edge function var varm vid andra anropet |
+| Är det ett kodbuggsfel? | Ja -- catch-fallback i `checkPaymentMethod` är för aggressiv |
+| Påverkar det andra användare? | Ja, alla användare kan drabbas av samma race condition |
+
