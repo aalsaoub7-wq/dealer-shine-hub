@@ -122,24 +122,24 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
 
   const getPlatformStatus = (platformId: string) => {
     if (platformId === "blocket" && blocketStatus) {
-      if (blocketStatus.state === "created" && blocketStatus.last_action_state === "success") {
+      if (blocketStatus.state === "created" && blocketStatus.last_action_state === "done") {
         return { variant: "success" as const, text: "Synkad" };
       }
       if (blocketStatus.last_action_state === "error") {
         return { variant: "destructive" as const, text: "Fel" };
       }
-      if (blocketStatus.last_action_state === "pending") {
+      if (blocketStatus.last_action_state === "processing") {
         return { variant: "warning" as const, text: "Pågående" };
       }
     }
     if (platformId === "bytbil" && blocketStatus) {
-      if (blocketStatus.state === "created" && blocketStatus.last_action_state === "success") {
+      if (blocketStatus.state === "created" && blocketStatus.last_action_state === "done") {
         return { variant: "success" as const, text: "Synkad" };
       }
       if (blocketStatus.last_action_state === "error") {
         return { variant: "destructive" as const, text: "Fel" };
       }
-      if (blocketStatus.last_action_state === "pending") {
+      if (blocketStatus.last_action_state === "processing") {
         return { variant: "warning" as const, text: "Pågående" };
       }
     }
