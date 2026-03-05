@@ -1,38 +1,36 @@
 
 
-# Fix: Blocket/Bytbil Sync Verification
+# Dubbelkoll: Blocket/Bytbil API - Hittade problem
 
-## Issues Found
+## Problem 1: Status-badges visar aldrig "Synkad" (KRITISKT)
 
-After comparing the codebase against the official Pro Import API v3 documentation, the integration is **mostly correct** but has **one critical bug** and a few minor issues:
+I `PlatformSyncDialog.tsx` rad 125-143 kollar `getPlatformStatus` efter `last_action_state === "success"` och `"pending"`. Men enligt API-dokumentationen och `blocketSyncService.ts` (rad 191) skrivs statusvärdena `"processing"`, `"done"` och `"error"` till databasen. 
 
-### Critical Bug: Manual sync blocked by `publish_on_blocket` flag
+Resultatet: Status-badgen visar aldrig "Synkad" eller "Pågående" i UI:t, trots att synken faktiskt lyckas.
 
-In `blocketSyncService.ts` line 109, `syncCar()` checks `car.publish_on_blocket && !car.deleted_at`. If this flag is `false`, the sync **silently does nothing** (or tries to delete the ad). When users manually sync via the PlatformSyncDialog, they expect it to work regardless of this flag. The memory even states "Manual syncs bypass automatic sync flags" -- but the code doesn't actually bypass it.
+**Fix:** Ändra `"success"` → `"done"` och `"pending"` → `"processing"` i `getPlatformStatus` för både blocket och bytbil.
 
-**Fix**: Pass a `forceSync` boolean from the edge function when `imageUrls` are provided (manual sync always sends images), and skip the `publish_on_blocket` check when `forceSync` is true.
+## Problem 2: Dubbel-synk vid val av både Blocket OCH Bytbil
 
-### Minor Issues (also fixing)
+Eftersom Blocket och Bytbil delar samma API (Pro Import API v3, category_id 1020), publiceras annonsen automatiskt på BÅDA plattformarna vid ett enda API-anrop. Om användaren väljer både Blocket och Bytbil i dialogen, anropas `syncToBlocket()` **två gånger** med potentiellt olika bilder — den andra överskriver den första.
 
-1. **`price` field sent as `undefined` when no price**: The API docs say `price` is **required**. Currently if `car.price` is null, `price` is `undefined` in the payload, which will cause an API validation error. Fix: always include price, default to empty array or 0.
+**Fix:** När båda är valda, kör bara EN synk (Blocket-synken) och visa ett meddelande att Bytbil inkluderas automatiskt. Skippa den separata Bytbil-bilväljaren om Blocket redan är vald.
 
-2. **Validation mismatch**: `validateCarForBlocket` in `src/lib/blocket.ts` requires `price`, but the backend `mapCarToBlocketPayload` sends `undefined` if no price. These are consistent but the API will reject it. The frontend validation catches this, so this is a safety net only.
+## Ändringar
 
-## Changes
+### Fil: `src/components/PlatformSyncDialog.tsx`
 
-### File 1: `supabase/functions/blocket-sync/index.ts`
-- Pass `forceSync: true` when manually triggered (i.e., when imageUrls are provided in the request body)
+1. **`getPlatformStatus`** (rad 125-144): Ändra `"success"` → `"done"` och `"pending"` → `"processing"` för Blocket och Bytbil.
 
-### File 2: `supabase/functions/_shared/blocket/blocketSyncService.ts`
-- Add `forceSync?: boolean` parameter to `syncCar()`
-- When `forceSync` is true, skip the `publish_on_blocket` check and always create/update
-- Fix `price` to always be an array (use `[]` if no price, though frontend validation should prevent this)
+2. **`handleBlocketSync`** (rad 284-305): Om Bytbil också är vald, skippa Bytbil-bilväljaren (annonsen publiceras redan på båda). Gå direkt till Wayke om den är vald.
 
-### No frontend changes needed
-The frontend code correctly passes image URLs and calls the right functions. Bytbil correctly reuses the Blocket sync path.
+3. **`handleSync`** (rad 250-282): Om både Blocket och Bytbil är valda, gå direkt till Blocket-flödet (som automatiskt täcker Bytbil).
 
-## Risk Assessment
-Very low. Two isolated backend changes:
-- Adding a boolean parameter with a default of `false` (backward compatible)
-- Ensuring price is always an array (defensive fix)
+## Vad som INTE ändras
+- Backend-kod (edge functions, sync service, client)
+- Databas
+- Wayke-logik
+
+## Risknivå
+Mycket låg. Två isolerade frontend-fixar: statusmappning och borttagning av redundant API-anrop.
 
