@@ -1,70 +1,38 @@
 
 
-# Analys: "Betalmetod krävs"-toast för admin-testkonto
+# Fix: Blocket/Bytbil Sync Verification
 
-## 1. Allmänna loggar och fel
+## Issues Found
 
-Sessionreplay och konsolloggar var tomma vid tidpunkten, så jag kan inte se exakt vilka toasts som visades. Dock visar edge function-loggarna att `reconcile-usage` konsekvent kraschar med `Deno.core.runMicrotasks() is not supported` -- detta påverkar dock inte användarupplevelsen direkt.
+After comparing the codebase against the official Pro Import API v3 documentation, the integration is **mostly correct** but has **one critical bug** and a few minor issues:
 
-## 2. Varför "Betalmetod krävs" dök upp för ditt admin-konto
+### Critical Bug: Manual sync blocked by `publish_on_blocket` flag
 
-### Rotorsak
+In `blocketSyncService.ts` line 109, `syncCar()` checks `car.publish_on_blocket && !car.deleted_at`. If this flag is `false`, the sync **silently does nothing** (or tries to delete the ad). When users manually sync via the PlatformSyncDialog, they expect it to work regardless of this flag. The memory even states "Manual syncs bypass automatic sync flags" -- but the code doesn't actually bypass it.
 
-Problemet sitter i **`src/pages/CarDetail.tsx`**, funktionen `checkPaymentMethod` (rad 327-342):
+**Fix**: Pass a `forceSync` boolean from the edge function when `imageUrls` are provided (manual sync always sends images), and skip the `publish_on_blocket` check when `forceSync` is true.
 
-```typescript
-const checkPaymentMethod = async () => {
-  try {
-    setCheckingPayment(true);
-    const { data, error } = await supabase.functions.invoke("get-billing-info");
-    if (error) throw error;  // <-- Om edge function timeout/fel -> catch
-    const hasAccess = data?.hasPaymentMethod || data?.hasActiveSubscription || false;
-    setHasPaymentMethod(hasAccess);
-  } catch (error) {
-    console.error("Error checking payment method:", error);
-    setHasPaymentMethod(false);  // <-- FALSKT! Blockerar redigering
-  }
-};
-```
+### Minor Issues (also fixing)
 
-**Vad som händer:**
-1. CarDetail laddar och anropar `checkPaymentMethod()` som kallar `get-billing-info` edge function.
-2. Edge function för ditt admin-konto (company `e0496e49...`) försöker hämta Stripe-prenumeration `unlimited_admin` -- som inte finns i Stripe (404-fel syns i loggarna).
-3. Edge function hanterar detta korrekt och sätter `hasPaymentMethod = true` (rad 421). **Men** ibland (cold start, timeout, nätverksfel) kan anropet misslyckas helt innan det hinner dit.
-4. I `catch`-blocket sätts `setHasPaymentMethod(false)` -- och då visar alla redigeringsknappar toasten "Betalmetod krävs".
-5. Vid omladdning/retry lyckas edge function, och allt fungerar.
+1. **`price` field sent as `undefined` when no price**: The API docs say `price` is **required**. Currently if `car.price` is null, `price` is `undefined` in the payload, which will cause an API validation error. Fix: always include price, default to empty array or 0.
 
-### Varför det "sen fungerade"
+2. **Validation mismatch**: `validateCarForBlocket` in `src/lib/blocket.ts` requires `price`, but the backend `mapCarToBlocketPayload` sends `undefined` if no price. These are consistent but the API will reject it. The frontend validation catches this, so this is a safety net only.
 
-Edge functions har cold starts. Första anropet kan ta längre tid eller timeout:a. Vid andra försöket är funktionen redan varm och svarar snabbt.
+## Changes
 
-### Bekräftelse från loggarna
+### File 1: `supabase/functions/blocket-sync/index.ts`
+- Pass `forceSync: true` when manually triggered (i.e., when imageUrls are provided in the request body)
 
-Edge function-loggarna visar att `get-billing-info` kör korrekt för ditt konto:
-```
-[BILLING-INFO] Admin test account - granting unlimited access
-```
-Men det föregås av ett Stripe 404-fel (`No such subscription: 'unlimited_admin'`). Funktionen hanterar felet, men om den inte hinner svara innan klienten timeout:ar sätts `hasPaymentMethod = false`.
+### File 2: `supabase/functions/_shared/blocket/blocketSyncService.ts`
+- Add `forceSync?: boolean` parameter to `syncCar()`
+- When `forceSync` is true, skip the `publish_on_blocket` check and always create/update
+- Fix `price` to always be an array (use `[]` if no price, though frontend validation should prevent this)
 
-## Rekommenderad fix
+### No frontend changes needed
+The frontend code correctly passes image URLs and calls the right functions. Bytbil correctly reuses the Blocket sync path.
 
-Ändra `catch`-blocket i `checkPaymentMethod` så att **admin-testkontot** (eller generellt) **inte blockeras vid nätverksfel**:
-
-```typescript
-catch (error) {
-  console.error("Error checking payment method:", error);
-  setHasPaymentMethod(true); // Fallback: tillåt åtkomst vid fel
-}
-```
-
-Alternativt: lägg till retry-logik (som `ProtectedRoute` redan har) eller cache:a resultatet. Minst riskfyllt vore att ändra fallback från `false` till `true`, eftersom betalningsvalidering ändå sker server-side vid faktisk Stripe-rapportering.
-
-## Sammanfattning
-
-| Fråga | Svar |
-|-------|------|
-| Varför visades toasten? | `get-billing-info` misslyckades transiently (timeout/cold start), catch-blocket satte `hasPaymentMethod = false` |
-| Varför fungerade det sen? | Edge function var varm vid andra anropet |
-| Är det ett kodbuggsfel? | Ja -- catch-fallback i `checkPaymentMethod` är för aggressiv |
-| Påverkar det andra användare? | Ja, alla användare kan drabbas av samma race condition |
+## Risk Assessment
+Very low. Two isolated backend changes:
+- Adding a boolean parameter with a default of `false` (backward compatible)
+- Ensuring price is always an array (defensive fix)
 
