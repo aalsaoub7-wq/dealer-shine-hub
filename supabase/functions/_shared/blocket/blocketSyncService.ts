@@ -81,7 +81,7 @@ export function mapCarToBlocketPayload(car: Car, imageUrls?: string[], creds?: B
     body: car.description || car.notes || `${car.make} ${car.model} från ${car.year}`,
     price: car.price
       ? [{ type: "list", amount: car.price }]
-      : undefined,
+      : [],
     image_urls: imageUrls && imageUrls.length > 0 ? imageUrls : (car.image_urls || []),
     contact: {
       name: DEALER_NAME,
@@ -99,14 +99,14 @@ export function mapCarToBlocketPayload(car: Car, imageUrls?: string[], creds?: B
 }
 
 export class BlocketSyncService {
-  static async syncCar(carId: string, imageUrls?: string[], creds?: BlocketCredentials) {
-    console.log("[BlocketSync] Starting sync for car:", carId);
+  static async syncCar(carId: string, imageUrls?: string[], creds?: BlocketCredentials, forceSync?: boolean) {
+    console.log("[BlocketSync] Starting sync for car:", carId, "forceSync:", forceSync);
     
     const car = await getCarById(carId);
     const sync = await getBlocketSyncByCarId(carId);
     const token = creds?.apiToken || undefined;
 
-    const wantOnBlocket = car.publish_on_blocket && !car.deleted_at;
+    const wantOnBlocket = forceSync || (car.publish_on_blocket && !car.deleted_at);
 
     if (!wantOnBlocket) {
       if (sync && sync.state !== "deleted") {

@@ -90,9 +90,10 @@ serve(async (req) => {
       dealerEmail: aiSettings?.blocket_dealer_email || Deno.env.get("BLOCKET_DEALER_EMAIL") || "info@example.com",
     };
 
-    console.log("[Blocket Edge Function] Syncing car:", carId, "for user:", userId);
+    const forceSync = Array.isArray(imageUrls) && imageUrls.length > 0;
+    console.log("[Blocket Edge Function] Syncing car:", carId, "for user:", userId, "forceSync:", forceSync);
 
-    await BlocketSyncService.syncCar(carId, imageUrls, credentials);
+    await BlocketSyncService.syncCar(carId, imageUrls, credentials, forceSync);
     const status = await BlocketSyncService.getStatusForCar(carId);
 
     return new Response(
