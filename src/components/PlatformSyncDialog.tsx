@@ -248,7 +248,8 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
   };
 
   const handleSync = async () => {
-    if (selectedPlatforms.includes("blocket")) {
+    // Blocket and Bytbil share the same API - one sync covers both
+    if (selectedPlatforms.includes("blocket") || selectedPlatforms.includes("bytbil")) {
       if (!hasBlocketCredentials()) {
         setShowBlocketSetup(true);
         return;
@@ -256,16 +257,6 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
       const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
       setSelectedBlocketImages(mainPhotos.map(p => p.url));
       setShowBlocketImagePicker(true);
-      return;
-    }
-    if (selectedPlatforms.includes("bytbil")) {
-      if (!hasBlocketCredentials()) {
-        setShowBlocketSetup(true);
-        return;
-      }
-      const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
-      setSelectedBytbilImages(mainPhotos.map(p => p.url));
-      setShowBytbilImagePicker(true);
       return;
     }
     if (selectedPlatforms.includes("wayke")) {
@@ -286,12 +277,12 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
     await syncToBlocket(car, selectedBlocketImages);
     setShowBlocketImagePicker(false);
     setSelectedBlocketImages([]);
-    // If Bytbil is also selected, show Bytbil picker next
-    if (selectedPlatforms.includes("bytbil")) {
-      const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
-      setSelectedBytbilImages(mainPhotos.map(p => p.url));
-      setShowBytbilImagePicker(true);
-    } else if (selectedPlatforms.includes("wayke")) {
+    // Bytbil shares the same API as Blocket - no separate sync needed
+    if (selectedPlatforms.includes("bytbil") && selectedPlatforms.includes("blocket")) {
+      toast.success("Bytbil inkluderas automatiskt via Blocket-synken");
+    }
+    // Proceed to Wayke if selected
+    if (selectedPlatforms.includes("wayke")) {
       if (!hasWaykeCredentials()) {
         setShowWaykeSetup(true);
       } else {
