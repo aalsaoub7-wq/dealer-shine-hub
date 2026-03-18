@@ -23,262 +23,158 @@ const TermsOfService = () => {
           Tillbaka
         </Button>
 
-        <h1 className="text-4xl font-bold mb-8 text-foreground">Användarvillkor</h1>
-        
-        <div className="prose prose-lg max-w-none text-foreground space-y-6">
-          <p className="text-muted-foreground">
-            <strong>Senast uppdaterad:</strong> {new Date().toLocaleDateString('sv-SE')}
-          </p>
+        <div className="prose prose-gray dark:prose-invert max-w-none">
+          <h1 className="text-4xl font-bold mb-4">Användarvillkor för Luvero</h1>
+          <p className="text-sm text-muted-foreground mb-8">Senast uppdaterad: 2026-03-18</p>
 
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">1. Godkännande av villkor</h2>
-            <p className="text-muted-foreground">
-              Välkommen till Luvero. Genom att registrera dig för, komma åt eller använda vår tjänst 
-              godkänner du att vara bunden av dessa användarvillkor. Om du inte godkänner dessa villkor 
-              får du inte använda tjänsten.
-            </p>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">1. Om villkoren</h2>
+            <p>Dessa användarvillkor gäller mellan Luvero och den näringsidkare, det företag eller den organisation som registrerar konto, genomför köp eller använder tjänsten ("Kunden"). Tjänsten är avsedd för företag och andra näringsidkare. Genom att registrera konto, acceptera en Stripe-betalning eller på annat sätt börja använda tjänsten accepterar Kunden dessa användarvillkor och ingår ett bindande avtal med Luvero.</p>
           </section>
 
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">2. Beskrivning av tjänsten</h2>
-            <p className="text-muted-foreground">
-              Luvero är en webbaserad plattform för professionell bilbildsredigering som använder 
-              AI-teknologi. Tjänsten erbjuder:
-            </p>
-            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li>AI-driven bakgrundsredigering av fordonsbilder</li>
-              <li>Gratis lagerhållningssystem för fordonsinventering</li>
-              <li>Vattenmärkningsfunktionalitet</li>
-              <li>Delningsbara landningssidor för foton</li>
-              <li>Teamsamarbete med obegränsat antal användare</li>
-              <li>Integration med externa marknadsplatser</li>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">2. Tjänsten</h2>
+            <p>Luvero tillhandahåller en webbaserad B2B-tjänst för professionell bilbildsredigering och relaterade funktioner. Tjänsten kan bland annat omfatta:</p>
+            <ul className="list-disc pl-6 mt-2">
+              <li>AI-baserad redigering av fordonsbilder,</li>
+              <li>lagerhållningsfunktioner för fordonsinventering,</li>
+              <li>vattenmärkning,</li>
+              <li>delningsbara landningssidor,</li>
+              <li>teamfunktioner, och</li>
+              <li>integrationer mot externa plattformar och marknadsplatser.</li>
+            </ul>
+            <p className="mt-4">Tjänstens omfattning, funktioner, begränsningar och pris beror på det abonnemang eller erbjudande som Kunden har köpt.</p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">3. Avtalspart och behörighet</h2>
+            <p>Den person som accepterar dessa villkor eller genomför köp av tjänsten intygar att han eller hon har rätt att företräda Kunden och ingå bindande avtal för Kundens räkning. Kunden ansvarar för att alla uppgifter som lämnas vid registrering eller köp är korrekta och aktuella.</p>
+            <p className="mt-4">Kunden ansvarar även för:</p>
+            <ul className="list-disc pl-6 mt-2">
+              <li>samtliga användare som ges tillgång till kontot,</li>
+              <li>att inloggningsuppgifter hanteras säkert, och</li>
+              <li>all aktivitet som sker inom ramen för Kundens konto.</li>
             </ul>
           </section>
 
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">3. Kontoregistrering och behörighet</h2>
-            <p className="text-muted-foreground">
-              För att använda tjänsten måste du:
-            </p>
-            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li>Vara minst 18 år gammal</li>
-              <li>Tillhandahålla korrekt och fullständig registreringsinformation</li>
-              <li>Upprätthålla säkerheten för ditt konto och lösenord</li>
-              <li>Meddela oss omedelbart om obehörig användning av ditt konto</li>
-              <li>Företräda ett legitimt företag (för företagskonton)</li>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">4. Pris och vad som gäller vid köp</h2>
+            <p>Det pris som anges i Stripe-betalningen, Stripe-checkouten eller den betalningslänk som Luvero skickar ut är det pris som gäller för avtalet mellan Luvero och Kunden. Genom att genomföra betalningen accepterar Kunden det pris, det faktureringsintervall och den abonnemangsmodell som anges där.</p>
+            <p className="mt-4">Om det skulle finnas någon skillnad mellan allmän information på webbplatsen och den aktuella Stripe-betalningen, ska uppgifterna i Stripe-betalningen ha företräde i fråga om pris, abonnemang, faktureringsintervall och betalningsupplägg.</p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">5. Bindningstid</h2>
+            <p>Samtliga abonnemang tecknas med en bindningstid om 12 månader från köpdatum, om inte annat uttryckligen har avtalats skriftligen.</p>
+            <p className="mt-4">Under bindningstiden är Kunden betalningsskyldig för hela den avtalade perioden. Uppsägning under bindningstiden medför därför inte att Kundens betalningsskyldighet upphör för återstående del av bindningstiden, annat än om tvingande lag kräver något annat.</p>
+            <p className="mt-4">När bindningstiden löpt ut övergår abonnemanget, om inget annat avtalats, till ett löpande månadsabonnemang med 1 månads uppsägningstid.</p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">6. Fakturering och betalning</h2>
+            <p>Betalning sker via Stripe eller annan av Luvero anvisad betallösning. Kunden ansvarar för att det finns giltig betalmetod och tillräcklig täckning för debitering enligt avtalad betalningsplan.</p>
+            <p className="mt-4">Luvero har rätt att debitera avgifter enligt det upplägg som framgår av den accepterade Stripe-betalningen, inklusive exempelvis:</p>
+            <ul className="list-disc pl-6 mt-2">
+              <li>abonnemangsavgift,</li>
+              <li>användningsbaserade avgifter, såsom avgift per redigerad bild, och</li>
+              <li>andra tilläggstjänster som Kunden väljer att köpa.</li>
             </ul>
-            <p className="text-muted-foreground">
-              Du är ansvarig för all aktivitet som sker under ditt konto.
-            </p>
+            <p className="mt-4">Om en automatisk debitering misslyckas har Luvero rätt att försöka debitera igen, skicka betalningspåminnelse, pausa tjänsten eller begränsa åtkomsten tills full betalning har kommit in.</p>
           </section>
 
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">4. Priser och betalning</h2>
-            <h3 className="text-xl font-semibold text-foreground">4.1 Prissättning</h3>
-            <p className="text-muted-foreground">
-              Priset för tjänsten framgår av den Stripe-betalningslänk som Luvero skickar ut till er inför tecknandet av abonnemanget. Genom att genomföra köpet via betalningslänken accepterar ni det pris som anges där. Det är detta pris som gäller för ert avtal. Priserna inkluderar:
-            </p>
-            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li><strong>Månadsavgift:</strong> Enligt betalningslänken</li>
-              <li><strong>AI-redigering:</strong> Pris per redigerad bild enligt betalningslänken</li>
-              <li><strong>Lagerhållning:</strong> Ingår i abonnemanget</li>
-              <li><strong>Teammedlemmar:</strong> Obegränsat antal ingår i abonnemanget</li>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">7. Sen betalning, dröjsmålsränta och indrivning</h2>
+            <p>Om Kunden inte betalar i tid har Luvero rätt till betalning för det förfallna beloppet samt rätt att ta ut följande avgifter och ersättningar i den mån tillämplig lag medger det:</p>
+            <ul className="list-disc pl-6 mt-2">
+              <li>dröjsmålsränta enligt räntelagen, eller enligt särskilt avtalad dröjsmålsränta,</li>
+              <li>påminnelseavgift om 60 kr, under förutsättning att sådan avgift är avtalad, och</li>
+              <li>förseningsersättning om 450 kr per faktura i B2B-förhållanden.</li>
             </ul>
+            <p className="mt-4">Om ingen särskild dröjsmålsränta har avtalats, har Luvero rätt att ta ut dröjsmålsränta enligt räntelagen. För B2B-fordringar innebär detta i normalfallet referensränta + 8 procentenheter. För perioden 1 januari–30 juni 2026 är referensräntan 2,00 %, vilket innebär en dröjsmålsränta om 10,00 % per år om räntelagens nivå tillämpas.</p>
+            <p className="mt-4">Vid fortsatt utebliven betalning har Luvero rätt att lämna fordran vidare till inkasso samt att ansöka om betalningsföreläggande hos Kronofogden. Kunden ansvarar då även för de kostnader och avgifter som kan följa enligt lag och myndighetsbeslut.</p>
+          </section>
 
-            <h3 className="text-xl font-semibold text-foreground">4.2 Bindningstid och uppsägning</h3>
-            <p className="text-muted-foreground">
-              Alla abonnemang har en bindningstid på <strong>12 månader</strong> räknat från köpdatum. Genom att genomföra köpet via Luveros betalningslänk accepterar ni denna bindningstid. Du godkänner att:
-            </p>
-            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li>Bindningstiden är 12 månader från och med köpdatum</li>
-              <li>Uppsägning under bindningstiden är inte möjlig via kundportalen</li>
-              <li>Efter bindningstidens slut övergår abonnemanget till löpande månadsvis med 1 månads uppsägningstid</li>
-              <li>Du är bunden av dessa villkor från och med att köpet genomförts</li>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">8. Avstängning vid betalningsdröjsmål</h2>
+            <p>Luvero har rätt att helt eller delvis stänga av Kundens tillgång till tjänsten vid utebliven betalning, misslyckade debiteringar eller annat betalningsdröjsmål. Sådan avstängning påverkar inte Kundens skyldighet att betala enligt avtalet.</p>
+            <p className="mt-4">Luvero har även rätt att hålla inne leverans, support, exportfunktioner, integrationer eller annan åtkomst tills samtliga förfallna belopp, avgifter och räntor har betalats.</p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">9. Tillåten användning</h2>
+            <p>Kunden får inte använda tjänsten på ett sätt som:</p>
+            <ul className="list-disc pl-6 mt-2">
+              <li>strider mot lag eller myndighetsföreskrift,</li>
+              <li>innebär intrång i tredje mans rättigheter,</li>
+              <li>sprider skadlig kod, virus eller annan skadlig programvara,</li>
+              <li>syftar till att kringgå tekniska begränsningar, säkerhetsfunktioner eller fakturering,</li>
+              <li>överbelastar eller stör tjänstens drift, eller</li>
+              <li>innebär att tjänsten återförsäljs, kopieras eller kommersialiseras vidare utan Luveros skriftliga godkännande.</li>
             </ul>
+            <p className="mt-4">Kunden ansvarar för allt material som laddas upp till tjänsten och för att Kunden har rätt att använda sådant material.</p>
+          </section>
 
-            <h3 className="text-xl font-semibold text-foreground">4.3 Fakturering</h3>
-            <p className="text-muted-foreground">
-              Betalningar hanteras av Stripe. Du godkänner att:
-            </p>
-            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li>Betalningar dras automatiskt enligt faktureringsperiod</li>
-              <li>Du ansvarar för alla tillämpliga skatter</li>
-              <li>Priser kan ändras med 30 dagars varsel</li>
-              <li>Återbetalningar utfärdas endast enligt vår återbetalningspolicy</li>
-              <li>Misslyckade betalningar kan resultera i tillfällig avstängning av tjänsten</li>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">10. Immateriella rättigheter</h2>
+            <p>Alla immateriella rättigheter till tjänsten, inklusive programvara, modeller, design, gränssnitt, varumärken, databaser och dokumentation, tillhör Luvero eller Luveros licensgivare.</p>
+            <p className="mt-4">Kunden behåller äganderätten till det material som Kunden laddar upp till tjänsten. Kunden ger dock Luvero en icke-exklusiv rätt att lagra, behandla, analysera, överföra och på annat sätt använda materialet i den utsträckning som krävs för att tillhandahålla tjänsten till Kunden.</p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">11. Data och integritet</h2>
+            <p>I den mån Luvero behandlar personuppgifter sker detta enligt tillämplig dataskyddslagstiftning och Luveros integritetspolicy. Kunden ansvarar för att Kunden har rättslig grund för det material och de personuppgifter som Kunden laddar upp eller behandlar genom tjänsten.</p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">12. Tillgänglighet och ändringar i tjänsten</h2>
+            <p>Luvero strävar efter hög tillgänglighet men garanterar inte att tjänsten alltid är fri från avbrott, fel eller förseningar. Luvero har rätt att uppdatera, ändra eller vidareutveckla tjänsten löpande.</p>
+            <p className="mt-4">Luvero har även rätt att tillfälligt stänga ner tjänsten för underhåll, säkerhetsåtgärder, tekniska uppdateringar eller andra affärsmässigt motiverade skäl.</p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">13. Ansvarsbegränsning</h2>
+            <p>Luvero ansvarar inte för indirekt skada, följdskada, utebliven vinst, förlust av data, produktionsbortfall, goodwillförlust eller annan indirekt eller ekonomisk följdförlust.</p>
+            <p className="mt-4">Luveros sammanlagda ansvar under ett avtalsår är, i den utsträckning det är tillåtet enligt lag, begränsat till ett belopp motsvarande vad Kunden faktiskt har betalat till Luvero under de senaste 12 månaderna före den skadegörande händelsen.</p>
+            <p className="mt-4">Ansvarsbegränsningen gäller inte vid uppsåt eller grov vårdslöshet.</p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">14. Uppsägning och upphörande</h2>
+            <p>Efter bindningstidens utgång kan Kunden säga upp abonnemanget med 1 månads uppsägningstid. Uppsägning ska ske via kundportalen eller skriftligen till Luvero.</p>
+            <p className="mt-4">Luvero har rätt att säga upp avtalet eller stänga av tjänsten med omedelbar verkan om:</p>
+            <ul className="list-disc pl-6 mt-2">
+              <li>Kunden bryter mot dessa villkor,</li>
+              <li>Kunden är i betalningsdröjsmål,</li>
+              <li>Kunden använder tjänsten på ett otillåtet eller skadligt sätt, eller</li>
+              <li>Luvero enligt lag, myndighetsbeslut eller säkerhetsskäl måste göra det.</li>
             </ul>
-
-            <h3 className="text-xl font-semibold text-foreground">4.4 Testperiod</h3>
-            <p className="text-muted-foreground">
-              Testperiod kan erbjudas enligt överenskommelse. Villkoren för testperioden, inklusive 
-              längd och inkluderade funktioner, varierar och specificeras i ditt avtal.
-            </p>
+            <p className="mt-4">Om avtalet upphör påverkar detta inte redan uppkommen betalningsskyldighet.</p>
           </section>
 
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">5. Acceptabel användning</h2>
-            <p className="text-muted-foreground">Du får inte använda tjänsten för att:</p>
-            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li>Överföra olagligt, skadligt eller stötande innehåll</li>
-              <li>Kränka andras immateriella rättigheter</li>
-              <li>Sprida skadlig kod eller virus</li>
-              <li>Försöka få obehörig åtkomst till systemet</li>
-              <li>Använda tjänsten för konkurrerande ändamål</li>
-              <li>Missbruka eller överbelasta våra servrar</li>
-              <li>Kringgå eller manipulera faktureringsmekanismer</li>
-              <li>Återförsälja eller distribuera tjänsten utan tillstånd</li>
-            </ul>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">15. Ändringar av villkoren</h2>
+            <p>Luvero har rätt att ändra dessa användarvillkor. Uppdaterade villkor publiceras på Luveros webbplats eller meddelas på annat lämpligt sätt. Om ändringen är väsentlig ska Kunden underrättas i skälig tid innan ändringen träder i kraft.</p>
           </section>
 
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">6. Immateriella rättigheter</h2>
-            <h3 className="text-xl font-semibold text-foreground">6.1 Våra rättigheter</h3>
-            <p className="text-muted-foreground">
-              Luvero och dess ursprungliga innehåll, funktioner och funktionalitet ägs av oss och 
-              skyddas av internationella upphovsrätts-, varumärkes- och andra immateriella rättigheter.
-            </p>
-
-            <h3 className="text-xl font-semibold text-foreground">6.2 Dina rättigheter</h3>
-            <p className="text-muted-foreground">
-              Du behåller alla äganderätter till de bilder du laddar upp. Genom att använda tjänsten 
-              ger du oss en begränsad licens att:
-            </p>
-            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li>Lagra och bearbeta dina bilder</li>
-              <li>Använda AI-teknologi för att redigera dina bilder</li>
-              <li>Visa dina bilder tillbaka till dig och dina teammedlemmar</li>
-            </ul>
-            <p className="text-muted-foreground">
-              Vi använder aldrig dina bilder för marknadsföring eller annan användning utan ditt uttryckliga samtycke.
-            </p>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">16. Tillämplig lag och tvist</h2>
+            <p>Dessa villkor ska tolkas och tillämpas enligt svensk lag. Tvist med anledning av dessa villkor eller tjänsten ska avgöras av svensk allmän domstol, med svensk rätt som tillämplig lag.</p>
           </section>
 
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">7. Dataanvändning och integritet</h2>
-            <p className="text-muted-foreground">
-              Din användning av tjänsten regleras också av vår integritetspolicy. Genom att använda 
-              tjänsten samtycker du till vår insamling och användning av dina uppgifter enligt beskrivningen 
-              i integritetspolicyn.
-            </p>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">17. Övrigt</h2>
+            <p>Om någon bestämmelse i dessa villkor skulle anses ogiltig eller inte kunna göras gällande, ska övriga bestämmelser fortsätta att gälla fullt ut.</p>
+            <p className="mt-4">Kunden får inte överlåta avtalet utan Luveros skriftliga godkännande. Luvero har rätt att överlåta avtalet till annat bolag inom samma koncern eller i samband med omstrukturering, fusion eller verksamhetsöverlåtelse.</p>
+            <p className="mt-4">Luvero ansvarar inte för underlåtenhet att fullgöra viss förpliktelse om detta beror på omständighet utanför Luveros rimliga kontroll, såsom myndighetsbeslut, arbetskonflikt, störningar i el- eller datakommunikation, cyberangrepp eller annan liknande händelse.</p>
           </section>
 
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">8. Tjänstens tillgänglighet</h2>
-            <p className="text-muted-foreground">
-              Vi strävar efter att hålla tjänsten tillgänglig 24/7, men vi garanterar inte:
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">18. Kontakt</h2>
+            <p>Frågor om dessa användarvillkor skickas till:</p>
+            <p className="mt-4">
+              E-post: <a href="mailto:support@luvero.se" className="text-primary hover:underline">support@luvero.se</a><br />
+              Webbplats: <a href="https://www.luvero.se" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">www.luvero.se</a>
             </p>
-            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li>Oavbruten eller felfri åtkomst till tjänsten</li>
-              <li>Att fel kommer att korrigeras omedelbart</li>
-              <li>Att tjänsten är fri från virus eller skadliga komponenter</li>
-            </ul>
-            <p className="text-muted-foreground">
-              Vi förbehåller oss rätten att tillfälligt eller permanent avbryta tjänsten för underhåll 
-              eller uppgraderingar.
-            </p>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">9. Ansvarsbegränsning</h2>
-            <p className="text-muted-foreground">
-              I den utsträckning som tillåts enligt lag ska Luvero inte vara ansvariga för:
-            </p>
-            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li>Indirekta, tillfälliga eller följdskador</li>
-              <li>Förlust av vinst, data eller goodwill</li>
-              <li>Avbrott i verksamheten</li>
-              <li>Skador som överstiger det belopp du betalat för tjänsten under de senaste 12 månaderna</li>
-            </ul>
-            <p className="text-muted-foreground">
-              Denna ansvarsbegränsning gäller inte vid vårt grova vårdslöshet eller uppsåt.
-            </p>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">10. Garantifriskrivning</h2>
-            <p className="text-muted-foreground">
-              Tjänsten tillhandahålls "som den är" och "som tillgänglig" utan garantier av något slag, 
-              vare sig uttryckliga eller underförstådda, inklusive men inte begränsat till garantier om 
-              säljbarhet, lämplighet för ett visst ändamål eller icke-intrång.
-            </p>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">11. Uppsägning</h2>
-            <h3 className="text-xl font-semibold text-foreground">11.1 Av dig</h3>
-            <p className="text-muted-foreground">
-              Alla abonnemang löper med 12 månaders bindningstid. Uppsägning är inte möjlig under bindningstiden. Efter bindningstidens slut kan abonnemanget sägas upp med 1 månads uppsägningstid via vår kundportal eller genom att kontakta support@luvero.se.
-            </p>
-
-            <h3 className="text-xl font-semibold text-foreground">11.2 Av oss</h3>
-            <p className="text-muted-foreground">
-              Vi kan säga upp eller stänga av ditt konto omedelbart om:
-            </p>
-            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-              <li>Du bryter mot dessa villkor</li>
-              <li>Du inte betalar fakturor i tid</li>
-              <li>Vi avslutar tjänsten (med 30 dagars varsel)</li>
-              <li>Det krävs enligt lag</li>
-            </ul>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">12. Ändring av villkor</h2>
-            <p className="text-muted-foreground">
-              Vi förbehåller oss rätten att när som helst ändra eller ersätta dessa villkor. Om en 
-              ändring är väsentlig kommer vi att meddela dig minst 30 dagar innan de nya villkoren 
-              träder i kraft. Fortsatt användning av tjänsten efter att ändringar träder i kraft 
-              innebär att du accepterar de nya villkoren.
-            </p>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">13. Tvistlösning</h2>
-            <p className="text-muted-foreground">
-              Dessa villkor regleras av svensk lag. Eventuella tvister ska i första hand lösas genom 
-              förhandlingar. Om ingen överenskommelse nås ska tvisten avgöras av svensk domstol.
-            </p>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">14. Övrigt</h2>
-            <h3 className="text-xl font-semibold text-foreground">14.1 Hela avtalet</h3>
-            <p className="text-muted-foreground">
-              Dessa villkor, tillsammans med integritetspolicyn och det pris som angetts i den av Luvero utskickade betalningslänken, utgör hela avtalet mellan dig och Luvero.
-            </p>
-
-            <h3 className="text-xl font-semibold text-foreground">14.2 Överlåtelse</h3>
-            <p className="text-muted-foreground">
-              Du får inte överlåta eller överföra dina rättigheter enligt dessa villkor utan vårt skriftliga samtycke.
-            </p>
-
-            <h3 className="text-xl font-semibold text-foreground">14.3 Avskiljbarhet</h3>
-            <p className="text-muted-foreground">
-              Om någon bestämmelse i dessa villkor bedöms vara ogiltig ska övriga bestämmelser fortsätta att gälla.
-            </p>
-
-            <h3 className="text-xl font-semibold text-foreground">14.4 Missbruk</h3>
-            <p className="text-muted-foreground">
-              Vid misstänkt missbruk av tjänsten förbehåller vi oss rätten att neka garanti och/eller 
-              återbetalning samt att stänga kontot. Inga straff eller avgifter utgår i samband med detta.
-            </p>
-
-            <h3 className="text-xl font-semibold text-foreground">14.5 Force majeure</h3>
-            <p className="text-muted-foreground">
-              Vi ska inte hållas ansvariga för förseningar eller underlåtenhet att uppfylla våra skyldigheter
-              på grund av omständigheter utanför vår rimliga kontroll.
-            </p>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">15. Kontaktinformation</h2>
-            <p className="text-muted-foreground">
-              För frågor om dessa användarvillkor, kontakta oss:
-            </p>
-            <ul className="list-none space-y-2 text-muted-foreground">
-              <li><strong>E-post:</strong> support@luvero.se</li>
-              <li><strong>Webbplats:</strong> www.luvero.se</li>
-            </ul>
           </section>
         </div>
       </div>
