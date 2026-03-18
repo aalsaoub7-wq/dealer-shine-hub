@@ -1,38 +1,52 @@
 
 
-# Fix: Blocket/Bytbil Sync Verification
+# Fix: Photos in queue get reset by watchdog before processing starts
 
-## Issues Found
+## Root Cause
 
-After comparing the codebase against the official Pro Import API v3 documentation, the integration is **mostly correct** but has **one critical bug** and a few minor issues:
+When a user selects 15 photos and clicks "AI-redigera":
 
-### Critical Bug: Manual sync blocked by `publish_on_blocket` flag
+1. **Lines 606-611**: ALL 15 photos are immediately marked `is_processing: true` in the database
+2. **Lines 743-747**: Only 2 concurrent workers start (`MAX_CONCURRENT = 2`)
+3. Each photo takes ~60-150 seconds to process (segment + composite + reflection)
+4. **Lines 240-242**: A watchdog runs every 10 seconds
+5. **Line 177**: The watchdog resets any photo with `is_processing: true` and `updated_at` older than **90 seconds**
+6. Photos 3-15 are waiting in the in-memory queue. After 90 seconds, the watchdog resets them to `is_processing: false` because no worker has "touched" their `updated_at` yet
+7. The worker's "touch" at line 631-635 only happens when a worker **picks up** the photo, which for photo #15 could be 15+ minutes later
 
-In `blocketSyncService.ts` line 109, `syncCar()` checks `car.publish_on_blocket && !car.deleted_at`. If this flag is `false`, the sync **silently does nothing** (or tries to delete the ad). When users manually sync via the PlatformSyncDialog, they expect it to work regardless of this flag. The memory even states "Manual syncs bypass automatic sync flags" -- but the code doesn't actually bypass it.
+**Result**: Photos get reset, error toasts fire ("Vår AI fick för många bollar att jonglera"), and the user sees photos flip back to un-processing state. The workers DO eventually re-mark and process them, but the UX is broken and users often navigate away thinking it failed.
 
-**Fix**: Pass a `forceSync` boolean from the edge function when `imageUrls` are provided (manual sync always sends images), and skip the `publish_on_blocket` check when `forceSync` is true.
+## Fix (minimal, isolated)
 
-### Minor Issues (also fixing)
+**Single change in `src/pages/CarDetail.tsx`**: Move the initial `is_processing: true` marking from the upfront loop (lines 606-611) into the worker's `processNext` function. The "touch" at line 631-635 already does exactly this -- so we just **remove lines 606-611**.
 
-1. **`price` field sent as `undefined` when no price**: The API docs say `price` is **required**. Currently if `car.price` is null, `price` is `undefined` in the payload, which will cause an API validation error. Fix: always include price, default to empty array or 0.
+This means:
+- Photos are only marked `is_processing: true` when a worker actually starts processing them
+- The watchdog will never reset queued photos because they aren't marked as processing yet
+- Photos 3-15 won't show spinners until a worker picks them up, but they WILL get processed reliably
 
-2. **Validation mismatch**: `validateCarForBlocket` in `src/lib/blocket.ts` requires `price`, but the backend `mapCarToBlocketPayload` sends `undefined` if no price. These are consistent but the API will reject it. The frontend validation catches this, so this is a safety net only.
+### Before (current):
+```
+// Mark ALL photos as processing upfront  ← PROBLEM
+for (const photo of photosToProcess) {
+  await supabase.from("photos").update({ is_processing: true }).eq("id", photo.id);
+}
+// ... later, workers pick up photos one by one
+```
 
-## Changes
+### After (fix):
+```
+// Remove upfront marking entirely
+// Workers already mark photos via the "touch" at line 631-635
+```
 
-### File 1: `supabase/functions/blocket-sync/index.ts`
-- Pass `forceSync: true` when manually triggered (i.e., when imageUrls are provided in the request body)
-
-### File 2: `supabase/functions/_shared/blocket/blocketSyncService.ts`
-- Add `forceSync?: boolean` parameter to `syncCar()`
-- When `forceSync` is true, skip the `publish_on_blocket` check and always create/update
-- Fix `price` to always be an array (use `[]` if no price, though frontend validation should prevent this)
-
-### No frontend changes needed
-The frontend code correctly passes image URLs and calls the right functions. Bytbil correctly reuses the Blocket sync path.
+## What does NOT change
+- Worker logic, queue, concurrency limit -- untouched
+- Watchdog timer -- untouched
+- Safety timeout -- untouched
+- All other functionality -- untouched
+- Interior editing, regeneration, position editor -- untouched
 
 ## Risk Assessment
-Very low. Two isolated backend changes:
-- Adding a boolean parameter with a default of `false` (backward compatible)
-- Ensuring price is always an array (defensive fix)
+**Extremely low**. Removing 5 lines that do redundant work (the worker already sets `is_processing: true` before starting). No new code added.
 
