@@ -600,15 +600,9 @@ const CarDetail = () => {
       setSelectedDocPhotos([]);
     }
 
-    // Mark photos as processing in database
+    // Photos will be marked as processing individually when a worker picks them up (touch at processNext)
+    // This prevents the watchdog from resetting queued photos that haven't started yet
     const photosToProcess = photos.filter((p) => photoIds.includes(p.id));
-    
-    for (const photo of photosToProcess) {
-      await supabase
-        .from("photos")
-        .update({ is_processing: true })
-        .eq("id", photo.id);
-    }
 
     // Process photos with concurrency limit (max 2 at a time) to avoid overwhelming APIs
     const MAX_CONCURRENT = 2;
