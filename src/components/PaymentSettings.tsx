@@ -56,7 +56,7 @@ export const PaymentSettings = () => {
     editedImages: 0,
     cost: 0
   });
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pollingIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { toast } = useToast();
   
   const { data: userRole } = useQuery({

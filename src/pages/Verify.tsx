@@ -21,7 +21,7 @@ export default function Verify() {
   const [phoneCode, setPhoneCode] = useState("");
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
   const [isGoogleUser, setIsGoogleUser] = useState(false);
-  const cooldownRef = useRef<NodeJS.Timeout | null>(null);
+  const cooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     checkUserAndStatus();
