@@ -159,7 +159,7 @@ const CarDetail = () => {
   >(null);
   const { toast } = useToast();
   const { lightImpact, successNotification } = useHaptics();
-  const fetchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const fetchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Helper: timeout wrapper for API calls
   const withTimeout = <T,>(promise: Promise<T>, ms: number, errorMessage: string): Promise<T> => {

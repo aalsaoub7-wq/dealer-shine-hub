@@ -13,7 +13,7 @@ export const BeforeAfterSlider = () => {
   const boundsRef = useRef<DOMRect | null>(null);
   const animationRef = useRef<number>(0);
   const rafRef = useRef<number>(0);
-  const inactivityTimerRef = useRef<NodeJS.Timeout>();
+  const inactivityTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Track image loading
   useEffect(() => {
