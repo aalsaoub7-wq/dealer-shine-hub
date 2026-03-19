@@ -1,31 +1,28 @@
 
 
-# Stäng upload-popup direkt vid klick på "Ladda upp"
+# Lägg till "Markera alla / Avmarkera alla"-knapp
 
 ## Vad som ändras
 
-**Enda fil:** `src/components/PhotoUpload.tsx`
+**Enda fil:** `src/pages/CarDetail.tsx`
 
-**Enda ändring:** Flytta `onOpenChange(false)` och `setSelectedFiles([])` från rad 286–287 (efter alla uploads är klara) till direkt efter rad 197 (efter placeholders skapats och `onUploadComplete()` anropats).
+**Enda ändring:** Lägg till en knapp direkt före "Ladda upp"-knappen (rad 1928) som togglear markering av alla bilder i den aktiva fliken.
 
-Detta gör att dialogen stängs omedelbart efter att placeholder-kort med spinners dykt upp på sidan, medan själva filuppladdningen fortsätter i bakgrunden — exakt det beteende som redan syns bakom popupen idag.
+## Logik
+
+- Om `activeTab === "main"`:
+  - Om `selectedMainPhotos.length > 0` → knappen visar "Avmarkera alla" och kör `setSelectedMainPhotos([])`
+  - Annars → knappen visar "Markera alla" och kör `setSelectedMainPhotos(mainPhotos.map(p => p.id))`
+- Om `activeTab === "docs"`:
+  - Om `selectedDocPhotos.length > 0` → knappen visar "Avmarkera alla" och kör `setSelectedDocPhotos([])`
+  - Annars → knappen visar "Markera alla" och kör `setSelectedDocPhotos(docPhotos.map(p => p.id))`
 
 ## Teknisk detalj
 
-```text
-Före:
-  1. Skapa placeholders → onUploadComplete()
-  2. Ladda upp alla filer (dialog öppen, knapp visar "Bearbetar...")
-  3. onUploadComplete() → stäng dialog
+En `Button variant="outline"` med `CheckSquare`/`Square` ikon placeras direkt före upload-knappen (rad 1928). Ingen import behöver läggas till om `CheckSquare` och `Square` inte redan finns — kan använda `Check` som redan importeras, eller lägga till en lucide-ikon. Styling matchar befintliga knappar i raden.
 
-Efter:
-  1. Skapa placeholders → onUploadComplete() → stäng dialog
-  2. Ladda upp alla filer i bakgrunden
-  3. onUploadComplete()
-```
-
-Rad 286–287 (`onOpenChange(false); setSelectedFiles([]);`) tas bort och läggs in direkt efter rad 197. Inget annat ändras.
+Ingen annan fil, funktion eller logik ändras.
 
 ## Risk
-Ingen. Uploads fortsätter asynkront som innan. Placeholder-spinners syns direkt på sidan.
+Ingen. Rent additivt — en ny knapp med setState-anrop som redan används överallt.
 
