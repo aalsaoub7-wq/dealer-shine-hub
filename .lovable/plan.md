@@ -1,45 +1,42 @@
 
 
-# Fixa bildnedladdning till Kamerarullen på iOS PWA
+# Fix: iOS laddar bara ner första bilden
 
 ## Problem
-På iOS PWA fungerar inte `<a download>` — bilder hamnar i Filer-appen istället för Kamerarullen/Foton. Detta är en känd iOS-begränsning.
+`navigator.share()` öppnar iOS delningsmenyn som kräver användarinteraktion. I en loop anropas den en gång per bild — efter första bilden avbryter iOS resten (användaren måste interagera med varje share sheet, och efterföljande anrop blockeras/kastas som error).
 
 ## Lösning
-Använd `navigator.share({ files: [imageFile] })` på iOS istället för `<a download>`. Web Share API Level 2 (stöds på iOS 15+) visar delningsmenyn där "Spara bild" sparar direkt till Foton/Kamerarullen.
+Samla ALLA filer först, skicka sedan ett enda `navigator.share({ files: allFiles })` med alla bilder på en gång. iOS share sheet visar då alla bilder och "Spara X bilder" sparar alla till Kamerarullen.
 
 ## Ändring
 
-**Enda fil:** `src/pages/CarDetail.tsx`, funktionen `handleDownloadPhotos` (rad 439–460)
+**Enda fil:** `src/pages/CarDetail.tsx`, `handleDownloadPhotos` (rad 439–473)
 
-Ändra loopen i funktionen:
-1. Detektera om vi är på iOS (via `navigator.userAgent`)
-2. **iOS**: Skapa en `File` från bloben och anropa `navigator.share({ files: [file] })` — detta öppnar delningsmenyn med "Spara bild"-alternativet
-3. **Övriga plattformar**: Behåll befintlig `<a download>`-logik exakt som den är
+Ändra iOS-grenen:
+1. Fetcha alla blobs först i en loop
+2. Skapa en `File[]`-array med alla bilder
+3. Anropa `navigator.share({ files })` EN gång med hela arrayen
+4. Fallback (icke-iOS) förblir orörd
 
 ```text
-// Pseudokod för ändringen
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-for (const photo of photosToDownload) {
-  const response = await fetch(photo.url);
-  const blob = await response.blob();
-  
-  if (isIOS && navigator.canShare) {
-    const file = new File([blob], `photo-${photo.id}.jpg`, { type: blob.type });
-    if (navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file] });
-      continue;
-    }
+// Ny iOS-logik (pseudokod)
+if (isIOS && navigator.canShare) {
+  const files: File[] = [];
+  for (const photo of photosToDownload) {
+    const response = await fetch(photo.url);
+    const blob = await response.blob();
+    files.push(new File([blob], `photo-${photo.id}.png`, { type: blob.type || 'image/png' }));
   }
-  
-  // Fallback: befintlig <a download>-logik (orörd)
-  const downloadUrl = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  // ... samma som idag
+  if (files.length > 0 && navigator.canShare({ files })) {
+    await navigator.share({ files });
+    // Klart — alla bilder i ett anrop
+    return;
+  }
 }
+
+// Fallback: befintlig <a download>-loop (orörd)
 ```
 
 ## Risk
-Extremt låg. Rent additivt — lägger till en iOS-specifik gren före befintlig logik. Icke-iOS-enheter påverkas inte alls. Om `canShare` inte stöds faller det tillbaka till befintlig logik.
+Extremt låg. Samma API, bara ett anrop istället för N. Icke-iOS orörd.
 
