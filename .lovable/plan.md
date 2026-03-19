@@ -1,30 +1,31 @@
 
-Mål: Fixa att batch-redigering (AI redigera) stannar efter ~2 bilder, med absolut minimal och låg-risk ändring.
 
-1) Bekräftad scope (ingen sid-effekt)
-- Endast `src/pages/CarDetail.tsx`.
-- Endast flödet `handleEditPhotos` (studio/AI redigera).
-- Ingen ändring av UI, databasschema, policys, andra funktioner eller andra sidor.
+# Stäng upload-popup direkt vid klick på "Ladda upp"
 
-2) Rotorsak jag adresserar
-- Kölogiken startar 2 workers, men worker-kedjan är skör: om en worker får ett okapslat fel (innan nuvarande catch-path fångar allt relevant), så dör den worker-kedjan.
-- När båda kedjorna dör tidigt ser det ut som att bara de första 2 (ibland 2–3) bilderna blir redigerade.
+## Vad som ändras
 
-3) Minimal implementation (enbart i `handleEditPhotos`)
-- Göra worker-flödet “fail-safe” utan att ändra affärslogik:
-  - Flytta hela per-bildflödet till en sammanhållen `try/catch/finally` så att även tidiga fel fångas.
-  - Säkerställ att nästa bild i kön alltid startas i `finally` (så kön fortsätter även efter fel på en enskild bild).
-  - Behåll befintliga timeouts, API-anrop, `MAX_CONCURRENT = 2`, och befintliga toast-meddelanden.
-- Göra worker-start robust:
-  - Byta från “fire-and-forget” till robust hantering av worker-promises (all workers får köra färdigt utan att kedjan tyst bryts).
+**Enda fil:** `src/components/PhotoUpload.tsx`
 
-4) Vad jag uttryckligen INTE ändrar
-- Ingen ändring av watchdog-intervall/threshold.
-- Ingen ändring av interiör-redigering, watermark, regenerate, position-editor.
-- Ingen ändring av edge functions eller backend-tabeller.
-- Ingen ny feature, ingen refaktor utanför den lilla kön i `handleEditPhotos`.
+**Enda ändring:** Flytta `onOpenChange(false)` och `setSelectedFiles([])` från rad 286–287 (efter alla uploads är klara) till direkt efter rad 197 (efter placeholders skapats och `onUploadComplete()` anropats).
 
-5) Verifiering (end-to-end, exakt detta fall)
-- Välj 10–20 huvudbilder, kör “AI redigera”.
-- Bekräfta att fler än de första 2 faktiskt går igenom och att hela kön dräneras.
-- Bekräfta att fel på en enskild bild inte stoppar resterande bilder i batchen.
+Detta gör att dialogen stängs omedelbart efter att placeholder-kort med spinners dykt upp på sidan, medan själva filuppladdningen fortsätter i bakgrunden — exakt det beteende som redan syns bakom popupen idag.
+
+## Teknisk detalj
+
+```text
+Före:
+  1. Skapa placeholders → onUploadComplete()
+  2. Ladda upp alla filer (dialog öppen, knapp visar "Bearbetar...")
+  3. onUploadComplete() → stäng dialog
+
+Efter:
+  1. Skapa placeholders → onUploadComplete() → stäng dialog
+  2. Ladda upp alla filer i bakgrunden
+  3. onUploadComplete()
+```
+
+Rad 286–287 (`onOpenChange(false); setSelectedFiles([]);`) tas bort och läggs in direkt efter rad 197. Inget annat ändras.
+
+## Risk
+Ingen. Uploads fortsätter asynkront som innan. Placeholder-spinners syns direkt på sidan.
+
