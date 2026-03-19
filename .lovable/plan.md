@@ -1,25 +1,15 @@
 
 
-# Lägg till "Överför till dokumentation/huvudfoton"-knapp
-
-## Vad som ändras
-
-**Enda fil:** `src/pages/CarDetail.tsx`
+# Ta bort success-toast vid överföring
 
 ## Ändring
 
-Lägg till en knapp direkt bredvid "Markera alla"-knappen (runt rad 1963) som bara syns när bilder är markerade. Knappen:
+**Enda fil:** `src/pages/CarDetail.tsx`, rad 1981
 
-- I fliken "main": visar **"Överför till dokumentation (N)"** och uppdaterar `photo_type` till `"documentation"` för valda bilder
-- I fliken "docs": visar **"Överför till huvudfoton (N)"** och uppdaterar `photo_type` till `"main"` för valda bilder
+Ta bort raden `toast({ title: "Klart", description: \`${selectedIds.length} bild(er) överförda.\` });`
 
-**Logik vid klick:**
-1. Kör `supabase.from("car_photos").update({ photo_type: targetType }).in("id", selectedIds)`
-2. Uppdatera lokalt `photos`-state genom att ändra `photo_type` på berörda bilder
-3. Rensa markeringen (`setSelectedMainPhotos([])` / `setSelectedDocPhotos([])`)
-
-**Ikon:** Lägg till `ArrowRightLeft` från lucide-react (import). Styling identisk med "Markera alla"-knappen (`variant="outline"`, samma klasser).
+Behåll error-toasten (rad 1976) — den är viktig. Bara success-toasten tas bort.
 
 ## Risk
-Ingen. Rent additivt — en ny knapp som bara syns vid markering. Använder befintlig supabase-klient och state-hantering.
+Ingen. Tar bort en enda rad.
 
