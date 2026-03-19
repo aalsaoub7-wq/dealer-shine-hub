@@ -285,8 +285,6 @@ const PhotoUpload = ({
 
       // Final UI update
       onUploadComplete();
-      onOpenChange(false);
-      setSelectedFiles([]);
     } catch (error: any) {
       toast({
         title: "Fel vid uppladdning av foton",
