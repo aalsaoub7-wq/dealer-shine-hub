@@ -441,21 +441,31 @@ const CarDetail = () => {
     
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
+    // On iOS, batch all files into a single share call so all images can be saved at once
+    if (isIOS && navigator.canShare) {
+      try {
+        const files: File[] = [];
+        for (const photo of photosToDownload) {
+          const response = await fetch(photo.url);
+          const blob = await response.blob();
+          files.push(new File([blob], `photo-${photo.id}.png`, { type: blob.type || 'image/png' }));
+        }
+        if (files.length > 0 && navigator.canShare({ files })) {
+          await navigator.share({ files });
+          analytics.imageDownloaded(car!.id, photosToDownload.length, 'car_detail');
+          return;
+        }
+      } catch (error) {
+        console.error('iOS share error:', error);
+        // Fall through to standard download below
+      }
+    }
+
+    // Fallback: standard <a download> for non-iOS or if share failed
     for (const photo of photosToDownload) {
       try {
         const response = await fetch(photo.url);
         const blob = await response.blob();
-
-        // On iOS, use Web Share API so the user can "Save Image" to Photos/Camera Roll
-        if (isIOS && navigator.canShare) {
-          const file = new File([blob], `photo-${photo.id}.png`, { type: blob.type || 'image/png' });
-          if (navigator.canShare({ files: [file] })) {
-            await navigator.share({ files: [file] });
-            continue;
-          }
-        }
-
-        // Fallback: standard <a download> for non-iOS
         const downloadUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = downloadUrl;
