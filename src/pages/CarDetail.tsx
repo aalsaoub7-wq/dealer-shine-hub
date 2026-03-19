@@ -719,19 +719,23 @@ const CarDetail = () => {
           clearTimeout(safetyTimer);
           console.error(`Error editing photo ${photo.id}:`, error);
           // Clear processing state on error
-          await supabase
-            .from("photos")
-            .update({ is_processing: false })
-            .eq("id", photo.id);
+          try {
+            await supabase
+              .from("photos")
+              .update({ is_processing: false })
+              .eq("id", photo.id);
+          } catch (resetError) {
+            console.error(`Failed to reset processing state for ${photo.id}:`, resetError);
+          }
           
           toast({
             title: "Oj!",
             description: "Vår AI fick för många bollar att jonglera",
             variant: "info",
           });
+      } finally {
+        await processNext();
       }
-
-      await processNext();
     };
 
     const workers = Array.from(
