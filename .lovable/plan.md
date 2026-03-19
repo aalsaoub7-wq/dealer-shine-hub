@@ -1,28 +1,44 @@
 
 
-# Lägg till "Markera alla / Avmarkera alla"-knapp
+# Autosave anteckningar vid varje ändring
 
 ## Vad som ändras
 
 **Enda fil:** `src/pages/CarDetail.tsx`
 
-**Enda ändring:** Lägg till en knapp direkt före "Ladda upp"-knappen (rad 1928) som togglear markering av alla bilder i den aktiva fliken.
+## Ändring
 
-## Logik
+Byt `onChange` på Textarea (rad 1819) till att debounce-spara direkt till databasen vid varje ändring, istället för att förlita sig på "Spara"-knappen.
 
-- Om `activeTab === "main"`:
-  - Om `selectedMainPhotos.length > 0` → knappen visar "Avmarkera alla" och kör `setSelectedMainPhotos([])`
-  - Annars → knappen visar "Markera alla" och kör `setSelectedMainPhotos(mainPhotos.map(p => p.id))`
-- Om `activeTab === "docs"`:
-  - Om `selectedDocPhotos.length > 0` → knappen visar "Avmarkera alla" och kör `setSelectedDocPhotos([])`
-  - Annars → knappen visar "Markera alla" och kör `setSelectedDocPhotos(docPhotos.map(p => p.id))`
+Konkret:
+1. Lägg till en `useRef` för en debounce-timer.
+2. I `onChange` på Textarea: uppdatera `editedNotes` som idag, men starta även en debounce (t.ex. 1 sekund) som anropar `handleSaveNotes` automatiskt.
+3. Behåll "Spara"-knappen som den är (för manuell snabbsparning) — ingen UI-ändring krävs.
 
 ## Teknisk detalj
 
-En `Button variant="outline"` med `CheckSquare`/`Square` ikon placeras direkt före upload-knappen (rad 1928). Ingen import behöver läggas till om `CheckSquare` och `Square` inte redan finns — kan använda `Check` som redan importeras, eller lägga till en lucide-ikon. Styling matchar befintliga knappar i raden.
+```text
+// Ny ref
+const notesDebounceRef = useRef<NodeJS.Timeout>();
 
-Ingen annan fil, funktion eller logik ändras.
+// Ny onChange-handler
+const handleNotesChange = (value: string) => {
+  setEditedNotes(value);
+  clearTimeout(notesDebounceRef.current);
+  notesDebounceRef.current = setTimeout(() => {
+    // Spara direkt till DB (same logic as handleSaveNotes)
+    supabase.from("cars").update({ notes: value }).eq("id", id)
+      .then(({ error }) => {
+        if (!error) setCar(prev => prev ? { ...prev, notes: value } : prev);
+      });
+  }, 1000);
+};
+```
+
+Textarea onChange ändras från `(e) => setEditedNotes(e.target.value)` till `(e) => handleNotesChange(e.target.value)`.
+
+Notera: `handleSaveNotes` använder `editedNotes` från state, men debounce-callbacken behöver använda `value` direkt (closure-problem med stale state). Därför gör vi DB-anropet inline med det aktuella värdet.
 
 ## Risk
-Ingen. Rent additivt — en ny knapp med setState-anrop som redan används överallt.
+Ingen. Rent additivt — lägger till autosave bredvid befintlig manuell sparning. Spara-knappen finns kvar som backup.
 
