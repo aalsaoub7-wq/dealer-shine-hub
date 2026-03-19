@@ -162,6 +162,7 @@ const CarDetail = () => {
   const { toast } = useToast();
   const { lightImpact, successNotification } = useHaptics();
   const fetchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const notesDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Helper: timeout wrapper for API calls
   const withTimeout = <T,>(promise: Promise<T>, ms: number, errorMessage: string): Promise<T> => {
@@ -1816,7 +1817,17 @@ const CarDetail = () => {
                 </div>
                 <Textarea
                   value={editedNotes}
-                  onChange={(e) => setEditedNotes(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setEditedNotes(val);
+                    if (notesDebounceRef.current) clearTimeout(notesDebounceRef.current);
+                    notesDebounceRef.current = setTimeout(() => {
+                      supabase.from("cars").update({ notes: val }).eq("id", id)
+                        .then(({ error }) => {
+                          if (!error) setCar(prev => prev ? { ...prev, notes: val } : prev);
+                        });
+                    }, 1000);
+                  }}
                   placeholder="Lägg till anteckningar om bilen här..."
                   className="min-h-[100px] text-sm md:text-base"
                 />
