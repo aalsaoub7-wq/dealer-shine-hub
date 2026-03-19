@@ -19,6 +19,8 @@ import {
   ChevronDown,
   Download,
   Palette,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PhotoUpload from "@/components/PhotoUpload";
