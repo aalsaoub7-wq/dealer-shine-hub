@@ -21,6 +21,7 @@ import {
   Palette,
   CheckSquare,
   Square,
+  ArrowRightLeft,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PhotoUpload from "@/components/PhotoUpload";
