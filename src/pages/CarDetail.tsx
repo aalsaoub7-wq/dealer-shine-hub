@@ -439,10 +439,23 @@ const CarDetail = () => {
   const handleDownloadPhotos = async (photoIds: string[]) => {
     const photosToDownload = [...mainPhotos, ...docPhotos].filter(p => photoIds.includes(p.id));
     
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
     for (const photo of photosToDownload) {
       try {
         const response = await fetch(photo.url);
         const blob = await response.blob();
+
+        // On iOS, use Web Share API so the user can "Save Image" to Photos/Camera Roll
+        if (isIOS && navigator.canShare) {
+          const file = new File([blob], `photo-${photo.id}.png`, { type: blob.type || 'image/png' });
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file] });
+            continue;
+          }
+        }
+
+        // Fallback: standard <a download> for non-iOS
         const downloadUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = downloadUrl;
