@@ -1978,7 +1978,7 @@ const CarDetail = () => {
                       }
                       setPhotos(prev => prev.map(p => selectedIds.includes(p.id) ? { ...p, photo_type: targetType } : p));
                       if (isMain) setSelectedMainPhotos([]); else setSelectedDocPhotos([]);
-                      toast({ title: "Klart", description: `${selectedIds.length} bild(er) överförda.` });
+                      
                     }}
                     variant="outline"
                     className="text-xs md:text-sm h-12 md:h-10 w-full sm:w-auto sm:shrink-0 whitespace-nowrap"
