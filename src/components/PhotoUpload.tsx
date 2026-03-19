@@ -195,6 +195,8 @@ const PhotoUpload = ({
 
       // Trigger UI update so placeholder cards with spinners appear immediately
       onUploadComplete();
+      onOpenChange(false);
+      setSelectedFiles([]);
 
       // Step 2: Upload each file and update corresponding placeholder
       for (let i = 0; i < selectedFiles.length; i++) {
@@ -283,8 +285,6 @@ const PhotoUpload = ({
 
       // Final UI update
       onUploadComplete();
-      onOpenChange(false);
-      setSelectedFiles([]);
     } catch (error: any) {
       toast({
         title: "Fel vid uppladdning av foton",
