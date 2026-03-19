@@ -19,6 +19,8 @@ import {
   ChevronDown,
   Download,
   Palette,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PhotoUpload from "@/components/PhotoUpload";
@@ -1925,6 +1927,29 @@ const CarDetail = () => {
                     )}
                   </Button>
                 )}
+                <Button
+                  onClick={() => {
+                    if (activeTab === "main") {
+                      setSelectedMainPhotos(selectedMainPhotos.length > 0 ? [] : mainPhotos.map(p => p.id));
+                    } else {
+                      setSelectedDocPhotos(selectedDocPhotos.length > 0 ? [] : docPhotos.map(p => p.id));
+                    }
+                  }}
+                  variant="outline"
+                  className="text-xs md:text-sm h-12 md:h-10 w-full sm:w-auto sm:shrink-0 whitespace-nowrap"
+                >
+                  {(activeTab === "main" ? selectedMainPhotos.length > 0 : selectedDocPhotos.length > 0) ? (
+                    <>
+                      <CheckSquare className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                      Avmarkera alla
+                    </>
+                  ) : (
+                    <>
+                      <Square className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                      Markera alla
+                    </>
+                  )}
+                </Button>
                 <Button
                   onClick={(e) => {
                     e.preventDefault();
