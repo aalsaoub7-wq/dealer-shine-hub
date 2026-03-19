@@ -21,6 +21,7 @@ import {
   Palette,
   CheckSquare,
   Square,
+  ArrowRightLeft,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PhotoUpload from "@/components/PhotoUpload";
@@ -1961,6 +1962,34 @@ const CarDetail = () => {
                     </>
                   )}
                 </Button>
+                {(activeTab === "main" ? selectedMainPhotos.length > 0 : selectedDocPhotos.length > 0) && (
+                  <Button
+                    onClick={async () => {
+                      const isMain = activeTab === "main";
+                      const selectedIds = isMain ? selectedMainPhotos : selectedDocPhotos;
+                      const targetType = isMain ? "documentation" : "main";
+                      const { error } = await supabase
+                        .from("photos")
+                        .update({ photo_type: targetType })
+                        .in("id", selectedIds);
+                      if (error) {
+                        toast({ title: "Fel", description: "Kunde inte överföra bilderna.", variant: "destructive" });
+                        return;
+                      }
+                      setPhotos(prev => prev.map(p => selectedIds.includes(p.id) ? { ...p, photo_type: targetType } : p));
+                      if (isMain) setSelectedMainPhotos([]); else setSelectedDocPhotos([]);
+                      toast({ title: "Klart", description: `${selectedIds.length} bild(er) överförda.` });
+                    }}
+                    variant="outline"
+                    className="text-xs md:text-sm h-12 md:h-10 w-full sm:w-auto sm:shrink-0 whitespace-nowrap"
+                  >
+                    <ArrowRightLeft className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                    {activeTab === "main"
+                      ? `Överför till dokumentation (${selectedMainPhotos.length})`
+                      : `Överför till huvudfoton (${selectedDocPhotos.length})`
+                    }
+                  </Button>
+                )}
                 <Button
                   onClick={(e) => {
                     e.preventDefault();
