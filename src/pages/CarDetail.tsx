@@ -135,7 +135,18 @@ const CarDetail = () => {
     photos: Photo[];
     removePlate: boolean;
     currentIndex: number;
+    segmentResults: Map<string, string>; // photoId → transparentUrl
   } | null>(null);
+  // Background Gemini queue for edit flow (max 2 concurrent)
+  const geminiQueueRef = useRef<{
+    compositionBlob: Blob;
+    photoId: string;
+    originalUrl: string;
+    transparentUrl: string;
+    removePlate: boolean;
+  }[]>([]);
+  const geminiActiveRef = useRef(0);
+  const MAX_CONCURRENT_GEMINI = 2;
   // Interior color change state (for regeneration)
   const [interiorColorChangePhotoId, setInteriorColorChangePhotoId] = useState<string | null>(null);
   // Watermark position editor state
