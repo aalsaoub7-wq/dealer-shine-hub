@@ -1,78 +1,69 @@
 
 
-# Lägg till manuell positionering i AI-redigerings-flödet
+# Parallellisera AI-redigerings-flödet: segment + position SEDAN Gemini
 
-## Nuvarande flöde (AI-redigera)
-```text
-Markera bilder → Skyltval → Per bild (max 2 parallellt):
-  1. segment-car (remove.bg) → transparent PNG
-  2. compositeCarOnBackground (auto-placering)
-  3. add-reflection (Gemini)
-```
+## Problem
+Idag bearbetas bilder helt sekventiellt: bild 1 segmenteras → positioneras → Gemini klar → SEDAN bild 2 segmenteras → etc. Användaren väntar i onödan.
 
 ## Nytt flöde
 ```text
-Markera bilder → Skyltval → Per bild (sekventiellt):
-  1. segment-car (remove.bg) → transparent PNG
-  2. Visa CarPositionEditor → användaren placerar bilen manuellt
-  3. add-reflection (Gemini) med användarens komposition
+Alla bilder segmenteras parallellt (remove.bg)
+↓
+Position editors visas en i taget (sekventiellt — kräver manuell interaktion)
+↓
+Varje bild skickas till Gemini direkt efter positionering (i bakgrunden, max 2 samtidigt)
 ```
 
-Bilder bearbetas en i taget eftersom varje bild kräver manuell interaktion (position editor). Om flera bilder: nästa bild dyker upp automatiskt efter att föregående sparats.
+Nyckeln: `advanceEditFlowQueue()` anropas direkt efter att position editor stängs, INTE efter Gemini. Gemini körs i bakgrunden med en concurrency-begränsad kö (max 2 parallella).
 
 ## Ändring
 
 **Enda fil:** `src/pages/CarDetail.tsx`
 
-### 1. Ny state — köhantering för edit-flödet (~rad 131)
+### 1. Ändra `handleEditPhotos` (~rad 640-648)
+Starta ALLA segment-car-anrop parallellt istället för bara första bilden. Spara resultaten (transparent URLs) i en ref/state. Öppna position editor för första bilden så snart DEN är klar (behöver inte vänta på alla).
 
-Lägg till state för att hålla en kö av bilder som ska genom det nya flödet:
+### 2. Ny ref: `geminiQueueRef`
+En ref som håller en kö av Gemini-jobb (compositionBlob + metadata). En worker-funktion processar dem max 2 åt gången — exakt samma mönster som interiör-kön (rad 780-900).
 
-```typescript
-const [editFlowQueue, setEditFlowQueue] = useState<{
-  photos: Photo[];
-  removePlate: boolean;
-  currentIndex: number;
-} | null>(null);
+### 3. Ändra `editFlowQueue` state
+Utöka med `segmentResults: Map<string, string>` för att lagra transparent URLs per photo.id allteftersom segment-car-anropen blir klara.
+
+### 4. Ändra `handlePositionEditorSave` (isFromEditFlow-grenen, ~rad 1272-1332)
+- Lägg till Gemini-jobbet i `geminiQueueRef` kön istället för att köra det inline
+- Anropa `advanceEditFlowQueue()` DIREKT (inte efter Gemini)
+- Starta gemini-workern om den inte redan kör
+
+### 5. Ändra `advanceEditFlowQueue` (~rad 713-726)
+Istället för att anropa `processEditFlowPhoto` (som gör segment-car), öppna position editor direkt med redan-redo transparent URL från `segmentResults`.
+
+### 6. Ny funktion: `processGeminiQueue`
+Samma mönster som `processNextInterior` (rad 785):
+```text
+const MAX_CONCURRENT_GEMINI = 2;
+// Tar jobb från geminiQueueRef, kör add-reflection, uppdaterar DB
+// Max 2 parallella
 ```
 
-### 2. Ändra `handleEditPhotos` (~rad 592–773)
+## Detaljerat steg-för-steg
 
-Dela upp funktionen:
-- **Step 1 (segment-car)** körs som idag, men efter segmentering öppnas position editor istället för auto-compositing + Gemini
-- Ingen parallellism behövs längre (en bild i taget p.g.a. manuell interaktion)
-
-Ny logik:
-1. Kör segment-car för första bilden i kön
-2. Öppna position editor med `fromEditFlow: true` flagga
-3. Vänta på att användaren sparar positionen
-
-### 3. Utöka `positionEditorPhoto` state med `fromEditFlow`-flagga
-
-Lägg till `fromEditFlow?: boolean` i det befintliga typet. Detta gör att `handlePositionEditorSave` kan skilja mellan "justera position" (befintligt) och "del av AI-redigering" (nytt).
-
-### 4. Ändra `handlePositionEditorSave` (~rad 1289)
-
-När `fromEditFlow` är true:
-- Skicka compositionBlob till Gemini (add-reflection) som idag
-- Uppdatera DB med alla fält (url, original_url, transparent_url, is_edited, edit_type, has_free_regeneration)
-- Tracka usage
-- Processa nästa bild i kön (kör segment-car → öppna position editor)
-
-### 5. Ny funktion `processNextEditFlowPhoto`
-
-Tar nästa bild ur kön, kör segment-car, och öppnar position editor. Om kön är tom, rensas edit flow state.
+1. Användaren markerar 5 bilder, klickar AI-redigera
+2. `handleEditPhotos` startar 5 parallella segment-car-anrop
+3. Så fort bild 1 är segmenterad → öppna position editor
+4. Under tiden fortsätter segment-car för bild 2-5 i bakgrunden
+5. Användaren sparar position för bild 1 → Gemini-jobb läggs i kö → position editor öppnas för bild 2 (om segmenterad, annars vänta)
+6. Gemini-workern processar bild 1 i bakgrunden
+7. Användaren sparar bild 2 → Gemini-jobb i kö → position editor för bild 3
+8. Gemini-workern kan nu köra bild 1 + 2 parallellt (max 2)
+9. Osv tills alla bilder är klara
 
 ## Vad som INTE ändras
-
 - CarPositionEditor-komponenten — orörd
 - Interiör-flödet — orört
-- "Justera position"-knappen — orört (fungerar exakt som innan)
-- Alla andra flöden — orörda
+- "Justera position"-knappen — orört
 - Edge functions — orörda
-- Regenereringsfunktionen — orörd
+- Gemini-anropets logik — identisk, bara köad
 
 ## Risk
-
-Låg. Befintlig `handleEditPhotos` ändras, men all befintlig logik (segment-car, position editor, Gemini-anrop) återanvänds. "Justera position"-flödet förblir orört tack vare `fromEditFlow`-flaggan. Ingen ny edge function, ingen DB-ändring.
+Låg. Befintlig logik återanvänds. Gemini-kön använder samma beprövade mönster som interiör-kön. Segment-car stöder redan parallella anrop (det är bara remove.bg API). Ingen ny edge function, ingen DB-ändring.
 
