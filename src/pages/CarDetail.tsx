@@ -1244,6 +1244,7 @@ const CarDetail = () => {
 
     const photoId = positionEditorPhoto.id;
     const isInterior = positionEditorPhoto.editType === 'interior';
+    const isFromEditFlow = positionEditorPhoto.fromEditFlow;
 
     if (isInterior) {
       // Interior photos go directly (no Gemini), no plate dialog needed
@@ -1268,8 +1269,69 @@ const CarDetail = () => {
         toast({ title: "Oj!", description: "Vår AI fick för många bollar att jonglera", variant: "info" });
         setPositionEditorSaving(false);
       }
+    } else if (isFromEditFlow && editFlowQueue) {
+      // From AI-edit pipeline: plate choice already made, go directly to Gemini
+      const removePlate = editFlowQueue.removePlate;
+      const originalPhoto = editFlowQueue.photos[editFlowQueue.currentIndex];
+      setPositionEditorPhoto(null);
+      setPositionEditorSaving(false);
+
+      // Run Gemini + DB update + usage tracking in background, then advance queue
+      (async () => {
+        try {
+          await supabase.from("photos").update({ is_processing: true }).eq("id", photoId);
+
+          console.log("Edit flow - Step 3: Adding reflection with Gemini for photo", photoId);
+          const reflectionFormData = new FormData();
+          reflectionFormData.append("image_file", new File([compositionBlob], "composited.jpg", { type: "image/jpeg" }));
+          reflectionFormData.append("car_id", car.id);
+          reflectionFormData.append("photo_id", photoId);
+          reflectionFormData.append("remove_plate", removePlate ? "true" : "false");
+
+          const { data: reflectionData, error: reflectionError } = await withTimeout(
+            supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
+            90000,
+            "Reflektioner tog för lång tid, försök igen"
+          );
+
+          if (reflectionError) throw reflectionError;
+          if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
+
+          console.log("Edit flow - Step 3 complete: Final edited image at", reflectionData.url);
+
+          // Find the transparent_url we got from segmentation
+          const transparentUrl = originalPhoto?.transparent_url || "";
+
+          await supabase.from("photos").update({
+            url: reflectionData.url,
+            original_url: originalPhoto?.url || "",
+            transparent_url: transparentUrl,
+            is_edited: true,
+            is_processing: false,
+            edit_type: 'studio',
+            has_free_regeneration: true,
+          }).eq("id", photoId);
+
+          // Track usage
+          try {
+            await trackUsage("edited_image", car.id);
+            const { count } = await supabase
+              .from("photos")
+              .select("*", { count: "exact", head: true })
+              .eq("is_edited", true);
+            if (count === 1) analytics.firstImageEdited();
+            analytics.imageEdited(car.id);
+          } catch (e) { console.error("Error tracking usage:", e); }
+        } catch (error) {
+          console.error(`Edit flow - Error processing photo ${photoId}:`, error);
+          await supabase.from("photos").update({ is_processing: false }).eq("id", photoId);
+          toast({ title: "Oj!", description: "Vår AI fick för många bollar att jonglera", variant: "info" });
+        }
+        // Advance to next photo in queue regardless
+        advanceEditFlowQueue();
+      })();
     } else {
-      // Studio photos go through Gemini - show plate choice dialog first
+      // Studio photos (manual "Justera position") go through Gemini - show plate choice dialog first
       setPendingPlateAction({ type: "positionSave", compositionBlob, photoId });
       setPositionEditorPhoto(null);
       setPositionEditorSaving(false);
