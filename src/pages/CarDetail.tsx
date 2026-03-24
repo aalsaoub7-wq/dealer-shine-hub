@@ -648,76 +648,78 @@ const CarDetail = () => {
     const photosToProcess = photos.filter((p) => photoIds.includes(p.id));
     if (photosToProcess.length === 0) return;
 
-    // Set up the edit flow queue — photos will be processed one at a time with manual positioning
+    // Set up the edit flow queue with empty segment results
+    const segmentResults = new Map<string, string>();
     setEditFlowQueue({
       photos: photosToProcess,
       removePlate,
       currentIndex: 0,
+      segmentResults,
     });
 
-    // Start processing the first photo
-    await processEditFlowPhoto(photosToProcess[0], removePlate);
-  };
+    // Start ALL segment-car calls in parallel
+    const segmentPromises = photosToProcess.map(async (photo, index) => {
+      try {
+        await supabase.from("photos").update({ is_processing: true }).eq("id", photo.id);
 
-  // Process a single photo in the edit flow: segment → open position editor
-  const processEditFlowPhoto = async (photo: Photo, removePlate: boolean) => {
-    try {
-      // Mark as processing
-      await supabase
-        .from("photos")
-        .update({ is_processing: true })
-        .eq("id", photo.id);
+        const response = await fetch(photo.url);
+        const blob = await response.blob();
+        const file = new File([blob], "photo.jpg", { type: blob.type });
 
-      // STEP 1: Segment - Remove background
-      const response = await fetch(photo.url);
-      const blob = await response.blob();
-      const file = new File([blob], "photo.jpg", { type: blob.type });
+        const segmentFormData = new FormData();
+        segmentFormData.append("image_file", file);
+        segmentFormData.append("car_id", car!.id);
+        segmentFormData.append("photo_id", photo.id);
 
-      const segmentFormData = new FormData();
-      segmentFormData.append("image_file", file);
-      segmentFormData.append("car_id", car!.id);
-      segmentFormData.append("photo_id", photo.id);
+        console.log("Edit flow - Segment: Calling segment-car API for photo", photo.id);
+        const { data: segmentData, error: segmentError } = await withTimeout(
+          supabase.functions.invoke("segment-car", { body: segmentFormData }),
+          60000,
+          "Segmentering tog för lång tid, försök igen"
+        );
 
-      console.log("Edit flow - Step 1: Calling segment-car API for photo", photo.id);
-      const { data: segmentData, error: segmentError } = await withTimeout(
-        supabase.functions.invoke("segment-car", { body: segmentFormData }),
-        60000,
-        "Segmentering tog för lång tid, försök igen"
-      );
+        if (segmentError) throw segmentError;
+        if (!segmentData?.url) throw new Error("No URL returned from segment-car");
 
-      if (segmentError) throw segmentError;
-      if (!segmentData?.url) throw new Error("No URL returned from segment-car");
+        console.log("Edit flow - Segment complete for photo", photo.id, segmentData.url);
+        await supabase.from("photos").update({ is_processing: false }).eq("id", photo.id);
 
-      const transparentPublicUrl = segmentData.url;
-      console.log("Edit flow - Step 1 complete: Transparent PNG at", transparentPublicUrl);
+        // Store result and check if this is the photo currently waiting
+        setEditFlowQueue(prev => {
+          if (!prev) return null;
+          const newResults = new Map(prev.segmentResults);
+          newResults.set(photo.id, segmentData.url);
+          return { ...prev, segmentResults: newResults };
+        });
 
-      // Reset processing — position editor is manual, not "processing"
-      await supabase
-        .from("photos")
-        .update({ is_processing: false })
-        .eq("id", photo.id);
+        return { photoId: photo.id, url: segmentData.url, index };
+      } catch (error) {
+        console.error(`Edit flow - Error segmenting photo ${photo.id}:`, error);
+        await supabase.from("photos").update({ is_processing: false }).eq("id", photo.id);
+        toast({
+          title: "Oj!",
+          description: "Vår AI fick för många bollar att jonglera",
+          variant: "info",
+        });
+        return { photoId: photo.id, url: null, index };
+      }
+    });
 
-      // STEP 2: Open position editor for manual placement
+    // Open position editor for first photo as soon as IT is ready
+    const firstResult = await segmentPromises[0];
+    if (firstResult?.url) {
       setPositionEditorPhoto({
-        id: photo.id,
-        transparentCarUrl: transparentPublicUrl,
+        id: firstResult.photoId,
+        transparentCarUrl: firstResult.url,
         editType: 'studio',
         fromEditFlow: true,
       });
-    } catch (error) {
-      console.error(`Edit flow - Error segmenting photo ${photo.id}:`, error);
-      await supabase
-        .from("photos")
-        .update({ is_processing: false })
-        .eq("id", photo.id);
-      toast({
-        title: "Oj!",
-        description: "Vår AI fick för många bollar att jonglera",
-        variant: "info",
-      });
-      // Try next photo in queue
+    } else {
+      // First photo failed, try advancing
       advanceEditFlowQueue();
     }
+
+    // Let remaining segment calls continue in background (results stored via setEditFlowQueue)
   };
 
   // Advance to the next photo in the edit flow queue, or finish
@@ -726,14 +728,105 @@ const CarDetail = () => {
       if (!prev) return null;
       const nextIndex = prev.currentIndex + 1;
       if (nextIndex >= prev.photos.length) {
-        // Queue complete
+        // Queue complete — all positioned, Gemini still running in background
         return null;
       }
-      // Process next photo
       const nextPhoto = prev.photos[nextIndex];
-      processEditFlowPhoto(nextPhoto, prev.removePlate);
+      const transparentUrl = prev.segmentResults.get(nextPhoto.id);
+
+      if (transparentUrl) {
+        // Segment already done — open position editor immediately
+        setPositionEditorPhoto({
+          id: nextPhoto.id,
+          transparentCarUrl: transparentUrl,
+          editType: 'studio',
+          fromEditFlow: true,
+        });
+      } else {
+        // Segment not ready yet — poll until it arrives
+        const pollForSegment = () => {
+          setEditFlowQueue(current => {
+            if (!current) return null;
+            const url = current.segmentResults.get(nextPhoto.id);
+            if (url) {
+              setPositionEditorPhoto({
+                id: nextPhoto.id,
+                transparentCarUrl: url,
+                editType: 'studio',
+                fromEditFlow: true,
+              });
+              return current; // stop polling
+            }
+            // Not ready, poll again
+            setTimeout(pollForSegment, 500);
+            return current;
+          });
+        };
+        setTimeout(pollForSegment, 500);
+      }
+
       return { ...prev, currentIndex: nextIndex };
     });
+  };
+
+  // Process Gemini queue in background (max 2 concurrent)
+  const processGeminiQueue = async () => {
+    while (geminiQueueRef.current.length > 0 && geminiActiveRef.current < MAX_CONCURRENT_GEMINI) {
+      const job = geminiQueueRef.current.shift();
+      if (!job) break;
+      geminiActiveRef.current++;
+
+      (async () => {
+        try {
+          await supabase.from("photos").update({ is_processing: true }).eq("id", job.photoId);
+
+          console.log("Gemini queue - Processing photo", job.photoId);
+          const reflectionFormData = new FormData();
+          reflectionFormData.append("image_file", new File([job.compositionBlob], "composited.jpg", { type: "image/jpeg" }));
+          reflectionFormData.append("car_id", car!.id);
+          reflectionFormData.append("photo_id", job.photoId);
+          reflectionFormData.append("remove_plate", job.removePlate ? "true" : "false");
+
+          const { data: reflectionData, error: reflectionError } = await withTimeout(
+            supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
+            90000,
+            "Reflektioner tog för lång tid, försök igen"
+          );
+
+          if (reflectionError) throw reflectionError;
+          if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
+
+          console.log("Gemini queue - Complete for photo", job.photoId);
+
+          await supabase.from("photos").update({
+            url: reflectionData.url,
+            original_url: job.originalUrl,
+            transparent_url: job.transparentUrl,
+            is_edited: true,
+            is_processing: false,
+            edit_type: 'studio',
+            has_free_regeneration: true,
+          }).eq("id", job.photoId);
+
+          try {
+            await trackUsage("edited_image", car!.id);
+            const { count } = await supabase
+              .from("photos")
+              .select("*", { count: "exact", head: true })
+              .eq("is_edited", true);
+            if (count === 1) analytics.firstImageEdited();
+            analytics.imageEdited(car!.id);
+          } catch (e) { console.error("Error tracking usage:", e); }
+        } catch (error) {
+          console.error(`Gemini queue - Error processing photo ${job.photoId}:`, error);
+          await supabase.from("photos").update({ is_processing: false }).eq("id", job.photoId);
+          toast({ title: "Oj!", description: "Vår AI fick för många bollar att jonglera", variant: "info" });
+        } finally {
+          geminiActiveRef.current--;
+          processGeminiQueue(); // Try next job
+        }
+      })();
+    }
   };
 
   const handleInteriorEdit = async (color: string) => {
