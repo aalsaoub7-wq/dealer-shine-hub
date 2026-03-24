@@ -127,8 +127,15 @@ const CarDetail = () => {
     backgroundColor?: string;
     backgroundImageUrl?: string; // For interior with image background
     moveBackground?: boolean; // If true, user moves background instead of car
+    fromEditFlow?: boolean; // If true, this is part of the AI-edit pipeline
   } | null>(null);
   const [positionEditorSaving, setPositionEditorSaving] = useState(false);
+  // Edit flow queue: sequential manual positioning during AI-edit
+  const [editFlowQueue, setEditFlowQueue] = useState<{
+    photos: Photo[];
+    removePlate: boolean;
+    currentIndex: number;
+  } | null>(null);
   // Interior color change state (for regeneration)
   const [interiorColorChangePhotoId, setInteriorColorChangePhotoId] = useState<string | null>(null);
   // Watermark position editor state
@@ -627,149 +634,95 @@ const CarDetail = () => {
       setSelectedDocPhotos([]);
     }
 
-    // Photos will be marked as processing individually when a worker picks them up (touch at processNext)
-    // This prevents the watchdog from resetting queued photos that haven't started yet
     const photosToProcess = photos.filter((p) => photoIds.includes(p.id));
+    if (photosToProcess.length === 0) return;
 
-    // Process photos with concurrency limit (max 2 at a time) to avoid overwhelming APIs
-    const MAX_CONCURRENT = 2;
-    const queue = [...photosToProcess];
-    const QUEUE_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes safety timeout
+    // Set up the edit flow queue — photos will be processed one at a time with manual positioning
+    setEditFlowQueue({
+      photos: photosToProcess,
+      removePlate,
+      currentIndex: 0,
+    });
 
-    const processNext = async (): Promise<void> => {
-      const photo = queue.shift();
-      if (!photo) return;
+    // Start processing the first photo
+    await processEditFlowPhoto(photosToProcess[0], removePlate);
+  };
 
-      // Safety timeout: if this photo hasn't completed in 10 min, reset it
-      const safetyTimer = setTimeout(async () => {
-        console.error(`Photo ${photo.id} timed out after 10 minutes`);
-        await supabase
-          .from("photos")
-          .update({ is_processing: false })
-          .eq("id", photo.id);
-      }, QUEUE_TIMEOUT_MS);
-
-      // Touch updated_at to reset watchdog timer before starting
+  // Process a single photo in the edit flow: segment → open position editor
+  const processEditFlowPhoto = async (photo: Photo, removePlate: boolean) => {
+    try {
+      // Mark as processing
       await supabase
         .from("photos")
         .update({ is_processing: true })
         .eq("id", photo.id);
 
-      try {
-          // STEP 1: Segment - Remove background using PhotoRoom (now returns URL directly!)
-          const response = await fetch(photo.url);
-          const blob = await response.blob();
-          const file = new File([blob], "photo.jpg", { type: blob.type });
+      // STEP 1: Segment - Remove background
+      const response = await fetch(photo.url);
+      const blob = await response.blob();
+      const file = new File([blob], "photo.jpg", { type: blob.type });
 
-          const segmentFormData = new FormData();
-          segmentFormData.append("image_file", file);
-          segmentFormData.append("car_id", car!.id);
-          segmentFormData.append("photo_id", photo.id);
+      const segmentFormData = new FormData();
+      segmentFormData.append("image_file", file);
+      segmentFormData.append("car_id", car!.id);
+      segmentFormData.append("photo_id", photo.id);
 
-          console.log("Step 1: Calling segment-car API...");
-          const { data: segmentData, error: segmentError } = await withTimeout(
-            supabase.functions.invoke("segment-car", { body: segmentFormData }),
-            60000, // 60 second timeout
-            "Segmentering tog för lång tid, försök igen"
-          );
+      console.log("Edit flow - Step 1: Calling segment-car API for photo", photo.id);
+      const { data: segmentData, error: segmentError } = await withTimeout(
+        supabase.functions.invoke("segment-car", { body: segmentFormData }),
+        60000,
+        "Segmentering tog för lång tid, försök igen"
+      );
 
-          if (segmentError) throw segmentError;
-          if (!segmentData?.url) throw new Error("No URL returned from segment-car");
+      if (segmentError) throw segmentError;
+      if (!segmentData?.url) throw new Error("No URL returned from segment-car");
 
-          // transparent_url is now directly from storage (no base64 conversion!)
-          const transparentPublicUrl = segmentData.url;
-          console.log("Step 1 complete: Transparent PNG at", transparentPublicUrl);
+      const transparentPublicUrl = segmentData.url;
+      console.log("Edit flow - Step 1 complete: Transparent PNG at", transparentPublicUrl);
 
-          // STEP 2: Canvas compositing - Place car on background (4K, 98% quality)
-          console.log("Step 2: Compositing car on background (4K 3840x2880, 98% quality)...");
-          const compositedBlob = await compositeCarOnBackground(
-            transparentPublicUrl,
-            backgroundUrl
-          );
-          console.log("Step 2 complete: Composited blob size:", compositedBlob.size, "bytes");
+      // Reset processing — position editor is manual, not "processing"
+      await supabase
+        .from("photos")
+        .update({ is_processing: false })
+        .eq("id", photo.id);
 
-          // STEP 3: Add reflection using Gemini (now returns URL directly!)
-          console.log("Step 3: Adding reflection with Gemini...");
-          const reflectionFormData = new FormData();
-          reflectionFormData.append("image_file", new File([compositedBlob], "composited.jpg", { type: "image/jpeg" }));
-          reflectionFormData.append("car_id", car!.id);
-          reflectionFormData.append("photo_id", photo.id);
-          reflectionFormData.append("remove_plate", removePlate ? "true" : "false");
+      // STEP 2: Open position editor for manual placement
+      setPositionEditorPhoto({
+        id: photo.id,
+        transparentCarUrl: transparentPublicUrl,
+        editType: 'studio',
+        fromEditFlow: true,
+      });
+    } catch (error) {
+      console.error(`Edit flow - Error segmenting photo ${photo.id}:`, error);
+      await supabase
+        .from("photos")
+        .update({ is_processing: false })
+        .eq("id", photo.id);
+      toast({
+        title: "Oj!",
+        description: "Vår AI fick för många bollar att jonglera",
+        variant: "info",
+      });
+      // Try next photo in queue
+      advanceEditFlowQueue();
+    }
+  };
 
-          const { data: reflectionData, error: reflectionError } = await withTimeout(
-            supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
-            90000, // 90 second timeout for reflection
-            "Reflektioner tog för lång tid, försök igen"
-          );
-
-          if (reflectionError) throw reflectionError;
-          if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
-
-          // Final image URL is directly from storage (no base64 conversion, no re-upload!)
-          const publicUrl = reflectionData.url;
-          console.log("Step 3 complete: Final edited image at", publicUrl);
-
-          // Update photo with transparent_url cached - realtime will handle UI update
-          await supabase
-            .from("photos")
-            .update({
-            url: publicUrl,
-            original_url: photo.url,
-            transparent_url: transparentPublicUrl,
-            is_edited: true,
-            is_processing: false,
-            edit_type: 'studio',
-            has_free_regeneration: true, // Grant one free regeneration
-          })
-            .eq("id", photo.id);
-
-          // Track usage for this edited image
-          try {
-            await trackUsage("edited_image", car!.id);
-            
-            // Track analytics - check if first edited image
-            const { count } = await supabase
-              .from("photos")
-              .select("*", { count: "exact", head: true })
-              .eq("is_edited", true);
-            
-            if (count === 1) {
-              analytics.firstImageEdited();
-            }
-            analytics.imageEdited(car!.id);
-          } catch (error) {
-            console.error("Error tracking usage:", error);
-          }
-
-          clearTimeout(safetyTimer);
-      } catch (error) {
-          clearTimeout(safetyTimer);
-          console.error(`Error editing photo ${photo.id}:`, error);
-          // Clear processing state on error
-          try {
-            await supabase
-              .from("photos")
-              .update({ is_processing: false })
-              .eq("id", photo.id);
-          } catch (resetError) {
-            console.error(`Failed to reset processing state for ${photo.id}:`, resetError);
-          }
-          
-          toast({
-            title: "Oj!",
-            description: "Vår AI fick för många bollar att jonglera",
-            variant: "info",
-          });
-      } finally {
-        await processNext();
+  // Advance to the next photo in the edit flow queue, or finish
+  const advanceEditFlowQueue = () => {
+    setEditFlowQueue(prev => {
+      if (!prev) return null;
+      const nextIndex = prev.currentIndex + 1;
+      if (nextIndex >= prev.photos.length) {
+        // Queue complete
+        return null;
       }
-    };
-
-    const workers = Array.from(
-      { length: Math.min(MAX_CONCURRENT, queue.length) },
-      () => processNext()
-    );
-    Promise.all(workers);
+      // Process next photo
+      const nextPhoto = prev.photos[nextIndex];
+      processEditFlowPhoto(nextPhoto, prev.removePlate);
+      return { ...prev, currentIndex: nextIndex };
+    });
   };
 
   const handleInteriorEdit = async (color: string) => {
@@ -1291,6 +1244,7 @@ const CarDetail = () => {
 
     const photoId = positionEditorPhoto.id;
     const isInterior = positionEditorPhoto.editType === 'interior';
+    const isFromEditFlow = positionEditorPhoto.fromEditFlow;
 
     if (isInterior) {
       // Interior photos go directly (no Gemini), no plate dialog needed
@@ -1315,8 +1269,69 @@ const CarDetail = () => {
         toast({ title: "Oj!", description: "Vår AI fick för många bollar att jonglera", variant: "info" });
         setPositionEditorSaving(false);
       }
+    } else if (isFromEditFlow && editFlowQueue) {
+      // From AI-edit pipeline: plate choice already made, go directly to Gemini
+      const removePlate = editFlowQueue.removePlate;
+      const originalPhoto = editFlowQueue.photos[editFlowQueue.currentIndex];
+      const transparentUrl = positionEditorPhoto.transparentCarUrl; // From segmentation step
+      setPositionEditorPhoto(null);
+      setPositionEditorSaving(false);
+
+      // Run Gemini + DB update + usage tracking in background, then advance queue
+      (async () => {
+        try {
+          await supabase.from("photos").update({ is_processing: true }).eq("id", photoId);
+
+          console.log("Edit flow - Step 3: Adding reflection with Gemini for photo", photoId);
+          const reflectionFormData = new FormData();
+          reflectionFormData.append("image_file", new File([compositionBlob], "composited.jpg", { type: "image/jpeg" }));
+          reflectionFormData.append("car_id", car.id);
+          reflectionFormData.append("photo_id", photoId);
+          reflectionFormData.append("remove_plate", removePlate ? "true" : "false");
+
+          const { data: reflectionData, error: reflectionError } = await withTimeout(
+            supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
+            90000,
+            "Reflektioner tog för lång tid, försök igen"
+          );
+
+          if (reflectionError) throw reflectionError;
+          if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
+
+          console.log("Edit flow - Step 3 complete: Final edited image at", reflectionData.url);
+
+          // Use the transparent_url captured from positionEditorPhoto before it was cleared
+
+          await supabase.from("photos").update({
+            url: reflectionData.url,
+            original_url: originalPhoto?.url || "",
+            transparent_url: transparentUrl,
+            is_edited: true,
+            is_processing: false,
+            edit_type: 'studio',
+            has_free_regeneration: true,
+          }).eq("id", photoId);
+
+          // Track usage
+          try {
+            await trackUsage("edited_image", car.id);
+            const { count } = await supabase
+              .from("photos")
+              .select("*", { count: "exact", head: true })
+              .eq("is_edited", true);
+            if (count === 1) analytics.firstImageEdited();
+            analytics.imageEdited(car.id);
+          } catch (e) { console.error("Error tracking usage:", e); }
+        } catch (error) {
+          console.error(`Edit flow - Error processing photo ${photoId}:`, error);
+          await supabase.from("photos").update({ is_processing: false }).eq("id", photoId);
+          toast({ title: "Oj!", description: "Vår AI fick för många bollar att jonglera", variant: "info" });
+        }
+        // Advance to next photo in queue regardless
+        advanceEditFlowQueue();
+      })();
     } else {
-      // Studio photos go through Gemini - show plate choice dialog first
+      // Studio photos (manual "Justera position") go through Gemini - show plate choice dialog first
       setPendingPlateAction({ type: "positionSave", compositionBlob, photoId });
       setPositionEditorPhoto(null);
       setPositionEditorSaving(false);
@@ -2153,7 +2168,14 @@ const CarDetail = () => {
       {/* Car Position Editor */}
       <CarPositionEditor
         open={!!positionEditorPhoto}
-        onOpenChange={(open) => !open && setPositionEditorPhoto(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            if (positionEditorPhoto?.fromEditFlow) {
+              setEditFlowQueue(null); // Cancel remaining queue
+            }
+            setPositionEditorPhoto(null);
+          }
+        }}
         transparentCarUrl={positionEditorPhoto?.transparentCarUrl || ""}
         backgroundUrl={positionEditorPhoto?.backgroundImageUrl || backgroundUrl}
         backgroundColor={positionEditorPhoto?.backgroundColor}
