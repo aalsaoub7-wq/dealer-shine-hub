@@ -1300,8 +1300,7 @@ const CarDetail = () => {
 
           console.log("Edit flow - Step 3 complete: Final edited image at", reflectionData.url);
 
-          // Find the transparent_url we got from segmentation
-          const transparentUrl = originalPhoto?.transparent_url || "";
+          // Use the transparent_url captured from positionEditorPhoto before it was cleared
 
           await supabase.from("photos").update({
             url: reflectionData.url,
