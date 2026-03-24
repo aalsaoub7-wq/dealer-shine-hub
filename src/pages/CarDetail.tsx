@@ -1273,6 +1273,7 @@ const CarDetail = () => {
       // From AI-edit pipeline: plate choice already made, go directly to Gemini
       const removePlate = editFlowQueue.removePlate;
       const originalPhoto = editFlowQueue.photos[editFlowQueue.currentIndex];
+      const transparentUrl = positionEditorPhoto.transparentCarUrl; // From segmentation step
       setPositionEditorPhoto(null);
       setPositionEditorSaving(false);
 
