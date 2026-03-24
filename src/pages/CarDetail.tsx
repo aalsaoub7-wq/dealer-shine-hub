@@ -2168,7 +2168,14 @@ const CarDetail = () => {
       {/* Car Position Editor */}
       <CarPositionEditor
         open={!!positionEditorPhoto}
-        onOpenChange={(open) => !open && setPositionEditorPhoto(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            if (positionEditorPhoto?.fromEditFlow) {
+              setEditFlowQueue(null); // Cancel remaining queue
+            }
+            setPositionEditorPhoto(null);
+          }
+        }}
         transparentCarUrl={positionEditorPhoto?.transparentCarUrl || ""}
         backgroundUrl={positionEditorPhoto?.backgroundImageUrl || backgroundUrl}
         backgroundColor={positionEditorPhoto?.backgroundColor}
