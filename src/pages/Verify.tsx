@@ -137,13 +137,13 @@ export default function Verify() {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("send-phone-otp", {
-        body: { userId: user.id, phoneNumber },
+      const { data, error } = await supabase.functions.invoke("save-phone-number", {
+        body: { phoneNumber },
       });
 
       if (error) throw error;
 
-      if (data.error) {
+      if (data?.error) {
         toast({
           title: "Fel",
           description: data.error,
@@ -152,12 +152,11 @@ export default function Verify() {
         return;
       }
 
-      setStep("phone-verify");
-      setResendCooldown(60);
+      navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Fel",
-        description: error.message || "Kunde inte skicka SMS",
+        description: error.message || "Kunde inte spara nummer",
         variant: "destructive",
       });
     } finally {
