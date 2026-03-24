@@ -127,8 +127,15 @@ const CarDetail = () => {
     backgroundColor?: string;
     backgroundImageUrl?: string; // For interior with image background
     moveBackground?: boolean; // If true, user moves background instead of car
+    fromEditFlow?: boolean; // If true, this is part of the AI-edit pipeline
   } | null>(null);
   const [positionEditorSaving, setPositionEditorSaving] = useState(false);
+  // Edit flow queue: sequential manual positioning during AI-edit
+  const [editFlowQueue, setEditFlowQueue] = useState<{
+    photos: Photo[];
+    removePlate: boolean;
+    currentIndex: number;
+  } | null>(null);
   // Interior color change state (for regeneration)
   const [interiorColorChangePhotoId, setInteriorColorChangePhotoId] = useState<string | null>(null);
   // Watermark position editor state
