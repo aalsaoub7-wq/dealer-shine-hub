@@ -168,6 +168,13 @@ const CarDetail = () => {
   const [interiorDialogOpen, setInteriorDialogOpen] = useState(false);
   const [interiorColorHistory, setInteriorColorHistory] = useState<string[]>([]);
   const [processingInterior, setProcessingInterior] = useState(false);
+  // Interior image background batch queue
+  const [interiorImageFlowQueue, setInteriorImageFlowQueue] = useState<{
+    photos: Photo[];
+    imageUrl: string;
+    segmentResults: Map<string, string>;
+    currentIndex: number;
+  } | null>(null);
   // Available interior backgrounds from current template
   const [availableInteriorBackgrounds, setAvailableInteriorBackgrounds] = useState<string[]>([]);
   // License plate choice dialog state
@@ -1356,6 +1363,7 @@ const CarDetail = () => {
       try {
         await supabase.from("photos").update({ is_processing: true }).eq("id", photoId);
         const bgImageUrl = positionEditorPhoto.backgroundImageUrl;
+        const hasInteriorQueue = !!interiorImageFlowQueue;
         setPositionEditorPhoto(null);
         setPositionEditorSaving(false);
 
@@ -1367,6 +1375,11 @@ const CarDetail = () => {
         await supabase.from("photos").update({ url: urlData.publicUrl, is_edited: true, is_processing: false, edit_type: 'interior', interior_background_url: bgImageUrl || null }).eq("id", photoId);
         try { await trackRegenerationUsage(photoId, car.id); } catch (e) { console.error("Error tracking usage:", e); }
         successNotification();
+
+        // Advance interior image queue if active
+        if (hasInteriorQueue) {
+          advanceInteriorImageQueue();
+        }
       } catch (error) {
         console.error("Error saving positioned image:", error);
         await supabase.from("photos").update({ is_processing: false }).eq("id", photoId);
@@ -2255,76 +2268,91 @@ const CarDetail = () => {
         onOpenChange={setInteriorBackgroundDialogOpen}
         onSolidColorSelected={() => setInteriorDialogOpen(true)}
         onImageSelected={(imageUrl) => {
-          // For image background, we need to segment first then open position editor
+          // Batch interior image background: segment all selected photos, position one by one
           const photoIds = selectedMainPhotos;
           if (photoIds.length === 0) return;
           
-          // For now, use the first selected photo and open position editor with moveBackground
-          const photoId = photoIds[0];
-          const photo = mainPhotos.find(p => p.id === photoId);
-          if (!photo) return;
-          
-          // If photo already has transparent_url, use it directly
-          if (photo.transparent_url) {
-            setPositionEditorPhoto({
-              id: photoId,
-              transparentCarUrl: photo.transparent_url,
-              editType: 'interior',
-              backgroundImageUrl: imageUrl,
-              moveBackground: true,
-            });
-            setSelectedMainPhotos([]);
-          } else {
-            // Need to segment first - show toast that we're processing
-            toast({
-              title: "Förbereder...",
-              description: "Tar bort bakgrunden först, vänta...",
-            });
-            // Segment then open editor
-            (async () => {
-              try {
-                const response = await fetch(photo.url);
-                const blob = await response.blob();
-                const file = new File([blob], "photo.jpg", { type: blob.type });
-                
-                const segmentFormData = new FormData();
-                segmentFormData.append("image_file", file);
-                segmentFormData.append("car_id", car!.id);
-                segmentFormData.append("photo_id", photo.id);
-                
-                const { data: segmentData, error: segmentError } = await withTimeout(
-                  supabase.functions.invoke("segment-car", { body: segmentFormData }),
-                  60000, // 60 sekunders timeout
-                  "Vår AI fick för många bollar att jonglera"
-                );
-                
-                if (segmentError) throw segmentError;
-                if (!segmentData?.url) throw new Error("No URL returned");
-                
-                // Save transparent_url
-                await supabase
-                  .from("photos")
-                  .update({ transparent_url: segmentData.url, original_url: photo.url })
-                  .eq("id", photoId);
-                
+          const photosToProcess = photoIds.map(id => mainPhotos.find(p => p.id === id)).filter(Boolean) as Photo[];
+          if (photosToProcess.length === 0) return;
+          setSelectedMainPhotos([]);
+
+          toast({
+            title: "Förbereder...",
+            description: `Tar bort bakgrunden på ${photosToProcess.length} bild${photosToProcess.length > 1 ? 'er' : ''}, vänta...`,
+          });
+
+          // Initialize queue
+          const initialResults = new Map<string, string>();
+          photosToProcess.forEach(p => {
+            if (p.transparent_url) initialResults.set(p.id, p.transparent_url);
+          });
+          setInteriorImageFlowQueue({
+            photos: photosToProcess,
+            imageUrl,
+            segmentResults: initialResults,
+            currentIndex: 0,
+          });
+
+          // Start parallel segmentation for photos that need it
+          photosToProcess.forEach(async (photo, index) => {
+            if (photo.transparent_url) {
+              // Already segmented — if first photo, open editor
+              if (index === 0) {
                 setPositionEditorPhoto({
-                  id: photoId,
+                  id: photo.id,
+                  transparentCarUrl: photo.transparent_url,
+                  editType: 'interior',
+                  backgroundImageUrl: imageUrl,
+                  moveBackground: true,
+                });
+              }
+              return;
+            }
+            try {
+              const response = await fetch(photo.url);
+              const blob = await response.blob();
+              const file = new File([blob], "photo.jpg", { type: blob.type });
+              const segmentFormData = new FormData();
+              segmentFormData.append("image_file", file);
+              segmentFormData.append("car_id", car!.id);
+              segmentFormData.append("photo_id", photo.id);
+              const { data: segmentData, error: segmentError } = await withTimeout(
+                supabase.functions.invoke("segment-car", { body: segmentFormData }),
+                60000,
+                "Vår AI fick för många bollar att jonglera"
+              );
+              if (segmentError) throw segmentError;
+              if (!segmentData?.url) throw new Error("No URL returned");
+              await supabase.from("photos").update({ transparent_url: segmentData.url, original_url: photo.url }).eq("id", photo.id);
+              // Store result in queue
+              setInteriorImageFlowQueue(prev => {
+                if (!prev) return null;
+                const newResults = new Map(prev.segmentResults);
+                newResults.set(photo.id, segmentData.url);
+                return { ...prev, segmentResults: newResults };
+              });
+              // If this is the first photo, open position editor
+              if (index === 0) {
+                setPositionEditorPhoto({
+                  id: photo.id,
                   transparentCarUrl: segmentData.url,
                   editType: 'interior',
                   backgroundImageUrl: imageUrl,
                   moveBackground: true,
                 });
-                setSelectedMainPhotos([]);
-              } catch (error) {
-                console.error("Error segmenting for interior image:", error);
-                toast({
-                  title: "Fel",
-                  description: "Kunde inte förbereda bilden",
-                  variant: "destructive",
-                });
               }
-            })();
-          }
+            } catch (error) {
+              console.error("Error segmenting interior photo:", error);
+              toast({ title: "Fel", description: `Kunde inte förbereda bild ${index + 1}`, variant: "destructive" });
+              // Store empty to skip this photo
+              setInteriorImageFlowQueue(prev => {
+                if (!prev) return null;
+                const newResults = new Map(prev.segmentResults);
+                newResults.set(photo.id, "");
+                return { ...prev, segmentResults: newResults };
+              });
+            }
+          });
         }}
         availableBackgrounds={availableInteriorBackgrounds}
         isProcessing={processingInterior}
