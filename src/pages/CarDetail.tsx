@@ -1412,32 +1412,53 @@ const CarDetail = () => {
 
     if (isInterior) {
       // Interior photos go directly (no Gemini), no plate dialog needed
-      setPositionEditorSaving(true);
-      try {
-        await supabase.from("photos").update({ is_processing: true }).eq("id", photoId);
-        const bgImageUrl = positionEditorPhoto.backgroundImageUrl;
-        const hasInteriorQueue = !!interiorImageFlowQueue;
-        setPositionEditorPhoto(null);
-        setPositionEditorSaving(false);
+      const bgImageUrl = positionEditorPhoto.backgroundImageUrl;
+      const hasInteriorQueue = !!interiorImageFlowQueue;
 
-        const fileName = `interior-${photoId}-${Date.now()}.jpg`;
-        const filePath = `edited/${car.id}/${fileName}`;
-        const { error: uploadError } = await supabase.storage.from("car-photos").upload(filePath, compositionBlob, { contentType: "image/jpeg", upsert: true });
-        if (uploadError) throw uploadError;
-        const { data: urlData } = supabase.storage.from("car-photos").getPublicUrl(filePath);
-        await supabase.from("photos").update({ url: urlData.publicUrl, is_edited: true, is_processing: false, edit_type: 'interior', interior_background_url: bgImageUrl || null }).eq("id", photoId);
-        try { await trackRegenerationUsage(photoId, car.id); } catch (e) { console.error("Error tracking usage:", e); }
-        successNotification();
+      if (hasInteriorQueue) {
+        // Batch mode: advance to next photo IMMEDIATELY (don't close editor)
+        advanceInteriorImageQueue();
 
-        // Advance interior image queue if active
-        if (hasInteriorQueue) {
-          advanceInteriorImageQueue();
+        // Fire-and-forget: save in background
+        const saveBlobCopy = compositionBlob;
+        (async () => {
+          try {
+            await supabase.from("photos").update({ is_processing: true }).eq("id", photoId);
+            const fileName = `interior-${photoId}-${Date.now()}.jpg`;
+            const filePath = `edited/${car.id}/${fileName}`;
+            const { error: uploadError } = await supabase.storage.from("car-photos").upload(filePath, saveBlobCopy, { contentType: "image/jpeg", upsert: true });
+            if (uploadError) throw uploadError;
+            const { data: urlData } = supabase.storage.from("car-photos").getPublicUrl(filePath);
+            await supabase.from("photos").update({ url: urlData.publicUrl, is_edited: true, is_processing: false, edit_type: 'interior', interior_background_url: bgImageUrl || null }).eq("id", photoId);
+            try { await trackRegenerationUsage(photoId, car.id); } catch (e) { console.error("Error tracking usage:", e); }
+            successNotification();
+          } catch (error) {
+            console.error("Error saving interior image in background:", error);
+            await supabase.from("photos").update({ is_processing: false }).eq("id", photoId);
+          }
+        })();
+      } else {
+        // Single image: keep existing logic exactly as-is
+        setPositionEditorSaving(true);
+        try {
+          await supabase.from("photos").update({ is_processing: true }).eq("id", photoId);
+          setPositionEditorPhoto(null);
+          setPositionEditorSaving(false);
+
+          const fileName = `interior-${photoId}-${Date.now()}.jpg`;
+          const filePath = `edited/${car.id}/${fileName}`;
+          const { error: uploadError } = await supabase.storage.from("car-photos").upload(filePath, compositionBlob, { contentType: "image/jpeg", upsert: true });
+          if (uploadError) throw uploadError;
+          const { data: urlData } = supabase.storage.from("car-photos").getPublicUrl(filePath);
+          await supabase.from("photos").update({ url: urlData.publicUrl, is_edited: true, is_processing: false, edit_type: 'interior', interior_background_url: bgImageUrl || null }).eq("id", photoId);
+          try { await trackRegenerationUsage(photoId, car.id); } catch (e) { console.error("Error tracking usage:", e); }
+          successNotification();
+        } catch (error) {
+          console.error("Error saving positioned image:", error);
+          await supabase.from("photos").update({ is_processing: false }).eq("id", photoId);
+          toast({ title: "Oj!", description: "Vår AI fick för många bollar att jonglera", variant: "info" });
+          setPositionEditorSaving(false);
         }
-      } catch (error) {
-        console.error("Error saving positioned image:", error);
-        await supabase.from("photos").update({ is_processing: false }).eq("id", photoId);
-        toast({ title: "Oj!", description: "Vår AI fick för många bollar att jonglera", variant: "info" });
-        setPositionEditorSaving(false);
       }
     } else if (isFromEditFlow && editFlowQueue) {
       // From AI-edit pipeline: queue Gemini job in background, advance to next photo immediately
