@@ -1,62 +1,57 @@
 
 
-# Batch interiör-redigering med bakgrundsbild
+# Fix: Interiör batch — position direkt efter varandra utan att editorn stängs
 
 ## Problem
-Solid-färg interiörredigering hanterar redan flera bilder. Men bakgrundsbild-interiör (`onImageSelected`) tar bara första markerade bilden — resten ignoreras.
+I `handlePositionEditorSave` (interior-grenen, rad 1413–1441) stängs editorn (`setPositionEditorPhoto(null)`) vid rad 1420, sedan körs upload + DB-sparning asynkront, och FÖRST efter att det är klart (rad 1433–1434) anropas `advanceInteriorImageQueue()`. Editorn stängs alltså och öppnas igen — användaren ser en blink/väntan.
 
 ## Lösning
-Samma mönster som AI-redigerings-kön: segmentera alla bilder parallellt, öppna position editor sekventiellt (en i taget), spara varje bild direkt efter positionering.
+Exakt samma mönster som edit flow (rad 1442–1461): kör upload/DB-sparning i bakgrunden (fire-and-forget), avancera kön DIREKT. Editorn byter bara ut bilden utan att stängas.
 
 ## Ändring
 
-**Enda fil:** `src/pages/CarDetail.tsx`
+**Enda fil:** `src/pages/CarDetail.tsx`, rad 1413–1441
 
-### 1. Ny state — kö för interiör-bakgrundsbild-flödet (~rad 170)
+Ändra interior-grenen i `handlePositionEditorSave`:
 
-```typescript
-const [interiorImageFlowQueue, setInteriorImageFlowQueue] = useState<{
-  photos: Photo[];
-  imageUrl: string;
-  segmentResults: Map<string, string>; // photoId → transparentUrl
-  currentIndex: number;
-} | null>(null);
+1. Spara undan `bgImageUrl`, `hasInteriorQueue`, `photoId`
+2. Om `hasInteriorQueue`: sätt INTE `positionEditorPhoto` till null — anropa `advanceInteriorImageQueue()` DIREKT (editorn förblir öppen med nästa bild)
+3. Kör upload + DB-sparning i bakgrunden (utan await i huvudflödet) — samma fire-and-forget pattern som Gemini-kön
+4. Om INTE i kö (enskild bild): behåll befintlig logik exakt som idag
+
+```text
+// Pseudokod
+if (isInterior) {
+  const bgImageUrl = positionEditorPhoto.backgroundImageUrl;
+  const hasInteriorQueue = !!interiorImageFlowQueue;
+
+  if (hasInteriorQueue) {
+    // Don't close editor — advance immediately
+    advanceInteriorImageQueue();
+    
+    // Fire-and-forget: save in background
+    (async () => {
+      try {
+        await supabase.from("photos").update({ is_processing: true }).eq("id", photoId);
+        // upload + DB update + track usage
+        successNotification();
+      } catch (error) {
+        // error handling
+      }
+    })();
+  } else {
+    // Single image — keep existing logic exactly as-is
+    // ... (current code unchanged)
+  }
+}
 ```
 
-### 2. Ändra `onImageSelected`-callback (~rad 2257–2327)
-
-Istället för att bara ta `photoIds[0]`:
-1. Starta segment-car parallellt för ALLA markerade bilder
-2. Spara resultaten i `segmentResults` Map
-3. Öppna position editor för första bilden så snart DEN är segmenterad
-
-### 3. Ny funktion: `advanceInteriorImageQueue`
-
-Tar nästa bild ur kön. Om segmenterad → öppna position editor med `moveBackground: true`. Om inte klar → polla varje 500ms. Om kön är tom → rensa state.
-
-### 4. Ändra `handlePositionEditorSave` — interior-grenen (~rad 1353–1375)
-
-Lägg till check: om `interiorImageFlowQueue` finns, anropa `advanceInteriorImageQueue()` efter att bilden sparats (samma pattern som `advanceEditFlowQueue()`).
-
-### 5. Cleanup vid stängning
-
-Om position editor stängs under interiör-bild-flödet, rensa `interiorImageFlowQueue`.
-
-## Steg-för-steg för användaren
-
-1. Markera 5 bilder, klicka Interiör, välj bakgrundsbild
-2. Alla 5 segmenteras parallellt i bakgrunden
-3. Bild 1 klar → position editor öppnas (moveBackground mode)
-4. Spara → bild laddas upp, DB uppdateras → bild 2 öppnas direkt
-5. Osv tills alla 5 är klara
-
 ## Vad som INTE ändras
-- Solid-färg interiör — orört (fungerar redan med batch)
+- Enskild interiörbild — exakt samma logik som idag
 - AI-redigerings-flödet — orört
 - CarPositionEditor — orörd
-- Edge functions — orörda
-- "Justera position"-knappen — orörd
+- Alla andra flöden — orörda
 
 ## Risk
-Låg. Additivt — ny state + ny funktion. Befintlig interiör-sparlogik i `handlePositionEditorSave` återanvänds. Samma beprövade mönster som edit flow queue.
+Extremt låg. Samma fire-and-forget mönster som redan används för Gemini-kön. Enda skillnaden: `advanceInteriorImageQueue()` anropas FÖRE sparningen istället för efter.
 
