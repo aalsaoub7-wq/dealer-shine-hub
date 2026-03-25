@@ -1,57 +1,40 @@
 
 
-# Fix: Interiör batch — position direkt efter varandra utan att editorn stängs
+# Ta bort gratis omgenerering — varje redigering/justering = full bild
 
-## Problem
-I `handlePositionEditorSave` (interior-grenen, rad 1413–1441) stängs editorn (`setPositionEditorPhoto(null)`) vid rad 1420, sedan körs upload + DB-sparning asynkront, och FÖRST efter att det är klart (rad 1433–1434) anropas `advanceInteriorImageQueue()`. Editorn stängs alltså och öppnas igen — användaren ser en blink/väntan.
+## Vad som ändras
 
-## Lösning
-Exakt samma mönster som edit flow (rad 1442–1461): kör upload/DB-sparning i bakgrunden (fire-and-forget), avancera kön DIREKT. Editorn byter bara ut bilden utan att stängas.
+Två minimala ändringar:
 
-## Ändring
+### 1. `src/lib/usageTracking.ts` — `trackRegenerationUsage` (~rad 217–263)
 
-**Enda fil:** `src/pages/CarDetail.tsx`, rad 1413–1441
+Hela funktionen förenklas: ta bort free regeneration-logiken. Funktionen ska ALLTID kalla `trackUsage("edited_image", carId)` oavsett `has_free_regeneration`-flaggan. Joels Bil-undantaget tas också bort (de betalade redan för allt).
 
-Ändra interior-grenen i `handlePositionEditorSave`:
-
-1. Spara undan `bgImageUrl`, `hasInteriorQueue`, `photoId`
-2. Om `hasInteriorQueue`: sätt INTE `positionEditorPhoto` till null — anropa `advanceInteriorImageQueue()` DIREKT (editorn förblir öppen med nästa bild)
-3. Kör upload + DB-sparning i bakgrunden (utan await i huvudflödet) — samma fire-and-forget pattern som Gemini-kön
-4. Om INTE i kö (enskild bild): behåll befintlig logik exakt som idag
-
-```text
-// Pseudokod
-if (isInterior) {
-  const bgImageUrl = positionEditorPhoto.backgroundImageUrl;
-  const hasInteriorQueue = !!interiorImageFlowQueue;
-
-  if (hasInteriorQueue) {
-    // Don't close editor — advance immediately
-    advanceInteriorImageQueue();
-    
-    // Fire-and-forget: save in background
-    (async () => {
-      try {
-        await supabase.from("photos").update({ is_processing: true }).eq("id", photoId);
-        // upload + DB update + track usage
-        successNotification();
-      } catch (error) {
-        // error handling
-      }
-    })();
-  } else {
-    // Single image — keep existing logic exactly as-is
-    // ... (current code unchanged)
-  }
-}
+Ny funktion:
+```typescript
+export const trackRegenerationUsage = async (photoId: string, carId: string) => {
+  await trackUsage("edited_image", carId);
+};
 ```
 
+### 2. `src/pages/CarDetail.tsx` — ta bort `has_free_regeneration: true` vid sparning
+
+Två ställen sätter `has_free_regeneration: true` i DB-uppdateringar:
+- ~rad 868 (edit flow / Gemini-kön)
+- ~rad 1031 (interiör solid color)
+
+Ändra båda till `has_free_regeneration: false` (eller ta bort raden).
+
 ## Vad som INTE ändras
-- Enskild interiörbild — exakt samma logik som idag
-- AI-redigerings-flödet — orört
-- CarPositionEditor — orörd
+- `photos`-tabellens schema — kolumnen finns kvar, bara sätts aldrig till true
+- Stripe-rapportering — orört (varje `trackUsage` skapar billing event + rapporterar)
 - Alla andra flöden — orörda
+- Edge functions — orörda
+- Reconcile-logiken — orört
+
+## Varför detta räcker
+Alla ställen som trackar regenerering/justering anropar redan `trackRegenerationUsage`. Den funktionen var den enda som kunde "skippa" billing. När den alltid kallar `trackUsage` blir varje redigering/justering en fakturerad bild.
 
 ## Risk
-Extremt låg. Samma fire-and-forget mönster som redan används för Gemini-kön. Enda skillnaden: `advanceInteriorImageQueue()` anropas FÖRE sparningen istället för efter.
+Extremt låg. En funktion förenklas, två DB-uppdateringar ändrar ett default-värde. Inga nya kodstigar.
 
