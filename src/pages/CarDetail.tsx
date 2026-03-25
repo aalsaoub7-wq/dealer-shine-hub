@@ -642,6 +642,59 @@ const CarDetail = () => {
       return;
     }
 
+  // Advance to next photo in interior image background queue
+  const advanceInteriorImageQueue = () => {
+    setInteriorImageFlowQueue(prev => {
+      if (!prev) return null;
+      const nextIndex = prev.currentIndex + 1;
+      if (nextIndex >= prev.photos.length) {
+        return null; // All done
+      }
+      const nextPhoto = prev.photos[nextIndex];
+      const transparentUrl = prev.segmentResults.get(nextPhoto.id);
+
+      if (transparentUrl && transparentUrl !== "") {
+        setPositionEditorPhoto({
+          id: nextPhoto.id,
+          transparentCarUrl: transparentUrl,
+          editType: 'interior',
+          backgroundImageUrl: prev.imageUrl,
+          moveBackground: true,
+        });
+      } else if (transparentUrl === "") {
+        // This photo failed segmentation, skip it
+        setTimeout(() => advanceInteriorImageQueue(), 0);
+      } else {
+        // Not ready yet, poll
+        const pollForSegment = () => {
+          setInteriorImageFlowQueue(current => {
+            if (!current) return null;
+            const url = current.segmentResults.get(nextPhoto.id);
+            if (url && url !== "") {
+              setPositionEditorPhoto({
+                id: nextPhoto.id,
+                transparentCarUrl: url,
+                editType: 'interior',
+                backgroundImageUrl: current.imageUrl,
+                moveBackground: true,
+              });
+              return current;
+            } else if (url === "") {
+              // Failed, skip
+              setTimeout(() => advanceInteriorImageQueue(), 0);
+              return current;
+            }
+            setTimeout(pollForSegment, 500);
+            return current;
+          });
+        };
+        setTimeout(pollForSegment, 500);
+      }
+
+      return { ...prev, currentIndex: nextIndex };
+    });
+  };
+
 
     const photos = photoType === "main" ? mainPhotos : docPhotos;
 
