@@ -2302,6 +2302,9 @@ const CarDetail = () => {
             if (positionEditorPhoto?.fromEditFlow) {
               setEditFlowQueue(null); // Cancel remaining queue
             }
+            if (interiorImageFlowQueue) {
+              setInteriorImageFlowQueue(null); // Cancel remaining interior queue
+            }
             setPositionEditorPhoto(null);
           }
         }}
