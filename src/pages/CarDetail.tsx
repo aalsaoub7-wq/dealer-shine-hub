@@ -865,7 +865,7 @@ const CarDetail = () => {
             is_edited: true,
             is_processing: false,
             edit_type: 'studio',
-            has_free_regeneration: true,
+            has_free_regeneration: false,
           }).eq("id", job.photoId);
 
           try {
@@ -1028,7 +1028,7 @@ const CarDetail = () => {
               is_processing: false,
               edit_type: 'interior',
               interior_background_url: null, // Solid color was used
-              has_free_regeneration: true, // Grant one free regeneration
+              has_free_regeneration: false,
             })
             .eq("id", photo.id);
 

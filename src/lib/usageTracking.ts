@@ -218,48 +218,8 @@ export const trackRegenerationUsage = async (
   photoId: string,
   carId: string
 ) => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    // Check if user belongs to Joels Bil - they do NOT get free regeneration
-    const { data: userCompany } = await supabase
-      .from("user_companies")
-      .select("company_id")
-      .eq("user_id", user.id)
-      .single();
-
-    if (userCompany?.company_id === JOELS_BIL_COMPANY_ID) {
-      console.log("[USAGE] Joels Bil - charging for regeneration");
-      await trackUsage("edited_image", carId);
-      return;
-    }
-
-    // Check if photo has free regeneration available
-    const { data: photo } = await supabase
-      .from("photos")
-      .select("has_free_regeneration")
-      .eq("id", photoId)
-      .single();
-
-    if (photo?.has_free_regeneration) {
-      // First regeneration - FREE! Set flag to false
-      console.log("[USAGE] Free regeneration used for photo:", photoId);
-      await supabase
-        .from("photos")
-        .update({ has_free_regeneration: false })
-        .eq("id", photoId);
-      return; // Skip billing
-    }
-
-    // No free regeneration left - charge
-    console.log("[USAGE] Charging for regeneration, no free regeneration left");
-    await trackUsage("edited_image", carId);
-  } catch (error) {
-    console.error("Error in trackRegenerationUsage:", error);
-    // On error - still charge for safety
-    await trackUsage("edited_image", carId);
-  }
+  // Every regeneration/adjustment is billed as a full edit
+  await trackUsage("edited_image", carId);
 };
 
 /**
