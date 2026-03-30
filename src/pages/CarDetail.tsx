@@ -655,6 +655,9 @@ const CarDetail = () => {
     const photosToProcess = photos.filter((p) => photoIds.includes(p.id));
     if (photosToProcess.length === 0) return;
 
+    // Clear any stale position editor state from previous flow
+    setPositionEditorPhoto(null);
+
     // Set up the edit flow queue with empty segment results
     const segmentResults = new Map<string, string>();
     setEditFlowQueue({
