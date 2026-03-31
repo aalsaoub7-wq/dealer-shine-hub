@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import luveroLogo from "@/assets/luvero-logo-new.png";
 import luveroLogoText from "@/assets/luvero-logo-text.png";
 import adstuffLogo from "@/assets/adstuff-logo.png";
-import { Brain, Shield, Globe, Users, ChevronDown, Menu, X, Package, Check, Phone, Mail, Download } from "lucide-react";
+import { ChevronDown, Menu, X, Check, Phone, Mail } from "lucide-react";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
@@ -288,7 +288,7 @@ const Landing = () => {
             <div className="relative group lg:col-span-2 p-8 rounded-2xl bg-card border border-border/50 border-l-2 border-l-primary/40 hover:border-l-primary hover:shadow-[inset_0_0_30px_hsl(var(--primary)/0.05)] hover:translate-x-1 transition-all duration-300 overflow-hidden">
               <span className="absolute top-2 right-4 text-6xl font-bold text-foreground/[0.03] select-none pointer-events-none">01</span>
               <div className="flex items-center gap-3 mb-3">
-                <Brain className="h-7 w-7 text-primary shrink-0" />
+                <img src="https://bvconuycpdvgzbvbkijl.supabase.co/storage/v1/object/public/sizes/c2395b-painting-brush/dynamic/200/color.webp" alt="AI Edit" className="h-10 w-10 shrink-0" />
                 <h3 className="text-xl font-bold text-foreground">AI Bakgrundsredigering</h3>
               </div>
               <p className="text-muted-foreground">
@@ -300,7 +300,7 @@ const Landing = () => {
             <div className="relative group lg:col-span-1 p-8 rounded-2xl bg-muted/30 border border-border/50 border-l-2 border-l-primary/40 hover:border-l-primary hover:shadow-[inset_0_0_30px_hsl(var(--primary)/0.05)] hover:translate-x-1 transition-all duration-300 overflow-hidden">
               <span className="absolute top-2 right-4 text-6xl font-bold text-foreground/[0.03] select-none pointer-events-none">02</span>
               <div className="flex items-center gap-3 mb-3">
-                <Package className="h-7 w-7 text-primary shrink-0" />
+                <img src="https://bvconuycpdvgzbvbkijl.supabase.co/storage/v1/object/public/sizes/176980-folder/dynamic/200/color.webp" alt="Folder" className="h-10 w-10 shrink-0" />
                 <h3 className="text-xl font-bold text-foreground">Lagerhantering & Dokumentation</h3>
               </div>
               <p className="text-muted-foreground">
@@ -312,7 +312,7 @@ const Landing = () => {
             <div className="relative group lg:col-span-1 p-8 rounded-2xl bg-muted/30 border border-border/50 border-l-2 border-l-primary/40 hover:border-l-primary hover:shadow-[inset_0_0_30px_hsl(var(--primary)/0.05)] hover:translate-x-1 transition-all duration-300 overflow-hidden">
               <span className="absolute top-2 right-4 text-6xl font-bold text-foreground/[0.03] select-none pointer-events-none">03</span>
               <div className="flex items-center gap-3 mb-3">
-                <Shield className="h-7 w-7 text-primary shrink-0" />
+                <img src="https://bvconuycpdvgzbvbkijl.supabase.co/storage/v1/object/public/sizes/b91186-shield/dynamic/200/color.webp" alt="Shield" className="h-10 w-10 shrink-0" />
                 <h3 className="text-xl font-bold text-foreground">Vattenmärken</h3>
               </div>
               <p className="text-muted-foreground">
@@ -324,7 +324,7 @@ const Landing = () => {
             <div className="relative group lg:col-span-2 p-8 rounded-2xl bg-card border border-border/50 border-l-2 border-l-primary/40 hover:border-l-primary hover:shadow-[inset_0_0_30px_hsl(var(--primary)/0.05)] hover:translate-x-1 transition-all duration-300 overflow-hidden">
               <span className="absolute top-2 right-4 text-6xl font-bold text-foreground/[0.03] select-none pointer-events-none">04</span>
               <div className="flex items-center gap-3 mb-3">
-                <Globe className="h-7 w-7 text-accent shrink-0" />
+                <img src="https://bvconuycpdvgzbvbkijl.supabase.co/storage/v1/object/public/sizes/2d9fa2-link/dynamic/200/color.webp" alt="Link" className="h-10 w-10 shrink-0" />
                 <h3 className="text-xl font-bold text-foreground">Delningsbara Landningssidor</h3>
               </div>
               <p className="text-muted-foreground">
@@ -336,7 +336,7 @@ const Landing = () => {
             <div className="relative group lg:col-span-1 p-8 rounded-2xl bg-muted/30 border border-border/50 border-l-2 border-l-primary/40 hover:border-l-primary hover:shadow-[inset_0_0_30px_hsl(var(--primary)/0.05)] hover:translate-x-1 transition-all duration-300 overflow-hidden lg:col-start-1">
               <span className="absolute top-2 right-4 text-6xl font-bold text-foreground/[0.03] select-none pointer-events-none">05</span>
               <div className="flex items-center gap-3 mb-3">
-                <Users className="h-7 w-7 text-primary shrink-0" />
+                <img src="https://bvconuycpdvgzbvbkijl.supabase.co/storage/v1/object/public/sizes/eec43d-chat-bubble/dynamic/200/color.webp" alt="Chat" className="h-10 w-10 shrink-0" />
                 <h3 className="text-xl font-bold text-foreground">Team Collaboration</h3>
               </div>
               <p className="text-muted-foreground">
@@ -348,7 +348,7 @@ const Landing = () => {
             <div className="relative group lg:col-span-1 p-8 rounded-2xl bg-card border border-border/50 border-l-2 border-l-primary/40 hover:border-l-primary hover:shadow-[inset_0_0_30px_hsl(var(--primary)/0.05)] hover:translate-x-1 transition-all duration-300 overflow-hidden">
               <span className="absolute top-2 right-4 text-6xl font-bold text-foreground/[0.03] select-none pointer-events-none">06</span>
               <div className="flex items-center gap-3 mb-3">
-                <Download className="h-7 w-7 text-primary shrink-0" />
+                <img src="https://bvconuycpdvgzbvbkijl.supabase.co/storage/v1/object/public/sizes/1fded0-mobile/dynamic/200/color.webp" alt="Mobile" className="h-10 w-10 shrink-0" />
                 <h3 className="text-xl font-bold text-foreground">Installera Appen!</h3>
               </div>
               <p className="text-muted-foreground">
