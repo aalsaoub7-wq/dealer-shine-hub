@@ -188,7 +188,7 @@ const Landing = () => {
             {/* Left Column */}
             <div className="space-y-8 animate-fade-in">
 
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight min-h-[10rem] md:min-h-[12rem] lg:min-h-[14rem]">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight min-h-[10rem] md:min-h-[12rem] lg:min-h-[14rem]" style={{ fontFamily: "'Quattrocento', serif" }}>
                 <span className="bg-gradient-primary bg-clip-text text-transparent">
                   Professionella
                 </span>
