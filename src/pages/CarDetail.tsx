@@ -128,6 +128,7 @@ const CarDetail = () => {
     backgroundImageUrl?: string; // For interior with image background
     moveBackground?: boolean; // If true, user moves background instead of car
     fromEditFlow?: boolean; // If true, this is part of the AI-edit pipeline
+    flowId?: number; // Tracks which flow opened this editor
   } | null>(null);
   const [positionEditorSaving, setPositionEditorSaving] = useState(false);
   const editFlowIdRef = useRef(0);
@@ -726,6 +727,7 @@ const CarDetail = () => {
         transparentCarUrl: firstResult.url,
         editType: 'studio',
         fromEditFlow: true,
+        flowId,
       });
     } else {
       // First photo failed, try advancing
@@ -754,6 +756,7 @@ const CarDetail = () => {
           transparentCarUrl: transparentUrl,
           editType: 'studio',
           fromEditFlow: true,
+          flowId: editFlowIdRef.current,
         });
       } else {
         // Segment not ready yet — poll until it arrives
@@ -767,6 +770,7 @@ const CarDetail = () => {
                 transparentCarUrl: url,
                 editType: 'studio',
                 fromEditFlow: true,
+                flowId: editFlowIdRef.current,
               });
               return current; // stop polling
             }
@@ -800,6 +804,7 @@ const CarDetail = () => {
           editType: 'interior',
           backgroundImageUrl: prev.imageUrl,
           moveBackground: true,
+          flowId: editFlowIdRef.current,
         });
       } else if (transparentUrl === "") {
         // This photo failed segmentation, skip it
@@ -817,6 +822,7 @@ const CarDetail = () => {
                 editType: 'interior',
                 backgroundImageUrl: current.imageUrl,
                 moveBackground: true,
+                flowId: editFlowIdRef.current,
               });
               return current;
             } else if (url === "") {
@@ -1370,32 +1376,33 @@ const CarDetail = () => {
       }
 
       // For interior photos, check if it was edited with solid color or background image
+      const manualFlowId = ++editFlowIdRef.current;
       if (photo.edit_type === 'interior') {
         if (photo.interior_background_url) {
-          // Background image was used - user moves the background
           setPositionEditorPhoto({
             id: photoId,
             transparentCarUrl,
             editType: photo.edit_type,
             backgroundImageUrl: photo.interior_background_url,
             moveBackground: true,
+            flowId: manualFlowId,
           });
         } else {
-          // Solid color was used - user moves the car
           const bgColor = interiorColorHistory[0] || '#c8cfdb';
           setPositionEditorPhoto({
             id: photoId,
             transparentCarUrl,
             editType: photo.edit_type,
             backgroundColor: bgColor,
+            flowId: manualFlowId,
           });
         }
       } else {
-        // Open position editor with transparent car and background image
         setPositionEditorPhoto({
           id: photoId,
           transparentCarUrl,
           editType: photo.edit_type,
+          flowId: manualFlowId,
         });
       }
     } catch (error) {
@@ -2321,14 +2328,9 @@ const CarDetail = () => {
 
       {car && <PlatformSyncDialog open={syncDialogOpen} onOpenChange={setSyncDialogOpen} carId={car.id} car={car} photos={photos.filter(p => p.photo_type === "main")} />}
       
-      {/* Car Position Editor — render-level guard against stale async results */}
+      {/* Car Position Editor — universal render-level guard against stale async results */}
       {(() => {
-        const expectedEditorPhotoId = editFlowQueue
-          ? editFlowQueue.photos[editFlowQueue.currentIndex]?.id
-          : interiorImageFlowQueue
-            ? interiorImageFlowQueue.photos[interiorImageFlowQueue.currentIndex]?.id
-            : positionEditorPhoto?.id;
-        const safePhoto = positionEditorPhoto?.id === expectedEditorPhotoId ? positionEditorPhoto : null;
+        const safePhoto = positionEditorPhoto?.flowId === editFlowIdRef.current ? positionEditorPhoto : null;
         return (
           <CarPositionEditor
             open={!!safePhoto}
@@ -2399,6 +2401,7 @@ const CarDetail = () => {
                   editType: 'interior',
                   backgroundImageUrl: imageUrl,
                   moveBackground: true,
+                  flowId: interiorFlowId,
                 });
               }
               return;
@@ -2434,6 +2437,7 @@ const CarDetail = () => {
                   editType: 'interior',
                   backgroundImageUrl: imageUrl,
                   moveBackground: true,
+                  flowId: interiorFlowId,
                 });
               }
             } catch (error) {
