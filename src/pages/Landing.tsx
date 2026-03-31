@@ -236,12 +236,12 @@ const Landing = () => {
       <section id="how-it-works" className="py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: "'Quattrocento', serif" }}>
               <span className="bg-gradient-primary bg-clip-text text-transparent">
                 Så här fungerar det
               </span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto" style={{ fontFamily: "'Quattrocento', serif", fontWeight: 400 }}>
               Få nya bakgrunder på några sekunder       
             </p>
           </div>
@@ -273,12 +273,12 @@ const Landing = () => {
       <section id="features" className="py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: "'Quattrocento', serif" }}>
               <span className="bg-gradient-primary bg-clip-text text-transparent">
                 Allt du behöver för professionella bilfoton
               </span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto" style={{ fontFamily: "'Quattrocento', serif", fontWeight: 400 }}>
               Kraftfulla funktioner som hjälper dig sälja bilar snabbare
             </p>
           </div>
@@ -707,12 +707,12 @@ const Landing = () => {
       <section id="book-demo" className="py-20 md:py-32 scroll-animate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: "'Quattrocento', serif" }}>
               <span className="bg-gradient-primary bg-clip-text text-transparent">
                 Snacka med oss för att få tillgång
               </span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto" style={{ fontFamily: "'Quattrocento', serif", fontWeight: 400 }}>
               Låt oss visa hur Luvero kan hjälpa ditt företag
             </p>
           </div>
@@ -812,7 +812,7 @@ const Landing = () => {
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-3xl" />
             
             <div className="relative space-y-6">
-              <h2 className="text-4xl md:text-5xl font-bold">
+              <h2 className="text-4xl md:text-5xl font-bold" style={{ fontFamily: "'Quattrocento', serif" }}>
                 <span className="bg-gradient-primary bg-clip-text text-transparent">
                   Redo att förbättra dina bilfoton?
                 </span>
