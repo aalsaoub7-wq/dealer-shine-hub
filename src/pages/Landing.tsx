@@ -278,7 +278,7 @@ const Landing = () => {
                 Allt du behöver för professionella bilfoton
               </span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto" style={{ fontFamily: "'Quattrocento', serif", fontWeight: 400 }}>
               Kraftfulla funktioner som hjälper dig sälja bilar snabbare
             </p>
           </div>
