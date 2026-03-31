@@ -241,7 +241,7 @@ const Landing = () => {
                 Så här fungerar det
               </span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto" style={{ fontFamily: "'Quattrocento', serif", fontWeight: 400 }}>
               Få nya bakgrunder på några sekunder       
             </p>
           </div>
