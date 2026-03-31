@@ -821,6 +821,7 @@ const CarDetail = () => {
                 editType: 'interior',
                 backgroundImageUrl: current.imageUrl,
                 moveBackground: true,
+                flowId: editFlowIdRef.current,
               });
               return current;
             } else if (url === "") {
