@@ -10,14 +10,14 @@ const logos = [{
   src: joelsBilLogo,
   alt: "Joels Bil Lidköping"
 }, {
-  src: autoPerformanceLogo,
-  alt: "Auto Performance"
+  src: carcenterLogo,
+  alt: "Car Center"
 }, {
-  src: eliteMotorworksLogo,
-  alt: "Elite Motorworks"
+  src: sabilLogo,
+  alt: "SA Bil"
 }, {
-  src: vastronAutoLogo,
-  alt: "Vastron Auto"
+  src: gbmLogo,
+  alt: "GBM"
 }];
 const LogoMarquee = () => {
   return <div className="bg-card/50 backdrop-blur-sm border-y border-border/50">
