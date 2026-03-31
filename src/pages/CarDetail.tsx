@@ -2400,6 +2400,7 @@ const CarDetail = () => {
                   editType: 'interior',
                   backgroundImageUrl: imageUrl,
                   moveBackground: true,
+                  flowId: interiorFlowId,
                 });
               }
               return;
