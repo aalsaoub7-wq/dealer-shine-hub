@@ -1,28 +1,44 @@
 
 
-# Fix: Bild 1 flashar i position editor när man startar ny redigering
+# Fix: Bild 1 flashar i position editor — flow ID guard
 
 ## Problem
-När man AI-redigerar bild 2 medan bild 1 fortfarande behandlas i Gemini, dyker bild 1 upp kort i position editorn innan bild 2 visas. Detta beror troligen på att `positionEditorPhoto` inte rensas explicit vid starten av ett nytt redigeringsflöde, vilket kan leda till att gammal data visas kort.
+`setPositionEditorPhoto(null)` räcker inte. Den asynkrona segmenteringen från det *förra* flödet kan fortfarande resolve:a och skriva bild 1 till state innan det nya flödets segmentering hinner klart. Vi behöver ignorera callbacks från gamla flöden.
 
 ## Lösning
-En enda rad: lägg till `setPositionEditorPhoto(null)` i början av `handleEditPhotos`, innan den nya `editFlowQueue` skapas. Detta garanterar att eventuell kvarvarande state från ett tidigare flöde rensas innan nya bilder segmenteras.
+Lägg till en `useRef`-räknare (`editFlowIdRef`) som inkrementeras varje gång `handleEditPhotos` anropas. Alla ställen som sätter `positionEditorPhoto` efter en async operation kontrollerar att flow-ID:t fortfarande matchar. Om det inte matchar → ignorera (return early).
 
-### Ändring i `src/pages/CarDetail.tsx`
+### Ändringar i `src/pages/CarDetail.tsx`
 
-Vid ~rad 658 (precis före `setEditFlowQueue`), lägg till:
+**1. Ny ref (~rad 132, efter positionEditorSaving)**
 ```typescript
-// Clear any stale position editor state from previous flow
+const editFlowIdRef = useRef(0);
+```
+
+**2. I `handleEditPhotos` (~rad 658–659) — inkrementera räknaren**
+```typescript
+const flowId = ++editFlowIdRef.current;
 setPositionEditorPhoto(null);
 ```
 
+**3. Före `setPositionEditorPhoto` vid rad 721 (efter firstResult await)**
+```typescript
+if (flowId !== editFlowIdRef.current) return; // Stale flow
+```
+
+**4. I `advanceEditFlowQueue` (~rad 749, 762) och poll-callback (~rad 762)**
+Dessa behöver inte guards — de anropas bara från `handlePositionEditorSave` som redan har rätt kontext, och `editFlowQueue` state ersätts helt av det nya flödet.
+
+**5. I interiör-flödet — samma guards vid `setPositionEditorPhoto` efter async segmentering (~rad 2381, 2416)**
+Fånga `editFlowIdRef.current` vid start, checka innan `setPositionEditorPhoto`.
+
 ## Vad som INTE ändras
-- Allt annat i `handleEditPhotos` — orört
-- CarPositionEditor — orörd  
-- Interiör-flödet — orört
-- Gemini-kön — orörd
+- CarPositionEditor — orörd
+- advanceEditFlowQueue-logiken — orörd (state-baserad, inte stale)
+- handlePositionEditorSave — orörd
+- Interiör solid-färg — orört
 - Edge functions — orörda
 
 ## Risk
-Extremt låg. En enda `setPositionEditorPhoto(null)` som sätter redan-null-state till null, eller rensar stale state. Ingen ny logik.
+Extremt låg. En ref + 2–3 `if`-guards. Ingen logik ändras, bara tidiga returns för stale callbacks.
 
