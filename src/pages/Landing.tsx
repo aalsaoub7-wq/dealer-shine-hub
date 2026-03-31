@@ -581,7 +581,7 @@ const Landing = () => {
 
             {/* CTA after comparison */}
             <div className="text-center mt-12">
-              <Button size="lg" className="text-lg py-6 px-12 shadow-glow hover:shadow-glow-lg transition-all duration-300" onClick={() => scrollToSection('book-demo')}>
+              <Button size="lg" className="text-lg py-6 px-12 shadow-glow hover:shadow-glow-lg transition-all duration-300 btn-3d-gloss" onClick={() => scrollToSection('book-demo')}>
                 Snacka med oss
               </Button>
             </div>
