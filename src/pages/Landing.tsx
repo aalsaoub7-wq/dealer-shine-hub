@@ -140,7 +140,7 @@ const Landing = () => {
                 Så fungerar det
               </button>
               <div className="flex items-center gap-3">
-                <Button onClick={() => navigate("/auth")} className="bg-black text-white hover:bg-black hover:text-white hover:scale-100">
+                <Button onClick={() => navigate("/auth")} className="bg-black text-white hover:bg-black hover:text-white hover:scale-100 btn-3d-gloss">
                   Logga in
                 </Button>
               <Button onClick={() => scrollToSection('book-demo')} className="shadow-glow">
