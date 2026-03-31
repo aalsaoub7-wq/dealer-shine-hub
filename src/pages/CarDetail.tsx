@@ -755,6 +755,7 @@ const CarDetail = () => {
           transparentCarUrl: transparentUrl,
           editType: 'studio',
           fromEditFlow: true,
+          flowId: editFlowIdRef.current,
         });
       } else {
         // Segment not ready yet — poll until it arrives
