@@ -2417,7 +2417,7 @@ const CarDetail = () => {
                 return { ...prev, segmentResults: newResults };
               });
               // If this is the first photo, open position editor
-              if (index === 0) {
+              if (index === 0 && interiorFlowId === editFlowIdRef.current) {
                 setPositionEditorPhoto({
                   id: photo.id,
                   transparentCarUrl: segmentData.url,
