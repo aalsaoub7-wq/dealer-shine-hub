@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import luveroLogo from "@/assets/luvero-logo-new.png";
 import luveroLogoText from "@/assets/luvero-logo-text.png";
 import adstuffLogo from "@/assets/adstuff-logo.png";
-import { Brain, Shield, Globe, Users, ChevronDown, Menu, X, Package, Check, Phone, Mail, Download } from "lucide-react";
+import { ChevronDown, Menu, X, Check, Phone, Mail } from "lucide-react";
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
