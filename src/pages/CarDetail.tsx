@@ -130,6 +130,7 @@ const CarDetail = () => {
     fromEditFlow?: boolean; // If true, this is part of the AI-edit pipeline
   } | null>(null);
   const [positionEditorSaving, setPositionEditorSaving] = useState(false);
+  const editFlowIdRef = useRef(0);
   // Edit flow queue: sequential manual positioning during AI-edit
   const [editFlowQueue, setEditFlowQueue] = useState<{
     photos: Photo[];
