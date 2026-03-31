@@ -2358,6 +2358,8 @@ const CarDetail = () => {
           const photosToProcess = photoIds.map(id => mainPhotos.find(p => p.id === id)).filter(Boolean) as Photo[];
           if (photosToProcess.length === 0) return;
           setSelectedMainPhotos([]);
+          const interiorFlowId = ++editFlowIdRef.current;
+          setPositionEditorPhoto(null);
 
           toast({
             title: "Förbereder...",
