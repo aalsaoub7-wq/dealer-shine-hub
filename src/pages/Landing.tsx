@@ -198,7 +198,7 @@ const Landing = () => {
                 </span>
               </h1>
 
-              <p className="text-xl md:text-2xl leading-relaxed text-gray-200">Fungerar även som självständig lagerhantering eller som komplement till ditt befintliga system!</p>
+              <p className="text-xl md:text-2xl leading-relaxed text-gray-200" style={{ fontFamily: "'Quattrocento', serif" }}>Fungerar även som självständig lagerhantering eller som komplement till ditt befintliga system!</p>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" className="text-lg px-8 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105 btn-3d-gloss" onClick={() => scrollToSection('book-demo')}>
