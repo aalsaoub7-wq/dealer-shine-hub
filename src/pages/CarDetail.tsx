@@ -128,6 +128,7 @@ const CarDetail = () => {
     backgroundImageUrl?: string; // For interior with image background
     moveBackground?: boolean; // If true, user moves background instead of car
     fromEditFlow?: boolean; // If true, this is part of the AI-edit pipeline
+    flowId?: number; // Tracks which flow opened this editor
   } | null>(null);
   const [positionEditorSaving, setPositionEditorSaving] = useState(false);
   const editFlowIdRef = useRef(0);
