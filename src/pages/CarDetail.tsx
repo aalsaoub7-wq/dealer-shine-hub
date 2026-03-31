@@ -803,6 +803,7 @@ const CarDetail = () => {
           editType: 'interior',
           backgroundImageUrl: prev.imageUrl,
           moveBackground: true,
+          flowId: editFlowIdRef.current,
         });
       } else if (transparentUrl === "") {
         // This photo failed segmentation, skip it
