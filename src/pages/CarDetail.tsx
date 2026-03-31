@@ -2321,29 +2321,39 @@ const CarDetail = () => {
 
       {car && <PlatformSyncDialog open={syncDialogOpen} onOpenChange={setSyncDialogOpen} carId={car.id} car={car} photos={photos.filter(p => p.photo_type === "main")} />}
       
-      {/* Car Position Editor */}
-      <CarPositionEditor
-        open={!!positionEditorPhoto}
-        onOpenChange={(open) => {
-          if (!open) {
-            if (positionEditorPhoto?.fromEditFlow) {
-              setEditFlowQueue(null); // Cancel remaining queue
-            }
-            if (interiorImageFlowQueue) {
-              setInteriorImageFlowQueue(null); // Cancel remaining interior queue
-            }
-            setPositionEditorPhoto(null);
-          }
-        }}
-        transparentCarUrl={positionEditorPhoto?.transparentCarUrl || ""}
-        backgroundUrl={positionEditorPhoto?.backgroundImageUrl || backgroundUrl}
-        backgroundColor={positionEditorPhoto?.backgroundColor}
-        isInterior={positionEditorPhoto?.editType === 'interior'}
-        moveBackground={positionEditorPhoto?.moveBackground}
-        fillCanvas={positionEditorPhoto?.moveBackground || (positionEditorPhoto?.editType === 'interior' && !!positionEditorPhoto?.backgroundColor)}
-        onSave={handlePositionEditorSave}
-        isSaving={positionEditorSaving}
-      />
+      {/* Car Position Editor — render-level guard against stale async results */}
+      {(() => {
+        const expectedEditorPhotoId = editFlowQueue
+          ? editFlowQueue.photos[editFlowQueue.currentIndex]?.id
+          : interiorImageFlowQueue
+            ? interiorImageFlowQueue.photos[interiorImageFlowQueue.currentIndex]?.id
+            : positionEditorPhoto?.id;
+        const safePhoto = positionEditorPhoto?.id === expectedEditorPhotoId ? positionEditorPhoto : null;
+        return (
+          <CarPositionEditor
+            open={!!safePhoto}
+            onOpenChange={(open) => {
+              if (!open) {
+                if (positionEditorPhoto?.fromEditFlow) {
+                  setEditFlowQueue(null);
+                }
+                if (interiorImageFlowQueue) {
+                  setInteriorImageFlowQueue(null);
+                }
+                setPositionEditorPhoto(null);
+              }
+            }}
+            transparentCarUrl={safePhoto?.transparentCarUrl || ""}
+            backgroundUrl={safePhoto?.backgroundImageUrl || backgroundUrl}
+            backgroundColor={safePhoto?.backgroundColor}
+            isInterior={safePhoto?.editType === 'interior'}
+            moveBackground={safePhoto?.moveBackground}
+            fillCanvas={safePhoto?.moveBackground || (safePhoto?.editType === 'interior' && !!safePhoto?.backgroundColor)}
+            onSave={handlePositionEditorSave}
+            isSaving={positionEditorSaving}
+          />
+        );
+      })()}
 
       {/* Interior Background Selection Dialog */}
       <InteriorBackgroundDialog
