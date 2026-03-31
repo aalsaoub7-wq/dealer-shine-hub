@@ -769,6 +769,7 @@ const CarDetail = () => {
                 transparentCarUrl: url,
                 editType: 'studio',
                 fromEditFlow: true,
+                flowId: editFlowIdRef.current,
               });
               return current; // stop polling
             }
