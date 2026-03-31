@@ -143,7 +143,7 @@ const Landing = () => {
                 <Button onClick={() => navigate("/auth")} className="bg-black text-white hover:bg-black hover:text-white hover:scale-100 btn-3d-gloss">
                   Logga in
                 </Button>
-              <Button onClick={() => scrollToSection('book-demo')} className="shadow-glow">
+              <Button onClick={() => scrollToSection('book-demo')} className="shadow-glow btn-3d-gloss">
                 Snacka med oss
               </Button>
               </div>
