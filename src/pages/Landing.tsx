@@ -187,10 +187,6 @@ const Landing = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Column */}
             <div className="space-y-8 animate-fade-in">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-                <Brain className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">Nu med AI-driven bakgrundsredigering</span>
-              </div>
 
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight min-h-[10rem] md:min-h-[12rem] lg:min-h-[14rem]">
                 <span className="bg-gradient-primary bg-clip-text text-transparent">
