@@ -822,7 +822,7 @@ const Landing = () => {
                 </span>
               </h2>
               <div className="flex justify-center">
-                <Button size="lg" className="text-lg px-12 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105" onClick={() => scrollToSection('book-demo')}>
+                <Button size="lg" className="text-lg px-12 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105 btn-3d-gloss" onClick={() => scrollToSection('book-demo')}>
                   Snacka med oss
                 </Button>
               </div>
