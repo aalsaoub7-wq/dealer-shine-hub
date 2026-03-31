@@ -208,7 +208,7 @@ const Landing = () => {
                 <Button size="lg" className="text-lg px-8 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105 btn-3d-gloss" onClick={() => scrollToSection('book-demo')}>
                   Snacka med oss
                 </Button>
-                <Button size="lg" variant="outline" className="text-lg px-8 py-6 hover:bg-muted transition-all duration-300" onClick={() => scrollToSection('how-it-works')}>
+                <Button size="lg" variant="outline" className="text-lg px-8 py-6 hover:bg-muted transition-all duration-300 btn-3d-gloss" onClick={() => scrollToSection('how-it-works')}>
                   Se hur det fungerar
                   <ChevronDown className="ml-2 h-5 w-5" />
                 </Button>
