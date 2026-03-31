@@ -1,51 +1,56 @@
 
 
-# 3D glans/pop-effekt på landningssidans knappar
+# Redesign: Feature-kort på landningssidan
 
-## Vad som ändras
+## Problem
+De nuvarande feature-korten följer ett generiskt AI/SaaS-mönster: 6 identiska kort i ett grid med ikon, rubrik, text. Det ser ut som varenda annan SaaS-landningssida.
 
-Lägg till en CSS-klass i `src/index.css` som ger knappar en glassaktig 3D-look med:
-- En subtil `inset box-shadow` (vit highlight upptill → skapar glans)
-- En mörkare `box-shadow` undertill → skapar djup
-- Hover: förstärkt glans + liten `translateY(-1px)` för "pop"
+## Ny design: Alternating timeline-layout
 
-Sedan applicera klassen på alla Button-element i `src/pages/Landing.tsx`.
+Istället för ett 3×2 grid → en **vertikal "bento"-layout** med varierad storlek och visuell hierarki:
 
-## Tekniska detaljer
-
-### 1. `src/index.css` — ny klass
-
-```css
-.btn-3d-gloss {
-  position: relative;
-  box-shadow: 
-    inset 0 1px 0 0 rgba(255,255,255,0.25),
-    0 2px 4px 0 rgba(0,0,0,0.2);
-  transition: all 0.2s ease;
-}
-.btn-3d-gloss:hover {
-  box-shadow: 
-    inset 0 1px 0 0 rgba(255,255,255,0.35),
-    0 4px 8px 0 rgba(0,0,0,0.25);
-  transform: translateY(-1px);
-}
-.btn-3d-gloss:active {
-  box-shadow: 
-    inset 0 1px 0 0 rgba(255,255,255,0.15),
-    0 1px 2px 0 rgba(0,0,0,0.2);
-  transform: translateY(0px);
-}
+```text
+┌─────────────────────────┬──────────────┐
+│  AI Bakgrundsredigering │ Lagerhanteri │
+│  (stor, 2/3 bredd)      │ (1/3 bredd)  │
+│  med gradient-accent    │              │
+├──────────────┬──────────┴──────────────┤
+│ Vattenmärken │  Delningsbara           │
+│ (1/3 bredd)  │  Landningssidor (2/3)   │
+├──────────────┴─────────────────────────┤
+│  Team Collaboration  │  Installera    │
+│  (1/2 bredd)         │  Appen (1/2)   │
+└──────────────────────┴─────────────────┘
 ```
 
-### 2. `src/pages/Landing.tsx` — lägg till `btn-3d-gloss` på alla knappar
+**Visuella element:**
+- **Bento grid** med varierade kolumnspans (`col-span-2` / `col-span-1` på `lg:grid-cols-3`)
+- Varje kort har en **tunn vänster-border med gradient** (primärfärg) istället för uniform border
+- Ikonen sitter **inline med rubriken** (ej i egen box ovanför)
+- Kort har **subtilt olika bakgrundsnyanser** — varannan med `bg-card`, varannan med en lite ljusare variant
+- Hover: kort glowar med en **asymmetrisk skugga** (inte uniform scale)
+- **Numrering** — varje kort har ett stort, halvtransparent nummer (01–06) i bakgrunden för visuell rytm
+- Mobil: alla kort full-width, stacked
 
-- Rad 143 (Logga in)
-- Rad 146 (Snacka med oss — header)
-- Rad 208 (Snacka med oss — hero)
-- Rad 211 (Se hur det fungerar — hero)
-- Rad 825 (Snacka med oss — CTA)
-- Eventuella mobila menyknappar
+## Tekniska ändringar
+
+### 1. `src/pages/Landing.tsx` — features-sektionen (rad 272–357)
+- Byt ut `grid md:grid-cols-2 lg:grid-cols-3 gap-6` mot `grid lg:grid-cols-3 gap-4 md:gap-5`
+- Kort 1 och 4 får `lg:col-span-2`, resten `lg:col-span-1`
+- Varje kort: ta bort ikon-boxen, sätt ikon + rubrik på samma rad
+- Lägg till bakgrundsnummer med `absolute top-2 right-4 text-6xl font-bold text-foreground/[0.03]`
+- Byt border till `border-l-2 border-l-primary/40 border border-border/50`
+- Hover: `hover:border-l-primary hover:shadow-[inset_0_0_30px_rgba(var(--primary),0.05)]` + `hover:translate-x-1`
+
+### 2. `src/index.css` — inga ändringar behövs (befintliga variabler räcker)
+
+## Vad som INTE ändras
+- All text/info — identisk
+- Ikoner — samma
+- PWAInstallButton — kvar i sista kortet
+- Sektionsrubrik — orörd
+- Övriga sektioner — orörda
 
 ## Risk
-Extremt låg. Enbart additivt CSS + className-tillägg. Ingen logik ändras.
+Låg. Enbart className-ändringar i en sektion. Ingen logik ändras.
 
