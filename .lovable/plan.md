@@ -1,59 +1,39 @@
 
 
-# Fix: Garantera att fel bild aldrig visas i position editor
+# Fix: Universal render-level guard mot flash i position editor
 
 ## Problem
-Trots `setPositionEditorPhoto(null)` och flow ID guards kan asynkrona callbacks fortfarande sätta `positionEditorPhoto` till en gammal bild i ett kort ögonblick innan den nya segmenteringen är klar. State-baserade guards räcker inte — vi behöver en render-level guard.
+Render-guarden checkar bara köer. Men om man startar en ny redigering (enskild eller batch) medan en gammal async callback är inflight, kan stale data sättas till `positionEditorPhoto` i ett ögonblick där ingen kö finns eller kön inte matchar.
 
 ## Lösning
-Lägg till en beräknad variabel precis före `<CarPositionEditor>` som **bara tillåter rendering om `positionEditorPhoto.id` matchar den bild som faktiskt ska redigeras** enligt den aktiva kön (editFlowQueue eller interiorImageFlowQueue).
+Lagra `editFlowIdRef.current` på varje `positionEditorPhoto`-objekt som en `flowId`-property. I render-guarden: checka att `positionEditorPhoto.flowId === editFlowIdRef.current`. Om det inte matchar → `safePhoto = null`.
 
-Om ingen kö är aktiv (manuell enskild redigering) visas editorn som vanligt.
+### Ändringar i `src/pages/CarDetail.tsx`
 
-### Ändring i `src/pages/CarDetail.tsx`
+**1. Lägg till `flowId` i alla `setPositionEditorPhoto({...})`-anrop**
 
-**Precis före `<CarPositionEditor>` (rad ~2324), lägg till:**
+Varje ställe som sätter `setPositionEditorPhoto({ id, transparentCarUrl, ... })` får en extra property: `flowId: editFlowIdRef.current`. Det finns ~10 ställen (rad 724, 752, 765, 797, 814, 1376, 1386, 1395, 2396, 2431). De som redan har `interiorFlowId` som lokal variabel använder den (den är redan `editFlowIdRef.current` vid tidpunkten).
 
+**2. Förenkla render-guarden (rad 2325–2331)**
+
+Ersätt den nuvarande kö-baserade guarden med:
 ```typescript
-// Compute which photo ID the active queue expects
-const expectedEditorPhotoId = editFlowQueue
-  ? editFlowQueue.photos[editFlowQueue.currentIndex]?.id
-  : interiorImageFlowQueue
-    ? interiorImageFlowQueue.photos[interiorImageFlowQueue.currentIndex]?.id
-    : positionEditorPhoto?.id; // No queue = any photo is fine
-
-const safePositionEditorPhoto =
-  positionEditorPhoto?.id === expectedEditorPhotoId ? positionEditorPhoto : null;
+const safePhoto = positionEditorPhoto?.flowId === editFlowIdRef.current
+  ? positionEditorPhoto
+  : null;
 ```
 
-**Ändra sedan `open` och alla `positionEditorPhoto`-referenser i JSX:en:**
+**3. Vid enskild redigering ("Justera position", rad ~1370–1398)**
 
-```tsx
-<CarPositionEditor
-  open={!!safePositionEditorPhoto}
-  ...
-  transparentCarUrl={safePositionEditorPhoto?.transparentCarUrl || ""}
-  backgroundUrl={safePositionEditorPhoto?.backgroundImageUrl || backgroundUrl}
-  backgroundColor={safePositionEditorPhoto?.backgroundColor}
-  isInterior={safePositionEditorPhoto?.editType === 'interior'}
-  moveBackground={safePositionEditorPhoto?.moveBackground}
-  fillCanvas={safePositionEditorPhoto?.moveBackground || (safePositionEditorPhoto?.editType === 'interior' && !!safePositionEditorPhoto?.backgroundColor)}
-  ...
-/>
-```
-
-`onOpenChange` och `onSave` behåller sina referenser till `positionEditorPhoto` (inte `safe`-varianten) eftersom de bara anropas när editorn är öppen.
+Lägg till `editFlowIdRef.current++` (eller `++editFlowIdRef.current`) innan `setPositionEditorPhoto` anropas, så att varje enskild öppning av editorn också får ett unikt flow ID.
 
 ## Vad som INTE ändras
-- Inga setters ändras
+- Inga setters-logik ändras
 - Ingen kö-logik ändras
-- CarPositionEditor-komponenten — orörd
-- Interiör/AI-flöden — orörda
+- CarPositionEditor — orörd
 - Edge functions — orörda
-
-## Varför detta garanterar fixet
-Även om en stale callback sätter `positionEditorPhoto` till bild 1, kommer `safePositionEditorPhoto` att vara `null` (eftersom köns `currentIndex` pekar på bild 2). Editorn öppnas aldrig med fel bild. Punkt.
+- Alla flöden fungerar exakt som innan
 
 ## Risk
-Extremt låg. Två beräknade variabler + inga logikändringar.
+Extremt låg. Additivt: en extra property på ett objekt + en enklare guard.
 
