@@ -1,8 +1,8 @@
 import arenaBilLogo from "@/assets/arena-bil-logo.png";
 import joelsBilLogo from "@/assets/joels-bil-logo.png";
-import autoPerformanceLogo from "@/assets/auto-performance-logo.png";
-import eliteMotorworksLogo from "@/assets/elite-motorworks-logo.png";
-import vastronAutoLogo from "@/assets/vastron-auto-logo.png";
+import carcenterLogo from "@/assets/carcenter-logo.png";
+import sabilLogo from "@/assets/sabil-logo.png";
+import gbmLogo from "@/assets/gbm-logo.png";
 const logos = [{
   src: arenaBilLogo,
   alt: "Arena Bil"
