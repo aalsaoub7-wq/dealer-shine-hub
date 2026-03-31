@@ -2382,7 +2382,7 @@ const CarDetail = () => {
           photosToProcess.forEach(async (photo, index) => {
             if (photo.transparent_url) {
               // Already segmented — if first photo, open editor
-              if (index === 0) {
+              if (index === 0 && interiorFlowId === editFlowIdRef.current) {
                 setPositionEditorPhoto({
                   id: photo.id,
                   transparentCarUrl: photo.transparent_url,
