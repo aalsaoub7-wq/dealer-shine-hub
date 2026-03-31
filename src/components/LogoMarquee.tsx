@@ -25,7 +25,7 @@ const LogoMarquee = () => {
       <div className="h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
       
       <div className="py-10">
-        <p className="text-center text-sm text-muted-foreground mb-6 uppercase tracking-widest pb-[10px]" style={{ fontFamily: "'Quattrocento', serif", fontWeight: 400 }}>LUVERO ANVÄNDS VÄRLDEN ÖVER </p>
+        <p className="text-center text-sm text-muted-foreground mb-6 uppercase tracking-widest pb-[10px]" style={{ fontFamily: "'Quattrocento', serif", fontWeight: 400 }}>LUVERO ANVÄNDS I HELA SVERIGE</p>
         <div className="relative overflow-hidden">
           {/* Scrolling track */}
           <div className="flex animate-marquee">
