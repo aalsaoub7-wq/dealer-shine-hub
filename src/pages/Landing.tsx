@@ -812,7 +812,7 @@ const Landing = () => {
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-3xl" />
             
             <div className="relative space-y-6">
-              <h2 className="text-4xl md:text-5xl font-bold">
+              <h2 className="text-4xl md:text-5xl font-bold" style={{ fontFamily: "'Quattrocento', serif" }}>
                 <span className="bg-gradient-primary bg-clip-text text-transparent">
                   Redo att förbättra dina bilfoton?
                 </span>
