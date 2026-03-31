@@ -288,7 +288,7 @@ const Landing = () => {
             <div className="relative group lg:col-span-2 p-8 rounded-2xl bg-card border border-border/50 border-l-2 border-l-primary/40 hover:border-l-primary hover:shadow-[inset_0_0_30px_hsl(var(--primary)/0.05)] hover:translate-x-1 transition-all duration-300 overflow-hidden">
               <span className="absolute top-2 right-4 text-6xl font-bold text-foreground/[0.03] select-none pointer-events-none">01</span>
               <div className="flex items-center gap-3 mb-3">
-                <Brain className="h-7 w-7 text-primary shrink-0" />
+                <img src="https://bvconuycpdvgzbvbkijl.supabase.co/storage/v1/object/public/sizes/c2395b-painting-brush/dynamic/200/color.webp" alt="AI Edit" className="h-10 w-10 shrink-0" />
                 <h3 className="text-xl font-bold text-foreground">AI Bakgrundsredigering</h3>
               </div>
               <p className="text-muted-foreground">
