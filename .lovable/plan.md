@@ -1,50 +1,51 @@
 
 
-# Fix: Spara transparent_url när användaren stänger position editor (klickar X)
+# 3D glans/pop-effekt på landningssidans knappar
 
-## Problem
-När användaren AI-redigerar en bild, segmenteras den via remove.bg. Om användaren sedan klickar X i position editorn istället för att spara, går den transparenta bilden förlorad. Vid nästa försök måste remove.bg köras om i onödan.
+## Vad som ändras
 
-## Lösning
+Lägg till en CSS-klass i `src/index.css` som ger knappar en glassaktig 3D-look med:
+- En subtil `inset box-shadow` (vit highlight upptill → skapar glans)
+- En mörkare `box-shadow` undertill → skapar djup
+- Hover: förstärkt glans + liten `translateY(-1px)` för "pop"
 
-**Enda fil:** `src/pages/CarDetail.tsx`
+Sedan applicera klassen på alla Button-element i `src/pages/Landing.tsx`.
 
-### Ändring i `onOpenChange`-handleren (~rad 2337–2347)
+## Tekniska detaljer
 
-När `open` blir `false` (användaren stänger editorn), spara `transparent_url` och `original_url` till databasen innan state rensas:
+### 1. `src/index.css` — ny klass
 
-```typescript
-onOpenChange={(open) => {
-  if (!open) {
-    // Save transparent_url so remove.bg doesn't need to run again
-    if (positionEditorPhoto?.id && positionEditorPhoto?.transparentCarUrl) {
-      const photoInQueue = editFlowQueue?.photos[editFlowQueue.currentIndex];
-      supabase.from("photos").update({ 
-        transparent_url: positionEditorPhoto.transparentCarUrl,
-        original_url: photoInQueue?.original_url || photoInQueue?.url,
-        is_processing: false,
-      }).eq("id", positionEditorPhoto.id);
-    }
-    if (positionEditorPhoto?.fromEditFlow) {
-      setEditFlowQueue(null);
-    }
-    if (interiorImageFlowQueue) {
-      setInteriorImageFlowQueue(null);
-    }
-    setPositionEditorPhoto(null);
-  }
-}}
+```css
+.btn-3d-gloss {
+  position: relative;
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255,255,255,0.25),
+    0 2px 4px 0 rgba(0,0,0,0.2);
+  transition: all 0.2s ease;
+}
+.btn-3d-gloss:hover {
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255,255,255,0.35),
+    0 4px 8px 0 rgba(0,0,0,0.25);
+  transform: translateY(-1px);
+}
+.btn-3d-gloss:active {
+  box-shadow: 
+    inset 0 1px 0 0 rgba(255,255,255,0.15),
+    0 1px 2px 0 rgba(0,0,0,0.2);
+  transform: translateY(0px);
+}
 ```
 
-Vi behöver inte `await`-a — det är en fire-and-forget DB-update som inte påverkar UI-flödet.
+### 2. `src/pages/Landing.tsx` — lägg till `btn-3d-gloss` på alla knappar
 
-## Vad som INTE ändras
-- Sparflödet (onSave) — orört
-- Gemini-kön — orörd
-- Interiör-flöden — orörda
-- Edge functions — orörda
-- Billing — orört (ingen trackUsage vid cancel)
+- Rad 143 (Logga in)
+- Rad 146 (Snacka med oss — header)
+- Rad 208 (Snacka med oss — hero)
+- Rad 211 (Se hur det fungerar — hero)
+- Rad 825 (Snacka med oss — CTA)
+- Eventuella mobila menyknappar
 
 ## Risk
-Extremt låg. En DB-update läggs till i close-handleren med data som redan finns i state.
+Extremt låg. Enbart additivt CSS + className-tillägg. Ingen logik ändras.
 
