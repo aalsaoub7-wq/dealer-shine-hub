@@ -726,6 +726,7 @@ const CarDetail = () => {
         transparentCarUrl: firstResult.url,
         editType: 'studio',
         fromEditFlow: true,
+        flowId,
       });
     } else {
       // First photo failed, try advancing
