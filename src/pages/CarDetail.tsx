@@ -719,6 +719,7 @@ const CarDetail = () => {
 
     // Open position editor for first photo as soon as IT is ready
     const firstResult = await segmentPromises[0];
+    if (flowId !== editFlowIdRef.current) return; // Stale flow — user started a new edit
     if (firstResult?.url) {
       setPositionEditorPhoto({
         id: firstResult.photoId,
