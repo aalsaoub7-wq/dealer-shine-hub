@@ -891,7 +891,7 @@ const CarDetail = () => {
           } catch (e) { console.error("Error tracking usage:", e); }
         } catch (error) {
           console.error(`Gemini queue - Error processing photo ${job.photoId}:`, error);
-          await supabase.from("photos").update({ is_processing: false }).eq("id", job.photoId);
+          await supabase.from("photos").update({ is_processing: false, transparent_url: job.transparentUrl, original_url: job.originalUrl }).eq("id", job.photoId);
           toast({ title: "Oj!", description: "Vår AI fick för många bollar att jonglera", variant: "info" });
         } finally {
           geminiActiveRef.current--;
