@@ -283,71 +283,74 @@ const Landing = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {/* Feature 1 */}
-            <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
-              <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 mb-4">
-                <Brain className="h-8 w-8 text-primary" />
+          <div className="grid lg:grid-cols-3 gap-4 md:gap-5">
+            {/* Feature 1 — wide */}
+            <div className="relative group lg:col-span-2 p-8 rounded-2xl bg-card border border-border/50 border-l-2 border-l-primary/40 hover:border-l-primary hover:shadow-[inset_0_0_30px_hsl(var(--primary)/0.05)] hover:translate-x-1 transition-all duration-300 overflow-hidden">
+              <span className="absolute top-2 right-4 text-6xl font-bold text-foreground/[0.03] select-none pointer-events-none">01</span>
+              <div className="flex items-center gap-3 mb-3">
+                <Brain className="h-7 w-7 text-primary shrink-0" />
+                <h3 className="text-xl font-bold text-foreground">AI Bakgrundsredigering</h3>
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">AI Bakgrundsredigering</h3>
               <p className="text-muted-foreground">
                 Automatisk studiobakgrund på alla bilder med ett knapptryck. Du kan alltid göra om ifall du inte tycker om bakgrunden.             
               </p>
             </div>
 
-            {/* Feature - FREE Lagerhantering */}
-            <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
-              <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 mb-4">
-                <Package className="h-8 w-8 text-primary" />
+            {/* Feature 2 — narrow */}
+            <div className="relative group lg:col-span-1 p-8 rounded-2xl bg-muted/30 border border-border/50 border-l-2 border-l-primary/40 hover:border-l-primary hover:shadow-[inset_0_0_30px_hsl(var(--primary)/0.05)] hover:translate-x-1 transition-all duration-300 overflow-hidden">
+              <span className="absolute top-2 right-4 text-6xl font-bold text-foreground/[0.03] select-none pointer-events-none">02</span>
+              <div className="flex items-center gap-3 mb-3">
+                <Package className="h-7 w-7 text-primary shrink-0" />
+                <h3 className="text-xl font-bold text-foreground">Lagerhantering & Dokumentation</h3>
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">Lagerhantering & Dokumentation</h3>
               <p className="text-muted-foreground">
                 Använd som din huvudsakliga lagerhantering eller som komplement till ditt befintliga system.   
               </p>
             </div>
 
-            {/* Feature 2 */}
-            
-
-            {/* Feature 3 */}
-            <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
-              <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 mb-4">
-                <Shield className="h-8 w-8 text-primary" />
+            {/* Feature 3 — narrow */}
+            <div className="relative group lg:col-span-1 p-8 rounded-2xl bg-muted/30 border border-border/50 border-l-2 border-l-primary/40 hover:border-l-primary hover:shadow-[inset_0_0_30px_hsl(var(--primary)/0.05)] hover:translate-x-1 transition-all duration-300 overflow-hidden">
+              <span className="absolute top-2 right-4 text-6xl font-bold text-foreground/[0.03] select-none pointer-events-none">03</span>
+              <div className="flex items-center gap-3 mb-3">
+                <Shield className="h-7 w-7 text-primary shrink-0" />
+                <h3 className="text-xl font-bold text-foreground">Vattenmärken</h3>
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">Vattenmärken</h3>
               <p className="text-muted-foreground">
                 Lägg till din logga med ett knapptryck på alla dina bilder för att särskilja dig på blocket.              
               </p>
             </div>
 
-            {/* Feature 4 */}
-            <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
-              <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 mb-4">
-                <Globe className="h-8 w-8 text-accent" />
+            {/* Feature 4 — wide */}
+            <div className="relative group lg:col-span-2 p-8 rounded-2xl bg-card border border-border/50 border-l-2 border-l-primary/40 hover:border-l-primary hover:shadow-[inset_0_0_30px_hsl(var(--primary)/0.05)] hover:translate-x-1 transition-all duration-300 overflow-hidden">
+              <span className="absolute top-2 right-4 text-6xl font-bold text-foreground/[0.03] select-none pointer-events-none">04</span>
+              <div className="flex items-center gap-3 mb-3">
+                <Globe className="h-7 w-7 text-accent shrink-0" />
+                <h3 className="text-xl font-bold text-foreground">Delningsbara Landningssidor</h3>
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">Delningsbara Landningssidor</h3>
               <p className="text-muted-foreground">
                 Skapa unika länkar för varje bil att dela med kunder med bilder på bilar och dokument.      
               </p>
             </div>
 
-            {/* Feature 5 */}
-            <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
-              <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 mb-4">
-                <Users className="h-8 w-8 text-primary" />
+            {/* Feature 5 — half */}
+            <div className="relative group lg:col-span-1 p-8 rounded-2xl bg-muted/30 border border-border/50 border-l-2 border-l-primary/40 hover:border-l-primary hover:shadow-[inset_0_0_30px_hsl(var(--primary)/0.05)] hover:translate-x-1 transition-all duration-300 overflow-hidden lg:col-start-1">
+              <span className="absolute top-2 right-4 text-6xl font-bold text-foreground/[0.03] select-none pointer-events-none">05</span>
+              <div className="flex items-center gap-3 mb-3">
+                <Users className="h-7 w-7 text-primary shrink-0" />
+                <h3 className="text-xl font-bold text-foreground">Team Collaboration</h3>
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">Team Collaboration</h3>
               <p className="text-muted-foreground">
                 Bjud in oändligt många anställda/partners och arbeta tillsammans i realtid. 
               </p>
             </div>
 
-            {/* Feature 6 */}
-             <div className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/10">
-              <div className="mb-4">
-                <Download className="h-10 w-10 text-primary" />
+            {/* Feature 6 — half + PWA */}
+            <div className="relative group lg:col-span-1 p-8 rounded-2xl bg-card border border-border/50 border-l-2 border-l-primary/40 hover:border-l-primary hover:shadow-[inset_0_0_30px_hsl(var(--primary)/0.05)] hover:translate-x-1 transition-all duration-300 overflow-hidden">
+              <span className="absolute top-2 right-4 text-6xl font-bold text-foreground/[0.03] select-none pointer-events-none">06</span>
+              <div className="flex items-center gap-3 mb-3">
+                <Download className="h-7 w-7 text-primary shrink-0" />
+                <h3 className="text-xl font-bold text-foreground">Installera Appen!</h3>
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">Installera Appen!</h3>
               <p className="text-muted-foreground">
                 Installera Luvero direkt från din webbläsare — ingen app store behövs.
               </p>
