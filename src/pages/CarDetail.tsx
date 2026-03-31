@@ -2327,14 +2327,9 @@ const CarDetail = () => {
 
       {car && <PlatformSyncDialog open={syncDialogOpen} onOpenChange={setSyncDialogOpen} carId={car.id} car={car} photos={photos.filter(p => p.photo_type === "main")} />}
       
-      {/* Car Position Editor — render-level guard against stale async results */}
+      {/* Car Position Editor — universal render-level guard against stale async results */}
       {(() => {
-        const expectedEditorPhotoId = editFlowQueue
-          ? editFlowQueue.photos[editFlowQueue.currentIndex]?.id
-          : interiorImageFlowQueue
-            ? interiorImageFlowQueue.photos[interiorImageFlowQueue.currentIndex]?.id
-            : positionEditorPhoto?.id;
-        const safePhoto = positionEditorPhoto?.id === expectedEditorPhotoId ? positionEditorPhoto : null;
+        const safePhoto = positionEditorPhoto?.flowId === editFlowIdRef.current ? positionEditorPhoto : null;
         return (
           <CarPositionEditor
             open={!!safePhoto}
