@@ -336,7 +336,7 @@ const Landing = () => {
             <div className="relative group lg:col-span-1 p-8 rounded-2xl bg-muted/30 border border-border/50 border-l-2 border-l-primary/40 hover:border-l-primary hover:shadow-[inset_0_0_30px_hsl(var(--primary)/0.05)] hover:translate-x-1 transition-all duration-300 overflow-hidden lg:col-start-1">
               <span className="absolute top-2 right-4 text-6xl font-bold text-foreground/[0.03] select-none pointer-events-none">05</span>
               <div className="flex items-center gap-3 mb-3">
-                <Users className="h-7 w-7 text-primary shrink-0" />
+                <img src="https://bvconuycpdvgzbvbkijl.supabase.co/storage/v1/object/public/sizes/eec43d-chat-bubble/dynamic/200/color.webp" alt="Chat" className="h-10 w-10 shrink-0" />
                 <h3 className="text-xl font-bold text-foreground">Team Collaboration</h3>
               </div>
               <p className="text-muted-foreground">
