@@ -171,7 +171,7 @@ const Landing = () => {
               <button onClick={() => scrollToSection('exclusive-program')} className="block w-full text-left px-3 py-2 text-sm font-medium animate-rainbow-text bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 via-purple-500 to-red-500 bg-[length:200%_auto] bg-clip-text text-transparent hover:opacity-80 transition-opacity">
                 Lorbit AI
               </button>
-              <Button className="w-full bg-black text-white hover:bg-black hover:text-white hover:scale-100" onClick={() => navigate("/auth")}>
+              <Button className="w-full bg-black text-white hover:bg-black hover:text-white hover:scale-100 btn-3d-gloss" onClick={() => navigate("/auth")}>
                 Logga in
               </Button>
               <Button className="w-full" onClick={() => scrollToSection('book-demo')}>
