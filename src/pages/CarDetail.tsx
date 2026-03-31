@@ -2336,6 +2336,15 @@ const CarDetail = () => {
             open={!!safePhoto}
             onOpenChange={(open) => {
               if (!open) {
+                // Save transparent_url so remove.bg doesn't need to run again
+                if (positionEditorPhoto?.id && positionEditorPhoto?.transparentCarUrl) {
+                  const photoInQueue = editFlowQueue?.photos[editFlowQueue.currentIndex];
+                  supabase.from("photos").update({ 
+                    transparent_url: positionEditorPhoto.transparentCarUrl,
+                    original_url: photoInQueue?.original_url || photoInQueue?.url,
+                    is_processing: false,
+                  }).eq("id", positionEditorPhoto.id);
+                }
                 if (positionEditorPhoto?.fromEditFlow) {
                   setEditFlowQueue(null);
                 }
