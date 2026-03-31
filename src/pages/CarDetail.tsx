@@ -130,6 +130,7 @@ const CarDetail = () => {
     fromEditFlow?: boolean; // If true, this is part of the AI-edit pipeline
   } | null>(null);
   const [positionEditorSaving, setPositionEditorSaving] = useState(false);
+  const editFlowIdRef = useRef(0);
   // Edit flow queue: sequential manual positioning during AI-edit
   const [editFlowQueue, setEditFlowQueue] = useState<{
     photos: Photo[];
@@ -655,7 +656,8 @@ const CarDetail = () => {
     const photosToProcess = photos.filter((p) => photoIds.includes(p.id));
     if (photosToProcess.length === 0) return;
 
-    // Clear any stale position editor state from previous flow
+    // Clear any stale position editor state and increment flow ID
+    const flowId = ++editFlowIdRef.current;
     setPositionEditorPhoto(null);
 
     // Set up the edit flow queue with empty segment results
@@ -717,6 +719,7 @@ const CarDetail = () => {
 
     // Open position editor for first photo as soon as IT is ready
     const firstResult = await segmentPromises[0];
+    if (flowId !== editFlowIdRef.current) return; // Stale flow — user started a new edit
     if (firstResult?.url) {
       setPositionEditorPhoto({
         id: firstResult.photoId,
@@ -2355,6 +2358,8 @@ const CarDetail = () => {
           const photosToProcess = photoIds.map(id => mainPhotos.find(p => p.id === id)).filter(Boolean) as Photo[];
           if (photosToProcess.length === 0) return;
           setSelectedMainPhotos([]);
+          const interiorFlowId = ++editFlowIdRef.current;
+          setPositionEditorPhoto(null);
 
           toast({
             title: "Förbereder...",
@@ -2377,7 +2382,7 @@ const CarDetail = () => {
           photosToProcess.forEach(async (photo, index) => {
             if (photo.transparent_url) {
               // Already segmented — if first photo, open editor
-              if (index === 0) {
+              if (index === 0 && interiorFlowId === editFlowIdRef.current) {
                 setPositionEditorPhoto({
                   id: photo.id,
                   transparentCarUrl: photo.transparent_url,
@@ -2412,7 +2417,7 @@ const CarDetail = () => {
                 return { ...prev, segmentResults: newResults };
               });
               // If this is the first photo, open position editor
-              if (index === 0) {
+              if (index === 0 && interiorFlowId === editFlowIdRef.current) {
                 setPositionEditorPhoto({
                   id: photo.id,
                   transparentCarUrl: segmentData.url,
