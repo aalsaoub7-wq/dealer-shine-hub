@@ -1375,32 +1375,33 @@ const CarDetail = () => {
       }
 
       // For interior photos, check if it was edited with solid color or background image
+      const manualFlowId = ++editFlowIdRef.current;
       if (photo.edit_type === 'interior') {
         if (photo.interior_background_url) {
-          // Background image was used - user moves the background
           setPositionEditorPhoto({
             id: photoId,
             transparentCarUrl,
             editType: photo.edit_type,
             backgroundImageUrl: photo.interior_background_url,
             moveBackground: true,
+            flowId: manualFlowId,
           });
         } else {
-          // Solid color was used - user moves the car
           const bgColor = interiorColorHistory[0] || '#c8cfdb';
           setPositionEditorPhoto({
             id: photoId,
             transparentCarUrl,
             editType: photo.edit_type,
             backgroundColor: bgColor,
+            flowId: manualFlowId,
           });
         }
       } else {
-        // Open position editor with transparent car and background image
         setPositionEditorPhoto({
           id: photoId,
           transparentCarUrl,
           editType: photo.edit_type,
+          flowId: manualFlowId,
         });
       }
     } catch (error) {
