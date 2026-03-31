@@ -712,7 +712,7 @@ const Landing = () => {
                 Snacka med oss för att få tillgång
               </span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto" style={{ fontFamily: "'Quattrocento', serif", fontWeight: 400 }}>
               Låt oss visa hur Luvero kan hjälpa ditt företag
             </p>
           </div>
