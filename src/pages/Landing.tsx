@@ -140,7 +140,7 @@ const Landing = () => {
                 Så fungerar det
               </button>
               <div className="flex items-center gap-3">
-                <Button onClick={() => navigate("/auth")} className="bg-black text-white hover:bg-black hover:text-white hover:scale-100 btn-3d-gloss">
+                <Button onClick={() => navigate("/auth")} className="bg-zinc-800 text-white hover:bg-zinc-700 hover:text-white hover:scale-100 btn-3d-gloss">
                   Logga in
                 </Button>
               <Button onClick={() => scrollToSection('book-demo')} className="shadow-glow btn-3d-gloss">
@@ -204,7 +204,7 @@ const Landing = () => {
                 <Button size="lg" className="text-lg px-8 py-6 shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105 btn-3d-gloss" onClick={() => scrollToSection('book-demo')}>
                   Snacka med oss
                 </Button>
-                <Button size="lg" variant="outline" className="text-lg px-8 py-6 hover:bg-muted transition-all duration-300 btn-3d-gloss" onClick={() => scrollToSection('how-it-works')}>
+                <Button size="lg" variant="outline" className="text-lg px-8 py-6 bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700 transition-all duration-300 btn-3d-gloss" onClick={() => scrollToSection('how-it-works')}>
                   Se hur det fungerar
                   <ChevronDown className="ml-2 h-5 w-5" />
                 </Button>
