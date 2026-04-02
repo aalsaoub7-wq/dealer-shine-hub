@@ -186,7 +186,7 @@ const Landing = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 pb-[120px]">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Column */}
-            <div className="space-y-8 animate-fade-in">
+            <div className="space-y-8 animate-fade-in pt-12">
 
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight min-h-[10rem] md:min-h-[12rem] lg:min-h-[14rem]" style={{ fontFamily: "'Quattrocento', serif" }}>
                 <span className="bg-gradient-primary bg-clip-text text-transparent">
