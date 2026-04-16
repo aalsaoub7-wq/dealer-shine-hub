@@ -2443,15 +2443,20 @@ const CarDetail = () => {
             open={!!safePhoto}
             onOpenChange={(open) => {
               if (!open) {
-                // Snapshot the current editor photo to avoid reading stale queue state
+                // Snapshot the current editor photo at close time — never read mutable state later
                 const closingPhoto = positionEditorPhoto;
-                // Save transparent_url so remove.bg doesn't need to run again
-                if (closingPhoto?.id && closingPhoto?.transparentCarUrl) {
-                  supabase.from("photos").update({ 
-                    transparent_url: closingPhoto.transparentCarUrl,
-                    is_processing: false,
-                  }).eq("id", closingPhoto.id);
+                // Verify the closing photo matches the current flow before doing any DB writes
+                if (closingPhoto?.flowId === editFlowIdRef.current) {
+                  // Save transparent_url so remove.bg doesn't need to run again
+                  if (closingPhoto?.id && closingPhoto?.transparentCarUrl) {
+                    supabase.from("photos").update({ 
+                      transparent_url: closingPhoto.transparentCarUrl,
+                      is_processing: false,
+                    }).eq("id", closingPhoto.id);
+                  }
                 }
+                // Cancel all pollers to prevent stale flow from opening new editors
+                cancelAllPollers();
                 if (closingPhoto?.fromEditFlow) {
                   setEditFlowQueue(null);
                 }
@@ -2469,6 +2474,7 @@ const CarDetail = () => {
             fillCanvas={safePhoto?.moveBackground || (safePhoto?.editType === 'interior' && !!safePhoto?.backgroundColor)}
             onSave={handlePositionEditorSave}
             isSaving={positionEditorSaving}
+            sessionToken={safePhoto?.sessionToken}
           />
         );
       })()}
