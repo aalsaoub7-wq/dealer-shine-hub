@@ -804,6 +804,9 @@ const CarDetail = () => {
   const advanceEditFlowQueue = () => {
     setEditFlowQueue(prev => {
       if (!prev) return null;
+      const frozenFlowId = prev.flowId; // Use the frozen flow ID from queue state
+      if (frozenFlowId !== editFlowIdRef.current) return null; // Stale flow, abort
+
       const nextIndex = prev.currentIndex + 1;
       if (nextIndex >= prev.photos.length) {
         // Queue complete — all positioned, Gemini still running in background
@@ -811,6 +814,7 @@ const CarDetail = () => {
       }
       const nextPhoto = prev.photos[nextIndex];
       const transparentUrl = prev.segmentResults.get(nextPhoto.id);
+      const sessionToken = generateSessionToken();
 
       if (transparentUrl) {
         // Segment already done — open position editor immediately
@@ -819,13 +823,15 @@ const CarDetail = () => {
           transparentCarUrl: transparentUrl,
           editType: 'studio',
           fromEditFlow: true,
-          flowId: editFlowIdRef.current,
+          flowId: frozenFlowId,
+          sessionToken,
         });
       } else {
-        // Segment not ready yet — poll until it arrives
+        // Segment not ready yet — poll until it arrives using tracked timer
         const pollForSegment = () => {
+          if (frozenFlowId !== editFlowIdRef.current) return; // Stale flow, stop polling
           setEditFlowQueue(current => {
-            if (!current) return null;
+            if (!current || current.flowId !== frozenFlowId) return current;
             const url = current.segmentResults.get(nextPhoto.id);
             if (url) {
               setPositionEditorPhoto({
@@ -833,16 +839,17 @@ const CarDetail = () => {
                 transparentCarUrl: url,
                 editType: 'studio',
                 fromEditFlow: true,
-                flowId: editFlowIdRef.current,
+                flowId: frozenFlowId,
+                sessionToken,
               });
               return current; // stop polling
             }
-            // Not ready, poll again
-            setTimeout(pollForSegment, 500);
+            // Not ready, poll again with tracked timer
+            createPollTimer(pollForSegment, 500);
             return current;
           });
         };
-        setTimeout(pollForSegment, 500);
+        createPollTimer(pollForSegment, 500);
       }
 
       return { ...prev, currentIndex: nextIndex };
@@ -853,12 +860,16 @@ const CarDetail = () => {
   const advanceInteriorImageQueue = () => {
     setInteriorImageFlowQueue(prev => {
       if (!prev) return null;
+      const frozenFlowId = prev.flowId; // Use the frozen flow ID from queue state
+      if (frozenFlowId !== editFlowIdRef.current) return null; // Stale flow, abort
+
       const nextIndex = prev.currentIndex + 1;
       if (nextIndex >= prev.photos.length) {
         return null; // All done
       }
       const nextPhoto = prev.photos[nextIndex];
       const transparentUrl = prev.segmentResults.get(nextPhoto.id);
+      const sessionToken = generateSessionToken();
 
       if (transparentUrl && transparentUrl !== "") {
         setPositionEditorPhoto({
@@ -867,16 +878,18 @@ const CarDetail = () => {
           editType: 'interior',
           backgroundImageUrl: prev.imageUrl,
           moveBackground: true,
-          flowId: editFlowIdRef.current,
+          flowId: frozenFlowId,
+          sessionToken,
         });
       } else if (transparentUrl === "") {
         // This photo failed segmentation, skip it
-        setTimeout(() => advanceInteriorImageQueue(), 0);
+        createPollTimer(() => advanceInteriorImageQueue(), 0);
       } else {
-        // Not ready yet, poll
+        // Not ready yet, poll with tracked timer
         const pollForSegment = () => {
+          if (frozenFlowId !== editFlowIdRef.current) return; // Stale flow, stop
           setInteriorImageFlowQueue(current => {
-            if (!current) return null;
+            if (!current || current.flowId !== frozenFlowId) return current;
             const url = current.segmentResults.get(nextPhoto.id);
             if (url && url !== "") {
               setPositionEditorPhoto({
@@ -885,19 +898,20 @@ const CarDetail = () => {
                 editType: 'interior',
                 backgroundImageUrl: current.imageUrl,
                 moveBackground: true,
-                flowId: editFlowIdRef.current,
+                flowId: frozenFlowId,
+                sessionToken,
               });
               return current;
             } else if (url === "") {
               // Failed, skip
-              setTimeout(() => advanceInteriorImageQueue(), 0);
+              createPollTimer(() => advanceInteriorImageQueue(), 0);
               return current;
             }
-            setTimeout(pollForSegment, 500);
+            createPollTimer(pollForSegment, 500);
             return current;
           });
         };
-        setTimeout(pollForSegment, 500);
+        createPollTimer(pollForSegment, 500);
       }
 
       return { ...prev, currentIndex: nextIndex };
