@@ -1546,13 +1546,15 @@ const CarDetail = () => {
       setPositionEditorPhoto(null);
       setPositionEditorSaving(false);
 
-      // Add to Gemini background queue using frozen snapshot
+      // Add to Gemini background queue using frozen snapshot with operation token
+      const opToken = photoOpRef.current.get(photoId) || generateOpToken(photoId);
       geminiQueueRef.current.push({
         compositionBlob,
         photoId,
         originalUrl: originalPhoto?.url || "",
         transparentUrl,
         removePlate,
+        opToken,
       });
       processGeminiQueue();
 
@@ -2462,6 +2464,7 @@ const CarDetail = () => {
             imageUrl,
             segmentResults: initialResults,
             currentIndex: 0,
+            flowId: interiorFlowId,
           });
 
           // Start parallel segmentation for photos that need it
