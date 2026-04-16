@@ -94,6 +94,7 @@ export const CarPositionEditor = ({
   const bgImgRef = useRef<HTMLImageElement | null>(null);
   const carCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const loadSessionRef = useRef(0);
   
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -169,13 +170,31 @@ export const CarPositionEditor = ({
     setCarHeight(height);
   }, [fillCanvas, OUTPUT_HEIGHT]);
 
-  // Load images
+  // Load images — with session guard to prevent stale onload from previous photos
   useEffect(() => {
     if (!open || !transparentCarUrl) return;
     // Need either backgroundUrl or backgroundColor
     if (!backgroundUrl && !backgroundColor) return;
     
+    // Increment session and capture it — stale loads from previous photos will be ignored
+    const sessionId = ++loadSessionRef.current;
+    
+    // Reset all refs and state immediately to prevent stale canvas data
+    bgImgRef.current = null;
+    carCanvasRef.current = null;
     setImagesLoaded(false);
+    setCarRotation(0);
+    
+    let bgLoaded = false;
+    let carLoaded = false;
+    
+    const checkBothLoaded = () => {
+      // Only proceed if this is still the active session
+      if (loadSessionRef.current !== sessionId) return;
+      if (bgLoaded && carLoaded) {
+        setImagesLoaded(true);
+      }
+    };
     
     // For solid color background, create a canvas instead of loading image
     if (backgroundColor) {
@@ -190,7 +209,9 @@ export const CarPositionEditor = ({
       const bgImg = new Image();
       bgImg.src = bgCanvas.toDataURL();
       bgImg.onload = () => {
+        if (loadSessionRef.current !== sessionId) return; // stale
         bgImgRef.current = bgImg;
+        bgLoaded = true;
         checkBothLoaded();
       };
     } else {
@@ -198,6 +219,7 @@ export const CarPositionEditor = ({
       bgImg.crossOrigin = 'anonymous';
       bgImg.src = backgroundUrl;
       bgImg.onload = () => {
+        if (loadSessionRef.current !== sessionId) return; // stale
         bgImgRef.current = bgImg;
         bgAspectRatioRef.current = bgImg.width / bgImg.height;
         // Calculate initial centered position for background (used in both modes)
@@ -214,6 +236,7 @@ export const CarPositionEditor = ({
         const scaledHeight = bgImg.height * scale;
         setBgX((OUTPUT_WIDTH - scaledWidth) / 2);
         setBgY((OUTPUT_HEIGHT - scaledHeight) / 2);
+        bgLoaded = true;
         checkBothLoaded();
       };
     }
@@ -222,16 +245,12 @@ export const CarPositionEditor = ({
     carImg.crossOrigin = 'anonymous';
     carImg.src = transparentCarUrl;
     carImg.onload = () => {
+      if (loadSessionRef.current !== sessionId) return; // stale
       const croppedCanvas = cropTransparentPadding(carImg);
       carCanvasRef.current = croppedCanvas;
       calculateInitialPosition(croppedCanvas);
+      carLoaded = true;
       checkBothLoaded();
-    };
-
-    const checkBothLoaded = () => {
-      if (bgImgRef.current && carCanvasRef.current) {
-        setImagesLoaded(true);
-      }
     };
 
     return () => {
@@ -716,7 +735,7 @@ export const CarPositionEditor = ({
   }, []);
 
   const handleSave = useCallback(() => {
-    if (!canvasRef.current || !bgImgRef.current || !carCanvasRef.current) return;
+    if (!canvasRef.current || !bgImgRef.current || !carCanvasRef.current || !imagesLoaded) return;
 
     // Create a clean canvas for export (without selection frame)
     const exportCanvas = document.createElement('canvas');
@@ -755,7 +774,7 @@ export const CarPositionEditor = ({
       'image/jpeg',
       0.85
     );
-  }, [carX, carY, carWidth, carHeight, bgX, bgY, bgScale, moveBackground, onSave, carRotation]);
+  }, [carX, carY, carWidth, carHeight, bgX, bgY, bgScale, moveBackground, onSave, carRotation, imagesLoaded]);
 
   if (!open) return null;
 
