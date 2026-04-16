@@ -99,6 +99,13 @@ export const CarPositionEditor = ({
   const carCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const loadSessionRef = useRef(0);
+
+  // Update session token ref when prop changes (new editor session)
+  useEffect(() => {
+    if (open && sessionToken) {
+      activeSessionTokenRef.current = sessionToken;
+    }
+  }, [open, sessionToken]);
   
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
