@@ -344,6 +344,7 @@ const CarDetail = () => {
         if (fetchDebounceRef.current) {
           clearTimeout(fetchDebounceRef.current);
         }
+        cancelAllPollers();
         clearInterval(watchdogInterval);
       };
     }
