@@ -735,7 +735,7 @@ export const CarPositionEditor = ({
   }, []);
 
   const handleSave = useCallback(() => {
-    if (!canvasRef.current || !bgImgRef.current || !carCanvasRef.current) return;
+    if (!canvasRef.current || !bgImgRef.current || !carCanvasRef.current || !imagesLoaded) return;
 
     // Create a clean canvas for export (without selection frame)
     const exportCanvas = document.createElement('canvas');
@@ -774,7 +774,7 @@ export const CarPositionEditor = ({
       'image/jpeg',
       0.85
     );
-  }, [carX, carY, carWidth, carHeight, bgX, bgY, bgScale, moveBackground, onSave, carRotation]);
+  }, [carX, carY, carWidth, carHeight, bgX, bgY, bgScale, moveBackground, onSave, carRotation, imagesLoaded]);
 
   if (!open) return null;
 

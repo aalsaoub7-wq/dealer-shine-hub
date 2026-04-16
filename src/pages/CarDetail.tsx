@@ -1476,12 +1476,14 @@ const CarDetail = () => {
     } else if (isFromEditFlow && editFlowQueue) {
       // From AI-edit pipeline: queue Gemini job in background, advance to next photo immediately
       const removePlate = editFlowQueue.removePlate;
-      const originalPhoto = editFlowQueue.photos[editFlowQueue.currentIndex];
+      // SNAPSHOT: freeze the original photo from the queue at save time to avoid mutable index drift
+      const snapshotIndex = editFlowQueue.currentIndex;
+      const originalPhoto = editFlowQueue.photos[snapshotIndex];
       const transparentUrl = positionEditorPhoto.transparentCarUrl;
       setPositionEditorPhoto(null);
       setPositionEditorSaving(false);
 
-      // Add to Gemini background queue
+      // Add to Gemini background queue using frozen snapshot
       geminiQueueRef.current.push({
         compositionBlob,
         photoId,
@@ -2336,16 +2338,16 @@ const CarDetail = () => {
             open={!!safePhoto}
             onOpenChange={(open) => {
               if (!open) {
+                // Snapshot the current editor photo to avoid reading stale queue state
+                const closingPhoto = positionEditorPhoto;
                 // Save transparent_url so remove.bg doesn't need to run again
-                if (positionEditorPhoto?.id && positionEditorPhoto?.transparentCarUrl) {
-                  const photoInQueue = editFlowQueue?.photos[editFlowQueue.currentIndex];
+                if (closingPhoto?.id && closingPhoto?.transparentCarUrl) {
                   supabase.from("photos").update({ 
-                    transparent_url: positionEditorPhoto.transparentCarUrl,
-                    original_url: photoInQueue?.original_url || photoInQueue?.url,
+                    transparent_url: closingPhoto.transparentCarUrl,
                     is_processing: false,
-                  }).eq("id", positionEditorPhoto.id);
+                  }).eq("id", closingPhoto.id);
                 }
-                if (positionEditorPhoto?.fromEditFlow) {
+                if (closingPhoto?.fromEditFlow) {
                   setEditFlowQueue(null);
                 }
                 if (interiorImageFlowQueue) {
