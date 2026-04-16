@@ -747,6 +747,11 @@ export const CarPositionEditor = ({
 
   const handleSave = useCallback(() => {
     if (!canvasRef.current || !bgImgRef.current || !carCanvasRef.current || !imagesLoaded) return;
+    // Guard: reject stale saves from a previous session
+    if (sessionToken && activeSessionTokenRef.current !== sessionToken) {
+      console.warn("CarPositionEditor - Blocked stale save (session token mismatch)");
+      return;
+    }
 
     // Create a clean canvas for export (without selection frame)
     const exportCanvas = document.createElement('canvas');

@@ -767,18 +767,20 @@ const CarDetail = () => {
         if (segmentError) throw segmentError;
         if (!segmentData?.url) throw new Error("No URL returned from segment-car");
 
-        console.log("Edit flow - Segment complete for photo", photo.id, segmentData.url);
+        // Cache-bust: append timestamp to prevent browser/CDN caching of old transparent PNGs
+        const cacheBustedUrl = `${segmentData.url}?t=${Date.now()}`;
+        console.log("Edit flow - Segment complete for photo", photo.id, cacheBustedUrl);
         await supabase.from("photos").update({ is_processing: false }).eq("id", photo.id);
 
         // Store result and check if this is the photo currently waiting
         setEditFlowQueue(prev => {
           if (!prev) return null;
           const newResults = new Map(prev.segmentResults);
-          newResults.set(photo.id, segmentData.url);
+          newResults.set(photo.id, cacheBustedUrl);
           return { ...prev, segmentResults: newResults };
         });
 
-        return { photoId: photo.id, url: segmentData.url, index };
+        return { photoId: photo.id, url: cacheBustedUrl, index };
       } catch (error) {
         console.error(`Edit flow - Error segmenting photo ${photo.id}:`, error);
         await supabase.from("photos").update({ is_processing: false }).eq("id", photo.id);
