@@ -298,9 +298,8 @@ const CarDetail = () => {
       description: "Vår AI fick för många bollar att jonglera",
       variant: "info",
     });
-    }
     
-    return resetIds;
+    return stuckIds;
   };
 
   useEffect(() => {
