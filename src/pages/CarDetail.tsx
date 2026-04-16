@@ -927,6 +927,12 @@ const CarDetail = () => {
 
       (async () => {
         try {
+          // Verify operation token is still valid before starting
+          if (!isOpTokenValid(job.photoId, job.opToken)) {
+            console.log("Gemini queue - Skipping stale job for photo", job.photoId);
+            return;
+          }
+
           await supabase.from("photos").update({ is_processing: true }).eq("id", job.photoId);
 
           console.log("Gemini queue - Processing photo", job.photoId);
@@ -944,6 +950,12 @@ const CarDetail = () => {
 
           if (reflectionError) throw reflectionError;
           if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
+
+          // Verify operation token is STILL valid before writing result
+          if (!isOpTokenValid(job.photoId, job.opToken)) {
+            console.log("Gemini queue - Discarding stale result for photo", job.photoId);
+            return;
+          }
 
           console.log("Gemini queue - Complete for photo", job.photoId);
 
@@ -968,7 +980,10 @@ const CarDetail = () => {
           } catch (e) { console.error("Error tracking usage:", e); }
         } catch (error) {
           console.error(`Gemini queue - Error processing photo ${job.photoId}:`, error);
-          await supabase.from("photos").update({ is_processing: false, transparent_url: job.transparentUrl, original_url: job.originalUrl }).eq("id", job.photoId);
+          // Only update if this operation is still the latest
+          if (isOpTokenValid(job.photoId, job.opToken)) {
+            await supabase.from("photos").update({ is_processing: false, transparent_url: job.transparentUrl, original_url: job.originalUrl }).eq("id", job.photoId);
+          }
           toast({ title: "Oj!", description: "Vår AI fick för många bollar att jonglera", variant: "info" });
         } finally {
           geminiActiveRef.current--;
