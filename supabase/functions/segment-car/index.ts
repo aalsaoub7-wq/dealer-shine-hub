@@ -89,7 +89,7 @@ serve(async (req) => {
     // Upload directly to Supabase Storage
     const timestamp = Date.now();
     const fileName = carId && photoId 
-      ? `${carId}/transparent-${photoId}.png`
+      ? `${carId}/transparent-${photoId}-${timestamp}.png`
       : `temp/transparent-${timestamp}-${Math.random().toString(36).substring(7)}.png`;
 
     console.log("Uploading transparent PNG to Storage:", fileName);
