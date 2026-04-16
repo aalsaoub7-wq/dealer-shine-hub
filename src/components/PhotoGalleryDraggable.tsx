@@ -20,6 +20,8 @@ interface Photo {
   is_edited: boolean;
   is_processing?: boolean;
   original_url: string | null;
+  transparent_url?: string | null;
+  updated_at?: string | null;
   display_order: number;
   has_watermark?: boolean;
   edit_type?: string | null;
