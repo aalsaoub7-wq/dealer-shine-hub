@@ -258,8 +258,8 @@ const CarDetail = () => {
     return Promise.race([promise, timeout]);
   };
 
-  // Reset photos stuck in processing for more than 2 minutes
-  // Returns array of reset photo IDs (if any)
+  // Reset photos stuck in processing for more than 90 seconds
+  // Skips photos that belong to an active local queue or have active operation tokens
   const resetStuckPhotos = async (): Promise<string[]> => {
     if (!id) return [];
     
@@ -267,27 +267,37 @@ const CarDetail = () => {
     
     const { data, error } = await supabase
       .from("photos")
-      .update({ is_processing: false })
+      .select("id")
       .eq("car_id", id)
       .eq("is_processing", true)
-      .lt("updated_at", ninetySecondsAgo)
-      .select("id");
+      .lt("updated_at", ninetySecondsAgo);
       
     if (error) {
-      console.error("Error resetting stuck photos:", error);
+      console.error("Error checking stuck photos:", error);
       return [];
     }
     
-    const resetIds = data?.map(p => p.id) || [];
+    if (!data || data.length === 0) return [];
     
-    // Show toast if any photos were auto-reset
-    if (resetIds.length > 0) {
-      console.log("Auto-reset stuck photos:", resetIds);
-      toast({
-        title: "Oj!",
-        description: "Vår AI fick för många bollar att jonglera",
-        variant: "info",
-      });
+    // Filter out photos that are actively managed by a local queue or have recent operations
+    const lockedIds = getLockedPhotoIds();
+    const trulyStuck = data.filter(p => !lockedIds.has(p.id));
+    
+    if (trulyStuck.length === 0) return [];
+    
+    // Reset only truly stuck photos
+    const stuckIds = trulyStuck.map(p => p.id);
+    await supabase
+      .from("photos")
+      .update({ is_processing: false })
+      .in("id", stuckIds);
+    
+    console.log("Auto-reset stuck photos:", stuckIds);
+    toast({
+      title: "Oj!",
+      description: "Vår AI fick för många bollar att jonglera",
+      variant: "info",
+    });
     }
     
     return resetIds;
