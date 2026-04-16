@@ -14,6 +14,7 @@ interface CarPositionEditorProps {
   fillCanvas?: boolean; // If true, position image to cover entire canvas without margins
   onSave: (compositionBlob: Blob) => void;
   isSaving?: boolean;
+  sessionToken?: string; // Unique token to guard against stale save/close calls
 }
 
 // Default car position (matching carCompositing.ts defaults)
@@ -85,8 +86,11 @@ export const CarPositionEditor = ({
   fillCanvas = false,
   onSave,
   isSaving = false,
+  sessionToken,
 }: CarPositionEditorProps) => {
   const isMobile = useIsMobile();
+  // Capture the session token at mount/open time to guard saves
+  const activeSessionTokenRef = useRef<string | undefined>(sessionToken);
   
   // Dynamic height based on whether it's interior (4:3) or regular (3:2)
   const OUTPUT_HEIGHT = isInterior ? 1440 : 1280;
