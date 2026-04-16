@@ -1303,8 +1303,8 @@ const CarDetail = () => {
           .eq("id", photoId);
 
         toast({
-          title: "Oj!",
-          description: "Vår AI fick för många bollar att jonglera",
+          title: "Bakgrundsgenereringen misslyckades",
+          description: "Försök igen om en stund.",
           variant: "info",
         });
       }
@@ -1404,8 +1404,8 @@ const CarDetail = () => {
           .eq("id", photoId);
 
         toast({
-          title: "Oj!",
-          description: "Vår AI fick för många bollar att jonglera",
+          title: "Reflektionen misslyckades",
+          description: "Försök igen.",
           variant: "info",
         });
       }
