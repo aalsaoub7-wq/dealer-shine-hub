@@ -1,54 +1,50 @@
 
 
-# Fix: Stäng de två återstående buggkällorna
+# Analys: "Vår AI fick för många bollar att jonglera" toast
 
-## Problemsammanfattning
-Analysen identifierar två bekräftade brister:
+## Sammanfattning
 
-1. **segment-car returnerar samma URL vid re-edit** → browser cache visar gammal transparent-bild
-2. **handleSave i CarPositionEditor saknar session token-guard** → kan exportera canvas med fel bilds data
+Toasten används som ett **generiskt felmeddelande** för minst 8 helt olika situationer i `CarDetail.tsx`. Den triggas vid alla typer av fel och timeouts, inte bara vid "för många samtidiga jobb". Det gör det omöjligt att veta vad som faktiskt gick fel.
 
-## Ändringar
+## Alla 8 triggers (rad i CarDetail.tsx)
 
-### 1. segment-car: Lägg till timestamp i filnamn
-**Fil:** `supabase/functions/segment-car/index.ts`
+| # | Rad | Trigger | Verklig orsak |
+|---|-----|---------|---------------|
+| 1 | ~296 | `resetStuckPhotos()` — watchdog hittar foton som stått `is_processing=true` i >90s | Foto fastnade, kanske pga Edge Function som tog för lång tid eller klienten tappade kontakt |
+| 2 | ~787 | `segment-car` failar eller timear ut (60s timeout) under batch-redigering | Nätverksfel, Edge Function långsam, eller timeout |
+| 3 | ~1000 | `processGeminiQueue` — `add-reflection` failar eller timear ut (90s) | AI-modellen svarar långsamt eller returnerar fel |
+| 4 | ~1169 | Interiör-redigering — `segment-car` eller bildkomposition failar | Samma som #2 men i interiörflödet |
+| 5 | ~1310 | `handleRegenerateBackground` — regenerering av bakgrund failar | segment-car eller add-reflection failar under re-edit |
+| 6 | ~1411 | `handleRegenerateReflectionConfirmed` — regenerering av reflektion failar | add-reflection failar under reflektion-regenerering |
+| 7 | ~1582 | `handlePositionSave` — sparande av positionerad bild failar | Upload till storage eller add-reflection failar |
+| 8 | ~1648 | `handlePositionSaveWithReflection` — samma som #7 men med reflektion | add-reflection timear ut (90s) |
 
-Ändra rad 91-92 från:
-```
-`${carId}/transparent-${photoId}.png`
-```
-till:
-```
-`${carId}/transparent-${photoId}-${timestamp}.png`
-```
+## Varför kunderna ser det ofta
 
-Detta gör att varje ny segmentering får en unik URL. Browser cache kan aldrig servera en gammal version. `timestamp` finns redan som variabel på rad 90.
+1. **Watchdogen (trigger #1)** körs vid varje sidladdning. Om en bild fastnade i `is_processing` vid ett tidigare besök (t.ex. webbläsaren stängdes mitt under redigering), triggas toasten nästa gång de öppnar sidan — utan att de har gjort något.
 
-### 2. handleSave: Lägg till session token-guard
-**Fil:** `src/components/CarPositionEditor.tsx`
+2. **60-sekunders timeout för segment-car** och **90-sekunders timeout för add-reflection** är hårda gränser. Edge function-loggarna visar inga 500-fel eller timeouts just nu, men i perioder med hög last kan det ta längre tid, och då triggas toasten.
 
-I `handleSave` (rad 748), lägg till check direkt efter de befintliga guards:
-```tsx
-if (sessionToken && activeSessionTokenRef.current !== sessionToken) return;
-```
+3. **Alla catch-block** använder samma generiska toast, inklusive vid nätverksfel, storage-problem, och edge function-fel. Användaren får ingen information om vad som hände.
 
-Detta förhindrar att en stale save exporterar canvas-data från en tidigare session.
+## Plan
 
-### 3. Cache-busting på klientsidan
-**Fil:** `src/pages/CarDetail.tsx`
+### 1. Ta bort toast från watchdogen (trigger #1)
+Watchdogen ska tyst nollställa `is_processing` utan att visa toast. Användaren behöver inte veta att ett gammalt jobb städades upp.
 
-När `segment-car` returnerar URL:en, lägg till `?t={timestamp}` som query-param vid inladdning i editorn. Detta skyddar mot eventuell CDN-cache även med nya filnamn:
-```tsx
-const urlWithCacheBust = `${segmentData.url}?t=${Date.now()}`;
-```
+### 2. Gör felmeddelandena specifika
+Ersätt det generiska meddelandet med kontextanpassade toasts:
+- Segment-fel: "Bilden kunde inte bearbetas just nu. Försök igen."
+- Reflektion-fel: "AI-redigeringen misslyckades. Försök igen."
+- Timeout: "Det tog för lång tid. Försök igen om en stund."
+- Spara-fel: "Kunde inte spara bilden. Försök igen."
 
-## Risk
-- Låg. Inga databas-, RLS- eller logik-ändringar.
-- segment-car skriver redan med `upsert: true`, så gamla filer rensas inte men tar inte plats på fel ställe.
-- Gamla `transparent_url`-värden i DB pekar på gamla paths, men de används bara som cache-check vid re-edit — de laddas om via segment-car ändå.
+### 3. Lägg till retry-logik (valfritt, låg risk)
+För timeouts: höj timeout till 120s för add-reflection (Gemini kan vara långsam).
 
-## Verifiering
-- Batch-redigera 5+ bilder, verifiera unika blob-storlekar i console-loggar
-- Re-edit samma foto, verifiera att ny transparent URL returneras
-- Snabb save efter fotoväxling — verifiera att session token-guard blockerar stale saves
+### Filer att ändra
+- `src/pages/CarDetail.tsx` — alla 8 ställen med "jonglera"-toasten
+
+### Risk
+Minimal. Bara toast-strängar och watchdog-beteende ändras. Ingen logik påverkas.
 
