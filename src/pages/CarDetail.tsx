@@ -129,15 +129,22 @@ const CarDetail = () => {
     moveBackground?: boolean; // If true, user moves background instead of car
     fromEditFlow?: boolean; // If true, this is part of the AI-edit pipeline
     flowId?: number; // Tracks which flow opened this editor
+    sessionToken?: string; // Unique token for this specific editor session
   } | null>(null);
   const [positionEditorSaving, setPositionEditorSaving] = useState(false);
   const editFlowIdRef = useRef(0);
+  // Per-photo operation tokens: tracks the latest operation for each photo
+  // Any async callback must verify its token still matches before writing to DB
+  const photoOpRef = useRef<Map<string, string>>(new Map());
+  // Active poll timers: tracked so they can be cancelled when flow changes
+  const pollTimersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
   // Edit flow queue: sequential manual positioning during AI-edit
   const [editFlowQueue, setEditFlowQueue] = useState<{
     photos: Photo[];
     removePlate: boolean;
     currentIndex: number;
     segmentResults: Map<string, string>; // photoId → transparentUrl
+    flowId: number; // Immutable flow ID frozen at queue creation
   } | null>(null);
   // Background Gemini queue for edit flow (max 2 concurrent)
   const geminiQueueRef = useRef<{
@@ -146,6 +153,7 @@ const CarDetail = () => {
     originalUrl: string;
     transparentUrl: string;
     removePlate: boolean;
+    opToken: string; // Per-photo operation token
   }[]>([]);
   const geminiActiveRef = useRef(0);
   const MAX_CONCURRENT_GEMINI = 2;
@@ -176,6 +184,7 @@ const CarDetail = () => {
     imageUrl: string;
     segmentResults: Map<string, string>;
     currentIndex: number;
+    flowId: number; // Immutable flow ID frozen at queue creation
   } | null>(null);
   // Available interior backgrounds from current template
   const [availableInteriorBackgrounds, setAvailableInteriorBackgrounds] = useState<string[]>([]);
@@ -191,6 +200,55 @@ const CarDetail = () => {
   const { lightImpact, successNotification } = useHaptics();
   const fetchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const notesDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Helper: generate a unique operation token for a photo
+  const generateOpToken = (photoId: string): string => {
+    const token = `${photoId}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    photoOpRef.current.set(photoId, token);
+    return token;
+  };
+
+  // Helper: check if an operation token is still the latest for its photo
+  const isOpTokenValid = (photoId: string, token: string): boolean => {
+    return photoOpRef.current.get(photoId) === token;
+  };
+
+  // Helper: cancel all active poll timers
+  const cancelAllPollers = () => {
+    pollTimersRef.current.forEach(timer => clearTimeout(timer));
+    pollTimersRef.current.clear();
+  };
+
+  // Helper: create a tracked poll timer that auto-removes itself
+  const createPollTimer = (callback: () => void, delay: number): ReturnType<typeof setTimeout> => {
+    const timer = setTimeout(() => {
+      pollTimersRef.current.delete(timer);
+      callback();
+    }, delay);
+    pollTimersRef.current.add(timer);
+    return timer;
+  };
+
+  // Helper: generate a unique session token for position editor
+  const generateSessionToken = (): string => {
+    return `session-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+  };
+
+  // Compute set of photo IDs currently locked (in queue or processing)
+  const getLockedPhotoIds = (): Set<string> => {
+    const locked = new Set<string>();
+    // Photos in edit flow queue
+    if (editFlowQueue) {
+      editFlowQueue.photos.forEach(p => locked.add(p.id));
+    }
+    // Photos in interior image flow queue
+    if (interiorImageFlowQueue) {
+      interiorImageFlowQueue.photos.forEach(p => locked.add(p.id));
+    }
+    // Photos currently in gemini queue
+    geminiQueueRef.current.forEach(job => locked.add(job.photoId));
+    return locked;
+  };
 
   // Helper: timeout wrapper for API calls
   const withTimeout = <T,>(promise: Promise<T>, ms: number, errorMessage: string): Promise<T> => {
