@@ -715,17 +715,22 @@ const CarDetail = () => {
     const photosToProcess = photos.filter((p) => photoIds.includes(p.id));
     if (photosToProcess.length === 0) return;
 
-    // Clear any stale position editor state and increment flow ID
+    // Clear any stale position editor state, cancel old pollers, and increment flow ID
+    cancelAllPollers();
     const flowId = ++editFlowIdRef.current;
     setPositionEditorPhoto(null);
 
-    // Set up the edit flow queue with empty segment results
+    // Generate operation tokens for all photos in this batch
+    photosToProcess.forEach(p => generateOpToken(p.id));
+
+    // Set up the edit flow queue with empty segment results and frozen flowId
     const segmentResults = new Map<string, string>();
     setEditFlowQueue({
       photos: photosToProcess,
       removePlate,
       currentIndex: 0,
       segmentResults,
+      flowId,
     });
 
     // Start ALL segment-car calls in parallel
