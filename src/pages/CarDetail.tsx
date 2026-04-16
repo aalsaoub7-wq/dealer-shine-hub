@@ -801,6 +801,7 @@ const CarDetail = () => {
         editType: 'studio',
         fromEditFlow: true,
         flowId,
+        sessionToken: generateSessionToken(),
       });
     } else {
       // First photo failed, try advancing
