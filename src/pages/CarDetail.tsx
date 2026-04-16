@@ -293,11 +293,6 @@ const CarDetail = () => {
       .in("id", stuckIds);
     
     console.log("Auto-reset stuck photos:", stuckIds);
-    toast({
-      title: "Oj!",
-      description: "Vår AI fick för många bollar att jonglera",
-      variant: "info",
-    });
     
     return stuckIds;
   };
@@ -785,8 +780,8 @@ const CarDetail = () => {
         console.error(`Edit flow - Error segmenting photo ${photo.id}:`, error);
         await supabase.from("photos").update({ is_processing: false }).eq("id", photo.id);
         toast({
-          title: "Oj!",
-          description: "Vår AI fick för många bollar att jonglera",
+          title: "Bilden kunde inte bearbetas",
+          description: "Försök igen om en stund.",
           variant: "info",
         });
         return { photoId: photo.id, url: null, index };
@@ -997,7 +992,7 @@ const CarDetail = () => {
           if (isOpTokenValid(job.photoId, job.opToken)) {
             await supabase.from("photos").update({ is_processing: false, transparent_url: job.transparentUrl, original_url: job.originalUrl }).eq("id", job.photoId);
           }
-          toast({ title: "Oj!", description: "Vår AI fick för många bollar att jonglera", variant: "info" });
+          toast({ title: "AI-redigeringen misslyckades", description: "Försök igen.", variant: "info" });
         } finally {
           geminiActiveRef.current--;
           processGeminiQueue(); // Try next job
@@ -1167,8 +1162,8 @@ const CarDetail = () => {
             .eq("id", photo.id);
           
           toast({
-            title: "Oj!",
-            description: "Vår AI fick för många bollar att jonglera",
+            title: "Interiörredigeringen misslyckades",
+            description: "Försök igen.",
             variant: "info",
           });
       }
@@ -1579,7 +1574,7 @@ const CarDetail = () => {
         } catch (error) {
           console.error("Error saving positioned image:", error);
           await supabase.from("photos").update({ is_processing: false }).eq("id", photoId);
-          toast({ title: "Oj!", description: "Vår AI fick för många bollar att jonglera", variant: "info" });
+          toast({ title: "Kunde inte spara bilden", description: "Försök igen.", variant: "info" });
           setPositionEditorSaving(false);
         }
       }
@@ -1631,8 +1626,8 @@ const CarDetail = () => {
 
       const { data: reflectionData, error: reflectionError } = await withTimeout(
         supabase.functions.invoke("add-reflection", { body: reflectionFormData }),
-        90000,
-        "Vår AI fick för många bollar att jonglera"
+        120000,
+        "Det tog för lång tid. Försök igen om en stund."
       );
 
       if (reflectionError) throw reflectionError;
@@ -1645,7 +1640,7 @@ const CarDetail = () => {
     } catch (error) {
       console.error("Error saving positioned image:", error);
       await supabase.from("photos").update({ is_processing: false }).eq("id", photoId);
-      toast({ title: "Oj!", description: "Vår AI fick för många bollar att jonglera", variant: "info" });
+      toast({ title: "Kunde inte spara bilden", description: "Försök igen.", variant: "info" });
     }
   };
 
@@ -2549,7 +2544,7 @@ const CarDetail = () => {
               const { data: segmentData, error: segmentError } = await withTimeout(
                 supabase.functions.invoke("segment-car", { body: segmentFormData }),
                 60000,
-                "Vår AI fick för många bollar att jonglera"
+                "Bilden kunde inte bearbetas. Försök igen."
               );
               if (segmentError) throw segmentError;
               if (!segmentData?.url) throw new Error("No URL returned");
