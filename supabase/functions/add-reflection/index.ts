@@ -151,40 +151,45 @@ serve(async (req) => {
 
     console.log("Successfully uploaded edited image, URL:", publicUrl);
 
-    // Server-side "best effort" DB update - if photoId is present, update the photo row
-    // This ensures the photo becomes "complete" even if the client disconnects/hangs
+    // Server-side "best effort" DB update - PASSIVE writer
+    // The client is the PRIMARY writer. This only acts as a safety net if the client
+    // disconnects or hangs. We check if the client already updated the row first.
     if (photoId) {
       try {
-        // First read current photo to preserve original_url if it exists
         const { data: currentPhoto } = await supabaseAdmin
           .from("photos")
-          .select("url, original_url")
+          .select("url, original_url, is_processing, updated_at")
           .eq("id", photoId)
           .single();
 
         if (currentPhoto) {
-          const updateData = {
-            url: publicUrl,
-            is_processing: false,
-            is_edited: true,
-            updated_at: new Date().toISOString(),
-            // Preserve original_url if it exists, otherwise use the old URL
-            original_url: currentPhoto.original_url || currentPhoto.url,
-          };
-
-          const { error: updateError } = await supabaseAdmin
-            .from("photos")
-            .update(updateData)
-            .eq("id", photoId);
-
-          if (updateError) {
-            console.error("Server-side photo update failed (non-blocking):", updateError);
+          // Skip if client already wrote a newer URL (client beat us to it)
+          const photoUpdatedAt = new Date(currentPhoto.updated_at || 0).getTime();
+          const twoSecondsAgo = Date.now() - 2000;
+          if (!currentPhoto.is_processing && photoUpdatedAt > twoSecondsAgo) {
+            console.log("Server-side update skipped: client already updated photoId:", photoId);
           } else {
-            console.log("Server-side photo update succeeded for photoId:", photoId);
+            const updateData = {
+              url: publicUrl,
+              is_processing: false,
+              is_edited: true,
+              updated_at: new Date().toISOString(),
+              original_url: currentPhoto.original_url || currentPhoto.url,
+            };
+
+            const { error: updateError } = await supabaseAdmin
+              .from("photos")
+              .update(updateData)
+              .eq("id", photoId);
+
+            if (updateError) {
+              console.error("Server-side photo update failed (non-blocking):", updateError);
+            } else {
+              console.log("Server-side photo update succeeded for photoId:", photoId);
+            }
           }
         }
       } catch (dbError) {
-        // Log but don't fail - this is "best effort"
         console.error("Server-side DB update error (non-blocking):", dbError);
       }
     }

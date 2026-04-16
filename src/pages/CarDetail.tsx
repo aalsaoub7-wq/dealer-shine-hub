@@ -129,15 +129,22 @@ const CarDetail = () => {
     moveBackground?: boolean; // If true, user moves background instead of car
     fromEditFlow?: boolean; // If true, this is part of the AI-edit pipeline
     flowId?: number; // Tracks which flow opened this editor
+    sessionToken?: string; // Unique token for this specific editor session
   } | null>(null);
   const [positionEditorSaving, setPositionEditorSaving] = useState(false);
   const editFlowIdRef = useRef(0);
+  // Per-photo operation tokens: tracks the latest operation for each photo
+  // Any async callback must verify its token still matches before writing to DB
+  const photoOpRef = useRef<Map<string, string>>(new Map());
+  // Active poll timers: tracked so they can be cancelled when flow changes
+  const pollTimersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
   // Edit flow queue: sequential manual positioning during AI-edit
   const [editFlowQueue, setEditFlowQueue] = useState<{
     photos: Photo[];
     removePlate: boolean;
     currentIndex: number;
     segmentResults: Map<string, string>; // photoId → transparentUrl
+    flowId: number; // Immutable flow ID frozen at queue creation
   } | null>(null);
   // Background Gemini queue for edit flow (max 2 concurrent)
   const geminiQueueRef = useRef<{
@@ -146,6 +153,7 @@ const CarDetail = () => {
     originalUrl: string;
     transparentUrl: string;
     removePlate: boolean;
+    opToken: string; // Per-photo operation token
   }[]>([]);
   const geminiActiveRef = useRef(0);
   const MAX_CONCURRENT_GEMINI = 2;
@@ -176,6 +184,7 @@ const CarDetail = () => {
     imageUrl: string;
     segmentResults: Map<string, string>;
     currentIndex: number;
+    flowId: number; // Immutable flow ID frozen at queue creation
   } | null>(null);
   // Available interior backgrounds from current template
   const [availableInteriorBackgrounds, setAvailableInteriorBackgrounds] = useState<string[]>([]);
@@ -192,6 +201,55 @@ const CarDetail = () => {
   const fetchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const notesDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Helper: generate a unique operation token for a photo
+  const generateOpToken = (photoId: string): string => {
+    const token = `${photoId}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    photoOpRef.current.set(photoId, token);
+    return token;
+  };
+
+  // Helper: check if an operation token is still the latest for its photo
+  const isOpTokenValid = (photoId: string, token: string): boolean => {
+    return photoOpRef.current.get(photoId) === token;
+  };
+
+  // Helper: cancel all active poll timers
+  const cancelAllPollers = () => {
+    pollTimersRef.current.forEach(timer => clearTimeout(timer));
+    pollTimersRef.current.clear();
+  };
+
+  // Helper: create a tracked poll timer that auto-removes itself
+  const createPollTimer = (callback: () => void, delay: number): ReturnType<typeof setTimeout> => {
+    const timer = setTimeout(() => {
+      pollTimersRef.current.delete(timer);
+      callback();
+    }, delay);
+    pollTimersRef.current.add(timer);
+    return timer;
+  };
+
+  // Helper: generate a unique session token for position editor
+  const generateSessionToken = (): string => {
+    return `session-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+  };
+
+  // Compute set of photo IDs currently locked (in queue or processing)
+  const getLockedPhotoIds = (): Set<string> => {
+    const locked = new Set<string>();
+    // Photos in edit flow queue
+    if (editFlowQueue) {
+      editFlowQueue.photos.forEach(p => locked.add(p.id));
+    }
+    // Photos in interior image flow queue
+    if (interiorImageFlowQueue) {
+      interiorImageFlowQueue.photos.forEach(p => locked.add(p.id));
+    }
+    // Photos currently in gemini queue
+    geminiQueueRef.current.forEach(job => locked.add(job.photoId));
+    return locked;
+  };
+
   // Helper: timeout wrapper for API calls
   const withTimeout = <T,>(promise: Promise<T>, ms: number, errorMessage: string): Promise<T> => {
     const timeout = new Promise<never>((_, reject) => 
@@ -200,8 +258,8 @@ const CarDetail = () => {
     return Promise.race([promise, timeout]);
   };
 
-  // Reset photos stuck in processing for more than 2 minutes
-  // Returns array of reset photo IDs (if any)
+  // Reset photos stuck in processing for more than 90 seconds
+  // Skips photos that belong to an active local queue or have active operation tokens
   const resetStuckPhotos = async (): Promise<string[]> => {
     if (!id) return [];
     
@@ -209,30 +267,39 @@ const CarDetail = () => {
     
     const { data, error } = await supabase
       .from("photos")
-      .update({ is_processing: false })
+      .select("id")
       .eq("car_id", id)
       .eq("is_processing", true)
-      .lt("updated_at", ninetySecondsAgo)
-      .select("id");
+      .lt("updated_at", ninetySecondsAgo);
       
     if (error) {
-      console.error("Error resetting stuck photos:", error);
+      console.error("Error checking stuck photos:", error);
       return [];
     }
     
-    const resetIds = data?.map(p => p.id) || [];
+    if (!data || data.length === 0) return [];
     
-    // Show toast if any photos were auto-reset
-    if (resetIds.length > 0) {
-      console.log("Auto-reset stuck photos:", resetIds);
-      toast({
-        title: "Oj!",
-        description: "Vår AI fick för många bollar att jonglera",
-        variant: "info",
-      });
-    }
+    // Filter out photos that are actively managed by a local queue or have recent operations
+    const lockedIds = getLockedPhotoIds();
+    const trulyStuck = data.filter(p => !lockedIds.has(p.id));
     
-    return resetIds;
+    if (trulyStuck.length === 0) return [];
+    
+    // Reset only truly stuck photos
+    const stuckIds = trulyStuck.map(p => p.id);
+    await supabase
+      .from("photos")
+      .update({ is_processing: false })
+      .in("id", stuckIds);
+    
+    console.log("Auto-reset stuck photos:", stuckIds);
+    toast({
+      title: "Oj!",
+      description: "Vår AI fick för många bollar att jonglera",
+      variant: "info",
+    });
+    
+    return stuckIds;
   };
 
   useEffect(() => {
@@ -277,6 +344,7 @@ const CarDetail = () => {
         if (fetchDebounceRef.current) {
           clearTimeout(fetchDebounceRef.current);
         }
+        cancelAllPollers();
         clearInterval(watchdogInterval);
       };
     }
@@ -657,17 +725,22 @@ const CarDetail = () => {
     const photosToProcess = photos.filter((p) => photoIds.includes(p.id));
     if (photosToProcess.length === 0) return;
 
-    // Clear any stale position editor state and increment flow ID
+    // Clear any stale position editor state, cancel old pollers, and increment flow ID
+    cancelAllPollers();
     const flowId = ++editFlowIdRef.current;
     setPositionEditorPhoto(null);
 
-    // Set up the edit flow queue with empty segment results
+    // Generate operation tokens for all photos in this batch
+    photosToProcess.forEach(p => generateOpToken(p.id));
+
+    // Set up the edit flow queue with empty segment results and frozen flowId
     const segmentResults = new Map<string, string>();
     setEditFlowQueue({
       photos: photosToProcess,
       removePlate,
       currentIndex: 0,
       segmentResults,
+      flowId,
     });
 
     // Start ALL segment-car calls in parallel
@@ -728,6 +801,7 @@ const CarDetail = () => {
         editType: 'studio',
         fromEditFlow: true,
         flowId,
+        sessionToken: generateSessionToken(),
       });
     } else {
       // First photo failed, try advancing
@@ -741,6 +815,9 @@ const CarDetail = () => {
   const advanceEditFlowQueue = () => {
     setEditFlowQueue(prev => {
       if (!prev) return null;
+      const frozenFlowId = prev.flowId; // Use the frozen flow ID from queue state
+      if (frozenFlowId !== editFlowIdRef.current) return null; // Stale flow, abort
+
       const nextIndex = prev.currentIndex + 1;
       if (nextIndex >= prev.photos.length) {
         // Queue complete — all positioned, Gemini still running in background
@@ -748,6 +825,7 @@ const CarDetail = () => {
       }
       const nextPhoto = prev.photos[nextIndex];
       const transparentUrl = prev.segmentResults.get(nextPhoto.id);
+      const sessionToken = generateSessionToken();
 
       if (transparentUrl) {
         // Segment already done — open position editor immediately
@@ -756,13 +834,15 @@ const CarDetail = () => {
           transparentCarUrl: transparentUrl,
           editType: 'studio',
           fromEditFlow: true,
-          flowId: editFlowIdRef.current,
+          flowId: frozenFlowId,
+          sessionToken,
         });
       } else {
-        // Segment not ready yet — poll until it arrives
+        // Segment not ready yet — poll until it arrives using tracked timer
         const pollForSegment = () => {
+          if (frozenFlowId !== editFlowIdRef.current) return; // Stale flow, stop polling
           setEditFlowQueue(current => {
-            if (!current) return null;
+            if (!current || current.flowId !== frozenFlowId) return current;
             const url = current.segmentResults.get(nextPhoto.id);
             if (url) {
               setPositionEditorPhoto({
@@ -770,16 +850,17 @@ const CarDetail = () => {
                 transparentCarUrl: url,
                 editType: 'studio',
                 fromEditFlow: true,
-                flowId: editFlowIdRef.current,
+                flowId: frozenFlowId,
+                sessionToken,
               });
               return current; // stop polling
             }
-            // Not ready, poll again
-            setTimeout(pollForSegment, 500);
+            // Not ready, poll again with tracked timer
+            createPollTimer(pollForSegment, 500);
             return current;
           });
         };
-        setTimeout(pollForSegment, 500);
+        createPollTimer(pollForSegment, 500);
       }
 
       return { ...prev, currentIndex: nextIndex };
@@ -790,12 +871,16 @@ const CarDetail = () => {
   const advanceInteriorImageQueue = () => {
     setInteriorImageFlowQueue(prev => {
       if (!prev) return null;
+      const frozenFlowId = prev.flowId; // Use the frozen flow ID from queue state
+      if (frozenFlowId !== editFlowIdRef.current) return null; // Stale flow, abort
+
       const nextIndex = prev.currentIndex + 1;
       if (nextIndex >= prev.photos.length) {
         return null; // All done
       }
       const nextPhoto = prev.photos[nextIndex];
       const transparentUrl = prev.segmentResults.get(nextPhoto.id);
+      const sessionToken = generateSessionToken();
 
       if (transparentUrl && transparentUrl !== "") {
         setPositionEditorPhoto({
@@ -804,16 +889,18 @@ const CarDetail = () => {
           editType: 'interior',
           backgroundImageUrl: prev.imageUrl,
           moveBackground: true,
-          flowId: editFlowIdRef.current,
+          flowId: frozenFlowId,
+          sessionToken,
         });
       } else if (transparentUrl === "") {
         // This photo failed segmentation, skip it
-        setTimeout(() => advanceInteriorImageQueue(), 0);
+        createPollTimer(() => advanceInteriorImageQueue(), 0);
       } else {
-        // Not ready yet, poll
+        // Not ready yet, poll with tracked timer
         const pollForSegment = () => {
+          if (frozenFlowId !== editFlowIdRef.current) return; // Stale flow, stop
           setInteriorImageFlowQueue(current => {
-            if (!current) return null;
+            if (!current || current.flowId !== frozenFlowId) return current;
             const url = current.segmentResults.get(nextPhoto.id);
             if (url && url !== "") {
               setPositionEditorPhoto({
@@ -822,19 +909,20 @@ const CarDetail = () => {
                 editType: 'interior',
                 backgroundImageUrl: current.imageUrl,
                 moveBackground: true,
-                flowId: editFlowIdRef.current,
+                flowId: frozenFlowId,
+                sessionToken,
               });
               return current;
             } else if (url === "") {
               // Failed, skip
-              setTimeout(() => advanceInteriorImageQueue(), 0);
+              createPollTimer(() => advanceInteriorImageQueue(), 0);
               return current;
             }
-            setTimeout(pollForSegment, 500);
+            createPollTimer(pollForSegment, 500);
             return current;
           });
         };
-        setTimeout(pollForSegment, 500);
+        createPollTimer(pollForSegment, 500);
       }
 
       return { ...prev, currentIndex: nextIndex };
@@ -850,6 +938,12 @@ const CarDetail = () => {
 
       (async () => {
         try {
+          // Verify operation token is still valid before starting
+          if (!isOpTokenValid(job.photoId, job.opToken)) {
+            console.log("Gemini queue - Skipping stale job for photo", job.photoId);
+            return;
+          }
+
           await supabase.from("photos").update({ is_processing: true }).eq("id", job.photoId);
 
           console.log("Gemini queue - Processing photo", job.photoId);
@@ -867,6 +961,12 @@ const CarDetail = () => {
 
           if (reflectionError) throw reflectionError;
           if (!reflectionData?.url) throw new Error("No URL returned from add-reflection");
+
+          // Verify operation token is STILL valid before writing result
+          if (!isOpTokenValid(job.photoId, job.opToken)) {
+            console.log("Gemini queue - Discarding stale result for photo", job.photoId);
+            return;
+          }
 
           console.log("Gemini queue - Complete for photo", job.photoId);
 
@@ -891,7 +991,10 @@ const CarDetail = () => {
           } catch (e) { console.error("Error tracking usage:", e); }
         } catch (error) {
           console.error(`Gemini queue - Error processing photo ${job.photoId}:`, error);
-          await supabase.from("photos").update({ is_processing: false, transparent_url: job.transparentUrl, original_url: job.originalUrl }).eq("id", job.photoId);
+          // Only update if this operation is still the latest
+          if (isOpTokenValid(job.photoId, job.opToken)) {
+            await supabase.from("photos").update({ is_processing: false, transparent_url: job.transparentUrl, original_url: job.originalUrl }).eq("id", job.photoId);
+          }
           toast({ title: "Oj!", description: "Vår AI fick för många bollar att jonglera", variant: "info" });
         } finally {
           geminiActiveRef.current--;
@@ -1376,7 +1479,9 @@ const CarDetail = () => {
       }
 
       // For interior photos, check if it was edited with solid color or background image
+      cancelAllPollers();
       const manualFlowId = ++editFlowIdRef.current;
+      const sessionToken = generateSessionToken();
       if (photo.edit_type === 'interior') {
         if (photo.interior_background_url) {
           setPositionEditorPhoto({
@@ -1386,6 +1491,7 @@ const CarDetail = () => {
             backgroundImageUrl: photo.interior_background_url,
             moveBackground: true,
             flowId: manualFlowId,
+            sessionToken,
           });
         } else {
           const bgColor = interiorColorHistory[0] || '#c8cfdb';
@@ -1395,6 +1501,7 @@ const CarDetail = () => {
             editType: photo.edit_type,
             backgroundColor: bgColor,
             flowId: manualFlowId,
+            sessionToken,
           });
         }
       } else {
@@ -1403,6 +1510,7 @@ const CarDetail = () => {
           transparentCarUrl,
           editType: photo.edit_type,
           flowId: manualFlowId,
+          sessionToken,
         });
       }
     } catch (error) {
@@ -1483,13 +1591,15 @@ const CarDetail = () => {
       setPositionEditorPhoto(null);
       setPositionEditorSaving(false);
 
-      // Add to Gemini background queue using frozen snapshot
+      // Add to Gemini background queue using frozen snapshot with operation token
+      const opToken = photoOpRef.current.get(photoId) || generateOpToken(photoId);
       geminiQueueRef.current.push({
         compositionBlob,
         photoId,
         originalUrl: originalPhoto?.url || "",
         transparentUrl,
         removePlate,
+        opToken,
       });
       processGeminiQueue();
 
@@ -2338,15 +2448,20 @@ const CarDetail = () => {
             open={!!safePhoto}
             onOpenChange={(open) => {
               if (!open) {
-                // Snapshot the current editor photo to avoid reading stale queue state
+                // Snapshot the current editor photo at close time — never read mutable state later
                 const closingPhoto = positionEditorPhoto;
-                // Save transparent_url so remove.bg doesn't need to run again
-                if (closingPhoto?.id && closingPhoto?.transparentCarUrl) {
-                  supabase.from("photos").update({ 
-                    transparent_url: closingPhoto.transparentCarUrl,
-                    is_processing: false,
-                  }).eq("id", closingPhoto.id);
+                // Verify the closing photo matches the current flow before doing any DB writes
+                if (closingPhoto?.flowId === editFlowIdRef.current) {
+                  // Save transparent_url so remove.bg doesn't need to run again
+                  if (closingPhoto?.id && closingPhoto?.transparentCarUrl) {
+                    supabase.from("photos").update({ 
+                      transparent_url: closingPhoto.transparentCarUrl,
+                      is_processing: false,
+                    }).eq("id", closingPhoto.id);
+                  }
                 }
+                // Cancel all pollers to prevent stale flow from opening new editors
+                cancelAllPollers();
                 if (closingPhoto?.fromEditFlow) {
                   setEditFlowQueue(null);
                 }
@@ -2364,6 +2479,7 @@ const CarDetail = () => {
             fillCanvas={safePhoto?.moveBackground || (safePhoto?.editType === 'interior' && !!safePhoto?.backgroundColor)}
             onSave={handlePositionEditorSave}
             isSaving={positionEditorSaving}
+            sessionToken={safePhoto?.sessionToken}
           />
         );
       })()}
@@ -2381,6 +2497,7 @@ const CarDetail = () => {
           const photosToProcess = photoIds.map(id => mainPhotos.find(p => p.id === id)).filter(Boolean) as Photo[];
           if (photosToProcess.length === 0) return;
           setSelectedMainPhotos([]);
+          cancelAllPollers();
           const interiorFlowId = ++editFlowIdRef.current;
           setPositionEditorPhoto(null);
 
@@ -2399,6 +2516,7 @@ const CarDetail = () => {
             imageUrl,
             segmentResults: initialResults,
             currentIndex: 0,
+            flowId: interiorFlowId,
           });
 
           // Start parallel segmentation for photos that need it
@@ -2413,6 +2531,7 @@ const CarDetail = () => {
                   backgroundImageUrl: imageUrl,
                   moveBackground: true,
                   flowId: interiorFlowId,
+                  sessionToken: generateSessionToken(),
                 });
               }
               return;
@@ -2449,6 +2568,7 @@ const CarDetail = () => {
                   backgroundImageUrl: imageUrl,
                   moveBackground: true,
                   flowId: interiorFlowId,
+                  sessionToken: generateSessionToken(),
                 });
               }
             } catch (error) {
