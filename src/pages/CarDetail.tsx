@@ -1103,7 +1103,7 @@ const CarDetail = () => {
           if (segmentError) throw segmentError;
           if (!segmentData?.url) throw new Error("No URL returned from segment-car");
 
-          const transparentPublicUrl = segmentData.url;
+          const transparentPublicUrl = `${segmentData.url}?t=${Date.now()}`;
           console.log("Interior Step 1 complete: Transparent PNG at", transparentPublicUrl);
 
           // STEP 2: Canvas compositing - Place car on solid color background
@@ -1245,7 +1245,7 @@ const CarDetail = () => {
           if (!segmentData?.url) throw new Error("No URL returned from segment-car");
 
           // transparent_url is now directly from storage
-          const transparentPublicUrl = segmentData.url;
+          const transparentPublicUrl = `${segmentData.url}?t=${Date.now()}`;
 
           // Save transparent_url to database
           await supabase
@@ -1469,7 +1469,7 @@ const CarDetail = () => {
         if (!segmentData?.url) throw new Error("No URL returned from segment-car");
 
         // transparent_url is now directly from storage
-        const transparentPublicUrl = segmentData.url;
+        const transparentPublicUrl = `${segmentData.url}?t=${Date.now()}`;
 
         // Save transparent_url to database
         await supabase
@@ -2553,19 +2553,20 @@ const CarDetail = () => {
               );
               if (segmentError) throw segmentError;
               if (!segmentData?.url) throw new Error("No URL returned");
-              await supabase.from("photos").update({ transparent_url: segmentData.url, original_url: photo.url }).eq("id", photo.id);
+              const cacheBustedUrl = `${segmentData.url}?t=${Date.now()}`;
+              await supabase.from("photos").update({ transparent_url: cacheBustedUrl, original_url: photo.url }).eq("id", photo.id);
               // Store result in queue
               setInteriorImageFlowQueue(prev => {
                 if (!prev) return null;
                 const newResults = new Map(prev.segmentResults);
-                newResults.set(photo.id, segmentData.url);
+                newResults.set(photo.id, cacheBustedUrl);
                 return { ...prev, segmentResults: newResults };
               });
               // If this is the first photo, open position editor
               if (index === 0 && interiorFlowId === editFlowIdRef.current) {
                 setPositionEditorPhoto({
                   id: photo.id,
-                  transparentCarUrl: segmentData.url,
+                  transparentCarUrl: cacheBustedUrl,
                   editType: 'interior',
                   backgroundImageUrl: imageUrl,
                   moveBackground: true,
