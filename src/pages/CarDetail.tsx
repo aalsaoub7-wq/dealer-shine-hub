@@ -1479,7 +1479,9 @@ const CarDetail = () => {
       }
 
       // For interior photos, check if it was edited with solid color or background image
+      cancelAllPollers();
       const manualFlowId = ++editFlowIdRef.current;
+      const sessionToken = generateSessionToken();
       if (photo.edit_type === 'interior') {
         if (photo.interior_background_url) {
           setPositionEditorPhoto({
@@ -1489,6 +1491,7 @@ const CarDetail = () => {
             backgroundImageUrl: photo.interior_background_url,
             moveBackground: true,
             flowId: manualFlowId,
+            sessionToken,
           });
         } else {
           const bgColor = interiorColorHistory[0] || '#c8cfdb';
@@ -1498,6 +1501,7 @@ const CarDetail = () => {
             editType: photo.edit_type,
             backgroundColor: bgColor,
             flowId: manualFlowId,
+            sessionToken,
           });
         }
       } else {
@@ -1506,6 +1510,7 @@ const CarDetail = () => {
           transparentCarUrl,
           editType: photo.edit_type,
           flowId: manualFlowId,
+          sessionToken,
         });
       }
     } catch (error) {
