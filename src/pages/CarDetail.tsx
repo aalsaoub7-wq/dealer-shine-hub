@@ -2497,6 +2497,7 @@ const CarDetail = () => {
           const photosToProcess = photoIds.map(id => mainPhotos.find(p => p.id === id)).filter(Boolean) as Photo[];
           if (photosToProcess.length === 0) return;
           setSelectedMainPhotos([]);
+          cancelAllPollers();
           const interiorFlowId = ++editFlowIdRef.current;
           setPositionEditorPhoto(null);
 
@@ -2530,6 +2531,7 @@ const CarDetail = () => {
                   backgroundImageUrl: imageUrl,
                   moveBackground: true,
                   flowId: interiorFlowId,
+                  sessionToken: generateSessionToken(),
                 });
               }
               return;
@@ -2566,6 +2568,7 @@ const CarDetail = () => {
                   backgroundImageUrl: imageUrl,
                   moveBackground: true,
                   flowId: interiorFlowId,
+                  sessionToken: generateSessionToken(),
                 });
               }
             } catch (error) {
