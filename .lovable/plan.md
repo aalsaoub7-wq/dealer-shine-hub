@@ -1,104 +1,106 @@
 
-Mål: fastställa vad som faktiskt går fel och fixa det med minsta möjliga risk.
+Mål: stänga alla kända vägar som kan ge “fel bild på fel plats” när användaren redigerar många bilder samtidigt.
 
-Det jag vet efter genomgången:
-- Detta ser inte ut som en enkel grid/CSS-bugg. Din screenshot visar att flera olika foto-platser har fått samma färdigredigerade bilbild.
-- Jag hittar ingen tydlig storage-krock i backend:
-  - `segment-car` sparar transparent PNG per `photoId` (`transparent-{photoId}.png`)
-  - `add-reflection` sparar slutbild per `photoId` + timestamp
-- Grid-korten använder `key={photo.id}`, så detta är inte den klassiska React-felet med fel keys.
+Det jag nu vet, inte bara tror:
+- Storage-paths i backend krockar inte mellan olika foton:
+  - `segment-car` skriver `transparent-{photoId}.png`
+  - `add-reflection` skriver `edited-{photoId}-{timestamp}.png`
+- Griden använder stabila React-keys (`photo.id`), så detta är inte ett key-problem.
+- Den tidigare fixen i `CarPositionEditor` var rätt, men den räcker inte ensam.
+- Det finns fortfarande flera samtidighetsproblem i `CarDetail.tsx` som kan återöppna/styra fel foto när många jobb pågår samtidigt.
 
-Exakt vad som är trasigt i koden:
-1. `src/components/CarPositionEditor.tsx`
-- Editorn återanvänder `bgImgRef.current` och `carCanvasRef.current` mellan olika bilder.
-- När en ny bild öppnas nollställs inte dessa refs innan nya assets laddas.
-- `checkBothLoaded()` sätter `imagesLoaded=true` så fort båda refs är truthy, men de kan fortfarande innehålla föregående bild.
-- Det betyder att nästa editor-session kan börja rendera/spara med gamla canvas-assets.
+Exakta återstående risker jag hittade:
+1. Gamla pollers kan hoppa in i ett nytt edit-flöde
+- `advanceEditFlowQueue()` och `advanceInteriorImageQueue()` öppnar nya editor-sessioner med live-värdet `editFlowIdRef.current`.
+- Om användaren startar ett nytt flöde medan gamla `setTimeout`-pollers fortfarande lever kan ett gammalt flöde “ärva” det nya flow-id:t och öppna fel foto i den nya sessionen.
 
-2. `src/components/CarPositionEditor.tsx`
-- `handleSave()` verifierar inte att canvasen verkligen hör till den aktuella editor-sessionen/fotot.
-- Om föregående bild fortfarande ligger i refs/canvas kan samma komposition sparas på nästa `photoId`.
-- Det matchar exakt symptomet i kundens screenshot: samma redigerade exteriör hamnar på flera olika positioner i griden.
+2. Close-pathen läser rå state istället för render-säkrad state
+- `onOpenChange(false)` använder `positionEditorPhoto`, inte den guardade `safePhoto`.
+- Ett sent close-event kan därför skriva `transparent_url`, nollställa `is_processing` eller döda fel queue.
 
-3. `src/pages/CarDetail.tsx`
-- Batchflödet använder globalt, muterbart queue-state (`editFlowQueue.currentIndex`) när save sker:
-  - `const originalPhoto = editFlowQueue.photos[editFlowQueue.currentIndex]`
-- Samtidigt öppnas nästa bild sekventiellt via polling/async queue.
-- Det gör kopplingen mellan “det användaren precis såg i editorn” och “vilken rad som uppdateras nu” onödigt skör.
-- Det är en separat race risk ovanpå stale-canvas-buggen.
+3. Överlappande edit-flöden blockeras inte hårt
+- Användaren kan batch-redigera, sedan börja regenerera eller justera annan bild innan gamla pollers/background-jobs är helt klara.
+- Det finns ingen central klientlåsning för “en aktiv studio-flow åt gången”.
 
-4. `src/pages/CarDetail.tsx`
-- `onOpenChange` använder rå `positionEditorPhoto`/`editFlowQueue` i close-pathen i stället för ett fryst snapshot av aktiv session.
-- Det ökar risken att sena/stale callbacks skriver metadata mot fel foto när flödet hoppar vidare.
+4. Samma foto kan få flera samtidiga jobb
+- Samma rad kan träffas av:
+  - batch-position save
+  - manuell position save
+  - regenerate reflection
+  - segmentering/cache-save
+  - edge-funktionens best-effort update
+- Då blir det “last write wins” på `photos`, särskilt för `url`, `original_url`, `transparent_url`, `is_processing`.
 
-Det här betyder:
-- Huvudproblemet sitter i frontendens editor-flöde, före lagring.
-- Mest sannolika kedjan är:
-  1. Bild A laddas i editorn
-  2. Flödet går vidare till bild B
-  3. Editorn har fortfarande refs/canvas från A
-  4. Save för B exporterar i praktiken A:s komposition
-  5. Flera foto-rader får därför samma färdiga motiv
+5. Watchdog kan öppna upp för dubbelkörning
+- `resetStuckPhotos()` nollställer `is_processing` efter 90 sekunder.
+- Om ett legitimt jobb fortfarande kör kan bilden bli klickbar/redigerbar igen medan första jobbet ännu inte är färdigt.
 
-Low-risk plan:
-1. Hårdsäkra `CarPositionEditor`
-- Nollställ alltid:
-  - `bgImgRef.current = null`
-  - `carCanvasRef.current = null`
-  - `setImagesLoaded(false)`
-- Gör detta direkt när `open`, `transparentCarUrl`, `backgroundUrl` eller `backgroundColor` ändras.
+6. Edge functions är inte huvudorsaken, men de kan förstärka race-läget
+- `add-reflection` uppdaterar samma `photos`-rad server-side “best effort”, samtidigt som klienten också uppdaterar den.
+- Det skapar inte filkrockar, men det ger extra skrivningar som kan interleava med klientflöden.
 
-2. Lägg till session-guard i editorn
-- Inför ett internt `loadSessionId`.
-- Varje ny editor-load får ett nytt id.
-- `onload` för bakgrund/bil får bara skriva till refs/state om session-id fortfarande matchar.
-- Sena laddningar från gamla bilder ignoreras helt.
+Plan för att göra detta robust:
+1. Frys flow-ägarskap ordentligt
+- Lägg ett immutabelt `flowId` i queue-state, inte bara i `editFlowIdRef`.
+- Alla pollers och queue-advances måste använda det frysta flow-id:t, aldrig `editFlowIdRef.current`.
+- På nytt flöde: cancel:a alla gamla timers/pollers explicit.
 
-3. Lås save till rätt session
-- `handleSave()` ska bara få exportera när aktuell session fortfarande är aktiv och komplett laddad.
-- Om sessionen hunnit bytas: avbryt save i stället för att skriva fel bild.
+2. Hårdsäkra editor close/save
+- Låt både save och close arbeta mot ett fryst “active editor snapshot”.
+- Sluta läsa rå `positionEditorPhoto` i close-pathen.
+- Ignore:a sena close/save-callbacks om session-id eller flow-id inte matchar aktiv session.
 
-4. Frys vilket foto som sparas i batchflödet
-- I `CarDetail.tsx`, spara ett explicit snapshot för aktiv editor-session:
-  - `photoId`
-  - `originalUrl`
-  - `transparentCarUrl`
-  - `flowId`
-- Sluta läsa `editFlowQueue.currentIndex` som källa vid save/close.
-- Save ska använda snapshot från det foto som faktiskt öppnade editorn.
+3. Inför klientlås för samtidiga redigeringar
+- Blockera start av nytt studio/interior-flöde medan ett inkompatibelt flöde redan är aktivt.
+- Blockera också nya operationer på ett foto som redan ligger i queue eller bearbetas i bakgrunden.
+- Gör detta både i knapparna och i handler-logiken.
 
-5. Strama upp close-pathen
-- `onOpenChange(false)` ska bara få påverka den aktiva sessionen.
-- Använd samma snapshot/sessions-id där också.
-- Undvik att stale close-events kan skriva metadata till fel rad.
+4. Inför per-foto operation tokens
+- Ge varje async-operation ett `operationId` per foto i klienten.
+- Före varje DB-update: verifiera att operationen fortfarande är den senaste för just det fotot.
+- Det skyddar mot att äldre async-svar skriver över nyare resultat.
 
-6. Litet skyddsnät i galleriet
-- Utöka sync-jämförelsen i `PhotoGalleryDraggable.tsx` så den även reagerar på fler fält som kan ändras under async-flöden:
-  - `original_url`
-  - `transparent_url`
-  - `updated_at`
-- Detta är inte huvudfixen, men minskar risken för stale UI efter backend-uppdateringar.
+5. Strama upp `is_processing`-strategin
+- Låt watchdog ignorera foton som tillhör en aktiv lokal queue/session.
+- Höj eller gör timeout-stage-aware för långa steg som faktiskt får ta tid.
+- Säkerställ att en bild inte blir “redigerbar igen” mitt under pågående bakgrundsjobb.
 
-Vad jag inte tänker röra i första fixen:
-- Ingen databasändring
-- Ingen storage-strukturändring
-- Ingen större refaktor av hela edit-kön
-- Ingen ändring av fungerande AI/backendlager om det inte krävs efter verifiering
+6. Minska dubbelskrivning mellan klient och backend
+- Bestäm tydligt ägarskap per steg:
+  - antingen edge-funktionen uppdaterar raden
+  - eller klienten gör slutupdate
+- För `add-reflection` bör vi välja en primär writer och göra den andra vägen passiv.
 
-Verifiering efter fix:
-1. Repro med 4–6 huvudbilder i batch-redigering.
-2. Växla snabbt genom position-save flera gånger.
-3. Kontrollera att varje `photoId` får unik slutbild.
-4. Bekräfta att grid, lightbox och realtime visar samma bild per rad.
-5. Testa även:
-- manuell “Justera position”
-- “Generera ny skugga och reflektion”
-- stäng editor mitt i flöde
-- interiörflöde med bildbakgrund
+7. Bevara gallery-consistency
+- Behåll utökad sync i `PhotoGalleryDraggable`.
+- Lägg även in skydd så att kort inte visar gammal bild när ett foto har bytt operation men URL ännu inte hunnit uppdateras klart.
 
-Tekniskt beslut:
-- Jag skulle börja med isolerad fix i:
-  - `src/components/CarPositionEditor.tsx`
-  - `src/pages/CarDetail.tsx`
-  - liten komplettering i `src/components/PhotoGalleryDraggable.tsx`
-- Det är lägsta risk och adresserar den exakta typ av race som kan skapa kundens resultat.
+Testmatris jag vill köra efter godkännande:
+- Batch-redigera 5–10 bilder och spara snabbt vidare mellan dem
+- Starta batch, öppna sedan manuell “Justera position” på annan bild
+- Starta batch, kör “Generera ny skugga och reflektion” på annan bild samtidigt
+- Kör två olika batcher efter varandra utan att vänta ut gamla pollers
+- Justera samma foto två gånger tätt inpå
+- Interiör batch med bildbakgrund
+- Stäng editor mitt i batch
+- Låt ett jobb gå länge så watchdog hinner slå till
+- Verifiera grid, lightbox, DB-rad och slutliga storage-URL:er för samma foto
+
+Tekniska ändringar:
+- `src/pages/CarDetail.tsx`
+  - flow ownership, timer cleanup, active snapshot, per-photo op tokens, stricter guards
+- `src/components/CarPositionEditor.tsx`
+  - behåll session guard, komplettera med save/close-token från parent
+- `src/components/PhotoGalleryDraggable.tsx`
+  - behåll förstärkt sync, ev. disable actions för queued/locked photos
+- `supabase/functions/add-reflection/index.ts`
+  - justera writer-ansvar så klient/backend inte tävlar om samma slutupdate
+
+Bedömning:
+- Huvudfelet är fortfarande concurrency i frontendflödet, inte att backend skriver samma fil till flera foton.
+- Men för att det “inte ska kunna hända igen” behöver vi nu täppa till både:
+  - stale editor/session-problem
+  - stale pollers
+  - överlappande flöden
+  - dubbelskrivningar mellan klient och backend
+  - watchdog-resets under legitima jobb
