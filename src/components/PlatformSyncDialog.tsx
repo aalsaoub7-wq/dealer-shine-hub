@@ -748,9 +748,6 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
                           setBlocketForm({
                             blocket_api_token: credentials?.blocket_api_token || "",
                             blocket_dealer_code: credentials?.blocket_dealer_code || "",
-                            blocket_dealer_name: credentials?.blocket_dealer_name || "",
-                            blocket_dealer_phone: credentials?.blocket_dealer_phone || "",
-                            blocket_dealer_email: credentials?.blocket_dealer_email || "",
                           });
                           setShowBlocketSetup(true);
                         }}
@@ -768,9 +765,6 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
                           setBlocketForm({
                             blocket_api_token: credentials?.blocket_api_token || "",
                             blocket_dealer_code: credentials?.blocket_dealer_code || "",
-                            blocket_dealer_name: credentials?.blocket_dealer_name || "",
-                            blocket_dealer_phone: credentials?.blocket_dealer_phone || "",
-                            blocket_dealer_email: credentials?.blocket_dealer_email || "",
                           });
                           setShowBlocketSetup(true);
                         }}
