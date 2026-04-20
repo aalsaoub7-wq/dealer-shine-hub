@@ -39,7 +39,7 @@ const platforms: Platform[] = [
   { id: "blocket", name: "Blocket", logo: blocketLogo },
   { id: "facebook-marketplace", name: "Facebook Marketplace", logo: facebookMarketplaceLogo, comingSoon: true },
   { id: "wayke", name: "Wayke", logo: waykeLogo },
-  { id: "bytbil", name: "Bytbil", logo: bytbilLogo },
+  { id: "bytbil", name: "Bytbil (ingår automatiskt med Blocket)", logo: bytbilLogo },
   { id: "smart365", name: "Smart365", logo: smart365Logo, comingSoon: true },
   { id: "website", name: "Hemsida", logo: websiteLogo, comingSoon: true },
 ];
@@ -84,13 +84,10 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
   const [showWaykeSetup, setShowWaykeSetup] = useState(false);
   const [savingCredentials, setSavingCredentials] = useState(false);
 
-  // Setup form state
+  // Setup form state — only token + (optional) dealer_code per Blocket API v3 spec
   const [blocketForm, setBlocketForm] = useState({
     blocket_api_token: "",
     blocket_dealer_code: "",
-    blocket_dealer_name: "",
-    blocket_dealer_phone: "",
-    blocket_dealer_email: "",
   });
   const [waykeForm, setWaykeForm] = useState({
     wayke_client_id: "",
@@ -168,7 +165,8 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
   };
 
   const hasBlocketCredentials = () => {
-    return credentials?.blocket_api_token && credentials?.blocket_dealer_code;
+    // Only the API token is strictly required; dealer_code is conditional (dealer_group scope)
+    return !!credentials?.blocket_api_token;
   };
 
   const hasWaykeCredentials = () => {
@@ -176,8 +174,8 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
   };
 
   const saveBlocketCredentials = async () => {
-    if (!blocketForm.blocket_api_token || !blocketForm.blocket_dealer_code) {
-      toast.error("API-token och dealer-kod krävs");
+    if (!blocketForm.blocket_api_token) {
+      toast.error("API-token krävs");
       return;
     }
     setSavingCredentials(true);
@@ -186,10 +184,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
         .from("ai_settings")
         .update({
           blocket_api_token: blocketForm.blocket_api_token,
-          blocket_dealer_code: blocketForm.blocket_dealer_code,
-          blocket_dealer_name: blocketForm.blocket_dealer_name || null,
-          blocket_dealer_phone: blocketForm.blocket_dealer_phone || null,
-          blocket_dealer_email: blocketForm.blocket_dealer_email || null,
+          blocket_dealer_code: blocketForm.blocket_dealer_code || null,
         })
         .eq("company_id", car.company_id);
 
@@ -418,7 +413,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
               Konfigurera Blocket
             </DialogTitle>
             <DialogDescription>
-              Ange dina Blocket-uppgifter. Du behöver bara göra detta en gång. Kontakta Blockets butikssupport (butikssupport@blocket.se) för att få din API-token och dealer-kod.
+              Ange din Blocket API-token. Kontakta Blockets butikssupport (butikssupport@blocket.se) för att få den. Saknade fält på bilen fylls med platshållare och annonsen skapas dold (visible: false) tills du kompletterat informationen.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -433,41 +428,16 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="blocket_dealer_code">Dealer-kod *</Label>
+              <Label htmlFor="blocket_dealer_code">Dealer-kod (valfritt)</Label>
               <Input
                 id="blocket_dealer_code"
-                placeholder="T.ex. DEMO_DEALER"
+                placeholder="Lämna tomt om du är osäker"
                 value={blocketForm.blocket_dealer_code}
                 onChange={(e) => setBlocketForm(f => ({ ...f, blocket_dealer_code: e.target.value }))}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="blocket_dealer_name">Kontaktnamn</Label>
-              <Input
-                id="blocket_dealer_name"
-                placeholder="Ditt namn"
-                value={blocketForm.blocket_dealer_name}
-                onChange={(e) => setBlocketForm(f => ({ ...f, blocket_dealer_name: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="blocket_dealer_phone">Telefon</Label>
-              <Input
-                id="blocket_dealer_phone"
-                placeholder="0700000000"
-                value={blocketForm.blocket_dealer_phone}
-                onChange={(e) => setBlocketForm(f => ({ ...f, blocket_dealer_phone: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="blocket_dealer_email">E-post</Label>
-              <Input
-                id="blocket_dealer_email"
-                type="email"
-                placeholder="info@example.com"
-                value={blocketForm.blocket_dealer_email}
-                onChange={(e) => setBlocketForm(f => ({ ...f, blocket_dealer_email: e.target.value }))}
-              />
+              <p className="text-xs text-muted-foreground">
+                Endast om din token gäller en kundgrupp (dealer_group). Lämna tomt annars.
+              </p>
             </div>
           </div>
           <DialogFooter>
@@ -778,9 +748,6 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
                           setBlocketForm({
                             blocket_api_token: credentials?.blocket_api_token || "",
                             blocket_dealer_code: credentials?.blocket_dealer_code || "",
-                            blocket_dealer_name: credentials?.blocket_dealer_name || "",
-                            blocket_dealer_phone: credentials?.blocket_dealer_phone || "",
-                            blocket_dealer_email: credentials?.blocket_dealer_email || "",
                           });
                           setShowBlocketSetup(true);
                         }}
@@ -798,9 +765,6 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
                           setBlocketForm({
                             blocket_api_token: credentials?.blocket_api_token || "",
                             blocket_dealer_code: credentials?.blocket_dealer_code || "",
-                            blocket_dealer_name: credentials?.blocket_dealer_name || "",
-                            blocket_dealer_phone: credentials?.blocket_dealer_phone || "",
-                            blocket_dealer_email: credentials?.blocket_dealer_email || "",
                           });
                           setShowBlocketSetup(true);
                         }}

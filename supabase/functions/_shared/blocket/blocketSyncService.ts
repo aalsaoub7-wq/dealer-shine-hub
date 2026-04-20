@@ -1,10 +1,16 @@
 // blocketSyncService.ts
 // Huvudlogiken som håller Blocket-annonser synkade med din plattform.
-// Supports per-company credentials passed from the edge function.
+// Följer Pro Import API v3 OpenAPI-spec för Car (category 1020).
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { BlocketClient } from "./blocketClient.ts";
-import type { Car, BlocketAdSync } from "./blocketTypes.ts";
+import type {
+  Car,
+  BlocketAdSync,
+  BlocketAdPayload,
+  BlocketFuel,
+  BlocketTransmission,
+} from "./blocketTypes.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -12,11 +18,19 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export interface BlocketCredentials {
   apiToken: string;
-  dealerCode: string;
-  dealerName: string;
-  dealerPhone: string;
-  dealerEmail: string;
+  dealerCode?: string;
+  // Following fields kept for backwards-compat with edge function signature,
+  // but they are NOT used in the payload — Blocket pulls contact info from the store.
+  dealerName?: string;
+  dealerPhone?: string;
+  dealerEmail?: string;
 }
+
+// Placeholders for required fields when the car has no real data yet.
+const PLACEHOLDER_TEXT = "FYLL";
+const PLACEHOLDER_YEAR = 1900;
+const PLACEHOLDER_PRICE = 1;
+const MAX_IMAGES = 38;
 
 async function getCarById(carId: string): Promise<Car> {
   const { data, error } = await supabase
@@ -67,41 +81,133 @@ async function updateSyncRecord(car_id: string, patch: Partial<BlocketAdSync>) {
   }
 }
 
-export function mapCarToBlocketPayload(car: Car, imageUrls?: string[], creds?: BlocketCredentials): any {
-  const DEALER_CODE = creds?.dealerCode || Deno.env.get("BLOCKET_DEALER_CODE") || "DEMO_DEALER";
-  const DEALER_NAME = creds?.dealerName || Deno.env.get("BLOCKET_DEALER_NAME") || "Din Bilhandel";
-  const DEALER_PHONE = creds?.dealerPhone || Deno.env.get("BLOCKET_DEALER_PHONE") || "0700000000";
-  const DEALER_EMAIL = creds?.dealerEmail || Deno.env.get("BLOCKET_DEALER_EMAIL") || "info@example.com";
+// ---- Field mapping helpers ----
 
-  return {
-    source_id: car.id,
-    dealer_code: DEALER_CODE,
-    category_id: 1020,
-    title: `${car.make} ${car.model} ${car.year}`,
-    body: car.description || car.notes || `${car.make} ${car.model} från ${car.year}`,
-    price: car.price
-      ? [{ type: "list", amount: car.price }]
-      : [],
-    image_urls: imageUrls && imageUrls.length > 0 ? imageUrls : (car.image_urls || []),
-    contact: {
-      name: DEALER_NAME,
-      phone: DEALER_PHONE,
-      email: DEALER_EMAIL,
-    },
-    category_fields: {
-      registration_number: car.registration_number || undefined,
-      mileage: car.mileage || undefined,
-      fuel_type: car.fuel || undefined,
-      gearbox: car.gearbox || undefined,
-      model_year: car.year,
-    },
+function mapFuel(value: string | null | undefined): BlocketFuel | undefined {
+  if (!value) return undefined;
+  const v = value.toLowerCase().trim();
+  if (["gasoline", "bensin", "petrol"].includes(v)) return "gasoline";
+  if (["diesel"].includes(v)) return "diesel";
+  if (["electric", "el", "elektrisk"].includes(v)) return "electric";
+  if (["ethanol", "etanol", "e85"].includes(v)) return "ethanol";
+  if (["natural_gas", "gas", "fordonsgas", "cng"].includes(v)) return "natural_gas";
+  return undefined;
+}
+
+function mapTransmission(value: string | null | undefined): BlocketTransmission | undefined {
+  if (!value) return undefined;
+  const v = value.toLowerCase().trim();
+  if (["manual", "manuell"].includes(v)) return "manual";
+  if (["automatic", "automat", "automatisk"].includes(v)) return "automatic";
+  if (["sequential", "sekventiell"].includes(v)) return "sequential";
+  return undefined;
+}
+
+function sanitizeImageUrls(urls: string[] | undefined): string[] {
+  if (!urls) return [];
+  return urls
+    .filter((u): u is string => typeof u === "string")
+    .filter((u) => /^https?:\/\//i.test(u))
+    .slice(0, MAX_IMAGES);
+}
+
+// ---- Payload mapping ----
+
+export function mapCarToBlocketPayload(
+  car: Car,
+  imageUrls?: string[],
+  creds?: BlocketCredentials,
+): BlocketAdPayload {
+  const images = sanitizeImageUrls(
+    imageUrls && imageUrls.length > 0 ? imageUrls : car.image_urls,
+  );
+
+  // Required fields with placeholder fallback
+  const brand = (car.make || "").trim() || PLACEHOLDER_TEXT;
+  const model = (car.model || "").trim() || PLACEHOLDER_TEXT;
+  const modelYear =
+    car.year && car.year >= 1900 && car.year <= 2100 ? car.year : PLACEHOLDER_YEAR;
+  const bodyType = PLACEHOLDER_TEXT; // not yet stored on cars table
+
+  const body =
+    (car.description && car.description.trim()) ||
+    (car.notes && car.notes.trim()) ||
+    PLACEHOLDER_TEXT;
+
+  const priceAmount =
+    typeof car.price === "number" && car.price > 0 ? car.price : PLACEHOLDER_PRICE;
+
+  // Track whether we used any placeholders → keep ad invisible until real data arrives
+  const usedPlaceholder =
+    brand === PLACEHOLDER_TEXT ||
+    model === PLACEHOLDER_TEXT ||
+    bodyType === PLACEHOLDER_TEXT ||
+    modelYear === PLACEHOLDER_YEAR ||
+    body === PLACEHOLDER_TEXT ||
+    priceAmount === PLACEHOLDER_PRICE;
+
+  // Build category_fields per OpenAPI spec
+  const category_fields: BlocketAdPayload["category_fields"] = {
+    brand,
+    model,
+    model_year: modelYear,
+    body_type: bodyType,
   };
+
+  if (car.registration_number) {
+    category_fields.registration_number = car.registration_number.slice(0, 6);
+  }
+  if (car.vin) category_fields.vin = car.vin;
+  if (car.color) category_fields.color = car.color;
+
+  if (typeof car.mileage === "number" && car.mileage >= 0) {
+    category_fields.condition = {
+      mileage: { value: car.mileage, unit: "km" },
+    };
+  }
+
+  const fuel = mapFuel(car.fuel);
+  const transmission = mapTransmission(car.gearbox);
+  if (fuel || transmission) {
+    category_fields.powertrain = {};
+    if (fuel) category_fields.powertrain.fuels = [fuel];
+    if (transmission) category_fields.powertrain.transmission = transmission;
+  }
+
+  const payload: BlocketAdPayload = {
+    source_id: car.id,
+    category_id: 1020,
+    body,
+    price: [{ type: "list", amount: priceAmount }],
+    image_urls: images,
+    visible: !usedPlaceholder,
+    category_fields,
+  };
+
+  // Only include dealer_code when the token-scope is dealer_group
+  // (omit otherwise — sending it with a dealer_code-scoped token causes errors)
+  if (creds?.dealerCode && creds.dealerCode.trim()) {
+    payload.dealer_code = creds.dealerCode.trim();
+  }
+
+  return payload;
 }
 
 export class BlocketSyncService {
-  static async syncCar(carId: string, imageUrls?: string[], creds?: BlocketCredentials, forceSync?: boolean) {
+  static async syncCar(
+    carId: string,
+    imageUrls?: string[],
+    creds?: BlocketCredentials,
+    forceSync?: boolean,
+  ) {
     console.log("[BlocketSync] Starting sync for car:", carId, "forceSync:", forceSync);
-    
+
+    if (!creds?.apiToken && !Deno.env.get("BLOCKET_API_TOKEN")) {
+      throw new Error(
+        "Blocket-token saknas. Lägg in den i Inställningar → Plattformar → Blocket.",
+      );
+    }
+
     const car = await getCarById(carId);
     const sync = await getBlocketSyncByCarId(carId);
     const token = creds?.apiToken || undefined;
@@ -131,10 +237,28 @@ export class BlocketSyncService {
     }
   }
 
-  private static async createOnBlocket(sourceId: string, payload: any, car: Car, token?: string) {
-    await BlocketClient.validateAd(payload, token).catch((e) => {
-      console.warn("[BlocketSync] validateAd failed, continuing anyway:", e.message);
-    });
+  private static async createOnBlocket(
+    sourceId: string,
+    payload: BlocketAdPayload,
+    car: Car,
+    token?: string,
+  ) {
+    // Validation errors must bubble up so the user sees what Blocket complains about
+    try {
+      await BlocketClient.validateAd(payload, token);
+    } catch (e: any) {
+      console.error("[BlocketSync] validateAd failed:", e?.message);
+      await upsertSyncRecord({
+        car_id: car.id,
+        source_id: sourceId,
+        state: "none",
+        last_action: "create",
+        last_action_state: "error",
+        last_synced_at: new Date().toISOString(),
+        last_error: `Validering misslyckades: ${e?.message || e}`,
+      });
+      throw e;
+    }
 
     await BlocketClient.createAd(payload, token);
 
@@ -153,10 +277,24 @@ export class BlocketSyncService {
     await this.refreshStatus(sourceId, token);
   }
 
-  private static async updateOnBlocket(sourceId: string, payload: any, car: Car, token?: string) {
-    await BlocketClient.validateAd(payload, token).catch((e) => {
-      console.warn("[BlocketSync] validateAd failed, continuing anyway:", e.message);
-    });
+  private static async updateOnBlocket(
+    sourceId: string,
+    payload: BlocketAdPayload,
+    car: Car,
+    token?: string,
+  ) {
+    try {
+      await BlocketClient.validateAd(payload, token);
+    } catch (e: any) {
+      console.error("[BlocketSync] validateAd failed:", e?.message);
+      await updateSyncRecord(car.id, {
+        last_action: "update",
+        last_action_state: "error",
+        last_synced_at: new Date().toISOString(),
+        last_error: `Validering misslyckades: ${e?.message || e}`,
+      });
+      throw e;
+    }
 
     await BlocketClient.updateAd(sourceId, payload, token);
 
@@ -164,6 +302,7 @@ export class BlocketSyncService {
       last_action: "update",
       last_action_state: "processing",
       last_synced_at: new Date().toISOString(),
+      last_error: null,
     });
 
     await this.refreshStatus(sourceId, token);
@@ -177,7 +316,7 @@ export class BlocketSyncService {
 
   static async refreshStatus(sourceId: string, token?: string) {
     console.log("[BlocketSync] Refreshing status for:", sourceId);
-    
+
     try {
       const ad = await BlocketClient.getAd(sourceId, token);
 
@@ -188,7 +327,8 @@ export class BlocketSyncService {
       const logs = (ad.logs || []) as any[];
       const lastLog = logs[0];
       const lastAction = (lastLog?.action as BlocketAdSync["last_action"]) ?? null;
-      const lastActionState = (lastLog?.state as BlocketAdSync["last_action_state"]) ?? null;
+      const lastActionState =
+        (lastLog?.state as BlocketAdSync["last_action_state"]) ?? null;
 
       const errorLogs = logs.filter((l) => l.state === "error");
       const lastError =
