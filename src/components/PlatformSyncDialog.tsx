@@ -413,16 +413,16 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
               Konfigurera Blocket
             </DialogTitle>
             <DialogDescription>
-              Ange din Blocket API-token. Kontakta Blockets butikssupport (butikssupport@blocket.se) för att få den. Saknade fält på bilen fylls med platshållare och annonsen skapas dold (visible: false) tills du kompletterat informationen.
+              Ange din Blocket <strong>X-Auth-Token</strong> (JWT) för Pro Import API v3. Kontakta Blockets butikssupport på <strong>butikssupport@blocket.se</strong> och be om en <strong>"X-Auth-Token för Pro Import API v3"</strong>. Saknade fält på bilen fylls med platshållare och annonsen skapas dold (visible: false) tills du kompletterat informationen.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="blocket_api_token">API-token *</Label>
+              <Label htmlFor="blocket_api_token">X-Auth-Token *</Label>
               <Input
                 id="blocket_api_token"
                 type="password"
-                placeholder="Din Blocket API-token"
+                placeholder="Din X-Auth-Token (JWT) från Blocket"
                 value={blocketForm.blocket_api_token}
                 onChange={(e) => setBlocketForm(f => ({ ...f, blocket_api_token: e.target.value }))}
               />
