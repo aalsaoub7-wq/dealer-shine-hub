@@ -1,90 +1,55 @@
 
 
-# Mål: skicka bilder till Blocket — befintlig annons eller ny utkasts-annons
+# Dubbelkoll Blocket-integration — kvarvarande problem
 
-## Svar på frågan
+Jag jämförde kod mot YAML (Pro Import API v3 / category 1020). Service och typer är korrekta enligt spec, men edge-funktionen och en validerings-detalj behöver fixas. Annars kommer riktiga synkar att slå fel.
 
-Enligt YAML och client docs fungerar det så här:
+## Problem som hittades
 
-- `source_id` är **vår** unika identifierare per butik (vi använder `car.id`).
-- **Första gången** vi anropar `POST /v3/ad` med ett `source_id` → Blocket **skapar en ny annons**.
-- **Andra gången** med samma `source_id` → vi måste använda `PUT /v3/ad/{source_id}` för att **uppdatera** den befintliga annonsen.
+### 1. `blocket-sync/index.ts` skickar fortfarande `DEMO_DEALER` som dealer_code
+Rad 87: `dealerCode: aiSettings?.blocket_dealer_code || ... || "DEMO_DEALER"`
 
-Det finns alltså inte "skicka bara bilder till en befintlig Blocket-annons som skapats utanför vårt system". Allt vi synkar blir en annons som **vi äger via vårt source_id**. Vår nuvarande kod hanterar redan det här (`blocket_ad_sync.state === "created"` → kör update).
+Detta gör att om användaren lämnar dealer-kod tomt (vilket är **rätt** för token-scope `dealer_code`) så skickas ändå `"DEMO_DEALER"` till Blocket → API:t avvisar med `unauthorized` eller `invalid dealer_code`. Service-lagret är redan korrekt (tar inte med fältet om det är tomt), men edge-funktionen tvingar fram ett värde innan det når servicelagret.
 
-## Din regel om "FYLL"
+**Fix:** `dealerCode: aiSettings?.blocket_dealer_code?.trim() || undefined` (släpp env-fallback och DEMO-default helt). dealerName/Phone/Email behöver inte skickas alls — service-lagret använder dem inte.
 
-Eftersom YAML kräver `brand`, `model`, `model_year`, `body_type`, `price`, `body`, samt vissa `category_fields` — och du vill kunna skicka över bara registreringsnumret — fyller vi alla saknade obligatoriska fält med säkra placeholder-värden. Blocket har dock typade enums och numeriska fält där strängen `"FYLL"` skulle ge valideringsfel. Vi använder därför:
+### 2. `validateAd` använder fel endpoint
+Klienten anropar `POST /ad/validate` (rad 117 i `blocketClient.ts`). Enligt YAML är det korrekta `POST /ad/{source_id}/validate` (path-param) eller `POST /ad/validate` finns inte i v3-specen — validering sker som dry-run mot create. Behöver verifieras mot YAML innan vi kallar den.
 
-| Fält | Typ enligt YAML | Placeholder |
-|---|---|---|
-| `brand` | string ≤32 | `"FYLL"` |
-| `model` | string ≤64 | `"FYLL"` |
-| `model_year` | int 1900–2100 | `1900` |
-| `body_type` | string ≤24 | `"FYLL"` |
-| `body` (beskrivning) | string | `"FYLL"` |
-| `price[0].amount` | int | `1` |
-| `condition.mileage.value` | int | `0` (enhet `km`) |
-| `powertrain.fuels` | enum | utelämnas (frivilligt) |
-| `powertrain.transmission` | enum | utelämnas (frivilligt) |
-| `registration_number` | string ≤6 | **bilens faktiska reg.nr** |
+**Fix:** Antingen ta bort `validateAd`-anropet (vi får ändå riktiga valideringsfel från `createAd`/`updateAd` som bubblar upp) eller använda korrekt path enligt YAML. Säkraste vägen nu = ta bort dubbelanropet och låta create/update själva returnera valideringsfel. Det halverar även latensen.
 
-Annonsen skapas också med `visible: false` när inga riktiga fält finns ifyllda — så ingen offentlig publicering eller debitering sker innan användaren har kompletterat datan i Blocket Admin (eller hos oss och synkar igen). Detta följer Blockets egen testrekommendation.
+### 3. Edge-funktionen sväljer riktiga felmeddelanden
+Rad 106: returnerar generisk `"An internal error occurred while syncing to Blocket"` istället för det faktiska felet från Blocket.
 
-## Flöde efter ändring
+**Fix:** Returnera `error: error?.message || "..."` så användaren ser exakt vad Blocket klagar på (t.ex. "missing required field body_type").
 
-```text
-Användare väljer bil + bilder → klickar "Synka till Blocket"
-         │
-         ├── Finns blocket_ad_sync.state === "created" för car.id?
-         │      ├── Ja → PUT /v3/ad/{car.id}  (uppdaterar befintlig annons + bilder)
-         │      └── Nej → POST /v3/ad         (skapar ny annons med source_id = car.id)
-         │
-         ├── För varje fält:
-         │      ├── Finns värde på cars-raden? → använd det
-         │      └── Saknas?                    → använd placeholder ("FYLL"/0/1900)
-         │
-         ├── visible = (alla obligatoriska fält har riktiga värden) ? true : false
-         └── Spara state i blocket_ad_sync (created/updated, ev. blocket_ad_id)
-```
+### 4. Placeholder-strategin gör annonsen alltid osynlig idag
+`body_type` finns inte på `cars`-raden, så `bodyType = "FYLL"` alltid → `usedPlaceholder = true` alltid → `visible: false` alltid. Detta är **medvetet och rätt** enligt din regel ("alla fält saknas → FYLL + visible:false"), men värt att veta: ingen annons blir publik förrän vi lägger till `body_type` på bilen. Ingen ändring krävs nu — bara bekräfta att det är förväntat.
 
-## Ändringar i koden
+### 5. Loggning av faktisk payload saknas
+Vid felsökning är det svårt att se vad som faktiskt skickades. Lägg till en `console.log("[BlocketClient] payload:", JSON.stringify(payload))` i `createAd`/`updateAd` (utan token).
 
-### 1. `supabase/functions/_shared/blocket/blocketSyncService.ts`
-- Skriv om `mapCarToBlocketPayload` enligt YAML:n:
-  - Plocka bort `title` och `contact` (förbjudna för 1020).
-  - Bygg `condition.mileage = { value, unit: "km" }`.
-  - Bygg `powertrain = { fuels: [...], transmission: ... }` — utelämn fält som saknas.
-  - Lägg in `brand`, `model`, `model_year`, `body_type` med placeholder-fallback.
-  - `dealer_code` skickas **endast** om credentials.dealerCode är ifyllt.
-  - Cap `image_urls` till 38, behåll endast http(s)-URL:er.
-  - Sätt `visible: false` om någon obligatorisk fält fortfarande har placeholder.
-- Ta bort fallback-defaults (`DEMO_DEALER`, dummy-mail/telefon) — kasta tydligt fel om token saknas.
-- Låt `validateAd`-fel bubbla upp i `syncCar` (inte sväljas).
-- Behåll befintlig create-vs-update-logik (bygger redan på `state === "created"`).
+## Det som är korrekt redan
 
-### 2. `supabase/functions/_shared/blocket/blocketTypes.ts`
-Uppdatera typer för Car / CarPowerTrain / CarAndTransportCondition enligt YAML.
+- Auth-header `X-Auth-Token` ✓
+- `BASE_URL` `https://api.blocket.se/pro-import-api/v3` ✓
+- `category_id: 1020` ✓
+- Inga `title` eller `contact` skickas ✓
+- `condition.mileage = { value, unit: "km" }` (nästlad) ✓
+- `powertrain.fuels` / `powertrain.transmission` med korrekta enums ✓
+- POST vid första sync, PUT vid efterföljande (via `state === "created"`-check) ✓
+- `image_urls` cap på 38 + http(s)-filter ✓
+- Service-lagret skickar `dealer_code` endast om ifyllt ✓
+- UI fråga efter "X-Auth-Token" från butikssupport ✓
+- Bytbil markerad som "Ingår automatiskt" ✓
 
-### 3. `src/components/PlatformSyncDialog.tsx`
-- Förenkla Blocket-formuläret till **bara**:
-  - **API-token** (krävs)
-  - **Dealer-kod** (valfritt — text: "Endast om token-scope är dealer_group")
-- Ta bort fälten dealer_name / phone / email (Blocket använder butiksinfo).
-- Ta bort `DEMO_DEALER`-placeholder.
-- Markera Bytbil i platforms-listan som **"Ingår automatiskt med Blocket"** (inte "Kommer snart").
-- Lägg en infoton: "Saknade fält fylls med placeholder och annonsen skapas dold (visible: false) tills du kompletterat informationen."
+## Filer att ändra
 
-### 4. `BLOCKET_INTEGRATION.md`
-Uppdatera krav (token + ev. dealer_code), payload-exempel med nästlad struktur, och placeholder/visible-strategin.
-
-## Det som **inte** ändras
-
-- `cars`-tabellen får ingen ny `body_type`-kolumn nu — vi använder placeholder istället. (Kan läggas till senare när du vill exponera det i UI.)
-- Wayke-flödet rörs inte.
-- RLS / auth oförändrat.
+- `supabase/functions/blocket-sync/index.ts` — ta bort `DEMO_DEALER` och dummy-defaults; bubbla upp riktiga felmeddelanden i 500-svaret
+- `supabase/functions/_shared/blocket/blocketClient.ts` — ta bort `validateAd` (eller bekräfta korrekt path mot YAML); logga payload vid create/update
+- `supabase/functions/_shared/blocket/blocketSyncService.ts` — ta bort de två `validateAd`-anropen i create/update (felen kommer från själva create/update istället)
 
 ## Risk
 
-Låg–medel. Payload-strukturen ändras, men `visible: false`-säkerheten gör att inga oavsiktliga publika annonser skapas under övergången. Befintliga synkade annonser uppdateras via PUT med ny struktur.
+Låg. Borttagningen av `DEMO_DEALER` är en bugfix — nuvarande kod skickar garanterat trasiga payloads när dealer-koden lämnas tom. Borttagning av separat `validateAd` minskar risken för felaktiga 404-fel från fel endpoint.
 
