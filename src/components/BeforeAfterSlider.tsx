@@ -14,6 +14,12 @@ export const BeforeAfterSlider = () => {
   const animationRef = useRef<number>(0);
   const rafRef = useRef<number>(0);
   const inactivityTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const positionRef = useRef(50);
+
+  // Keep positionRef in sync with state so auto-animation always resumes from current position
+  useEffect(() => {
+    positionRef.current = sliderPosition;
+  }, [sliderPosition]);
 
   // Track image loading
   useEffect(() => {
