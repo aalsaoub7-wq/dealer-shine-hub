@@ -243,11 +243,11 @@ export class BlocketSyncService {
     car: Car,
     token?: string,
   ) {
-    // Validation errors must bubble up so the user sees what Blocket complains about
+    // Skip separate validateAd — create returns its own validation errors
     try {
-      await BlocketClient.validateAd(payload, token);
+      await BlocketClient.createAd(payload, token);
     } catch (e: any) {
-      console.error("[BlocketSync] validateAd failed:", e?.message);
+      console.error("[BlocketSync] createAd failed:", e?.message);
       await upsertSyncRecord({
         car_id: car.id,
         source_id: sourceId,
@@ -255,12 +255,10 @@ export class BlocketSyncService {
         last_action: "create",
         last_action_state: "error",
         last_synced_at: new Date().toISOString(),
-        last_error: `Validering misslyckades: ${e?.message || e}`,
+        last_error: e?.message || String(e),
       });
       throw e;
     }
-
-    await BlocketClient.createAd(payload, token);
 
     await upsertSyncRecord({
       car_id: car.id,
@@ -283,20 +281,19 @@ export class BlocketSyncService {
     car: Car,
     token?: string,
   ) {
+    // Skip separate validateAd — update returns its own validation errors
     try {
-      await BlocketClient.validateAd(payload, token);
+      await BlocketClient.updateAd(sourceId, payload, token);
     } catch (e: any) {
-      console.error("[BlocketSync] validateAd failed:", e?.message);
+      console.error("[BlocketSync] updateAd failed:", e?.message);
       await updateSyncRecord(car.id, {
         last_action: "update",
         last_action_state: "error",
         last_synced_at: new Date().toISOString(),
-        last_error: `Validering misslyckades: ${e?.message || e}`,
+        last_error: e?.message || String(e),
       });
       throw e;
     }
-
-    await BlocketClient.updateAd(sourceId, payload, token);
 
     await updateSyncRecord(car.id, {
       last_action: "update",
