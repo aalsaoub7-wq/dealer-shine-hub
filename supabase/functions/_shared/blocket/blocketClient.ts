@@ -115,10 +115,4 @@ export const BlocketClient = {
     }, token);
   },
 
-  async validateAd(payload: any, token?: string) {
-    return blocketFetch("/ad/validate", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }, token);
-  },
 };
