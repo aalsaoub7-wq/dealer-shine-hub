@@ -177,11 +177,17 @@ export const BeforeAfterSlider = () => {
     };
   }, [isDragging]);
 
-  // Cleanup RAF on unmount
+  // Cleanup RAF + inactivity timer on unmount
   useEffect(() => {
     return () => {
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
+      }
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
       }
     };
   }, []);
