@@ -55,15 +55,19 @@ export const BeforeAfterSlider = () => {
   useEffect(() => {
     if (!isAnimating) return;
 
-    let direction = 1;
-    let position = sliderPosition;
+    let direction = positionRef.current >= 100 ? -1 : 1;
 
     const animate = () => {
-      position += direction * 0.15;
-      if (position >= 100 || position <= 0) {
-        direction *= -1;
+      let position = positionRef.current + direction * 0.15;
+      if (position >= 100) {
+        position = 100;
+        direction = -1;
+      } else if (position <= 0) {
+        position = 0;
+        direction = 1;
       }
-      setSliderPosition(Math.max(0, Math.min(100, position)));
+      positionRef.current = position;
+      setSliderPosition(position);
       animationRef.current = requestAnimationFrame(animate);
     };
 
