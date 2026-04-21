@@ -3,6 +3,7 @@ import joelsBilLogo from "@/assets/joels-bil-logo.png";
 import carcenterLogo from "@/assets/carcenter-logo.png";
 import sabilLogo from "@/assets/sabil-logo.png";
 import gbmLogo from "@/assets/gbm-logo.png";
+import { useIsMobile } from "@/hooks/use-mobile";
 const logos = [{
   src: arenaBilLogo,
   alt: "Arena Bil"
@@ -20,6 +21,7 @@ const logos = [{
   alt: "GBM"
 }];
 const LogoMarquee = () => {
+  const isMobile = useIsMobile();
   return <div className="bg-card/50 backdrop-blur-sm border-y border-border/50">
       {/* Top divider accent */}
       <div className="h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
@@ -28,7 +30,7 @@ const LogoMarquee = () => {
         <p className="text-center text-sm text-muted-foreground mb-6 uppercase tracking-widest pb-[10px]" style={{ fontFamily: "'Quattrocento', serif", fontWeight: 400 }}>LUVERO ANVÄNDS I HELA SVERIGE</p>
         <div className="relative overflow-hidden">
           {/* Scrolling track */}
-          <div className="flex animate-marquee">
+          <div className="flex animate-marquee" style={{ animationDuration: isMobile ? "20s" : "40s" }}>
             {[0, 1].map(trackIndex => <div key={trackIndex} className="flex shrink-0 items-center gap-20 px-10">
                 {[...Array(4)].map((_, setIndex) => logos.map((logo, i) => <img key={`${trackIndex}-${setIndex}-${i}`} src={logo.src} alt="" loading="lazy" decoding="async" fetchPriority="low" width={80} height={64} className="h-16 md:h-20 w-auto opacity-60 hover:opacity-100 transition-opacity" />))}
               </div>)}

@@ -14,6 +14,12 @@ export const BeforeAfterSlider = () => {
   const animationRef = useRef<number>(0);
   const rafRef = useRef<number>(0);
   const inactivityTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const positionRef = useRef(50);
+
+  // Keep positionRef in sync with state so auto-animation always resumes from current position
+  useEffect(() => {
+    positionRef.current = sliderPosition;
+  }, [sliderPosition]);
 
   // Track image loading
   useEffect(() => {
@@ -49,15 +55,19 @@ export const BeforeAfterSlider = () => {
   useEffect(() => {
     if (!isAnimating) return;
 
-    let direction = 1;
-    let position = sliderPosition;
+    let direction = positionRef.current >= 100 ? -1 : 1;
 
     const animate = () => {
-      position += direction * 0.15;
-      if (position >= 100 || position <= 0) {
-        direction *= -1;
+      let position = positionRef.current + direction * 0.15;
+      if (position >= 100) {
+        position = 100;
+        direction = -1;
+      } else if (position <= 0) {
+        position = 0;
+        direction = 1;
       }
-      setSliderPosition(Math.max(0, Math.min(100, position)));
+      positionRef.current = position;
+      setSliderPosition(position);
       animationRef.current = requestAnimationFrame(animate);
     };
 
@@ -103,6 +113,10 @@ export const BeforeAfterSlider = () => {
   const handleMouseDown = () => {
     setIsDragging(true);
     setIsAnimating(false);
+    // Cancel any in-flight auto-animation RAF immediately to avoid overlap
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
     // Update bounds right before dragging starts
     if (containerRef.current) {
       boundsRef.current = containerRef.current.getBoundingClientRect();
@@ -117,6 +131,10 @@ export const BeforeAfterSlider = () => {
   const handleTouchStart = () => {
     setIsDragging(true);
     setIsAnimating(false);
+    // Cancel any in-flight auto-animation RAF immediately to avoid overlap
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
     // Update bounds right before dragging starts
     if (containerRef.current) {
       boundsRef.current = containerRef.current.getBoundingClientRect();
@@ -159,11 +177,17 @@ export const BeforeAfterSlider = () => {
     };
   }, [isDragging]);
 
-  // Cleanup RAF on unmount
+  // Cleanup RAF + inactivity timer on unmount
   useEffect(() => {
     return () => {
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
+      }
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
       }
     };
   }, []);
