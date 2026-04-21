@@ -47,6 +47,7 @@ async function blocketFetch(path: string, options: RequestInit = {}, tokenOverri
 export const BlocketClient = {
   async createAd(payload: any, token?: string) {
     console.log("[BlocketClient] Creating ad with source_id:", payload.source_id);
+    console.log("[BlocketClient] payload:", JSON.stringify(payload));
     return blocketFetch("/ad", {
       method: "POST",
       body: JSON.stringify(payload),
@@ -55,6 +56,7 @@ export const BlocketClient = {
 
   async updateAd(sourceId: string, payload: any, token?: string) {
     console.log("[BlocketClient] Updating ad:", sourceId);
+    console.log("[BlocketClient] payload:", JSON.stringify(payload));
     return blocketFetch(`/ad/${encodeURIComponent(sourceId)}`, {
       method: "PUT",
       body: JSON.stringify(payload),
@@ -113,10 +115,4 @@ export const BlocketClient = {
     }, token);
   },
 
-  async validateAd(payload: any, token?: string) {
-    return blocketFetch("/ad/validate", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }, token);
-  },
 };

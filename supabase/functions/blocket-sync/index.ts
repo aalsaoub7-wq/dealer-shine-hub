@@ -83,11 +83,8 @@ serve(async (req) => {
       .maybeSingle();
 
     const credentials = {
-      apiToken: aiSettings?.blocket_api_token || Deno.env.get("BLOCKET_API_TOKEN") || "",
-      dealerCode: aiSettings?.blocket_dealer_code || Deno.env.get("BLOCKET_DEALER_CODE") || "DEMO_DEALER",
-      dealerName: aiSettings?.blocket_dealer_name || Deno.env.get("BLOCKET_DEALER_NAME") || "Din Bilhandel",
-      dealerPhone: aiSettings?.blocket_dealer_phone || Deno.env.get("BLOCKET_DEALER_PHONE") || "0700000000",
-      dealerEmail: aiSettings?.blocket_dealer_email || Deno.env.get("BLOCKET_DEALER_EMAIL") || "info@example.com",
+      apiToken: aiSettings?.blocket_api_token?.trim() || Deno.env.get("BLOCKET_API_TOKEN") || "",
+      dealerCode: aiSettings?.blocket_dealer_code?.trim() || undefined,
     };
 
     const forceSync = Array.isArray(imageUrls) && imageUrls.length > 0;
@@ -103,7 +100,10 @@ serve(async (req) => {
   } catch (error: any) {
     console.error("[Blocket Edge Function] Error:", error);
     return new Response(
-      JSON.stringify({ ok: false, error: "An internal error occurred while syncing to Blocket" }),
+      JSON.stringify({
+        ok: false,
+        error: error?.message || "An internal error occurred while syncing to Blocket",
+      }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
