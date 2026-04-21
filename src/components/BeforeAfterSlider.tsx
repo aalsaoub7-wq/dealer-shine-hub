@@ -113,6 +113,10 @@ export const BeforeAfterSlider = () => {
   const handleMouseDown = () => {
     setIsDragging(true);
     setIsAnimating(false);
+    // Cancel any in-flight auto-animation RAF immediately to avoid overlap
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
     // Update bounds right before dragging starts
     if (containerRef.current) {
       boundsRef.current = containerRef.current.getBoundingClientRect();
@@ -127,6 +131,10 @@ export const BeforeAfterSlider = () => {
   const handleTouchStart = () => {
     setIsDragging(true);
     setIsAnimating(false);
+    // Cancel any in-flight auto-animation RAF immediately to avoid overlap
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
     // Update bounds right before dragging starts
     if (containerRef.current) {
       boundsRef.current = containerRef.current.getBoundingClientRect();
