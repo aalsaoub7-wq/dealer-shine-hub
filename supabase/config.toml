@@ -86,3 +86,6 @@ verify_jwt = false
 
 [functions.wayke-sync]
 verify_jwt = false
+
+[functions.storage-cleanup]
+verify_jwt = false
