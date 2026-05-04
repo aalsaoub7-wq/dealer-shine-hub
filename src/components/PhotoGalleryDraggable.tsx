@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +50,14 @@ interface SortablePhotoCardProps {
   onRegenerate?: (photoId: string) => void;
   onWatermarkOptions?: (photoId: string) => void;
 }
+
+const getPhotoContentSignature = (photos: Photo[]) => [...photos]
+  .map(photo => `${photo.id}-${photo.url}-${photo.is_processing}-${photo.edit_type}-${photo.has_watermark}-${photo.interior_background_url}-${photo.original_url || ''}-${photo.transparent_url || ''}-${photo.updated_at || ''}`)
+  .sort()
+  .join(',');
+
+const getPhotoOrderSignature = (photos: Photo[]) => photos.map(photo => photo.id).join(',');
+
 const SortablePhotoCard = ({
   photo,
   index,
@@ -179,17 +187,44 @@ const PhotoGalleryDraggable = ({
     toast
   } = useToast();
   const [items, setItems] = useState(photos);
+  const pendingReorderSignatureRef = useRef<string | null>(null);
 
   // Sync internal state when photos prop changes (after upload/edit/watermark)
-  // Smart comparison to prevent re-renders when only display_order changes from drag-drop
+  // Ignore order-only prop churn while a local reorder is still being confirmed.
   useEffect(() => {
-    const currentIds = items.map(i => `${i.id}-${i.url}-${i.is_processing}-${i.edit_type}-${i.has_watermark}-${i.interior_background_url}-${i.original_url || ''}-${i.transparent_url || ''}-${i.updated_at || ''}`).join(',');
-    const newIds = photos.map(p => `${p.id}-${p.url}-${p.is_processing}-${p.edit_type}-${p.has_watermark}-${p.interior_background_url}-${p.original_url || ''}-${p.transparent_url || ''}-${p.updated_at || ''}`).join(',');
-    
-    if (currentIds !== newIds) {
-      setItems(photos);
+    const incomingContentSignature = getPhotoContentSignature(photos);
+    const incomingOrderSignature = getPhotoOrderSignature(photos);
+
+    if (pendingReorderSignatureRef.current) {
+      setItems(currentItems => {
+        const currentContentSignature = getPhotoContentSignature(currentItems);
+
+        if (currentContentSignature !== incomingContentSignature) {
+          pendingReorderSignatureRef.current = null;
+          return photos;
+        }
+
+        if (incomingOrderSignature === pendingReorderSignatureRef.current) {
+          pendingReorderSignatureRef.current = null;
+          return getPhotoOrderSignature(currentItems) === incomingOrderSignature ? currentItems : photos;
+        }
+
+        return currentItems;
+      });
+      return;
     }
-  }, [photos, items]);
+
+    setItems(currentItems => {
+      const currentContentSignature = getPhotoContentSignature(currentItems);
+      const currentOrderSignature = getPhotoOrderSignature(currentItems);
+
+      if (currentContentSignature === incomingContentSignature && currentOrderSignature === incomingOrderSignature) {
+        return currentItems;
+      }
+
+      return photos;
+    });
+  }, [photos]);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [regenerateOptionsPhoto, setRegenerateOptionsPhoto] = useState<Photo | null>(null);
   const [watermarkOptionsId, setWatermarkOptionsId] = useState<string | null>(null);
@@ -230,6 +265,7 @@ const PhotoGalleryDraggable = ({
       const oldIndex = items.findIndex(item => item.id === active.id);
       const newIndex = items.findIndex(item => item.id === over.id);
       const newItems = arrayMove(items, oldIndex, newIndex);
+      pendingReorderSignatureRef.current = getPhotoOrderSignature(newItems);
       setItems(newItems);
       try {
         const photoOrders = newItems.map((item, index) => ({
@@ -247,6 +283,7 @@ const PhotoGalleryDraggable = ({
           description: error.message,
           variant: "destructive"
         });
+        pendingReorderSignatureRef.current = null;
         setItems(photos);
         onReorderComplete?.();
       }
