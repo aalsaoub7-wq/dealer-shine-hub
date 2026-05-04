@@ -87,6 +87,9 @@ Deno.serve(async (req) => {
       const created = obj.created_at ? new Date(obj.created_at) : null;
       if (!created || created > safetyCutoff) return;
 
+      // Never delete logo files — they are referenced from ai_settings, not photos
+      if (fullPath.startsWith("logos/")) return;
+
       const isTransparent = fullPath.includes("transparent");
       if (isTransparent) {
         result.transparent_scanned++;

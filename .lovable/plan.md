@@ -1,26 +1,19 @@
 
-# Grid/List-vy toggle på Dashboard
+# Fix: Logotyper raderas av storage-cleanup
 
-## Vad som ändras
+## Problem
+Storage-cleanup edge function (`supabase/functions/storage-cleanup/index.ts`) raderar alla filer i `car-photos` bucketen som inte refereras i `photos`-tabellen efter 7 dagar. Logotyper lagras under `logos/` i samma bucket men refereras i `ai_settings.logo_url` — inte i `photos`. Därför behandlas de som "orphans" och raderas.
 
-Två filer berörs, inga andra flöden påverkas:
+## Fix
+**Fil:** `supabase/functions/storage-cleanup/index.ts` — Lägg till en rad i walk-callbacken (efter rad 88) som skippar alla filer under `logos/`-pathen:
 
-### 1. `src/pages/Dashboard.tsx`
-- Lägg till ett `viewMode` state (`"grid" | "list"`) med default `"grid"`.
-- Lägg till en toggle-knapp (två ikoner: `LayoutGrid` / `List` från lucide-react) bredvid sökfältet.
-- I grid-läge: exakt samma rendering som idag (ingen ändring).
-- I list-läge: rendera `<CarCardListItem>` istället i en `flex flex-col gap-2` layout.
+```ts
+// Never delete logo files — referenced from ai_settings, not photos
+if (fullPath.startsWith("logos/")) return;
+```
 
-### 2. `src/components/CarCardListItem.tsx` (ny fil)
-- En ny komponent som tar samma props som `CarCard`.
-- Renderar en rad med:
-  - Thumbnail (car.photo_url) till vänster, liten (48-56px), rundade hörn.
-  - Registreringsskylt-bild med reg-nummer i mitten.
-  - Bilnamn (`make model`) till höger.
-- Klick navigerar till `/car/${car.id}` (samma som CarCard).
-- Responsiv: på mobil stackas elementen snyggt, på desktop en ren rad.
-
-### Vad som INTE ändras
-- `CarCard.tsx` — orörd, grid-läge identiskt som förut.
-- Alla andra flöden (upload, AI edit, sync, billing, auth) — ingen beröring.
-- Inga nya dependencies, inga databasändringar, inga edge function-ändringar.
+## Konsekvensanalys
+- **Påverkar bara:** storage-cleanup funktionen.
+- **Ingen annan ändring** — inga andra filer, flöden, tabeller eller edge functions berörs.
+- Logotyper som laddas upp via AiSettingsDialog sparas permanent.
+- Alla andra cleanup-regler (transparent cache 30d, övriga orphans 7d) fungerar exakt som förut.
