@@ -199,6 +199,7 @@ const CarDetail = () => {
   const { toast } = useToast();
   const { lightImpact, successNotification } = useHaptics();
   const fetchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isDraggingPhotosRef = useRef(false);
   const notesDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Helper: generate a unique operation token for a photo
