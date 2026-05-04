@@ -1110,6 +1110,7 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      reorder_photos: { Args: { photo_orders: Json }; Returns: undefined }
       user_belongs_to_company: {
         Args: { company_uuid: string }
         Returns: boolean
