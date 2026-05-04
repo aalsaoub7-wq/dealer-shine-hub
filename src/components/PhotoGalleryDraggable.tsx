@@ -37,6 +37,8 @@ interface PhotoGalleryProps {
   onRemoveWatermark?: (photoId: string) => void;
   onAdjustWatermark?: (photoId: string) => void;
   onChangeInteriorColor?: (photoId: string) => void;
+  onDragStart?: () => void;
+  onReorderComplete?: () => void;
 }
 interface SortablePhotoCardProps {
   photo: Photo;
