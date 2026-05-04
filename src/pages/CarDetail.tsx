@@ -2335,7 +2335,7 @@ const CarDetail = () => {
               onAdjustWatermark={handleOpenWatermarkEditor}
               onChangeInteriorColor={handleChangeInteriorColor}
               onDragStart={() => { isDraggingPhotosRef.current = true; }}
-              onReorderComplete={() => { setTimeout(() => { isDraggingPhotosRef.current = false; }, 1500); }}
+              onReorderComplete={() => { isDraggingPhotosRef.current = false; }}
             />
           </TabsContent>
 
