@@ -318,6 +318,8 @@ const CarDetail = () => {
             filter: `car_id=eq.${id}`
           },
           (payload) => {
+            // Skip refetch during drag-drop reorder to prevent flicker
+            if (isDraggingPhotosRef.current) return;
             // Debounce to handle multi-upload without multiple reloads
             if (fetchDebounceRef.current) {
               clearTimeout(fetchDebounceRef.current);
