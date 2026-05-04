@@ -37,6 +37,7 @@ const Dashboard = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const navigate = useNavigate();
   const {
     toast
