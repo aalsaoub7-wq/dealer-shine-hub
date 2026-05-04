@@ -1,41 +1,101 @@
-
-## Problem
-
-Two issues identified:
-
-1. **Drag-drop causes full reload flicker**: When you reorder photos by dragging, `handleDragEnd` updates each photo's `display_order` in the database. This triggers the realtime subscription (`postgres_changes` on `photos` table), which calls `fetchCarData(true)` after 500ms. That refetch resets the photos array, causing the gallery to re-render with "Laddar..." overlays on every image.
-
-2. **Preview image on Dashboard**: The Dashboard already queries photos ordered by `display_order ASC` and picks the first one, so this should work correctly *after* the drag-drop reliably persists. The flickering/failed updates may be causing stale `display_order` values.
-
 ## Plan
 
-### 1. Add a drag-in-progress flag to suppress realtime refetch (CarDetail.tsx)
+I found the remaining bottleneck: the current reorder flow still sends one database update per photo after every drag. In the network snapshot, a single reorder is triggering many `PATCH /photos?id=eq...` requests. That means the UI feels slow even though the visible flicker was partially reduced.
 
-- Add a `useRef` flag (`isDraggingRef`) that is set `true` during drag operations.
-- Pass a new `onDragStart` and `onDragEnd` callback pair to `PhotoGalleryDraggable`.
-- In the realtime subscription handler, skip the `fetchCarData` call when `isDraggingRef.current` is `true`.
-- After the DB updates complete in `handleDragEnd`, wait briefly (~1s), then clear the flag — any realtime events that arrive after that will refetch normally.
+I’ll keep this minimal and isolated to the reorder path only.
 
-### 2. Update PhotoGalleryDraggable to notify parent of drag lifecycle
+### 1) Make drag-drop truly optimistic in the gallery
+Update `src/components/PhotoGalleryDraggable.tsx` so the gallery state changes immediately and stays local while the save happens in the background.
 
-- Accept optional `onDragStart` / `onReorderComplete` props.
-- Call `onDragStart` when `DndContext` fires `onDragStart`.
-- Call `onReorderComplete` after the DB updates in `handleDragEnd` succeed.
-- This keeps the component's API clean and isolated.
+Changes:
+- Keep the immediate `setItems(newItems)` behavior.
+- Replace the current `Promise.all([...one update per photo...])` approach with a single backend reorder call.
+- Keep the existing rollback behavior: if the save fails, restore the previous `photos` order and show the existing error toast.
 
-### 3. Batch the display_order update into a single RPC or sequential approach
+Why this is low risk:
+- Only touches the reorder save path.
+- No changes to upload, delete, edit, watermark, sharing, lightbox, or selection behavior.
+- UI interaction pattern stays the same; only the persistence method changes.
 
-- Instead of `Promise.all` with individual updates (which fires N realtime events), keep the current approach but the suppression flag handles the noise.
+### 2) Add one dedicated backend function for photo reordering
+Create a migration that adds a small database function for reordering photos in one call.
 
-### Files changed
+Function behavior:
+- Accept an array of `{ id, display_order }` values.
+- Update only those matching photo rows.
+- Run under existing row-level security so users can only reorder photos they already have access to.
+- No schema refactor, no table redesign, no policy broadening.
 
-| File | Change |
-|------|--------|
-| `src/pages/CarDetail.tsx` | Add `isDraggingRef`, pass drag callbacks, guard realtime handler |
-| `src/components/PhotoGalleryDraggable.tsx` | Accept and call `onDragStart`/`onReorderComplete` props |
+Why this is safer than the current approach:
+- One request instead of dozens of requests.
+- Less network overhead.
+- Fewer realtime events and less chance of out-of-order completion.
+- Better consistency for the dashboard preview, since the final persisted order lands as one operation.
 
-### Risk assessment
+### 3) Tighten the drag refetch guard without affecting other flows
+Adjust the current drag guard in `src/pages/CarDetail.tsx` so it is tied to the reorder save lifecycle rather than a fixed 1.5s timeout.
 
-- **CarDetail.tsx**: Only the realtime handler gets a conditional guard. All other flows (upload, edit, watermark, delete) are unaffected since `isDraggingRef` is only true during active drag.
-- **PhotoGalleryDraggable.tsx**: Two optional callback props added. No existing behavior changed. All other props and logic untouched.
-- No database changes, no new tables, no edge function changes.
+Changes:
+- Keep the existing idea of suppressing realtime-driven refetch during active reorder.
+- Clear that guard when the single reorder save completes, instead of waiting on an arbitrary timeout.
+- Optionally trigger one safe refresh after completion only if needed.
+
+Why this is lower risk than the current timeout:
+- Avoids refetching too early on slow networks.
+- Avoids keeping the page blocked longer than necessary on fast networks.
+- Leaves all non-drag realtime updates unchanged.
+
+### 4) Preserve dashboard preview behavior from persisted order
+Keep `src/pages/Dashboard.tsx` using the first main photo ordered by `display_order ASC`.
+
+I do not plan to change the dashboard query unless inspection during implementation shows a real edge case. Right now the dashboard logic is already correct; the problem is that reorder persistence is too noisy/slow.
+
+### 5) Validate only the affected surfaces
+After implementation, validate the narrowest possible surface area:
+- Drag main photos repeatedly and confirm the grid reorders instantly without loading overlays/skeleton behavior.
+- Drag documentation photos and confirm the same behavior.
+- Refresh the car page and confirm order persists.
+- Return to dashboard and confirm the top-left main photo is the preview image.
+- Spot-check that delete, selection, lightbox open, watermark options, and regenerate button still behave unchanged.
+
+## Consequence / Risk Check
+
+What this changes:
+- Only how photo order is persisted.
+- Minor synchronization logic around drag completion.
+
+What this does not change:
+- Photo rendering model outside reorder.
+- AI edit flow.
+- Upload flow.
+- Watermark flow.
+- Interior flow.
+- Share/download flow.
+- Auth, billing, or any unrelated backend logic.
+
+Main risk:
+- The new backend reorder function must be scoped carefully so it only updates allowed rows.
+
+Mitigation:
+- Use a narrowly scoped function for `photos` only.
+- Reuse existing access protections.
+- Keep frontend fallback/rollback on failure.
+
+## Technical details
+
+Planned files:
+- `src/components/PhotoGalleryDraggable.tsx`
+- `src/pages/CarDetail.tsx`
+- new SQL migration under `supabase/migrations/`
+
+Implementation shape:
+```text
+Drag end
+  -> local arrayMove() immediately
+  -> single backend reorder call with full ordered id list
+  -> suppress drag refetch only during save
+  -> on success: release guard
+  -> on failure: restore prior order + toast
+```
+
+If you approve, I’ll implement exactly this narrow change set and keep the validation focused on reorder + dashboard preview only.

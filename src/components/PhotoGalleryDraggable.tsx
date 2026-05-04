@@ -232,17 +232,14 @@ const PhotoGalleryDraggable = ({
       const newItems = arrayMove(items, oldIndex, newIndex);
       setItems(newItems);
       try {
-        const updates = newItems.map((item, index) => ({
+        const photoOrders = newItems.map((item, index) => ({
           id: item.id,
           display_order: index
         }));
-        await Promise.all(
-          updates.map(update => 
-            supabase.from("photos").update({
-              display_order: update.display_order
-            }).eq("id", update.id)
-          )
-        );
+        const { error: rpcError } = await supabase.rpc('reorder_photos', {
+          photo_orders: photoOrders
+        });
+        if (rpcError) throw rpcError;
         onReorderComplete?.();
       } catch (error: any) {
         toast({
