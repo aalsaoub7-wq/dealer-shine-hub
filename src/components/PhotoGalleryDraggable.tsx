@@ -83,14 +83,16 @@ const SortablePhotoCard = ({
   });
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: transition || "transform 200ms ease",
+    transition: isDragging ? "none" : transition,
     opacity: isDragging ? 0.8 : 1,
-    cursor: isDragging ? "grabbing" : "default"
+    cursor: isDragging ? "grabbing" : "default",
+    willChange: isDragging ? "transform" : undefined,
+    zIndex: isDragging ? 10 : undefined
   };
 
   // Show overlay if processing OR if the loaded URL doesn't match current URL
   const showOverlay = photo.is_processing || loadedUrl !== photo.url;
-  return <Card ref={setNodeRef} style={style} className={`bg-gradient-card border-border/50 overflow-hidden group shadow-card md:hover:shadow-intense md:hover:-translate-y-2 transition-all duration-500 animate-fade-in-up ${isSelected ? 'ring-2 ring-primary' : ''}`} {...attributes}>
+  return <Card ref={setNodeRef} style={style} className={`bg-gradient-card border-border/50 overflow-hidden group shadow-card animate-fade-in-up ${isDragging ? '' : 'md:hover:shadow-intense md:hover:-translate-y-2 transition-all duration-500'} ${isSelected ? 'ring-2 ring-primary' : ''}`} {...attributes}>
       <div className="relative aspect-video bg-secondary">
         {showOverlay && <div className="absolute inset-0 bg-background/90 z-20 flex flex-col items-center justify-center">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
