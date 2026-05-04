@@ -263,7 +263,7 @@ const PhotoGalleryDraggable = ({
       </Card>;
   }
   return <>
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={() => onDragStart?.()} onDragEnd={handleDragEnd}>
         <SortableContext items={items.map(p => p.id)} strategy={rectSortingStrategy}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {items.map((photo, index) => <SortablePhotoCard key={photo.id} photo={photo} index={index} onDelete={handleDelete} onImageClick={() => setLightboxIndex(index)} isSelected={selectedPhotos.includes(photo.id)} onSelect={(photoId, selected) => {
