@@ -111,7 +111,7 @@ const SortablePhotoCard = ({
         </div>
         <div 
           {...listeners}
-          className="w-full h-full cursor-grab active:cursor-grabbing"
+          className={`w-full h-full cursor-grab active:cursor-grabbing ${isDragging ? '' : 'md:hover:scale-[1.02] transition-transform duration-700'}`}
           onClick={() => !isMobile && onImageClick(photo.url)}
         >
           <img 
@@ -120,8 +120,8 @@ const SortablePhotoCard = ({
               height: 338,
               quality: 75
             })} 
-            alt="Bilfoto" 
-            className="w-full h-full object-cover md:group-hover:scale-110 transition-transform duration-700 pointer-events-none" 
+              alt="Bilfoto" 
+              className={`w-full h-full object-cover pointer-events-none ${isDragging ? '' : 'md:group-hover:scale-110 transition-transform duration-700'}`} 
             loading="lazy" 
             decoding="async" 
             onLoad={() => setLoadedUrl(photo.url)} 
