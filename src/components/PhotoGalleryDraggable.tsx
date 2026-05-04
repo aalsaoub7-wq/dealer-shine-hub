@@ -243,6 +243,7 @@ const PhotoGalleryDraggable = ({
             }).eq("id", update.id)
           )
         );
+        onReorderComplete?.();
       } catch (error: any) {
         toast({
           title: "Fel vid uppdatering av ordning",
@@ -250,7 +251,10 @@ const PhotoGalleryDraggable = ({
           variant: "destructive"
         });
         setItems(photos);
+        onReorderComplete?.();
       }
+    } else {
+      onReorderComplete?.();
     }
   };
   if (photos.length === 0) {
