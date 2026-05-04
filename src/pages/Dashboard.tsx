@@ -272,9 +272,11 @@ const Dashboard = () => {
                 <Plus className="w-4 h-4 md:w-5 md:h-5 mr-1.5 md:mr-2" />
                 Lägg till din första bil
               </Button>}
-          </div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-            {filteredCars.map(car => <CarCard key={car.id} car={car} onUpdate={fetchCars} />)}
-          </div>}
+           </div> : viewMode === "grid" ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+             {filteredCars.map(car => <CarCard key={car.id} car={car} onUpdate={fetchCars} />)}
+           </div> : <div className="flex flex-col gap-2 md:gap-3">
+             {filteredCars.map(car => <CarCardListItem key={car.id} car={car} onUpdate={fetchCars} />)}
+           </div>}
       </main>
 
       <AddCarDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onCarAdded={fetchCars} />
