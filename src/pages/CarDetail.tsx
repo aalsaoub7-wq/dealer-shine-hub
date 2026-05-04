@@ -2348,6 +2348,8 @@ const CarDetail = () => {
               onSelectionChange={setSelectedDocPhotos}
               onRemoveWatermark={handleRemoveWatermark}
               onAdjustWatermark={handleOpenWatermarkEditor}
+              onDragStart={() => { isDraggingPhotosRef.current = true; }}
+              onReorderComplete={() => { setTimeout(() => { isDraggingPhotosRef.current = false; }, 1500); }}
             />
           </TabsContent>
         </Tabs>
