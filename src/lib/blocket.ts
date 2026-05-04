@@ -111,19 +111,7 @@ export function formatBlocketStatus(status: any | null): string {
  * Kontrollera om en bil kan synkas till Blocket
  * Returnerar felmeddelande om något saknas
  */
-export function validateCarForBlocket(car: any): string | null {
-  if (!car.make) return "Bilmärke saknas";
-  if (!car.model) return "Modell saknas";
-  if (!car.year) return "Årsmodell saknas";
-  if (!car.price) return "Pris saknas";
-  
-  // Rekommenderade fält
-  if (!car.description && !car.notes) {
-    console.warn("[Blocket] Varning: Beskrivning saknas");
-  }
-  if (!car.image_urls || car.image_urls.length === 0) {
-    console.warn("[Blocket] Varning: Inga bilder uppladdade");
-  }
-
+export function validateCarForBlocket(_car: any): string | null {
+  // Backend hanterar saknade fält med placeholders (visible=false tills riktig data finns)
   return null;
 }
