@@ -171,7 +171,9 @@ const PhotoGalleryDraggable = ({
   onAdjustPosition,
   onRemoveWatermark,
   onAdjustWatermark,
-  onChangeInteriorColor
+  onChangeInteriorColor,
+  onDragStart,
+  onReorderComplete
 }: PhotoGalleryProps) => {
   const {
     toast
