@@ -199,6 +199,7 @@ const CarDetail = () => {
   const { toast } = useToast();
   const { lightImpact, successNotification } = useHaptics();
   const fetchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isDraggingPhotosRef = useRef(false);
   const notesDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Helper: generate a unique operation token for a photo
@@ -317,6 +318,8 @@ const CarDetail = () => {
             filter: `car_id=eq.${id}`
           },
           (payload) => {
+            // Skip refetch during drag-drop reorder to prevent flicker
+            if (isDraggingPhotosRef.current) return;
             // Debounce to handle multi-upload without multiple reloads
             if (fetchDebounceRef.current) {
               clearTimeout(fetchDebounceRef.current);
@@ -2331,6 +2334,8 @@ const CarDetail = () => {
               onRemoveWatermark={handleRemoveWatermark}
               onAdjustWatermark={handleOpenWatermarkEditor}
               onChangeInteriorColor={handleChangeInteriorColor}
+              onDragStart={() => { isDraggingPhotosRef.current = true; }}
+              onReorderComplete={() => { setTimeout(() => { isDraggingPhotosRef.current = false; }, 1500); }}
             />
           </TabsContent>
 
@@ -2343,6 +2348,8 @@ const CarDetail = () => {
               onSelectionChange={setSelectedDocPhotos}
               onRemoveWatermark={handleRemoveWatermark}
               onAdjustWatermark={handleOpenWatermarkEditor}
+              onDragStart={() => { isDraggingPhotosRef.current = true; }}
+              onReorderComplete={() => { setTimeout(() => { isDraggingPhotosRef.current = false; }, 1500); }}
             />
           </TabsContent>
         </Tabs>
