@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +50,14 @@ interface SortablePhotoCardProps {
   onRegenerate?: (photoId: string) => void;
   onWatermarkOptions?: (photoId: string) => void;
 }
+
+const getPhotoContentSignature = (photos: Photo[]) => [...photos]
+  .map(photo => `${photo.id}-${photo.url}-${photo.is_processing}-${photo.edit_type}-${photo.has_watermark}-${photo.interior_background_url}-${photo.original_url || ''}-${photo.transparent_url || ''}-${photo.updated_at || ''}`)
+  .sort()
+  .join(',');
+
+const getPhotoOrderSignature = (photos: Photo[]) => photos.map(photo => photo.id).join(',');
+
 const SortablePhotoCard = ({
   photo,
   index,
@@ -75,14 +83,16 @@ const SortablePhotoCard = ({
   });
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: transition || "transform 200ms ease",
+    transition: isDragging ? "none" : transition,
     opacity: isDragging ? 0.8 : 1,
-    cursor: isDragging ? "grabbing" : "default"
+    cursor: isDragging ? "grabbing" : "default",
+    willChange: isDragging ? "transform" : undefined,
+    zIndex: isDragging ? 10 : undefined
   };
 
   // Show overlay if processing OR if the loaded URL doesn't match current URL
   const showOverlay = photo.is_processing || loadedUrl !== photo.url;
-  return <Card ref={setNodeRef} style={style} className={`bg-gradient-card border-border/50 overflow-hidden group shadow-card md:hover:shadow-intense md:hover:-translate-y-2 transition-all duration-500 animate-fade-in-up ${isSelected ? 'ring-2 ring-primary' : ''}`} {...attributes}>
+  return <Card ref={setNodeRef} style={style} className={`bg-gradient-card border-border/50 overflow-hidden group shadow-card animate-fade-in-up ${isDragging ? '' : 'md:hover:shadow-intense md:hover:-translate-y-2 transition-all duration-500'} ${isSelected ? 'ring-2 ring-primary' : ''}`} {...attributes}>
       <div className="relative aspect-video bg-secondary">
         {showOverlay && <div className="absolute inset-0 bg-background/90 z-20 flex flex-col items-center justify-center">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -101,7 +111,7 @@ const SortablePhotoCard = ({
         </div>
         <div 
           {...listeners}
-          className="w-full h-full cursor-grab active:cursor-grabbing"
+          className={`w-full h-full cursor-grab active:cursor-grabbing ${isDragging ? '' : 'md:hover:scale-[1.02] transition-transform duration-700'}`}
           onClick={() => !isMobile && onImageClick(photo.url)}
         >
           <img 
@@ -110,8 +120,8 @@ const SortablePhotoCard = ({
               height: 338,
               quality: 75
             })} 
-            alt="Bilfoto" 
-            className="w-full h-full object-cover md:group-hover:scale-110 transition-transform duration-700 pointer-events-none" 
+              alt="Bilfoto" 
+              className={`w-full h-full object-cover pointer-events-none ${isDragging ? '' : 'md:group-hover:scale-110 transition-transform duration-700'}`} 
             loading="lazy" 
             decoding="async" 
             onLoad={() => setLoadedUrl(photo.url)} 
@@ -179,17 +189,44 @@ const PhotoGalleryDraggable = ({
     toast
   } = useToast();
   const [items, setItems] = useState(photos);
+  const pendingReorderSignatureRef = useRef<string | null>(null);
 
   // Sync internal state when photos prop changes (after upload/edit/watermark)
-  // Smart comparison to prevent re-renders when only display_order changes from drag-drop
+  // Ignore order-only prop churn while a local reorder is still being confirmed.
   useEffect(() => {
-    const currentIds = items.map(i => `${i.id}-${i.url}-${i.is_processing}-${i.edit_type}-${i.has_watermark}-${i.interior_background_url}-${i.original_url || ''}-${i.transparent_url || ''}-${i.updated_at || ''}`).join(',');
-    const newIds = photos.map(p => `${p.id}-${p.url}-${p.is_processing}-${p.edit_type}-${p.has_watermark}-${p.interior_background_url}-${p.original_url || ''}-${p.transparent_url || ''}-${p.updated_at || ''}`).join(',');
-    
-    if (currentIds !== newIds) {
-      setItems(photos);
+    const incomingContentSignature = getPhotoContentSignature(photos);
+    const incomingOrderSignature = getPhotoOrderSignature(photos);
+
+    if (pendingReorderSignatureRef.current) {
+      setItems(currentItems => {
+        const currentContentSignature = getPhotoContentSignature(currentItems);
+
+        if (currentContentSignature !== incomingContentSignature) {
+          pendingReorderSignatureRef.current = null;
+          return photos;
+        }
+
+        if (incomingOrderSignature === pendingReorderSignatureRef.current) {
+          pendingReorderSignatureRef.current = null;
+          return getPhotoOrderSignature(currentItems) === incomingOrderSignature ? currentItems : photos;
+        }
+
+        return currentItems;
+      });
+      return;
     }
-  }, [photos, items]);
+
+    setItems(currentItems => {
+      const currentContentSignature = getPhotoContentSignature(currentItems);
+      const currentOrderSignature = getPhotoOrderSignature(currentItems);
+
+      if (currentContentSignature === incomingContentSignature && currentOrderSignature === incomingOrderSignature) {
+        return currentItems;
+      }
+
+      return photos;
+    });
+  }, [photos]);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [regenerateOptionsPhoto, setRegenerateOptionsPhoto] = useState<Photo | null>(null);
   const [watermarkOptionsId, setWatermarkOptionsId] = useState<string | null>(null);
@@ -230,6 +267,7 @@ const PhotoGalleryDraggable = ({
       const oldIndex = items.findIndex(item => item.id === active.id);
       const newIndex = items.findIndex(item => item.id === over.id);
       const newItems = arrayMove(items, oldIndex, newIndex);
+      pendingReorderSignatureRef.current = getPhotoOrderSignature(newItems);
       setItems(newItems);
       try {
         const photoOrders = newItems.map((item, index) => ({
@@ -247,6 +285,7 @@ const PhotoGalleryDraggable = ({
           description: error.message,
           variant: "destructive"
         });
+        pendingReorderSignatureRef.current = null;
         setItems(photos);
         onReorderComplete?.();
       }
