@@ -198,7 +198,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
       toast.success("Blocket-uppgifter sparade!");
       // Now proceed to image picker
       const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
-      setSelectedBlocketImages(mainPhotos.map(p => p.url));
+      setSelectedBlocketImages([]);
       setShowBlocketImagePicker(true);
     } catch (e: any) {
       toast.error("Kunde inte spara: " + e.message);
@@ -233,7 +233,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
       toast.success("Wayke-uppgifter sparade!");
       // Now proceed to image picker
       const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
-      setSelectedWaykeImages(mainPhotos.map(p => p.url));
+      setSelectedWaykeImages([]);
       setShowWaykeImagePicker(true);
     } catch (e: any) {
       toast.error("Kunde inte spara: " + e.message);
@@ -250,7 +250,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
         return;
       }
       const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
-      setSelectedBlocketImages(mainPhotos.map(p => p.url));
+      setSelectedBlocketImages([]);
       setShowBlocketImagePicker(true);
       return;
     }
@@ -260,7 +260,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
         return;
       }
       const mainPhotos = photos?.filter(p => p.photo_type === "main") || [];
-      setSelectedWaykeImages(mainPhotos.map(p => p.url));
+      setSelectedWaykeImages([]);
       setShowWaykeImagePicker(true);
       return;
     }

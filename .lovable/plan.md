@@ -1,12 +1,15 @@
+## Ändring
 
-## Add toast on successful notes save
+Alla bildväljare i PlatformSyncDialog startar idag med **alla bilder markerade**. Ändringen gör att de istället startar **tomma**, så användaren själv väljer vilka bilder som ska skickas.
 
-### Change — single file: `src/pages/CarDetail.tsx`, line 678
+## Teknisk detalj
 
-Add one line after `setCar({ ...car, notes: editedNotes });` in `handleSaveNotes`:
+**Fil:** `src/components/PlatformSyncDialog.tsx`
 
-```ts
-toast({ title: "Sparat", description: "Dina anteckningar har sparats." });
-```
+Byt `mainPhotos.map(p => p.url)` till `[]` på 4 ställen:
+- Rad 201: `setSelectedBlocketImages([])`
+- Rad 236: `setSelectedWaykeImages([])`
+- Rad 253: `setSelectedBlocketImages([])`
+- Rad 263: `setSelectedWaykeImages([])`
 
-`toast` is already imported and used in the same function for errors. No other changes needed.
+Inget annat påverkas — bara initialvärdet ändras.
