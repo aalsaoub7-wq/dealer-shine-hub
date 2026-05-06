@@ -2208,6 +2208,52 @@ const CarDetail = () => {
             </TooltipProvider>
 
             <div className="lg:ml-auto w-full lg:w-auto space-y-2">
+              {/* Fixed row: Select all + Upload - always visible, always on top */}
+              <div className="flex items-center justify-between gap-2">
+                <Button
+                  onClick={() => {
+                    if (activeTab === "main") {
+                      setSelectedMainPhotos(selectedMainPhotos.length > 0 ? [] : mainPhotos.map(p => p.id));
+                    } else if (activeTab === "docs") {
+                      setSelectedDocPhotos(selectedDocPhotos.length > 0 ? [] : docPhotos.map(p => p.id));
+                    } else {
+                      setSelectedDamagePhotos(selectedDamagePhotos.length > 0 ? [] : damagePhotos.map(p => p.id));
+                    }
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="whitespace-nowrap"
+                >
+                  {(activeTab === "main" ? selectedMainPhotos.length > 0 : activeTab === "docs" ? selectedDocPhotos.length > 0 : selectedDamagePhotos.length > 0) ? (
+                    <>
+                      <CheckSquare className="w-3.5 h-3.5 mr-1.5" />
+                      Avmarkera alla
+                    </>
+                  ) : (
+                    <>
+                      <Square className="w-3.5 h-3.5 mr-1.5" />
+                      Markera alla
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setUploadType(activeTab === "main" ? "main" : activeTab === "docs" ? "documentation" : "damage");
+                    setUploadDialogOpen(true);
+                  }}
+                  size="sm"
+                  className="bg-gradient-button hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300 relative z-10 touch-manipulation whitespace-nowrap"
+                >
+                  <Upload className="w-3.5 h-3.5 mr-1.5" />
+                  <span className="hidden sm:inline">
+                    {activeTab === "main" ? "Ladda upp huvudfoton" : activeTab === "docs" ? "Ladda upp dokumentation" : "Ladda upp skadebilder"}
+                  </span>
+                  <span className="sm:hidden">Ladda upp</span>
+                </Button>
+              </div>
+
               {/* Action buttons - only when photos are selected */}
               {allSelectedPhotos.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 bg-muted/50 rounded-lg p-2">
@@ -2300,52 +2346,6 @@ const CarDetail = () => {
                   </Button>
                 </div>
               )}
-
-              {/* Fixed row: Select all + Upload */}
-              <div className="flex items-center justify-between gap-2">
-                <Button
-                  onClick={() => {
-                    if (activeTab === "main") {
-                      setSelectedMainPhotos(selectedMainPhotos.length > 0 ? [] : mainPhotos.map(p => p.id));
-                    } else if (activeTab === "docs") {
-                      setSelectedDocPhotos(selectedDocPhotos.length > 0 ? [] : docPhotos.map(p => p.id));
-                    } else {
-                      setSelectedDamagePhotos(selectedDamagePhotos.length > 0 ? [] : damagePhotos.map(p => p.id));
-                    }
-                  }}
-                  variant="ghost"
-                  size="sm"
-                  className="whitespace-nowrap"
-                >
-                  {(activeTab === "main" ? selectedMainPhotos.length > 0 : activeTab === "docs" ? selectedDocPhotos.length > 0 : selectedDamagePhotos.length > 0) ? (
-                    <>
-                      <CheckSquare className="w-3.5 h-3.5 mr-1.5" />
-                      Avmarkera alla
-                    </>
-                  ) : (
-                    <>
-                      <Square className="w-3.5 h-3.5 mr-1.5" />
-                      Markera alla
-                    </>
-                  )}
-                </Button>
-                <Button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setUploadType(activeTab === "main" ? "main" : activeTab === "docs" ? "documentation" : "damage");
-                    setUploadDialogOpen(true);
-                  }}
-                  size="sm"
-                  className="bg-gradient-button hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300 relative z-10 touch-manipulation whitespace-nowrap"
-                >
-                  <Upload className="w-3.5 h-3.5 mr-1.5" />
-                  <span className="hidden sm:inline">
-                    {activeTab === "main" ? "Ladda upp huvudfoton" : activeTab === "docs" ? "Ladda upp dokumentation" : "Ladda upp skadebilder"}
-                  </span>
-                  <span className="sm:hidden">Ladda upp</span>
-                </Button>
-              </div>
             </div>
           </div>
 
