@@ -19,7 +19,7 @@ interface PhotoUploadProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   carId: string;
-  photoType: "main" | "documentation";
+  photoType: "main" | "documentation" | "damage";
   onUploadComplete: () => void;
 }
 
@@ -208,8 +208,9 @@ const PhotoUpload = ({
         const fileExt = file.name.split(".").pop();
         
         try {
-          if (photoType === "documentation") {
-            const originalFileName = `${carId}/doc-${Date.now()}-${Math.random()}.${fileExt}`;
+          if (photoType === "documentation" || photoType === "damage") {
+            const prefix = photoType === "documentation" ? "doc" : "dmg";
+            const originalFileName = `${carId}/${prefix}-${Date.now()}-${Math.random()}.${fileExt}`;
             const { error: uploadError } = await supabase.storage
               .from("car-photos")
               .upload(originalFileName, file, { contentType: file.type || 'application/octet-stream' });
@@ -301,7 +302,7 @@ const PhotoUpload = ({
       <DialogContent className="bg-card border-border">
         <DialogHeader>
           <DialogTitle>
-            Ladda upp {photoType === "main" ? "huvudfoton" : "dokumentation"}
+            Ladda upp {photoType === "main" ? "huvudfoton" : photoType === "documentation" ? "dokumentation" : "skadebilder"}
           </DialogTitle>
           <DialogDescription>
             Välj foton att ladda upp. De kommer att behandlas automatiskt.

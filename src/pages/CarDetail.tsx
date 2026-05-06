@@ -22,6 +22,7 @@ import {
   CheckSquare,
   Square,
   ArrowRightLeft,
+  Wrench,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PhotoUpload from "@/components/PhotoUpload";
@@ -79,7 +80,7 @@ interface CarData {
 interface Photo {
   id: string;
   url: string;
-  photo_type: "main" | "documentation";
+  photo_type: "main" | "documentation" | "damage";
   is_edited: boolean;
   is_processing?: boolean;
   original_url: string | null;
@@ -103,7 +104,7 @@ const CarDetail = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [uploadType, setUploadType] = useState<"main" | "documentation">("main");
+  const [uploadType, setUploadType] = useState<"main" | "documentation" | "damage">("main");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -111,6 +112,7 @@ const CarDetail = () => {
   const [isSavingNotes, setIsSavingNotes] = useState(false);
   const [selectedMainPhotos, setSelectedMainPhotos] = useState<string[]>([]);
   const [selectedDocPhotos, setSelectedDocPhotos] = useState<string[]>([]);
+  const [selectedDamagePhotos, setSelectedDamagePhotos] = useState<string[]>([]);
   const [sharing, setSharing] = useState(false);
   const [applyingWatermark, setApplyingWatermark] = useState(false);
   const [activeTab, setActiveTab] = useState("main");
@@ -1743,7 +1745,7 @@ const CarDetail = () => {
     }
   };
 
-  const handleApplyWatermark = async (photoIds: string[], photoType: "main" | "documentation") => {
+  const handleApplyWatermark = async (photoIds: string[], photoType: "main" | "documentation" | "damage") => {
     setApplyingWatermark(true);
     try {
       // Get user's company_id
@@ -2053,9 +2055,10 @@ const CarDetail = () => {
   const allPhotos = photos;
   const mainPhotos = photos.filter((p) => p.photo_type === "main");
   const docPhotos = photos.filter((p) => p.photo_type === "documentation");
+  const damagePhotos = photos.filter((p) => p.photo_type === "damage");
 
   // Combined selected photos for sharing
-  const allSelectedPhotos = [...selectedMainPhotos, ...selectedDocPhotos];
+  const allSelectedPhotos = [...selectedMainPhotos, ...selectedDocPhotos, ...selectedDamagePhotos];
 
   if (loading) {
     return <CarDetailSkeleton />;
@@ -2168,6 +2171,13 @@ const CarDetail = () => {
                 <FileText className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
                 <span className="hidden xs:inline">Dokumentation</span> ({docPhotos.length})
               </TabsTrigger>
+              <TabsTrigger
+                value="damage"
+                className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300 text-xs md:text-sm flex-1 sm:flex-none"
+              >
+                <Wrench className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+                <span className="hidden xs:inline">Skadebilder</span> ({damagePhotos.length})
+              </TabsTrigger>
             </TabsList>
 
             <div className="min-h-12 sm:min-h-0 lg:ml-auto w-full lg:w-auto">
@@ -2252,18 +2262,38 @@ const CarDetail = () => {
                     )}
                   </Button>
                 )}
+                {activeTab === "damage" && selectedDamagePhotos.length > 0 && (
+                  <Button
+                    onClick={() => handleApplyWatermark(selectedDamagePhotos, "damage")}
+                    variant="outline"
+                    disabled={applyingWatermark}
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-12 md:h-10 w-full sm:w-auto sm:shrink-0 whitespace-nowrap"
+                  >
+                    <Stamp className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                    {applyingWatermark ? (
+                      "Lägger till..."
+                    ) : (
+                      <>
+                        <span className="hidden sm:inline">Lägg till vattenmärke ({selectedDamagePhotos.length})</span>
+                        <span className="sm:hidden">Vattenmärke ({selectedDamagePhotos.length})</span>
+                      </>
+                    )}
+                  </Button>
+                )}
                 <Button
                   onClick={() => {
                     if (activeTab === "main") {
                       setSelectedMainPhotos(selectedMainPhotos.length > 0 ? [] : mainPhotos.map(p => p.id));
-                    } else {
+                    } else if (activeTab === "docs") {
                       setSelectedDocPhotos(selectedDocPhotos.length > 0 ? [] : docPhotos.map(p => p.id));
+                    } else {
+                      setSelectedDamagePhotos(selectedDamagePhotos.length > 0 ? [] : damagePhotos.map(p => p.id));
                     }
                   }}
                   variant="outline"
                   className="text-xs md:text-sm h-12 md:h-10 w-full sm:w-auto sm:shrink-0 whitespace-nowrap"
                 >
-                  {(activeTab === "main" ? selectedMainPhotos.length > 0 : selectedDocPhotos.length > 0) ? (
+                  {(activeTab === "main" ? selectedMainPhotos.length > 0 : activeTab === "docs" ? selectedDocPhotos.length > 0 : selectedDamagePhotos.length > 0) ? (
                     <>
                       <CheckSquare className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                       Avmarkera alla
@@ -2275,12 +2305,11 @@ const CarDetail = () => {
                     </>
                   )}
                 </Button>
-                {(activeTab === "main" ? selectedMainPhotos.length > 0 : selectedDocPhotos.length > 0) && (
+                {(activeTab === "main" ? selectedMainPhotos.length > 0 : activeTab === "docs" ? selectedDocPhotos.length > 0 : selectedDamagePhotos.length > 0) && (
                   <Button
                     onClick={async () => {
-                      const isMain = activeTab === "main";
-                      const selectedIds = isMain ? selectedMainPhotos : selectedDocPhotos;
-                      const targetType = isMain ? "documentation" : "main";
+                      const selectedIds = activeTab === "main" ? selectedMainPhotos : activeTab === "docs" ? selectedDocPhotos : selectedDamagePhotos;
+                      const targetType = activeTab === "main" ? "documentation" : "main";
                       const { error } = await supabase
                         .from("photos")
                         .update({ photo_type: targetType })
@@ -2289,8 +2318,10 @@ const CarDetail = () => {
                         toast({ title: "Fel", description: "Kunde inte överföra bilderna.", variant: "destructive" });
                         return;
                       }
-                      setPhotos(prev => prev.map(p => selectedIds.includes(p.id) ? { ...p, photo_type: targetType } : p));
-                      if (isMain) setSelectedMainPhotos([]); else setSelectedDocPhotos([]);
+                      setPhotos(prev => prev.map(p => selectedIds.includes(p.id) ? { ...p, photo_type: targetType as "main" | "documentation" | "damage" } : p));
+                      if (activeTab === "main") setSelectedMainPhotos([]);
+                      else if (activeTab === "docs") setSelectedDocPhotos([]);
+                      else setSelectedDamagePhotos([]);
                       
                     }}
                     variant="outline"
@@ -2299,7 +2330,9 @@ const CarDetail = () => {
                     <ArrowRightLeft className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                     {activeTab === "main"
                       ? `Överför till dokumentation (${selectedMainPhotos.length})`
-                      : `Överför till huvudfoton (${selectedDocPhotos.length})`
+                      : activeTab === "docs"
+                      ? `Överför till huvudfoton (${selectedDocPhotos.length})`
+                      : `Överför till huvudfoton (${selectedDamagePhotos.length})`
                     }
                   </Button>
                 )}
@@ -2307,14 +2340,14 @@ const CarDetail = () => {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    setUploadType(activeTab === "main" ? "main" : "documentation");
+                    setUploadType(activeTab === "main" ? "main" : activeTab === "docs" ? "documentation" : "damage");
                     setUploadDialogOpen(true);
                   }}
                   className="bg-gradient-button hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300 text-xs md:text-sm h-12 md:h-10 relative z-10 touch-manipulation w-full sm:w-auto sm:shrink-0 whitespace-nowrap"
                 >
                   <Upload className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                   <span className="hidden sm:inline">
-                    {activeTab === "main" ? "Ladda upp huvudfoton" : "Ladda upp dokumentation"}
+                    {activeTab === "main" ? "Ladda upp huvudfoton" : activeTab === "docs" ? "Ladda upp dokumentation" : "Ladda upp skadebilder"}
                   </span>
                   <span className="sm:hidden">Ladda upp</span>
                 </Button>
@@ -2346,6 +2379,20 @@ const CarDetail = () => {
               onUpdate={() => fetchCarData(true)}
               selectedPhotos={selectedDocPhotos}
               onSelectionChange={setSelectedDocPhotos}
+              onRemoveWatermark={handleRemoveWatermark}
+              onAdjustWatermark={handleOpenWatermarkEditor}
+              onDragStart={() => { isDraggingPhotosRef.current = true; }}
+              onReorderComplete={() => { isDraggingPhotosRef.current = false; }}
+            />
+          </TabsContent>
+
+          <TabsContent value="damage" className="space-y-4 md:space-y-6">
+            <div className="h-8 pointer-events-none" />
+            <PhotoGalleryDraggable
+              photos={damagePhotos}
+              onUpdate={() => fetchCarData(true)}
+              selectedPhotos={selectedDamagePhotos}
+              onSelectionChange={setSelectedDamagePhotos}
               onRemoveWatermark={handleRemoveWatermark}
               onAdjustWatermark={handleOpenWatermarkEditor}
               onDragStart={() => { isDraggingPhotosRef.current = true; }}
