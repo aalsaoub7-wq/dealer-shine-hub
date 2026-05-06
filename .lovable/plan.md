@@ -1,23 +1,29 @@
 
-## Fix: Tab buttons not glowing red when active
+## Transfer button → dialog with tab choice
 
-The problem is that `TooltipTrigger asChild` directly on `TabsTrigger` causes Radix Tooltip's `data-state` attribute to override Radix Tabs' `data-state`, breaking `data-[state=active]` styling.
+### Changes — single file: `src/pages/CarDetail.tsx`
 
-### Fix — single file: `src/pages/CarDetail.tsx`
+1. **Add Dialog import** (line ~8 area):
+   ```
+   import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+   ```
 
-Wrap each `TabsTrigger` in a `<span>` inside `<TooltipTrigger asChild>`, so Tooltip's `data-state` goes on the `<span>` wrapper instead of directly on the `TabsTrigger` button:
+2. **Add state** for the transfer dialog:
+   ```
+   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+   ```
 
-```tsx
-<Tooltip>
-  <TooltipTrigger asChild>
-    <span>
-      <TabsTrigger value="main" className="...">
-        ...
-      </TabsTrigger>
-    </span>
-  </TooltipTrigger>
-  <TooltipContent>...</TooltipContent>
-</Tooltip>
-```
+3. **Replace the transfer Button's onClick** (lines 2332-2361):
+   - Button text becomes: `Överför (N)` where N is selected count
+   - onClick opens the dialog instead of directly transferring
 
-Same pattern for all three tabs. No other changes.
+4. **Add Dialog JSX** (near the other dialogs at the bottom):
+   - Shows two buttons for the other two tabs (excluding current `activeTab`)
+   - Each button runs the same transfer logic that exists now but with the chosen target type
+   - Uses same styling as other dialogs (`bg-card border-border`)
+   - Tab labels: Huvudfoton, Dokumentation, Skadebilder with their respective icons
+
+### What stays the same
+- The actual transfer logic (supabase update, local state update, selection clear) is identical
+- All other buttons, tabs, upload, AI editing, watermark flows untouched
+- No new components or files

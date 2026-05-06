@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   ArrowLeft,
   Upload,
@@ -117,6 +118,7 @@ const CarDetail = () => {
   const [sharing, setSharing] = useState(false);
   const [applyingWatermark, setApplyingWatermark] = useState(false);
   const [activeTab, setActiveTab] = useState("main");
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [generatingDescription, setGeneratingDescription] = useState(false);
@@ -2331,33 +2333,12 @@ const CarDetail = () => {
                 </Button>
                 {(activeTab === "main" ? selectedMainPhotos.length > 0 : activeTab === "docs" ? selectedDocPhotos.length > 0 : selectedDamagePhotos.length > 0) && (
                   <Button
-                    onClick={async () => {
-                      const selectedIds = activeTab === "main" ? selectedMainPhotos : activeTab === "docs" ? selectedDocPhotos : selectedDamagePhotos;
-                      const targetType = activeTab === "main" ? "documentation" : "main";
-                      const { error } = await supabase
-                        .from("photos")
-                        .update({ photo_type: targetType })
-                        .in("id", selectedIds);
-                      if (error) {
-                        toast({ title: "Fel", description: "Kunde inte överföra bilderna.", variant: "destructive" });
-                        return;
-                      }
-                      setPhotos(prev => prev.map(p => selectedIds.includes(p.id) ? { ...p, photo_type: targetType as "main" | "documentation" | "damage" } : p));
-                      if (activeTab === "main") setSelectedMainPhotos([]);
-                      else if (activeTab === "docs") setSelectedDocPhotos([]);
-                      else setSelectedDamagePhotos([]);
-                      
-                    }}
+                    onClick={() => setTransferDialogOpen(true)}
                     variant="outline"
                     className="text-xs md:text-sm h-12 md:h-10 w-full sm:w-auto sm:shrink-0 whitespace-nowrap"
                   >
                     <ArrowRightLeft className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-                    {activeTab === "main"
-                      ? `Överför till dokumentation (${selectedMainPhotos.length})`
-                      : activeTab === "docs"
-                      ? `Överför till huvudfoton (${selectedDocPhotos.length})`
-                      : `Överför till huvudfoton (${selectedDamagePhotos.length})`
-                    }
+                    Överför ({activeTab === "main" ? selectedMainPhotos.length : activeTab === "docs" ? selectedDocPhotos.length : selectedDamagePhotos.length})
                   </Button>
                 )}
                 <Button
@@ -2514,6 +2495,71 @@ const CarDetail = () => {
       )}
 
       {car && <PlatformSyncDialog open={syncDialogOpen} onOpenChange={setSyncDialogOpen} carId={car.id} car={car} photos={photos.filter(p => p.photo_type === "main")} />}
+
+      {/* Transfer Photos Dialog */}
+      <Dialog open={transferDialogOpen} onOpenChange={setTransferDialogOpen}>
+        <DialogContent className="bg-card border-border sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Överför bilder</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground mb-4">
+            Välj vilken flik du vill överföra de markerade bilderna till:
+          </p>
+          <div className="flex flex-col gap-3">
+            {activeTab !== "main" && (
+              <Button
+                onClick={async () => {
+                  const selectedIds = activeTab === "docs" ? selectedDocPhotos : selectedDamagePhotos;
+                  const { error } = await supabase.from("photos").update({ photo_type: "main" }).in("id", selectedIds);
+                  if (error) { toast({ title: "Fel", description: "Kunde inte överföra bilderna.", variant: "destructive" }); return; }
+                  setPhotos(prev => prev.map(p => selectedIds.includes(p.id) ? { ...p, photo_type: "main" as const } : p));
+                  if (activeTab === "docs") setSelectedDocPhotos([]); else setSelectedDamagePhotos([]);
+                  setTransferDialogOpen(false);
+                }}
+                variant="outline"
+                className="h-12 justify-start text-sm"
+              >
+                <ImageIcon className="w-4 h-4 mr-2" />
+                Huvudfoton
+              </Button>
+            )}
+            {activeTab !== "docs" && (
+              <Button
+                onClick={async () => {
+                  const selectedIds = activeTab === "main" ? selectedMainPhotos : selectedDamagePhotos;
+                  const { error } = await supabase.from("photos").update({ photo_type: "documentation" }).in("id", selectedIds);
+                  if (error) { toast({ title: "Fel", description: "Kunde inte överföra bilderna.", variant: "destructive" }); return; }
+                  setPhotos(prev => prev.map(p => selectedIds.includes(p.id) ? { ...p, photo_type: "documentation" as const } : p));
+                  if (activeTab === "main") setSelectedMainPhotos([]); else setSelectedDamagePhotos([]);
+                  setTransferDialogOpen(false);
+                }}
+                variant="outline"
+                className="h-12 justify-start text-sm"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Dokumentation
+              </Button>
+            )}
+            {activeTab !== "damage" && (
+              <Button
+                onClick={async () => {
+                  const selectedIds = activeTab === "main" ? selectedMainPhotos : selectedDocPhotos;
+                  const { error } = await supabase.from("photos").update({ photo_type: "damage" }).in("id", selectedIds);
+                  if (error) { toast({ title: "Fel", description: "Kunde inte överföra bilderna.", variant: "destructive" }); return; }
+                  setPhotos(prev => prev.map(p => selectedIds.includes(p.id) ? { ...p, photo_type: "damage" as const } : p));
+                  if (activeTab === "main") setSelectedMainPhotos([]); else setSelectedDocPhotos([]);
+                  setTransferDialogOpen(false);
+                }}
+                variant="outline"
+                className="h-12 justify-start text-sm"
+              >
+                <Wrench className="w-4 h-4 mr-2" />
+                Skadebilder
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
       
       {/* Car Position Editor — universal render-level guard against stale async results */}
       {(() => {
