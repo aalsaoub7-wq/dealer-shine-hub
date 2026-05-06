@@ -676,6 +676,7 @@ const CarDetail = () => {
       const { error } = await supabase.from("cars").update({ notes: editedNotes }).eq("id", id);
       if (error) throw error;
       setCar({ ...car, notes: editedNotes });
+      toast({ title: "Sparat", description: "Dina anteckningar har sparats." });
     } catch (error: any) {
       toast({
         title: "Fel vid sparande av anteckningar",
