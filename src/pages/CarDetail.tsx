@@ -2385,6 +2385,20 @@ const CarDetail = () => {
               onReorderComplete={() => { isDraggingPhotosRef.current = false; }}
             />
           </TabsContent>
+
+          <TabsContent value="damage" className="space-y-4 md:space-y-6">
+            <div className="h-8 pointer-events-none" />
+            <PhotoGalleryDraggable
+              photos={damagePhotos}
+              onUpdate={() => fetchCarData(true)}
+              selectedPhotos={selectedDamagePhotos}
+              onSelectionChange={setSelectedDamagePhotos}
+              onRemoveWatermark={handleRemoveWatermark}
+              onAdjustWatermark={handleOpenWatermarkEditor}
+              onDragStart={() => { isDraggingPhotosRef.current = true; }}
+              onReorderComplete={() => { isDraggingPhotosRef.current = false; }}
+            />
+          </TabsContent>
         </Tabs>
       </div>
 
