@@ -1,24 +1,15 @@
+## Ändring
 
-## Problem
-- "Markera alla" och "Ladda upp huvudfoton" byter position beroende på om action-knappar (Dela, Ladda ned, etc.) visas.
-- Layouten ser rörig ut med alla knappar staplade.
+Alla bildväljare i PlatformSyncDialog startar idag med **alla bilder markerade**. Ändringen gör att de istället startar **tomma**, så användaren själv väljer vilka bilder som ska skickas.
 
-## Lösning
-Byt ordningen så att **fixed-raden (Markera/Ladda upp) alltid ligger överst** och action-knapparna visas **under** den. Detta gör att Markera + Ladda upp aldrig flyttar sig.
+## Teknisk detalj
 
-### Ändringar i `src/pages/CarDetail.tsx` (rad 2210–2349)
+**Fil:** `src/components/PlatformSyncDialog.tsx`
 
-1. **Flytta fixed-raden (Markera alla + Ladda upp) FÖRE action-knapparna** — den ligger alltid överst och fast.
-2. **Action-knapparna (Dela, Ladda ned, etc.) renderas under** fixed-raden, bara när bilder är markerade.
-3. Behåll all befintlig funktionalitet, onClick-handlers och conditional rendering exakt som den är.
+Byt `mainPhotos.map(p => p.url)` till `[]` på 4 ställen:
+- Rad 201: `setSelectedBlocketImages([])`
+- Rad 236: `setSelectedWaykeImages([])`
+- Rad 253: `setSelectedBlocketImages([])`
+- Rad 263: `setSelectedWaykeImages([])`
 
-Rent visuellt:
-```text
-┌──────────────────────────────────────────────────┐
-│ [Markera alla]                [Ladda upp huvud.] │  ← alltid synlig, fast
-├──────────────────────────────────────────────────┤
-│ [Dela] [Ladda ned] [Interiör] [AI] [Vatten] [Ö] │  ← bara vid markering
-└──────────────────────────────────────────────────┘
-```
-
-Ingen backend-ändring. Ingen logik-ändring. Bara ordningen av de två `div`-blocken byts.
+Inget annat påverkas — bara initialvärdet ändras.
