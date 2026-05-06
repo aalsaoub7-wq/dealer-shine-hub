@@ -118,6 +118,7 @@ const CarDetail = () => {
   const [sharing, setSharing] = useState(false);
   const [applyingWatermark, setApplyingWatermark] = useState(false);
   const [activeTab, setActiveTab] = useState("main");
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [generatingDescription, setGeneratingDescription] = useState(false);
