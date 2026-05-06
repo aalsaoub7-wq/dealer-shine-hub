@@ -19,7 +19,7 @@ interface PhotoUploadProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   carId: string;
-  photoType: "main" | "documentation";
+  photoType: "main" | "documentation" | "damage";
   onUploadComplete: () => void;
 }
 
