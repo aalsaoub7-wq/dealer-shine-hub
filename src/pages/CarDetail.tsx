@@ -2284,14 +2284,16 @@ const CarDetail = () => {
                   onClick={() => {
                     if (activeTab === "main") {
                       setSelectedMainPhotos(selectedMainPhotos.length > 0 ? [] : mainPhotos.map(p => p.id));
-                    } else {
+                    } else if (activeTab === "docs") {
                       setSelectedDocPhotos(selectedDocPhotos.length > 0 ? [] : docPhotos.map(p => p.id));
+                    } else {
+                      setSelectedDamagePhotos(selectedDamagePhotos.length > 0 ? [] : damagePhotos.map(p => p.id));
                     }
                   }}
                   variant="outline"
                   className="text-xs md:text-sm h-12 md:h-10 w-full sm:w-auto sm:shrink-0 whitespace-nowrap"
                 >
-                  {(activeTab === "main" ? selectedMainPhotos.length > 0 : selectedDocPhotos.length > 0) ? (
+                  {(activeTab === "main" ? selectedMainPhotos.length > 0 : activeTab === "docs" ? selectedDocPhotos.length > 0 : selectedDamagePhotos.length > 0) ? (
                     <>
                       <CheckSquare className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                       Avmarkera alla
@@ -2303,12 +2305,11 @@ const CarDetail = () => {
                     </>
                   )}
                 </Button>
-                {(activeTab === "main" ? selectedMainPhotos.length > 0 : selectedDocPhotos.length > 0) && (
+                {(activeTab === "main" ? selectedMainPhotos.length > 0 : activeTab === "docs" ? selectedDocPhotos.length > 0 : selectedDamagePhotos.length > 0) && (
                   <Button
                     onClick={async () => {
-                      const isMain = activeTab === "main";
-                      const selectedIds = isMain ? selectedMainPhotos : selectedDocPhotos;
-                      const targetType = isMain ? "documentation" : "main";
+                      const selectedIds = activeTab === "main" ? selectedMainPhotos : activeTab === "docs" ? selectedDocPhotos : selectedDamagePhotos;
+                      const targetType = activeTab === "main" ? "documentation" : "main";
                       const { error } = await supabase
                         .from("photos")
                         .update({ photo_type: targetType })
@@ -2317,8 +2318,10 @@ const CarDetail = () => {
                         toast({ title: "Fel", description: "Kunde inte överföra bilderna.", variant: "destructive" });
                         return;
                       }
-                      setPhotos(prev => prev.map(p => selectedIds.includes(p.id) ? { ...p, photo_type: targetType } : p));
-                      if (isMain) setSelectedMainPhotos([]); else setSelectedDocPhotos([]);
+                      setPhotos(prev => prev.map(p => selectedIds.includes(p.id) ? { ...p, photo_type: targetType as "main" | "documentation" | "damage" } : p));
+                      if (activeTab === "main") setSelectedMainPhotos([]);
+                      else if (activeTab === "docs") setSelectedDocPhotos([]);
+                      else setSelectedDamagePhotos([]);
                       
                     }}
                     variant="outline"
@@ -2327,7 +2330,9 @@ const CarDetail = () => {
                     <ArrowRightLeft className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                     {activeTab === "main"
                       ? `Överför till dokumentation (${selectedMainPhotos.length})`
-                      : `Överför till huvudfoton (${selectedDocPhotos.length})`
+                      : activeTab === "docs"
+                      ? `Överför till huvudfoton (${selectedDocPhotos.length})`
+                      : `Överför till huvudfoton (${selectedDamagePhotos.length})`
                     }
                   </Button>
                 )}
@@ -2335,14 +2340,14 @@ const CarDetail = () => {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    setUploadType(activeTab === "main" ? "main" : "documentation");
+                    setUploadType(activeTab === "main" ? "main" : activeTab === "docs" ? "documentation" : "damage");
                     setUploadDialogOpen(true);
                   }}
                   className="bg-gradient-button hover:bg-gradient-hover shadow-glow hover:shadow-intense hover:scale-105 transition-all duration-300 text-xs md:text-sm h-12 md:h-10 relative z-10 touch-manipulation w-full sm:w-auto sm:shrink-0 whitespace-nowrap"
                 >
                   <Upload className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                   <span className="hidden sm:inline">
-                    {activeTab === "main" ? "Ladda upp huvudfoton" : "Ladda upp dokumentation"}
+                    {activeTab === "main" ? "Ladda upp huvudfoton" : activeTab === "docs" ? "Ladda upp dokumentation" : "Ladda upp skadebilder"}
                   </span>
                   <span className="sm:hidden">Ladda upp</span>
                 </Button>
