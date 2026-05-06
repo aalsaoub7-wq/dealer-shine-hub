@@ -1,29 +1,24 @@
-## UI-förbättring: Knappfält på bildetaljsidan
 
-### Problem
-Alla knappar (åtgärdsknappar + markera + ladda upp) ligger i en platt `flex-wrap` som blir rörig, särskilt på mobil. Ingen visuell separation mellan "alltid synliga" knappar och "selection-baserade" åtgärder.
+## Problem
+- "Markera alla" och "Ladda upp huvudfoton" byter position beroende på om action-knappar (Dela, Ladda ned, etc.) visas.
+- Layouten ser rörig ut med alla knappar staplade.
 
-### Lösning
-Dela upp knappfältet i **två visuellt separerade rader**:
+## Lösning
+Byt ordningen så att **fixed-raden (Markera/Ladda upp) alltid ligger överst** och action-knapparna visas **under** den. Detta gör att Markera + Ladda upp aldrig flyttar sig.
 
-**Rad 1 (åtgärdsrad)** — Visas bara när bilder är markerade:
-- Dela, Ladda ned, Interiör, AI redigera, Vattenmärke, Överför
-- Kompakt med `size="sm"` och `variant="outline"` med shadcn-stil (inga custom border-color klasser)
-- Wrappas i en diskret container med `bg-muted/50 rounded-lg p-2`
+### Ändringar i `src/pages/CarDetail.tsx` (rad 2210–2349)
 
-**Rad 2 (fast rad)** — Alltid synlig:
-- Vänster: Markera alla / Avmarkera alla (`variant="ghost"`, `size="sm"`)
-- Höger: Ladda upp-knappen (behåller befintlig gradient-stil)
+1. **Flytta fixed-raden (Markera alla + Ladda upp) FÖRE action-knapparna** — den ligger alltid överst och fast.
+2. **Action-knapparna (Dela, Ladda ned, etc.) renderas under** fixed-raden, bara när bilder är markerade.
+3. Behåll all befintlig funktionalitet, onClick-handlers och conditional rendering exakt som den är.
 
-### Teknisk detalj
+Rent visuellt:
+```text
+┌──────────────────────────────────────────────────┐
+│ [Markera alla]                [Ladda upp huvud.] │  ← alltid synlig, fast
+├──────────────────────────────────────────────────┤
+│ [Dela] [Ladda ned] [Interiör] [AI] [Vatten] [Ö] │  ← bara vid markering
+└──────────────────────────────────────────────────┘
+```
 
-**Fil:** `src/pages/CarDetail.tsx`, raderna ~2210–2360
-
-Ändringarna är rent visuella:
-- Wrappar åtgärdsknappar i en egen `div` med bakgrund
-- Separerar Markera + Ladda upp i en egen `div` med `flex justify-between`
-- Använder `size="sm"` på alla knappar för renare look
-- Tar bort överflödiga custom CSS-klasser (border-primary, border-blue-500, border-accent) och använder shadcn-varianter (`variant="outline"`, `variant="secondary"`) istället
-- Behåller all onClick-logik, conditional rendering och funktionalitet exakt som den är
-
-**Ingen backend-ändring. Ingen logikändring. Bara layout och styling.**
+Ingen backend-ändring. Ingen logik-ändring. Bara ordningen av de två `div`-blocken byts.
