@@ -87,8 +87,8 @@ export const RegenerateOptionsDialog = ({
                   onOpenChange(false);
                 }}
               >
-                <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-                  <Sparkles className="w-5 h-5 text-primary" />
+              <div className="p-2 rounded-lg bg-blue-500/10 shrink-0">
+                  <Sparkles className="w-5 h-5 text-blue-500" />
                 </div>
                 <div className="text-left min-w-0 flex-1">
                   <div className="font-medium break-words">Generera ny skugga och reflektion</div>
@@ -106,8 +106,8 @@ export const RegenerateOptionsDialog = ({
                   onOpenChange(false);
                 }}
               >
-                <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-                  <Move className="w-5 h-5 text-primary" />
+              <div className="p-2 rounded-lg bg-blue-500/10 shrink-0">
+                  <Move className="w-5 h-5 text-blue-500" />
                 </div>
                 <div className="text-left min-w-0 flex-1">
                   <div className="font-medium break-words">Justera position</div>
