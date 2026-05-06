@@ -208,7 +208,8 @@ const PhotoUpload = ({
         const fileExt = file.name.split(".").pop();
         
         try {
-          if (photoType === "documentation") {
+          if (photoType === "documentation" || photoType === "damage") {
+            const prefix = photoType === "documentation" ? "doc" : "dmg";
             const originalFileName = `${carId}/doc-${Date.now()}-${Math.random()}.${fileExt}`;
             const { error: uploadError } = await supabase.storage
               .from("car-photos")
