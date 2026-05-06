@@ -301,7 +301,7 @@ const PhotoUpload = ({
       <DialogContent className="bg-card border-border">
         <DialogHeader>
           <DialogTitle>
-            Ladda upp {photoType === "main" ? "huvudfoton" : "dokumentation"}
+            Ladda upp {photoType === "main" ? "huvudfoton" : photoType === "documentation" ? "dokumentation" : "skadebilder"}
           </DialogTitle>
           <DialogDescription>
             Välj foton att ladda upp. De kommer att behandlas automatiskt.
