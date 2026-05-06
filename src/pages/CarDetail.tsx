@@ -80,7 +80,7 @@ interface CarData {
 interface Photo {
   id: string;
   url: string;
-  photo_type: "main" | "documentation";
+  photo_type: "main" | "documentation" | "damage";
   is_edited: boolean;
   is_processing?: boolean;
   original_url: string | null;
@@ -1745,7 +1745,7 @@ const CarDetail = () => {
     }
   };
 
-  const handleApplyWatermark = async (photoIds: string[], photoType: "main" | "documentation") => {
+  const handleApplyWatermark = async (photoIds: string[], photoType: "main" | "documentation" | "damage") => {
     setApplyingWatermark(true);
     try {
       // Get user's company_id
