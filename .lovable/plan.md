@@ -1,15 +1,15 @@
+## Problem
+
+Knapparna fyller inte hela bredden på mobil pga två saker:
+1. Varje `TabsTrigger` är inuti en `<span>` (Tooltip-wrapper) som inte har `flex-1`, så den yttre span:en begränsar bredden.
+2. `sm:flex-none` och `sm:w-auto` slår in vid 640px, men mobilvyn är upp till 768px (`md`).
+
 ## Ändring
 
-Flikknapparna (Huvudfoton, Dokumentation, Skadebilder) ska fylla hela bredden på mobil. Desktop förblir oförändrat.
+**`src/pages/CarDetail.tsx`** — 4 ändringar i samma område:
 
-### Tekniska detaljer
+1. **TabsList (rad 2164):** Ändra `w-full sm:w-auto` → `w-full md:w-auto`
+2. **Alla tre `<span>`-wrappers (rad 2167, 2181, 2195):** Lägg till `className="flex-1 md:flex-none"` på span-elementen så de tar upp jämnt utrymme.
+3. **Alla tre TabsTrigger (rad 2170, 2184, 2198):** Ändra `flex-1 sm:flex-none` → `w-full md:w-auto md:flex-none` samt lägg till `w-full` på mobil.
 
-**`src/components/ui/tabs.tsx`** — TabsList:
-- Ändra `inline-flex` till `flex` på mobil, behåll `md:inline-flex` för desktop.
-
-Alternativt (och enklare): Sätt `w-full` på TabsList + `flex-1` på TabsTrigger bara på mobil. Knapparna har redan `flex-1 sm:flex-none` i CarDetail, och TabsList har redan `w-full sm:w-auto` där. Problemet är att TabsList-komponenten använder `inline-flex` som förhindrar att den fyller bredden trots `w-full`.
-
-**Ändring i `src/components/ui/tabs.tsx` (rad 15):**
-- `inline-flex` → `flex md:inline-flex`
-
-Bara en rad ändras. Desktop är oförändrat tack vare `md:inline-flex`.
+Desktop (`md:` och uppåt) förblir exakt oförändrat.
