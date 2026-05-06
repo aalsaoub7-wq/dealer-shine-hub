@@ -22,6 +22,7 @@ import {
   CheckSquare,
   Square,
   ArrowRightLeft,
+  Wrench,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PhotoUpload from "@/components/PhotoUpload";
@@ -103,7 +104,7 @@ const CarDetail = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [uploadType, setUploadType] = useState<"main" | "documentation">("main");
+  const [uploadType, setUploadType] = useState<"main" | "documentation" | "damage">("main");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -111,6 +112,7 @@ const CarDetail = () => {
   const [isSavingNotes, setIsSavingNotes] = useState(false);
   const [selectedMainPhotos, setSelectedMainPhotos] = useState<string[]>([]);
   const [selectedDocPhotos, setSelectedDocPhotos] = useState<string[]>([]);
+  const [selectedDamagePhotos, setSelectedDamagePhotos] = useState<string[]>([]);
   const [sharing, setSharing] = useState(false);
   const [applyingWatermark, setApplyingWatermark] = useState(false);
   const [activeTab, setActiveTab] = useState("main");
@@ -2053,9 +2055,10 @@ const CarDetail = () => {
   const allPhotos = photos;
   const mainPhotos = photos.filter((p) => p.photo_type === "main");
   const docPhotos = photos.filter((p) => p.photo_type === "documentation");
+  const damagePhotos = photos.filter((p) => p.photo_type === "damage");
 
   // Combined selected photos for sharing
-  const allSelectedPhotos = [...selectedMainPhotos, ...selectedDocPhotos];
+  const allSelectedPhotos = [...selectedMainPhotos, ...selectedDocPhotos, ...selectedDamagePhotos];
 
   if (loading) {
     return <CarDetailSkeleton />;
@@ -2168,6 +2171,13 @@ const CarDetail = () => {
                 <FileText className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
                 <span className="hidden xs:inline">Dokumentation</span> ({docPhotos.length})
               </TabsTrigger>
+              <TabsTrigger
+                value="damage"
+                className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300 text-xs md:text-sm flex-1 sm:flex-none"
+              >
+                <Wrench className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+                <span className="hidden xs:inline">Skadebilder</span> ({damagePhotos.length})
+              </TabsTrigger>
             </TabsList>
 
             <div className="min-h-12 sm:min-h-0 lg:ml-auto w-full lg:w-auto">
@@ -2248,6 +2258,24 @@ const CarDetail = () => {
                       <>
                         <span className="hidden sm:inline">Lägg till vattenmärke ({selectedDocPhotos.length})</span>
                         <span className="sm:hidden">Vattenmärke ({selectedDocPhotos.length})</span>
+                      </>
+                    )}
+                  </Button>
+                )}
+                {activeTab === "damage" && selectedDamagePhotos.length > 0 && (
+                  <Button
+                    onClick={() => handleApplyWatermark(selectedDamagePhotos, "damage")}
+                    variant="outline"
+                    disabled={applyingWatermark}
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs md:text-sm h-12 md:h-10 w-full sm:w-auto sm:shrink-0 whitespace-nowrap"
+                  >
+                    <Stamp className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                    {applyingWatermark ? (
+                      "Lägger till..."
+                    ) : (
+                      <>
+                        <span className="hidden sm:inline">Lägg till vattenmärke ({selectedDamagePhotos.length})</span>
+                        <span className="sm:hidden">Vattenmärke ({selectedDamagePhotos.length})</span>
                       </>
                     )}
                   </Button>
