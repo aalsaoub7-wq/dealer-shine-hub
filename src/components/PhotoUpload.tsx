@@ -350,6 +350,7 @@ const PhotoUpload = ({
                 type="file"
                 multiple
                 accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/avif"
+                capture="environment"
                 onChange={handleFileSelect}
                 className="hidden"
                 id="file-upload"
