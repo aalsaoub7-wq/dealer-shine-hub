@@ -1,16 +1,23 @@
 
-## Add Tooltips to Tab Triggers
+## Fix: Tab buttons not glowing red when active
 
-### Changes — single file: `src/pages/CarDetail.tsx`
+The problem is that `TooltipTrigger asChild` directly on `TabsTrigger` causes Radix Tooltip's `data-state` attribute to override Radix Tabs' `data-state`, breaking `data-[state=active]` styling.
 
-1. **Add import** (after line 7):
-   ```
-   import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-   ```
+### Fix — single file: `src/pages/CarDetail.tsx`
 
-2. **Wrap `<TabsList>` in `<TooltipProvider>`** and wrap each `<TabsTrigger>` in a `<Tooltip>` + `<TooltipTrigger asChild>` + `<TooltipContent>`:
-   - Huvudfoton → "Huvudfoton för annonser"
-   - Dokumentation → "Dokumentationsbilder för internt bruk"
-   - Skadebilder → "Bilder på skador och defekter"
+Wrap each `TabsTrigger` in a `<span>` inside `<TooltipTrigger asChild>`, so Tooltip's `data-state` goes on the `<span>` wrapper instead of directly on the `TabsTrigger` button:
 
-No other files or flows touched.
+```tsx
+<Tooltip>
+  <TooltipTrigger asChild>
+    <span>
+      <TabsTrigger value="main" className="...">
+        ...
+      </TabsTrigger>
+    </span>
+  </TooltipTrigger>
+  <TooltipContent>...</TooltipContent>
+</Tooltip>
+```
+
+Same pattern for all three tabs. No other changes.

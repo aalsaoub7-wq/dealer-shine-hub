@@ -2161,37 +2161,43 @@ const CarDetail = () => {
               <TabsList className="bg-card border border-border shadow-card w-full sm:w-auto">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <TabsTrigger
-                      value="main"
-                      className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300 text-xs md:text-sm flex-1 sm:flex-none"
-                    >
-                      <ImageIcon className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
-                      <span className="hidden xs:inline">Huvudfoton</span> ({mainPhotos.length})
-                    </TabsTrigger>
+                    <span>
+                      <TabsTrigger
+                        value="main"
+                        className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300 text-xs md:text-sm flex-1 sm:flex-none"
+                      >
+                        <ImageIcon className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+                        <span className="hidden xs:inline">Huvudfoton</span> ({mainPhotos.length})
+                      </TabsTrigger>
+                    </span>
                   </TooltipTrigger>
                   <TooltipContent>Huvudfoton för annonser</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <TabsTrigger
-                      value="docs"
-                      className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300 text-xs md:text-sm flex-1 sm:flex-none"
-                    >
-                      <FileText className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
-                      <span className="hidden xs:inline">Dokumentation</span> ({docPhotos.length})
-                    </TabsTrigger>
+                    <span>
+                      <TabsTrigger
+                        value="docs"
+                        className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300 text-xs md:text-sm flex-1 sm:flex-none"
+                      >
+                        <FileText className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+                        <span className="hidden xs:inline">Dokumentation</span> ({docPhotos.length})
+                      </TabsTrigger>
+                    </span>
                   </TooltipTrigger>
                   <TooltipContent>Dokumentationsbilder för internt bruk</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <TabsTrigger
-                      value="damage"
-                      className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300 text-xs md:text-sm flex-1 sm:flex-none"
-                    >
-                      <Wrench className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
-                      <span className="hidden xs:inline">Skadebilder</span> ({damagePhotos.length})
-                    </TabsTrigger>
+                    <span>
+                      <TabsTrigger
+                        value="damage"
+                        className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all duration-300 text-xs md:text-sm flex-1 sm:flex-none"
+                      >
+                        <Wrench className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+                        <span className="hidden xs:inline">Skadebilder</span> ({damagePhotos.length})
+                      </TabsTrigger>
+                    </span>
                   </TooltipTrigger>
                   <TooltipContent>Bilder på skador och defekter</TooltipContent>
                 </Tooltip>
