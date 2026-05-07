@@ -1,15 +1,36 @@
+
 ## Problem
 
-Knapparna fyller inte hela bredden på mobil pga två saker:
-1. Varje `TabsTrigger` är inuti en `<span>` (Tooltip-wrapper) som inte har `flex-1`, så den yttre span:en begränsar bredden.
-2. `sm:flex-none` och `sm:w-auto` slår in vid 640px, men mobilvyn är upp till 768px (`md`).
+När Blocket-sync misslyckas visar UI:t bara "Edge Function returned a non-2xx status code". Det verkliga felet (t.ex. "Invalid token: Invalid JWT format") finns i edge-funktionens response body men läses aldrig ut.
 
-## Ändring
+## Orsak
 
-**`src/pages/CarDetail.tsx`** — 4 ändringar i samma område:
+I `src/lib/blocket.ts` rad 21–26 fångas `error` från `supabase.functions.invoke()`, men vid ett HTTP-fel (status 500) returnerar Supabase-klienten ett `FunctionsHttpError` där `.message` bara är det generiska meddelandet. Den faktiska JSON-bodyn med `{ error: "..." }` finns i `error.context` (response-objektet) men konsumeras aldrig.
 
-1. **TabsList (rad 2164):** Ändra `w-full sm:w-auto` → `w-full md:w-auto`
-2. **Alla tre `<span>`-wrappers (rad 2167, 2181, 2195):** Lägg till `className="flex-1 md:flex-none"` på span-elementen så de tar upp jämnt utrymme.
-3. **Alla tre TabsTrigger (rad 2170, 2184, 2198):** Ändra `flex-1 sm:flex-none` → `w-full md:w-auto md:flex-none` samt lägg till `w-full` på mobil.
+## Lösning
 
-Desktop (`md:` och uppåt) förblir exakt oförändrat.
+**Fil: `src/lib/blocket.ts`** — Uppdatera `syncCarToBlocket` så att den:
+1. Kontrollerar om `error` är en `FunctionsHttpError` 
+2. Läser ut response body via `error.context?.json()` för att extrahera det riktiga felmeddelandet
+3. Visar det riktiga meddelandet i felreturen
+
+Ändringen är ~5 rader i error-hanteringen, ingen annan fil berörs.
+
+## Teknisk detalj
+
+```typescript
+// Nuvarande (generiskt):
+if (error) {
+  return { ok: false, error: error.message };
+}
+
+// Nytt (specifikt):
+if (error) {
+  let detail = error.message;
+  try {
+    const body = await error.context?.json();
+    if (body?.error) detail = body.error;
+  } catch {}
+  return { ok: false, error: detail };
+}
+```
