@@ -20,9 +20,14 @@ export async function syncCarToBlocket(carId: string, imageUrls?: string[], comp
 
     if (error) {
       console.error("[Blocket] Sync error:", error);
+      let detail = error.message || "Failed to sync to Blocket";
+      try {
+        const body = await error.context?.json();
+        if (body?.error) detail = body.error;
+      } catch {}
       return {
         ok: false,
-        error: error.message || "Failed to sync to Blocket",
+        error: detail,
       };
     }
 
