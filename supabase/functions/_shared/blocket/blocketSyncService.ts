@@ -29,8 +29,8 @@ export interface BlocketCredentials {
 // Placeholders for required fields when the car has no real data yet.
 // Brand/model/body_type MUST be values that Blocket validates against — the user
 // can change them in Blocket once the ad is created (it stays invisible until then).
-const PLACEHOLDER_BRAND = "Volvo";
-const PLACEHOLDER_MODEL = "240";
+const PLACEHOLDER_BRAND = "volvo";
+const PLACEHOLDER_MODEL = "v70";
 const PLACEHOLDER_BODY_TYPE = "sedan";
 const PLACEHOLDER_TEXT = "FYLL";
 const PLACEHOLDER_YEAR = 1900;
@@ -128,8 +128,8 @@ export function mapCarToBlocketPayload(
   );
 
   // Required fields with placeholder fallback (Blocket-validated values)
-  const brand = (car.make || "").trim() || PLACEHOLDER_BRAND;
-  const model = (car.model || "").trim() || PLACEHOLDER_MODEL;
+  const brand = ((car.make || "").trim() || PLACEHOLDER_BRAND).toLowerCase();
+  const model = ((car.model || "").trim() || PLACEHOLDER_MODEL).toLowerCase();
   const modelYear =
     car.year && car.year >= 1900 && car.year <= 2100 ? car.year : PLACEHOLDER_YEAR;
   const bodyType = PLACEHOLDER_BODY_TYPE; // not yet stored on cars table
@@ -198,6 +198,32 @@ export function mapCarToBlocketPayload(
   return payload;
 }
 
+
+// If Blocket rejects the payload because brand/model are not in their registry,
+// retry with safe placeholders (Volvo 240) and force the ad to stay invisible.
+function applyBrandModelFallback(
+  payload: BlocketAdPayload,
+  error: unknown,
+): BlocketAdPayload | null {
+  const msg = error instanceof Error ? error.message : String(error);
+  const isBrandModelError =
+    /Invalid brand/i.test(msg) ||
+    /unknown brand/i.test(msg) ||
+    /Could not find models/i.test(msg);
+
+  if (!isBrandModelError) return null;
+
+  const cf = { ...payload.category_fields };
+  cf.brand = PLACEHOLDER_BRAND;
+  cf.model = PLACEHOLDER_MODEL;
+
+  return {
+    ...payload,
+    visible: false,
+    category_fields: cf,
+  };
+}
+
 export class BlocketSyncService {
   static async syncCar(
     carId: string,
@@ -252,17 +278,37 @@ export class BlocketSyncService {
     try {
       await BlocketClient.createAd(payload, token);
     } catch (e: any) {
-      console.error("[BlocketSync] createAd failed:", e?.message);
-      await upsertSyncRecord({
-        car_id: car.id,
-        source_id: sourceId,
-        state: "none",
-        last_action: "create",
-        last_action_state: "error",
-        last_synced_at: new Date().toISOString(),
-        last_error: e?.message || String(e),
-      });
-      throw e;
+      const fallback = applyBrandModelFallback(payload, e);
+      if (fallback) {
+        console.warn("[BlocketSync] createAd: invalid brand/model, retrying with placeholders");
+        try {
+          await BlocketClient.createAd(fallback, token);
+        } catch (e2: any) {
+          console.error("[BlocketSync] createAd fallback failed:", e2?.message);
+          await upsertSyncRecord({
+            car_id: car.id,
+            source_id: sourceId,
+            state: "none",
+            last_action: "create",
+            last_action_state: "error",
+            last_synced_at: new Date().toISOString(),
+            last_error: e2?.message || String(e2),
+          });
+          throw e2;
+        }
+      } else {
+        console.error("[BlocketSync] createAd failed:", e?.message);
+        await upsertSyncRecord({
+          car_id: car.id,
+          source_id: sourceId,
+          state: "none",
+          last_action: "create",
+          last_action_state: "error",
+          last_synced_at: new Date().toISOString(),
+          last_error: e?.message || String(e),
+        });
+        throw e;
+      }
     }
 
     await upsertSyncRecord({
@@ -290,14 +336,31 @@ export class BlocketSyncService {
     try {
       await BlocketClient.updateAd(sourceId, payload, token);
     } catch (e: any) {
-      console.error("[BlocketSync] updateAd failed:", e?.message);
-      await updateSyncRecord(car.id, {
-        last_action: "update",
-        last_action_state: "error",
-        last_synced_at: new Date().toISOString(),
-        last_error: e?.message || String(e),
-      });
-      throw e;
+      const fallback = applyBrandModelFallback(payload, e);
+      if (fallback) {
+        console.warn("[BlocketSync] updateAd: invalid brand/model, retrying with placeholders");
+        try {
+          await BlocketClient.updateAd(sourceId, fallback, token);
+        } catch (e2: any) {
+          console.error("[BlocketSync] updateAd fallback failed:", e2?.message);
+          await updateSyncRecord(car.id, {
+            last_action: "update",
+            last_action_state: "error",
+            last_synced_at: new Date().toISOString(),
+            last_error: e2?.message || String(e2),
+          });
+          throw e2;
+        }
+      } else {
+        console.error("[BlocketSync] updateAd failed:", e?.message);
+        await updateSyncRecord(car.id, {
+          last_action: "update",
+          last_action_state: "error",
+          last_synced_at: new Date().toISOString(),
+          last_error: e?.message || String(e),
+        });
+        throw e;
+      }
     }
 
     await updateSyncRecord(car.id, {

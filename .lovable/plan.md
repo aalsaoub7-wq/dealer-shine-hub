@@ -1,28 +1,41 @@
-## Problem
+# Plan
 
-I bildväljaren i `PlatformSyncDialog` visas porträttbilder som en smal vertikal remsa eftersom containern är `aspect-video` (16:9) och `<img>` använder `object-contain` – bilden brevlådas istället för att fylla rutan.
+## Mål
+Få Blocket-syncen att fungera även när bilens sparade `make`/`model` inte är giltiga Blocket-värden, istället för att hela flödet stoppar med ett 400-fel.
 
-## Fix (minimal, isolerad)
+## Vad jag kommer att ändra
 
-Låt Supabase Image Transformations göra croppningen serverside istället för CSS, exakt som tänkt. Endast bildväljaren i `PlatformSyncDialog.tsx` ändras.
+### 1. Härda backend-flödet i `supabase/functions/_shared/blocket/blocketSyncService.ts`
+- Tolka Blockets 400-svar för ogiltigt `brand`/`model`.
+- Om create/update faller på just dessa fält, göra **ett kontrollerat retry** med säkra Blocket-giltiga placeholders för märke/modell.
+- Se till att annonsen då skapas/uppdateras som **dold** så inget felaktigt publiceras öppet.
+- Behålla originalfelet i synkstatus så det går att se varför fallback användes.
 
-**`src/components/PlatformSyncDialog.tsx`** (rad 383 + 385)
+### 2. Förbättra funktionssvaret i `supabase/functions/blocket-sync/index.ts`
+- Returnera ett tydligare, strukturerat svar när fallback behövdes.
+- Skilja mellan:
+  - verkliga Blocket-fel som fortfarande ska stoppas
+  - recoverable brand/model-fel som backend nu kan lösa automatiskt
 
-- Skicka både `width` OCH `height` till `getOptimizedImageUrl` så Supabase returnerar en redan beskuren 16:9-thumbnail:
-  ```ts
-  src={getOptimizedImageUrl(photo.url, { width: 400, height: 225, quality: 60, resize: 'cover' })}
-  ```
-  (`resize: 'cover'` är redan default i `imageOptimization.ts` men jag är explicit.)
-- Byt tillbaka CSS från `object-contain` → `object-cover` så att den serverbeskurna 16:9-bilden fyller rutan utan ny förvrängning.
+### 3. Förbättra UI-feedback i `src/lib/blocket.ts` och/eller `src/hooks/useBlocketSync.ts`
+- Visa ett begripligt meddelande i stället för rå JSON från Blocket.
+- Exempel: att bilen synkades som dold annons eftersom märke/modell inte matchade Blockets register.
+- Låta övriga fel fortsätta visas som vanliga fel.
 
-## Vad som INTE ändras
+### 4. Verifiera med den bil som felar nu
+- Testa samma bil-id som gav felet (`a9cbd798-e6cd-446e-970d-30253efcbdd7`).
+- Kontrollera att edge-funktionen inte längre returnerar 400/500 för detta scenario.
+- Kontrollera att statusraden/toasten i UI blir begriplig.
 
-- `src/lib/imageOptimization.ts` – orörd, fungerar redan korrekt.
-- Original-URL (`photo.url`) används fortfarande för `selectedImagesList`, sync, share, `loadedImages`-Set och `onLoad` – inga andra flöden påverkas.
-- Huvudgalleriet (`PhotoGalleryDraggable`, `CarCard`) – orört.
-- Endast Supabase Storage-URLer transformeras (guard finns i `imageOptimization.ts`); externa URLer går rakt igenom oförändrade.
+## Tekniska detaljer
+- **Ingen databasmigration behövs.**
+- **Ingen ändring av bilformulären i detta steg.** Jag fixar blockeraren i sync-flödet först, med minimal risk.
+- Rotorsaken jag bekräftade är att bilen i databasen just nu har:
+  - `make = "Test För Johan"`
+  - `model = ""`
+- Nuvarande placeholder-logik täcker bara saknade värden, inte värden som är ifyllda men ogiltiga för Blocket. Det är därför felet fortfarande uppstår.
 
-## Validering
-
-- Verifiera att markering, sync till Bytbil/Blocket och share-funktionerna fortfarande får original-URL.
-- Verifiera i preview att bildväljaren visar fyllda 16:9-thumbnails utan zoom eller letterboxing.
+## Förväntat resultat
+- Syncen går igenom även för bilar med ogiltigt sparat märke/modell.
+- Annonsen hålls dold när fallback används.
+- Användaren får ett tydligt meddelande i UI istället för rå Blocket-JSON.
