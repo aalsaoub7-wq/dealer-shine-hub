@@ -332,11 +332,14 @@ export class BlocketSyncService {
     car: Car,
     token?: string,
   ) {
+    // Blocket disallows changing registration_number on update — strip it.
+    const { registration_number: _ignored, ...cfNoReg } = payload.category_fields;
+    const updatePayload: BlocketAdPayload = { ...payload, category_fields: cfNoReg };
     // Skip separate validateAd — update returns its own validation errors
     try {
-      await BlocketClient.updateAd(sourceId, payload, token);
+      await BlocketClient.updateAd(sourceId, updatePayload, token);
     } catch (e: any) {
-      const fallback = applyBrandModelFallback(payload, e);
+      const fallback = applyBrandModelFallback(updatePayload, e);
       if (fallback) {
         console.warn("[BlocketSync] updateAd: invalid brand/model, retrying with placeholders");
         try {
