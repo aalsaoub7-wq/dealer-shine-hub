@@ -117,6 +117,6 @@ export function formatBlocketStatus(status: any | null): string {
  * Returnerar felmeddelande om något saknas
  */
 export function validateCarForBlocket(_car: any): string | null {
-  // Backend hanterar saknade fält med placeholders (visible=false tills riktig data finns)
+  // Backend hanterar saknade eller ogiltiga Blocket-värden med säkra placeholders
   return null;
 }
