@@ -382,7 +382,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
                 <img
                   src={getOptimizedImageUrl(photo.url, { width: 400, quality: 60 })}
                   alt={`Bil bild ${index + 1}`}
-                  className={`aspect-video w-full rounded-lg object-cover transition-opacity duration-300 ${
+                  className={`aspect-video w-full rounded-lg bg-muted object-contain transition-opacity duration-300 ${
                     loadedImages.has(photo.url) ? "opacity-100" : "opacity-0"
                   }`}
                   loading="lazy"

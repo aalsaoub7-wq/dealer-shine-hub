@@ -1,37 +1,36 @@
 ## Problem
 
-I `PlatformSyncDialog.tsx` (image picker, rad 381) renderas `<img src={photo.url}>` — original­bilden i full kvalitet (ofta flera MB per bild). I en grid med många bilar betyder det stor onödig nedladdning bara för thumbnails.
+När jag bytte till `getOptimizedImageUrl` ser bilderna ut att zoomas in. Orsaken är **inte** transformations-URL:en — det är `object-cover` + `aspect-video` på `<img>`-taggen i picker:n som beskär bilden till 16:9 (samma uppsättning som main grid använder, men där råkar bilderna passa bättre).
+
+Användaren vill se **hela bilden** i picker:n, bara i lägre kvalitet.
 
 ## Lösning
 
-Använd den **befintliga** helpern `getOptimizedImageUrl` från `src/lib/imageOptimization.ts` som redan används i `CarCard`, `PhotoGalleryDraggable`, `LandingPagePreview`, `ImageLightbox` m.fl. Den konverterar Supabase Storage-URL:er till `/storage/v1/render/image/public/...` med width/quality-parametrar (Supabase egen on-the-fly transform — ingen ny edge function behövs).
+Två minimala justeringar i `PlatformSyncDialog.tsx` rad 384 och placeholder rad 392:
+
+1. Byt `object-cover` → `object-contain` på `<img>` så hela bilden visas (letterbox vid behov, ingen beskärning).
+2. Lägg till `bg-muted` på `<img>`-containern så letterbox-områdena får en neutral bakgrund (snyggare än transparent).
+
+Transform-URL:en förblir oförändrad (`width: 400, quality: 60`) — Supabase behåller bildens egna proportioner när bara `width` skickas, så servern beskär inte heller.
 
 ## Ändring (1 fil, 2 rader)
 
-**`src/components/PlatformSyncDialog.tsx`**
+**`src/components/PlatformSyncDialog.tsx`** rad 384:
+```tsx
+className={`aspect-video w-full rounded-lg bg-muted object-contain transition-opacity duration-300 ${
+```
 
-1. Lägg till import högst upp:
-   ```ts
-   import { getOptimizedImageUrl } from "@/lib/imageOptimization";
-   ```
+(byter `object-cover` → `bg-muted object-contain`)
 
-2. Rad 382 — byt `src={photo.url}` mot:
-   ```tsx
-   src={getOptimizedImageUrl(photo.url, { width: 400, quality: 60 })}
-   ```
+## Konsekvenser
 
-`width: 400` täcker grid-cols-2 thumbnails med marginal för retina. `quality: 60` matchar liknande thumbnail-användning i appen (CarCard använder default 75 men för en större tile).
+- **Inga andra flöden påverkas.** Endast två klassnamn på en `<img>`-tagg i picker:n.
+- Main grid (`PhotoGalleryDraggable`, `CarCard`) orörd — den använder fortfarande `object-cover` som tidigare.
+- Selection, sync, share, onLoad — allt orört.
+- Bilderna laddas fortfarande som ~400px-thumbnails (snabb laddning).
 
-## Konsekvenser och säkerhetscheck
+## Validering
 
-- **Helpern är defensiv**: returnerar original-URL oförändrad om den inte är en Supabase Storage public-URL. Externa URL:er, blob:, data: påverkas inte.
-- **`onLoad`-callbacken** använder `photo.url` som key i `loadedImages`-Set:et. Detta påverkas **inte** — vi byter bara `src`-attributet, inte värdet som skickas till `handleImageLoad(photo.url)` eller `loadedImages.has(photo.url)`. Skeleton-fade fungerar oförändrat.
-- **Selection-state** (`selectedImagesList.includes(photo.url)`, `toggleImage(photo.url)`): orört — använder fortfarande original-URL. Det som skickas vidare till sync/share är original­bilden i full kvalitet, vilket är rätt beteende (Blocket/social media ska ha högkvalitet).
-- **Inga andra filer rörs.** Inget annat flöde påverkas.
-
-## Validering efter ändring
-
-1. Öppna PlatformSyncDialog → bilder ska visa sig identiskt men nätverkstrafiken per bild minskar dramatiskt (DevTools Network → bildstorlek från MB till ~30-80 KB).
-2. Markera en bild → checkmark visas (selection orört).
-3. Trigga faktisk sync/share → den skickade URL:en är fortfarande original (full kvalitet).
-4. Skeleton-pulsen försvinner när bilden laddats (onLoad fungerar).
+1. Öppna PlatformSyncDialog → bilderna visas i sin helhet (inte zoomade), eventuella svarta/grå kanter på sidorna.
+2. Network tab → fortfarande små filer (~30-80 KB).
+3. Markera/avmarkera bilder → fungerar.
