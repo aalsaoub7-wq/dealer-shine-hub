@@ -17,6 +17,7 @@ import { useBlocketSync } from "@/hooks/useBlocketSync";
 import { useWaykeSync } from "@/hooks/useWaykeSync";
 
 import { supabase } from "@/integrations/supabase/client";
+import { getOptimizedImageUrl } from "@/lib/imageOptimization";
 import { RefreshCw, SquarePen } from "lucide-react";
 import { toast } from "sonner";
 
