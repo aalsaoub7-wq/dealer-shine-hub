@@ -1,36 +1,28 @@
 ## Problem
 
-När jag bytte till `getOptimizedImageUrl` ser bilderna ut att zoomas in. Orsaken är **inte** transformations-URL:en — det är `object-cover` + `aspect-video` på `<img>`-taggen i picker:n som beskär bilden till 16:9 (samma uppsättning som main grid använder, men där råkar bilderna passa bättre).
+I bildväljaren i `PlatformSyncDialog` visas porträttbilder som en smal vertikal remsa eftersom containern är `aspect-video` (16:9) och `<img>` använder `object-contain` – bilden brevlådas istället för att fylla rutan.
 
-Användaren vill se **hela bilden** i picker:n, bara i lägre kvalitet.
+## Fix (minimal, isolerad)
 
-## Lösning
+Låt Supabase Image Transformations göra croppningen serverside istället för CSS, exakt som tänkt. Endast bildväljaren i `PlatformSyncDialog.tsx` ändras.
 
-Två minimala justeringar i `PlatformSyncDialog.tsx` rad 384 och placeholder rad 392:
+**`src/components/PlatformSyncDialog.tsx`** (rad 383 + 385)
 
-1. Byt `object-cover` → `object-contain` på `<img>` så hela bilden visas (letterbox vid behov, ingen beskärning).
-2. Lägg till `bg-muted` på `<img>`-containern så letterbox-områdena får en neutral bakgrund (snyggare än transparent).
+- Skicka både `width` OCH `height` till `getOptimizedImageUrl` så Supabase returnerar en redan beskuren 16:9-thumbnail:
+  ```ts
+  src={getOptimizedImageUrl(photo.url, { width: 400, height: 225, quality: 60, resize: 'cover' })}
+  ```
+  (`resize: 'cover'` är redan default i `imageOptimization.ts` men jag är explicit.)
+- Byt tillbaka CSS från `object-contain` → `object-cover` så att den serverbeskurna 16:9-bilden fyller rutan utan ny förvrängning.
 
-Transform-URL:en förblir oförändrad (`width: 400, quality: 60`) — Supabase behåller bildens egna proportioner när bara `width` skickas, så servern beskär inte heller.
+## Vad som INTE ändras
 
-## Ändring (1 fil, 2 rader)
-
-**`src/components/PlatformSyncDialog.tsx`** rad 384:
-```tsx
-className={`aspect-video w-full rounded-lg bg-muted object-contain transition-opacity duration-300 ${
-```
-
-(byter `object-cover` → `bg-muted object-contain`)
-
-## Konsekvenser
-
-- **Inga andra flöden påverkas.** Endast två klassnamn på en `<img>`-tagg i picker:n.
-- Main grid (`PhotoGalleryDraggable`, `CarCard`) orörd — den använder fortfarande `object-cover` som tidigare.
-- Selection, sync, share, onLoad — allt orört.
-- Bilderna laddas fortfarande som ~400px-thumbnails (snabb laddning).
+- `src/lib/imageOptimization.ts` – orörd, fungerar redan korrekt.
+- Original-URL (`photo.url`) används fortfarande för `selectedImagesList`, sync, share, `loadedImages`-Set och `onLoad` – inga andra flöden påverkas.
+- Huvudgalleriet (`PhotoGalleryDraggable`, `CarCard`) – orört.
+- Endast Supabase Storage-URLer transformeras (guard finns i `imageOptimization.ts`); externa URLer går rakt igenom oförändrade.
 
 ## Validering
 
-1. Öppna PlatformSyncDialog → bilderna visas i sin helhet (inte zoomade), eventuella svarta/grå kanter på sidorna.
-2. Network tab → fortfarande små filer (~30-80 KB).
-3. Markera/avmarkera bilder → fungerar.
+- Verifiera att markering, sync till Bytbil/Blocket och share-funktionerna fortfarande får original-URL.
+- Verifiera i preview att bildväljaren visar fyllda 16:9-thumbnails utan zoom eller letterboxing.
