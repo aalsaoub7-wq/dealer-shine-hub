@@ -339,7 +339,7 @@ export class BlocketSyncService {
     try {
       await BlocketClient.updateAd(sourceId, updatePayload, token);
     } catch (e: any) {
-      const fallback = applyBrandModelFallback(payload, e);
+      const fallback = applyBrandModelFallback(updatePayload, e);
       if (fallback) {
         console.warn("[BlocketSync] updateAd: invalid brand/model, retrying with placeholders");
         try {
