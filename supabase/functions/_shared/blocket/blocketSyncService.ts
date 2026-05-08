@@ -116,6 +116,56 @@ function sanitizeImageUrls(urls: string[] | undefined): string[] {
     .slice(0, MAX_IMAGES);
 }
 
+function parseBlocketApiError(error: unknown): { status?: number; body?: Record<string, unknown> } {
+  const message = error instanceof Error ? error.message : String(error);
+  const match = message.match(/^Blocket API error (\d+):\s*([\s\S]+)$/);
+
+  if (!match) return {};
+
+  const status = Number(match[1]);
+  const rawBody = match[2]?.trim();
+
+  if (!rawBody) return { status };
+
+  try {
+    return { status, body: JSON.parse(rawBody) as Record<string, unknown> };
+  } catch {
+    return { status };
+  }
+}
+
+function shouldRetryWithPlaceholderVehicleData(error: unknown, payload: BlocketAdPayload): boolean {
+  const parsed = parseBlocketApiError(error);
+  if (parsed.status !== 400 || !parsed.body) return false;
+
+  const categoryFields = parsed.body.category_fields;
+  if (!categoryFields || typeof categoryFields !== "object") return false;
+
+  const hasVehicleValidationError = ["brand", "model", "body_type"].some((field) =>
+    field in (categoryFields as Record<string, unknown>)
+  );
+
+  const alreadyUsingPlaceholders =
+    payload.category_fields.brand === PLACEHOLDER_BRAND &&
+    payload.category_fields.model === PLACEHOLDER_MODEL &&
+    payload.category_fields.body_type === PLACEHOLDER_BODY_TYPE;
+
+  return hasVehicleValidationError && !alreadyUsingPlaceholders;
+}
+
+function withPlaceholderVehicleData(payload: BlocketAdPayload): BlocketAdPayload {
+  return {
+    ...payload,
+    visible: false,
+    category_fields: {
+      ...payload.category_fields,
+      brand: PLACEHOLDER_BRAND,
+      model: PLACEHOLDER_MODEL,
+      body_type: PLACEHOLDER_BODY_TYPE,
+    },
+  };
+}
+
 // ---- Payload mapping ----
 
 export function mapCarToBlocketPayload(
@@ -253,16 +303,35 @@ export class BlocketSyncService {
       await BlocketClient.createAd(payload, token);
     } catch (e: any) {
       console.error("[BlocketSync] createAd failed:", e?.message);
-      await upsertSyncRecord({
-        car_id: car.id,
-        source_id: sourceId,
-        state: "none",
-        last_action: "create",
-        last_action_state: "error",
-        last_synced_at: new Date().toISOString(),
-        last_error: e?.message || String(e),
-      });
-      throw e;
+      if (shouldRetryWithPlaceholderVehicleData(e, payload)) {
+        console.warn("[BlocketSync] Retrying createAd with placeholder brand/model/body_type");
+        try {
+          await BlocketClient.createAd(withPlaceholderVehicleData(payload), token);
+        } catch (retryError: any) {
+          console.error("[BlocketSync] placeholder createAd retry failed:", retryError?.message);
+          await upsertSyncRecord({
+            car_id: car.id,
+            source_id: sourceId,
+            state: "none",
+            last_action: "create",
+            last_action_state: "error",
+            last_synced_at: new Date().toISOString(),
+            last_error: retryError?.message || String(retryError),
+          });
+          throw retryError;
+        }
+      } else {
+        await upsertSyncRecord({
+          car_id: car.id,
+          source_id: sourceId,
+          state: "none",
+          last_action: "create",
+          last_action_state: "error",
+          last_synced_at: new Date().toISOString(),
+          last_error: e?.message || String(e),
+        });
+        throw e;
+      }
     }
 
     await upsertSyncRecord({
@@ -291,13 +360,29 @@ export class BlocketSyncService {
       await BlocketClient.updateAd(sourceId, payload, token);
     } catch (e: any) {
       console.error("[BlocketSync] updateAd failed:", e?.message);
-      await updateSyncRecord(car.id, {
-        last_action: "update",
-        last_action_state: "error",
-        last_synced_at: new Date().toISOString(),
-        last_error: e?.message || String(e),
-      });
-      throw e;
+      if (shouldRetryWithPlaceholderVehicleData(e, payload)) {
+        console.warn("[BlocketSync] Retrying updateAd with placeholder brand/model/body_type");
+        try {
+          await BlocketClient.updateAd(sourceId, withPlaceholderVehicleData(payload), token);
+        } catch (retryError: any) {
+          console.error("[BlocketSync] placeholder updateAd retry failed:", retryError?.message);
+          await updateSyncRecord(car.id, {
+            last_action: "update",
+            last_action_state: "error",
+            last_synced_at: new Date().toISOString(),
+            last_error: retryError?.message || String(retryError),
+          });
+          throw retryError;
+        }
+      } else {
+        await updateSyncRecord(car.id, {
+          last_action: "update",
+          last_action_state: "error",
+          last_synced_at: new Date().toISOString(),
+          last_error: e?.message || String(e),
+        });
+        throw e;
+      }
     }
 
     await updateSyncRecord(car.id, {
