@@ -180,13 +180,21 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
     }
     setSavingCredentials(true);
     try {
+      // Get current user for user_id (required by ai_settings)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Inte inloggad");
+
+      // Use upsert to handle both existing and missing ai_settings rows
       const { error } = await supabase
         .from("ai_settings")
-        .update({
+        .upsert({
+          user_id: user.id,
+          company_id: car.company_id,
           blocket_api_token: blocketForm.blocket_api_token,
           blocket_dealer_code: blocketForm.blocket_dealer_code || null,
-        })
-        .eq("company_id", car.company_id);
+        }, {
+          onConflict: "company_id",
+        });
 
       if (error) throw error;
 
