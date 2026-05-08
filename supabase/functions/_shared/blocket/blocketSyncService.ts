@@ -198,6 +198,32 @@ export function mapCarToBlocketPayload(
   return payload;
 }
 
+
+// If Blocket rejects the payload because brand/model are not in their registry,
+// retry with safe placeholders (Volvo 240) and force the ad to stay invisible.
+function applyBrandModelFallback(
+  payload: BlocketAdPayload,
+  error: unknown,
+): BlocketAdPayload | null {
+  const msg = error instanceof Error ? error.message : String(error);
+  const isBrandModelError =
+    /Invalid brand/i.test(msg) ||
+    /unknown brand/i.test(msg) ||
+    /Could not find models/i.test(msg);
+
+  if (!isBrandModelError) return null;
+
+  const cf = { ...payload.category_fields };
+  cf.brand = PLACEHOLDER_BRAND;
+  cf.model = PLACEHOLDER_MODEL;
+
+  return {
+    ...payload,
+    visible: false,
+    category_fields: cf,
+  };
+}
+
 export class BlocketSyncService {
   static async syncCar(
     carId: string,
