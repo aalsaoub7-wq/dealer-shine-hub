@@ -27,6 +27,11 @@ export interface BlocketCredentials {
 }
 
 // Placeholders for required fields when the car has no real data yet.
+// Brand/model/body_type MUST be values that Blocket validates against — the user
+// can change them in Blocket once the ad is created (it stays invisible until then).
+const PLACEHOLDER_BRAND = "Volvo";
+const PLACEHOLDER_MODEL = "240";
+const PLACEHOLDER_BODY_TYPE = "sedan";
 const PLACEHOLDER_TEXT = "FYLL";
 const PLACEHOLDER_YEAR = 1900;
 const PLACEHOLDER_PRICE = 1;
@@ -122,12 +127,12 @@ export function mapCarToBlocketPayload(
     imageUrls && imageUrls.length > 0 ? imageUrls : car.image_urls,
   );
 
-  // Required fields with placeholder fallback
-  const brand = (car.make || "").trim() || PLACEHOLDER_TEXT;
-  const model = (car.model || "").trim() || PLACEHOLDER_TEXT;
+  // Required fields with placeholder fallback (Blocket-validated values)
+  const brand = (car.make || "").trim() || PLACEHOLDER_BRAND;
+  const model = (car.model || "").trim() || PLACEHOLDER_MODEL;
   const modelYear =
     car.year && car.year >= 1900 && car.year <= 2100 ? car.year : PLACEHOLDER_YEAR;
-  const bodyType = PLACEHOLDER_TEXT; // not yet stored on cars table
+  const bodyType = PLACEHOLDER_BODY_TYPE; // not yet stored on cars table
 
   const body =
     (car.description && car.description.trim()) ||
@@ -139,9 +144,9 @@ export function mapCarToBlocketPayload(
 
   // Track whether we used any placeholders → keep ad invisible until real data arrives
   const usedPlaceholder =
-    brand === PLACEHOLDER_TEXT ||
-    model === PLACEHOLDER_TEXT ||
-    bodyType === PLACEHOLDER_TEXT ||
+    brand === PLACEHOLDER_BRAND ||
+    model === PLACEHOLDER_MODEL ||
+    bodyType === PLACEHOLDER_BODY_TYPE ||
     modelYear === PLACEHOLDER_YEAR ||
     body === PLACEHOLDER_TEXT ||
     priceAmount === PLACEHOLDER_PRICE;
