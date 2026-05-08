@@ -422,7 +422,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
               Konfigurera Blocket
             </DialogTitle>
             <DialogDescription>
-              Ange din Blocket <strong>X-Auth-Token</strong> (JWT) för Pro Import API v3. Kontakta Blockets butikssupport på <strong>butikssupport@blocket.se</strong> och be om en <strong>"X-Auth-Token för Pro Import API v3"</strong>. Saknade fält på bilen fylls med platshållare och annonsen skapas dold (visible: false) tills du kompletterat informationen.
+              Ange din Blocket <strong>X-Auth-Token</strong> (JWT) för Pro Import API v3. Kontakta Blockets butikssupport på <strong>butikssupport@blocket.se</strong> och be om både en <strong>"X-Auth-Token för Pro Import API v3"</strong> och din <strong>dealer-kod (dealer_group)</strong> – båda krävs för att kunna synka. Saknade fält på bilen fylls med platshållare och annonsen skapas dold (visible: false) tills du kompletterat informationen.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -437,15 +437,15 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="blocket_dealer_code">Dealer-kod (valfritt)</Label>
+              <Label htmlFor="blocket_dealer_code">Dealer-kod *</Label>
               <Input
                 id="blocket_dealer_code"
-                placeholder="Lämna tomt om du är osäker"
+                placeholder="Din dealer-kod (dealer_group) från Blocket"
                 value={blocketForm.blocket_dealer_code}
                 onChange={(e) => setBlocketForm(f => ({ ...f, blocket_dealer_code: e.target.value }))}
               />
               <p className="text-xs text-muted-foreground">
-                Endast om din token gäller en kundgrupp (dealer_group). Lämna tomt annars.
+                Krävs. Be Blockets butikssupport om din dealer-kod (dealer_group) samtidigt som du beställer X-Auth-Token.
               </p>
             </div>
           </div>
