@@ -27,6 +27,11 @@ export interface BlocketCredentials {
 }
 
 // Placeholders for required fields when the car has no real data yet.
+// Brand/model/body_type MUST be values that Blocket validates against — the user
+// can change them in Blocket once the ad is created (it stays invisible until then).
+const PLACEHOLDER_BRAND = "Volvo";
+const PLACEHOLDER_MODEL = "240";
+const PLACEHOLDER_BODY_TYPE = "sedan";
 const PLACEHOLDER_TEXT = "FYLL";
 const PLACEHOLDER_YEAR = 1900;
 const PLACEHOLDER_PRICE = 1;
