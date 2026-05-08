@@ -17,6 +17,7 @@ import { useBlocketSync } from "@/hooks/useBlocketSync";
 import { useWaykeSync } from "@/hooks/useWaykeSync";
 
 import { supabase } from "@/integrations/supabase/client";
+import { getOptimizedImageUrl } from "@/lib/imageOptimization";
 import { RefreshCw, SquarePen } from "lucide-react";
 import { toast } from "sonner";
 
@@ -379,7 +380,7 @@ export function PlatformSyncDialog({ open, onOpenChange, carId, car, photos }: P
                 onClick={() => toggleImage(photo.url)}
               >
                 <img
-                  src={photo.url}
+                  src={getOptimizedImageUrl(photo.url, { width: 400, quality: 60 })}
                   alt={`Bil bild ${index + 1}`}
                   className={`aspect-video w-full rounded-lg object-cover transition-opacity duration-300 ${
                     loadedImages.has(photo.url) ? "opacity-100" : "opacity-0"
