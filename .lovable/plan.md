@@ -1,42 +1,37 @@
 ## Problem
 
-Blocket avvisar bilen med 400 eftersom `brand`, `model` och `body_type` skickas som `"FYLL"` / `"Test För Johan"` — värden som inte finns i Blockets validerings­lista. Det blir omöjligt att synka ofullständiga bilar.
+I `PlatformSyncDialog.tsx` (image picker, rad 381) renderas `<img src={photo.url}>` — original­bilden i full kvalitet (ofta flera MB per bild). I en grid med många bilar betyder det stor onödig nedladdning bara för thumbnails.
 
 ## Lösning
 
-Byt ut placeholders i `mapCarToBlocketPayload` mot **giltiga** standardvärden som Blocket accepterar. Annonsen läggs upp som **osynlig** (precis som idag via `visible: false` när placeholder används), och användaren rättar sedan datan direkt i Blocket eller i Luvero.
+Använd den **befintliga** helpern `getOptimizedImageUrl` från `src/lib/imageOptimization.ts` som redan används i `CarCard`, `PhotoGalleryDraggable`, `LandingPagePreview`, `ImageLightbox` m.fl. Den konverterar Supabase Storage-URL:er till `/storage/v1/render/image/public/...` med width/quality-parametrar (Supabase egen on-the-fly transform — ingen ny edge function behövs).
 
-## Ändring (1 fil)
+## Ändring (1 fil, 2 rader)
 
-**`supabase/functions/_shared/blocket/blocketSyncService.ts`** (rad 29–32, 126–155)
+**`src/components/PlatformSyncDialog.tsx`**
 
-Lägg till nya konstanter och använd dem som fallback:
+1. Lägg till import högst upp:
+   ```ts
+   import { getOptimizedImageUrl } from "@/lib/imageOptimization";
+   ```
 
-```ts
-const PLACEHOLDER_BRAND = "Volvo";       // accepterat märke
-const PLACEHOLDER_MODEL = "240";         // accepterad modell för Volvo
-const PLACEHOLDER_BODY_TYPE = "sedan";   // giltig body_type
-const PLACEHOLDER_TEXT = "FYLL";         // behålls för body/description
-const PLACEHOLDER_YEAR = 1900;
-const PLACEHOLDER_PRICE = 1;
-```
+2. Rad 382 — byt `src={photo.url}` mot:
+   ```tsx
+   src={getOptimizedImageUrl(photo.url, { width: 400, quality: 60 })}
+   ```
 
-I `mapCarToBlocketPayload`:
-- `brand` → `PLACEHOLDER_BRAND` om tom
-- `model` → `PLACEHOLDER_MODEL` om tom
-- `bodyType` → `PLACEHOLDER_BODY_TYPE` (alltid, tills fältet finns på cars-tabellen)
-- `usedPlaceholder`-flaggan justeras att jämföra mot de nya konstanterna så annonsen fortsatt blir `visible: false` när data saknas.
+`width: 400` täcker grid-cols-2 thumbnails med marginal för retina. `quality: 60` matchar liknande thumbnail-användning i appen (CarCard använder default 75 men för en större tile).
 
-## Konsekvenser och säkerhet
+## Konsekvenser och säkerhetscheck
 
-- **Inga andra flöden påverkas.** Endast payload-mappningen ändras.
-- Annonsen blir fortfarande **osynlig på Blocket** så länge placeholder används → ingen risk att en "Volvo 240 sedan från 1900 för 1 kr" syns publikt.
-- Användaren ändrar enkelt fälten i Blockets gränssnitt eller fyller i bilen i Luvero och synkar igen.
-- Frontend, edge function-routing, auth, DB-schema, Stripe — orört.
+- **Helpern är defensiv**: returnerar original-URL oförändrad om den inte är en Supabase Storage public-URL. Externa URL:er, blob:, data: påverkas inte.
+- **`onLoad`-callbacken** använder `photo.url` som key i `loadedImages`-Set:et. Detta påverkas **inte** — vi byter bara `src`-attributet, inte värdet som skickas till `handleImageLoad(photo.url)` eller `loadedImages.has(photo.url)`. Skeleton-fade fungerar oförändrat.
+- **Selection-state** (`selectedImagesList.includes(photo.url)`, `toggleImage(photo.url)`): orört — använder fortfarande original-URL. Det som skickas vidare till sync/share är original­bilden i full kvalitet, vilket är rätt beteende (Blocket/social media ska ha högkvalitet).
+- **Inga andra filer rörs.** Inget annat flöde påverkas.
 
 ## Validering efter ändring
 
-1. Synka samma testbil → ska returnera 200 från Blocket istället för 400.
-2. Kolla edge function logs: `[BlocketClient] Creating ad with source_id: ...` följt av success, ingen `API error 400`.
-3. Bekräfta i `blocket_ad_sync`-tabellen att `state = 'created'` och `last_error IS NULL`.
-4. Bekräfta att bilen ligger som **dold/osynlig** i Blocket-portalen.
+1. Öppna PlatformSyncDialog → bilder ska visa sig identiskt men nätverkstrafiken per bild minskar dramatiskt (DevTools Network → bildstorlek från MB till ~30-80 KB).
+2. Markera en bild → checkmark visas (selection orört).
+3. Trigga faktisk sync/share → den skickade URL:en är fortfarande original (full kvalitet).
+4. Skeleton-pulsen försvinner när bilden laddats (onLoad fungerar).
