@@ -82,8 +82,19 @@ serve(async (req) => {
       .eq("company_id", car.company_id)
       .maybeSingle();
 
+    const companyToken = aiSettings?.blocket_api_token?.trim();
+    if (!companyToken) {
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: "Blocket-token saknas för detta företag. Gå till Plattformar → Blocket och ange din X-Auth-Token.",
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     const credentials = {
-      apiToken: aiSettings?.blocket_api_token?.trim() || Deno.env.get("BLOCKET_API_TOKEN") || "",
+      apiToken: companyToken,
       dealerCode: aiSettings?.blocket_dealer_code?.trim() || undefined,
     };
 
