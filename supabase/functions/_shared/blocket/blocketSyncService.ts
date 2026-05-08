@@ -128,8 +128,8 @@ export function mapCarToBlocketPayload(
   );
 
   // Required fields with placeholder fallback (Blocket-validated values)
-  const brand = (car.make || "").trim() || PLACEHOLDER_BRAND;
-  const model = (car.model || "").trim() || PLACEHOLDER_MODEL;
+  const brand = ((car.make || "").trim() || PLACEHOLDER_BRAND).toLowerCase();
+  const model = ((car.model || "").trim() || PLACEHOLDER_MODEL).toLowerCase();
   const modelYear =
     car.year && car.year >= 1900 && car.year <= 2100 ? car.year : PLACEHOLDER_YEAR;
   const bodyType = PLACEHOLDER_BODY_TYPE; // not yet stored on cars table
