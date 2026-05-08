@@ -11,6 +11,16 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function getHttpStatusForError(error: unknown): number {
+  const message = error instanceof Error ? error.message : String(error);
+  const match = message.match(/^Blocket API error (\d+):/);
+
+  if (!match) return 500;
+
+  const status = Number(match[1]);
+  return Number.isFinite(status) && status >= 400 && status < 500 ? 400 : 500;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -115,7 +125,7 @@ serve(async (req) => {
         ok: false,
         error: error?.message || "An internal error occurred while syncing to Blocket",
       }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { status: getHttpStatusForError(error), headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
