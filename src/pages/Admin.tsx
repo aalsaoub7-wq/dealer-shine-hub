@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Copy, Check, ArrowLeft, Trash2, Upload, Plus, Search, RefreshCw } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import GeminiPlayground from "@/components/admin/GeminiPlayground";
 
 // Admin company ID - only users in this company can access admin page
 const ADMIN_COMPANY_ID = 'e0496e49-c30b-4fbd-a346-d8dfeacdf1ea';
@@ -550,13 +551,14 @@ const Admin = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="customers" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 md:w-auto md:inline-flex">
+          <TabsList className="grid w-full grid-cols-5 md:w-auto md:inline-flex">
             <TabsTrigger value="customers">Kunder</TabsTrigger>
             <TabsTrigger value="leads">
               Leads {leads.length > 0 && `(${leads.length})`}
             </TabsTrigger>
             <TabsTrigger value="backgrounds">Bakgrunder</TabsTrigger>
             <TabsTrigger value="billing">Billing</TabsTrigger>
+            <TabsTrigger value="gemini-test">Gemini Test</TabsTrigger>
           </TabsList>
 
           {/* Customers Tab */}
@@ -1116,6 +1118,11 @@ const Admin = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Gemini Test Tab */}
+          <TabsContent value="gemini-test" className="space-y-6 mt-6">
+            <GeminiPlayground />
           </TabsContent>
         </Tabs>
       </div>
