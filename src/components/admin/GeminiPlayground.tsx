@@ -6,25 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const MODEL_OPTIONS: { value: string; label: string }[] = [
-  { value: "google/gemini-3-flash-preview", label: "Gemini 3 Flash (preview)" },
-  { value: "google/gemini-3.1-pro-preview", label: "Gemini 3.1 Pro (preview)" },
-  { value: "google/gemini-3.1-flash-lite-preview", label: "Gemini 3.1 Flash Lite (preview)" },
-  { value: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro" },
-  { value: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash" },
-  { value: "google/gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite" },
+  { value: "google/gemini-3.1-flash-image-preview", label: "Gemini 3.1 Flash Image (Nano Banana 2)" },
   { value: "google/gemini-2.5-flash-image", label: "Gemini 2.5 Flash Image (Nano Banana)" },
   { value: "google/gemini-3-pro-image-preview", label: "Gemini 3 Pro Image (preview)" },
-  { value: "google/gemini-3.1-flash-image-preview", label: "Gemini 3.1 Flash Image (Nano Banana 2)" },
-  { value: "openai/gpt-5", label: "GPT-5" },
-  { value: "openai/gpt-5-mini", label: "GPT-5 Mini" },
-  { value: "openai/gpt-5-nano", label: "GPT-5 Nano" },
-  { value: "openai/gpt-5.2", label: "GPT-5.2" },
-  { value: "openai/gpt-5.4", label: "GPT-5.4" },
-  { value: "openai/gpt-5.4-mini", label: "GPT-5.4 Mini" },
-  { value: "openai/gpt-5.4-nano", label: "GPT-5.4 Nano" },
-  { value: "openai/gpt-5.4-pro", label: "GPT-5.4 Pro" },
-  { value: "openai/gpt-5.5", label: "GPT-5.5" },
-  { value: "openai/gpt-5.5-pro", label: "GPT-5.5 Pro" },
 ];
 import { Label } from "@/components/ui/label";
 import { Loader2, X } from "lucide-react";
@@ -41,7 +25,7 @@ const fileToDataUrl = (file: File): Promise<string> =>
 
 export default function GeminiPlayground() {
   const [prompt, setPrompt] = useState("");
-  const [model, setModel] = useState("google/gemini-3-flash-preview");
+  const [model, setModel] = useState("google/gemini-3.1-flash-image-preview");
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -120,6 +104,9 @@ export default function GeminiPlayground() {
               ))}
             </SelectContent>
           </Select>
+          <p className="text-xs text-muted-foreground">
+            Endast bildmodeller — text-only modeller stöds inte i denna tab.
+          </p>
         </div>
 
         <div className="space-y-2">
