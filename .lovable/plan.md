@@ -1,64 +1,36 @@
-# Lägg till Gemini-testflik i Admin
+## Problem
 
-Mål: Ge dig en plats i `/admin` där du kan skicka en prompt + bilder till Gemini och se svaret. Allt isolerat — inga befintliga flöden rörs.
+You picked **Gemini 3 Pro Image (preview)** and got an empty response. The model didn't fail — image-generation models return their output as **image data**, not as `message.content` text. The current code only reads `data.choices[0].message.content` and ignores everything else, so it sets `text = ""` and you see nothing.
 
-## Vad som ändras (minimalt)
+The Lovable AI Gateway returns generated images on the assistant message in one of these shapes (OpenAI-compatible):
+- `choices[0].message.images: [{ image_url: { url: "data:image/png;base64,..." } }]`
+- and/or content parts with `{ type: "image_url", image_url: { url: "..." } }`
 
-### 1. `src/pages/Admin.tsx` (4 små additiva rader)
-- Ändra `grid-cols-4` → `grid-cols-5` på `TabsList` (rad 553).
-- Lägg till `<TabsTrigger value="gemini-test">Gemini Test</TabsTrigger>`.
-- Lägg till `<TabsContent value="gemini-test">…<GeminiPlayground /></TabsContent>` i slutet av Tabs.
-- Importera `GeminiPlayground`.
+## Fix (minimal, isolated to the Gemini Test tab)
 
-Inget annat i filen rörs. Default-tab är fortfarande `customers`.
+**1. `supabase/functions/gemini-playground/index.ts`**
+- Extract images from the assistant message in addition to text:
+  - Collect URLs from `message.images[].image_url.url`
+  - Also scan `message.content` if it's an array, picking `image_url` parts
+- Return `{ text, images: string[], raw }` (keep `text` for backward compat, add `images`).
+- No other logic changes; no auth/RLS/CORS changes.
 
-### 2. Ny fil `src/components/admin/GeminiPlayground.tsx` (isolerad)
-- Egen lokal state: `prompt`, `images: File[]`, `response`, `loading`.
-- UI: Textarea för prompt, file input (multiple, accept image/*), liten thumbnail-preview, "Skicka"-knapp, response-area.
-- Konverterar varje bild till base64 data URL i browsern.
-- Anropar ny edge function `gemini-playground` via `supabase.functions.invoke`.
-- Använder befintlig design (Card, Button, Textarea, Input). Inga nya deps.
+**2. `src/components/admin/GeminiPlayground.tsx`**
+- Add `responseImages: string[]` state alongside existing `response` text.
+- After invoke, set `responseImages = data.images ?? []` and `response = data.text ?? ""`.
+- Below the "Svar" text block, render a grid of returned images (`<img src={dataUrl} />`) with a small "Ladda ner"-link (`<a download href={...}>`) per image.
+- If the response has neither text nor images, show a clear message (`"Modellen returnerade inget innehåll"`) so it's never silently blank again.
 
-### 3. Ny edge function `supabase/functions/gemini-playground/index.ts` (isolerad, ny)
-- Standard CORS + JWT-validering på samma sätt som övriga functions.
-- Tar `{ prompt: string, images: string[] (data URLs), model?: string }`.
-- Anropar `https://ai.gateway.lovable.dev/v1/chat/completions` med `LOVABLE_API_KEY` (redan satt).
-- Default-modell: `google/gemini-3-flash-preview` (multimodal).
-- Skickar bilder som `image_url`-content-parts enligt OpenAI-kompatibelt format.
-- Hanterar 429/402 och returnerar texten från `choices[0].message.content`.
-- Ny config-block i `supabase/config.toml` behövs ej (default räcker).
+## Out of scope / untouched
 
-## Konsekvensanalys
+- No changes to Admin.tsx, other tabs, billing, blocket-sync, wayke-sync, photo-edit flows, or any existing edge function.
+- No DB / RLS / config.toml changes.
+- No model list changes.
 
-- **Inga ändringar** i: blocket-sync, wayke-sync, billing, leads, backgrounds, auth, RLS, DB-schema, storage, befintliga edge functions.
-- **Admin.tsx**: enda diff är tabs grid-cols + ny trigger + ny TabsContent. Övriga tabs och deras logik orörda.
-- **Ny edge function**: deployas separat, kan inte påverka existerande functions.
-- **Ingen ny dependency** i package.json.
-- **Inga DB-migrationer**.
-- **Åtkomst**: Admin-routen är redan skyddad — ingen extra gating behövs. (Vill du dessutom låsa fliken till bara ditt admin-konto, säg till så lägger jag in samma `aalsaoub7@gmail.com`-check som Shield-ikonen, men det är inte nödvändigt eftersom hela /admin redan är admin-only.)
+## Validation after implementation
 
-## Validering efter implementation
-
-1. Bygg passerar (typecheck via harness).
-2. Öppna `/admin` → klicka igenom Kunder/Leads/Bakgrunder/Billing → bekräfta att inget renderar fel.
-3. Klicka nya fliken → skicka prompt utan bild → få svar.
-4. Skicka prompt + 1 bild → få svar.
-5. Inspektera Network: bara `gemini-playground` anropas, inga andra functions berörs.
-
-## Tekniska detaljer
-
-Edge function payload till AI-gateway:
-```json
-{
-  "model": "google/gemini-3-flash-preview",
-  "messages": [{
-    "role": "user",
-    "content": [
-      { "type": "text", "text": "<prompt>" },
-      { "type": "image_url", "image_url": { "url": "data:image/png;base64,..." } }
-    ]
-  }]
-}
-```
-
-Säg till om du vill att jag kör — då implementerar jag exakt detta utan scope-creep.
+- Build passes.
+- `/admin` → "Gemini Test" tab still renders.
+- Text model (e.g. `google/gemini-3-flash-preview`) → text response shows as before.
+- Image model (`google/gemini-3-pro-image-preview`) with your prompt + uploaded car photo → returned image is shown and downloadable.
+- Network tab: only `gemini-playground` is called; no other flow touched.

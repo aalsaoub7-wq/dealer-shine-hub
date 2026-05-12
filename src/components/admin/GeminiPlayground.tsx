@@ -46,6 +46,8 @@ export default function GeminiPlayground() {
   const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState("");
+  const [responseImages, setResponseImages] = useState<string[]>([]);
+  const [hasResult, setHasResult] = useState(false);
 
   const handleFiles = (list: FileList | null) => {
     if (!list) return;
@@ -72,6 +74,8 @@ export default function GeminiPlayground() {
     }
     setLoading(true);
     setResponse("");
+    setResponseImages([]);
+    setHasResult(false);
     try {
       const images = await Promise.all(files.map(fileToDataUrl));
       const { data, error } = await supabase.functions.invoke("gemini-playground", {
@@ -80,11 +84,14 @@ export default function GeminiPlayground() {
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
       setResponse((data as any)?.text ?? "");
+      setResponseImages(((data as any)?.images ?? []) as string[]);
+      setHasResult(true);
     } catch (e: any) {
       console.error(e);
       const msg = e?.message || "Något gick fel";
       toast.error(msg);
       setResponse(`Fel: ${msg}`);
+      setHasResult(true);
     } finally {
       setLoading(false);
     }
@@ -165,6 +172,32 @@ export default function GeminiPlayground() {
           <div className="space-y-2">
             <Label>Svar</Label>
             <div className="rounded-md border bg-muted p-4 whitespace-pre-wrap text-sm">{response}</div>
+          </div>
+        )}
+
+        {responseImages.length > 0 && (
+          <div className="space-y-2">
+            <Label>Genererade bilder</Label>
+            <div className="flex flex-wrap gap-3">
+              {responseImages.map((src, i) => (
+                <div key={i} className="space-y-1">
+                  <img src={src} alt={`gemini-${i}`} className="max-h-96 rounded border" />
+                  <a
+                    href={src}
+                    download={`gemini-${Date.now()}-${i}.png`}
+                    className="text-xs underline block"
+                  >
+                    Ladda ner
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {hasResult && !response && responseImages.length === 0 && (
+          <div className="rounded-md border bg-muted p-4 text-sm text-muted-foreground">
+            Modellen returnerade inget innehåll. Prova en annan modell eller justera prompten.
           </div>
         )}
       </CardContent>
