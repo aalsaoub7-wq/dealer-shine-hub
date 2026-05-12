@@ -44,7 +44,13 @@ Deno.serve(async (req) => {
 
     const prompt: string = typeof body.prompt === 'string' ? body.prompt : '';
     const images: string[] = Array.isArray(body.images) ? body.images.filter((x: unknown) => typeof x === 'string') : [];
-    const model: string = typeof body.model === 'string' && body.model.trim() ? body.model : 'google/gemini-3-flash-preview';
+    const ALLOWED_MODELS = new Set([
+      'google/gemini-3.1-flash-image-preview',
+      'google/gemini-2.5-flash-image',
+      'google/gemini-3-pro-image-preview',
+    ]);
+    const requested: string = typeof body.model === 'string' && body.model.trim() ? body.model : 'google/gemini-3.1-flash-image-preview';
+    const model: string = ALLOWED_MODELS.has(requested) ? requested : 'google/gemini-3.1-flash-image-preview';
 
     if (!prompt.trim() && images.length === 0) {
       return new Response(JSON.stringify({ error: 'prompt or images required' }), {
