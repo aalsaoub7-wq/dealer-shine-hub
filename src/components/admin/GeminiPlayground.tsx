@@ -3,6 +3,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const MODEL_OPTIONS: { value: string; label: string }[] = [
+  { value: "google/gemini-3-flash-preview", label: "Gemini 3 Flash (preview)" },
+  { value: "google/gemini-3.1-pro-preview", label: "Gemini 3.1 Pro (preview)" },
+  { value: "google/gemini-3.1-flash-lite-preview", label: "Gemini 3.1 Flash Lite (preview)" },
+  { value: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro" },
+  { value: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash" },
+  { value: "google/gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite" },
+  { value: "google/gemini-2.5-flash-image", label: "Gemini 2.5 Flash Image (Nano Banana)" },
+  { value: "google/gemini-3-pro-image-preview", label: "Gemini 3 Pro Image (preview)" },
+  { value: "google/gemini-3.1-flash-image-preview", label: "Gemini 3.1 Flash Image (Nano Banana 2)" },
+  { value: "openai/gpt-5", label: "GPT-5" },
+  { value: "openai/gpt-5-mini", label: "GPT-5 Mini" },
+  { value: "openai/gpt-5-nano", label: "GPT-5 Nano" },
+  { value: "openai/gpt-5.2", label: "GPT-5.2" },
+  { value: "openai/gpt-5.4", label: "GPT-5.4" },
+  { value: "openai/gpt-5.4-mini", label: "GPT-5.4 Mini" },
+  { value: "openai/gpt-5.4-nano", label: "GPT-5.4 Nano" },
+  { value: "openai/gpt-5.4-pro", label: "GPT-5.4 Pro" },
+  { value: "openai/gpt-5.5", label: "GPT-5.5" },
+  { value: "openai/gpt-5.5-pro", label: "GPT-5.5 Pro" },
+];
 import { Label } from "@/components/ui/label";
 import { Loader2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,12 +101,18 @@ export default function GeminiPlayground() {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="gp-model">Model</Label>
-          <Input
-            id="gp-model"
-            value={model}
-            onChange={(e) => setModel(e.target.value)}
-            placeholder="google/gemini-3-flash-preview"
-          />
+          <Select value={model} onValueChange={setModel}>
+            <SelectTrigger id="gp-model">
+              <SelectValue placeholder="Välj modell" />
+            </SelectTrigger>
+            <SelectContent>
+              {MODEL_OPTIONS.map((m) => (
+                <SelectItem key={m.value} value={m.value}>
+                  {m.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
