@@ -67,16 +67,20 @@ Deno.serve(async (req) => {
       content.push({ type: 'image_url', image_url: { url } });
     }
 
+    const isImageModel = /image/i.test(model);
+    const payload: Record<string, unknown> = {
+      model,
+      messages: [{ role: 'user', content }],
+    };
+    if (isImageModel) payload.modalities = ['image', 'text'];
+
     const aiRes = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: 'user', content }],
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!aiRes.ok) {
@@ -101,9 +105,25 @@ Deno.serve(async (req) => {
     }
 
     const data = await aiRes.json();
-    const text: string = data?.choices?.[0]?.message?.content ?? '';
+    const msg = data?.choices?.[0]?.message ?? {};
+    let text = '';
+    const outImages: string[] = [];
+    if (typeof msg.content === 'string') {
+      text = msg.content;
+    } else if (Array.isArray(msg.content)) {
+      for (const part of msg.content) {
+        if (part?.type === 'text' && typeof part.text === 'string') text += part.text;
+        else if (part?.type === 'image_url' && part.image_url?.url) outImages.push(part.image_url.url);
+      }
+    }
+    if (Array.isArray(msg.images)) {
+      for (const im of msg.images) {
+        const u = im?.image_url?.url ?? im?.url;
+        if (typeof u === 'string') outImages.push(u);
+      }
+    }
 
-    return new Response(JSON.stringify({ text, raw: data }), {
+    return new Response(JSON.stringify({ text, images: outImages, raw: data }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
