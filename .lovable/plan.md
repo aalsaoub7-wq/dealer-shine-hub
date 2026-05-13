@@ -1,35 +1,28 @@
-## Mål
-Få Gemini Test-tabben att bara använda bildmodeller, så svaret blir bild och inte text/JSON.
+## Problem
 
-## Ändring
+I PWA/web-läget på mobil tvingar uppladdningsdialogen kameran, eftersom `<input type="file" capture="environment">` på iOS/Android öppnar kameran direkt och hindrar val från galleri/filer.
 
-### 1. `src/components/admin/GeminiPlayground.tsx`
-- Begränsa modell-dropdownen till endast dessa bildmodeller:
-  - `google/gemini-2.5-flash-image`
-  - `google/gemini-3-pro-image-preview`
-  - `google/gemini-3.1-flash-image-preview`
-- Byt default från `google/gemini-3-flash-preview` till `google/gemini-3.1-flash-image-preview`.
-- Lägg en kort hjälptext under dropdownen som förklarar att denna tab bara använder bildmodeller.
+Filen: `src/components/PhotoUpload.tsx` (rad ~346–369, web/PWA-grenen).
 
-### 2. `supabase/functions/gemini-playground/index.ts`
-- Byt fallback/default-modell från textmodellen `google/gemini-3-flash-preview` till `google/gemini-3.1-flash-image-preview`.
-- Lägg en minimal allowlist-validering för just den här funktionen så att text-only modeller inte accepteras här.
-- Behåll övrig logik exakt som nu: samma auth-kontroll, samma requestflöde, samma bildextraktion, inga andra sidoflöden.
+## Lösning (minimal, endast PWA/web-grenen)
 
-## Varför detta är low risk
-- Endast Gemini Test-tabben och dess egen backendfunktion rörs.
-- Inga andra admin-tabbar, bildredigeringsflöden, billingflöden, syncflöden eller databasanrop påverkas.
-- Sökning i koden visar att `gemini-playground` bara används av `GeminiPlayground` i `/admin`.
+Ersätt den enda inputen med två knappar — samma mönster som native-grenen redan har:
 
-## Teknisk effekt
-- Frontend kan inte längre råka skicka bildprompts till en textmodell.
-- Backend har ett skydd om gammal klientkod eller felaktig payload ändå skickar fel modell.
-- Funktionen fortsätter returnera samma format: `{ text, images, raw }`, så ingen bredare integration ändras.
+1. **"Ta foto"** — `<input type="file" accept="image/*" capture="environment" multiple>` (öppnar kamera på mobil).
+2. **"Välj från galleri/filer"** — `<input type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/avif" multiple>` (utan `capture` → öppnar systemets fil-/bildväljare; på iOS/Android visas både galleri och filer).
 
-## Validering efter implementation
-- `/admin` → Gemini Test laddar utan fel.
-- Dropdown visar bara 3 bildmodeller.
-- Default är `google/gemini-3.1-flash-image-preview`.
-- Ett test med prompt + bild skickar en bildmodell i request body.
-- Svaret visar bild i UI i stället för text/JSON.
-- Ingen annan route eller tab behöver ändras eller påverkas.
+Båda inputs är dolda och triggas via knappar, så desktop-användare ser samma "Välj filer"-flöde och får standard-fildialogen (kamera-knappen är ofarlig på desktop — inputen ignorerar `capture` där).
+
+Befintlig `handleFileSelect` återanvänds för båda inputs. Ingen ändring i upload-logik, native-grenen, billing, edge functions eller DB.
+
+## Out of scope
+
+- Native (Capacitor) flödet — orört.
+- Andra dialoger (interior, watermark, admin background upload).
+- Validering, storleksgräns, AVIF-konvertering — orört.
+
+## Validering
+
+- Desktop: dialog visar två knappar; "Välj från galleri/filer" öppnar fildialog och flera filer kan väljas.
+- Mobil PWA (iOS Safari + Android Chrome): "Ta foto" → kamera, "Välj från galleri/filer" → bildväljare med möjlighet att välja flera bilder från rullen/filer.
+- Uppladdning fungerar som tidigare (samma `handleFileSelect`).
