@@ -344,29 +344,49 @@ const PhotoUpload = ({
               )}
             </>
           ) : (
-            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-              <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+            <>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                capture="environment"
+                onChange={handleFileSelect}
+                className="hidden"
+                id="file-upload-camera"
+              />
               <input
                 type="file"
                 multiple
                 accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/avif"
-                capture="environment"
                 onChange={handleFileSelect}
                 className="hidden"
-                id="file-upload"
+                id="file-upload-gallery"
               />
-              <label
-                htmlFor="file-upload"
-                className="cursor-pointer text-primary hover:text-primary/80 transition-colors"
-              >
-                Välj filer (max 10MB per fil)
-              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label
+                  htmlFor="file-upload-camera"
+                  className="h-24 flex flex-col items-center justify-center border border-border rounded-md cursor-pointer hover:bg-accent transition-colors"
+                >
+                  <Camera className="w-8 h-8 mb-2" />
+                  <span className="text-sm">Ta foto</span>
+                </label>
+                <label
+                  htmlFor="file-upload-gallery"
+                  className="h-24 flex flex-col items-center justify-center border border-border rounded-md cursor-pointer hover:bg-accent transition-colors"
+                >
+                  <ImageIcon className="w-8 h-8 mb-2" />
+                  <span className="text-sm">Välj från galleri</span>
+                </label>
+              </div>
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                Max 10MB per fil
+              </p>
               {selectedFiles.length > 0 && (
-                <p className="mt-2 text-sm text-muted-foreground">
+                <p className="mt-2 text-sm text-muted-foreground text-center">
                   {selectedFiles.length} {selectedFiles.length === 1 ? "fil vald" : "filer valda"}
                 </p>
               )}
-            </div>
+            </>
           )}
           <div className="flex justify-end gap-3">
             <Button
