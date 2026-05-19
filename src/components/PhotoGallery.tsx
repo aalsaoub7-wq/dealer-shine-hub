@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trash2, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface Photo {
   id: string;
@@ -19,6 +21,7 @@ interface PhotoGalleryProps {
 
 const PhotoGallery = ({ photos, onUpdate }: PhotoGalleryProps) => {
   const { toast } = useToast();
+  const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
 
   const handleDelete = async (photoId: string) => {
     try {
@@ -81,7 +84,7 @@ const PhotoGallery = ({ photos, onUpdate }: PhotoGalleryProps) => {
               <Button
                 size="icon"
                 variant="destructive"
-                onClick={() => handleDelete(photo.id)}
+                onClick={() => setPhotoToDelete(photo.id)}
                 className="h-8 w-8 hover:scale-110 transition-transform duration-300"
               >
                 <Trash2 className="w-4 h-4" />
@@ -90,6 +93,29 @@ const PhotoGallery = ({ photos, onUpdate }: PhotoGalleryProps) => {
           </div>
         </Card>
       ))}
+      <AlertDialog open={!!photoToDelete} onOpenChange={(open) => !open && setPhotoToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Radera bild?</AlertDialogTitle>
+            <AlertDialogDescription>Bilden tas bort permanent och kan inte återställas.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (photoToDelete) {
+                  const id = photoToDelete;
+                  setPhotoToDelete(null);
+                  handleDelete(id);
+                }
+              }}
+            >
+              Radera
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

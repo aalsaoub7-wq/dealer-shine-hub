@@ -15,6 +15,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { restrictToParentElement } from "@dnd-kit/modifiers";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 interface Photo {
   id: string;
   url: string;
@@ -231,6 +232,7 @@ const PhotoGalleryDraggable = ({
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [regenerateOptionsPhoto, setRegenerateOptionsPhoto] = useState<Photo | null>(null);
   const [watermarkOptionsId, setWatermarkOptionsId] = useState<string | null>(null);
+  const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, {
     activationConstraint: {
       distance: 8
@@ -303,7 +305,7 @@ const PhotoGalleryDraggable = ({
       <DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={[restrictToParentElement]} onDragStart={() => onDragStart?.()} onDragEnd={handleDragEnd}>
         <SortableContext items={items.map(p => p.id)} strategy={rectSortingStrategy}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items.map((photo, index) => <SortablePhotoCard key={photo.id} photo={photo} index={index} onDelete={handleDelete} onImageClick={() => setLightboxIndex(index)} isSelected={selectedPhotos.includes(photo.id)} onSelect={(photoId, selected) => {
+            {items.map((photo, index) => <SortablePhotoCard key={photo.id} photo={photo} index={index} onDelete={(id) => setPhotoToDelete(id)} onImageClick={() => setLightboxIndex(index)} isSelected={selectedPhotos.includes(photo.id)} onSelect={(photoId, selected) => {
             if (selected) {
               onSelectionChange([...selectedPhotos, photoId]);
             } else {
@@ -346,6 +348,29 @@ const PhotoGalleryDraggable = ({
         onAdjustWatermark(watermarkOptionsId);
       }
     }} />
+      <AlertDialog open={!!photoToDelete} onOpenChange={(open) => !open && setPhotoToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Radera bild?</AlertDialogTitle>
+            <AlertDialogDescription>Bilden tas bort permanent och kan inte återställas.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (photoToDelete) {
+                  const id = photoToDelete;
+                  setPhotoToDelete(null);
+                  handleDelete(id);
+                }
+              }}
+            >
+              Radera
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>;
 };
 export default PhotoGalleryDraggable;
