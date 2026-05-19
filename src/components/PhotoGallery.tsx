@@ -21,6 +21,7 @@ interface PhotoGalleryProps {
 
 const PhotoGallery = ({ photos, onUpdate }: PhotoGalleryProps) => {
   const { toast } = useToast();
+  const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
 
   const handleDelete = async (photoId: string) => {
     try {
