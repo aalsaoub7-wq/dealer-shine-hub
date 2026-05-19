@@ -84,7 +84,7 @@ const PhotoGallery = ({ photos, onUpdate }: PhotoGalleryProps) => {
               <Button
                 size="icon"
                 variant="destructive"
-                onClick={() => handleDelete(photo.id)}
+                onClick={() => setPhotoToDelete(photo.id)}
                 className="h-8 w-8 hover:scale-110 transition-transform duration-300"
               >
                 <Trash2 className="w-4 h-4" />
