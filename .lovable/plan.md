@@ -1,28 +1,19 @@
 ## Problem
+Tabellen `photos` har en CHECK-constraint `photos_photo_type_check` som endast tillåter `'main'` och `'documentation'`. När man laddar upp skadebilder skickar appen `photo_type = 'damage'`, vilket databasen avvisar.
 
-I PWA/web-läget på mobil tvingar uppladdningsdialogen kameran, eftersom `<input type="file" capture="environment">` på iOS/Android öppnar kameran direkt och hindrar val från galleri/filer.
+## Lösning
+En enda DB-migration som uppdaterar constraint till att även tillåta `'damage'`:
 
-Filen: `src/components/PhotoUpload.tsx` (rad ~346–369, web/PWA-grenen).
+```sql
+ALTER TABLE public.photos DROP CONSTRAINT IF EXISTS photos_photo_type_check;
+ALTER TABLE public.photos ADD CONSTRAINT photos_photo_type_check
+  CHECK (photo_type IN ('main', 'documentation', 'damage'));
+```
 
-## Lösning (minimal, endast PWA/web-grenen)
-
-Ersätt den enda inputen med två knappar — samma mönster som native-grenen redan har:
-
-1. **"Ta foto"** — `<input type="file" accept="image/*" capture="environment" multiple>` (öppnar kamera på mobil).
-2. **"Välj från galleri/filer"** — `<input type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,image/avif" multiple>` (utan `capture` → öppnar systemets fil-/bildväljare; på iOS/Android visas både galleri och filer).
-
-Båda inputs är dolda och triggas via knappar, så desktop-användare ser samma "Välj filer"-flöde och får standard-fildialogen (kamera-knappen är ofarlig på desktop — inputen ignorerar `capture` där).
-
-Befintlig `handleFileSelect` återanvänds för båda inputs. Ingen ändring i upload-logik, native-grenen, billing, edge functions eller DB.
-
-## Out of scope
-
-- Native (Capacitor) flödet — orört.
-- Andra dialoger (interior, watermark, admin background upload).
-- Validering, storleksgräns, AVIF-konvertering — orört.
+Inga kodändringar behövs — appen använder redan `'damage'` överallt (CarDetail.tsx, PhotoUpload.tsx).
 
 ## Validering
+Ladda upp en bild i "Skadebilder"-fliken — uppladdningen ska gå igenom utan felet `photos_photo_type_check`.
 
-- Desktop: dialog visar två knappar; "Välj från galleri/filer" öppnar fildialog och flera filer kan väljas.
-- Mobil PWA (iOS Safari + Android Chrome): "Ta foto" → kamera, "Välj från galleri/filer" → bildväljare med möjlighet att välja flera bilder från rullen/filer.
-- Uppladdning fungerar som tidigare (samma `handleFileSelect`).
+## Utanför scope
+Inga ändringar i UI, RLS, edge functions eller övrig logik.
