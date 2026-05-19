@@ -174,18 +174,23 @@ const Dashboard = () => {
     await supabase.auth.signOut();
     navigate("/auth");
   };
-  // Determine if we should show archived cars
-  const isArchiveSearch = searchQuery.toLowerCase().includes("arkiv");
-  
-  // First filter by archive status
-  const baseCars = isArchiveSearch 
-    ? cars.filter(car => car.deleted_at !== null)
-    : cars.filter(car => car.deleted_at === null);
-  
-  // Then filter by search query (skip "arkiv" keyword for actual filtering)
+  // Determine archive view mode
+  const lowerSearch = searchQuery.toLowerCase();
+  const hasArkivKeyword = lowerSearch.includes("arkiv");
+  const query = lowerSearch.replace("arkiv", "").trim();
+
+  // Base set:
+  // - Empty search: only active cars
+  // - Only "arkiv" keyword (no other query): only archived
+  // - Any other search: include both active and archived so archived cars also surface
+  const baseCars = !searchQuery
+    ? cars.filter(car => car.deleted_at === null)
+    : hasArkivKeyword && !query
+      ? cars.filter(car => car.deleted_at !== null)
+      : cars;
+
   const filteredCars = baseCars.filter(car => {
-    const query = searchQuery.toLowerCase().replace("arkiv", "").trim();
-    if (!query) return true; // If only "arkiv" was searched, show all archived
+    if (!query) return true;
     return car.make.toLowerCase().includes(query) || car.model.toLowerCase().includes(query) || car.year.toString().includes(query) || car.vin && car.vin.toLowerCase().includes(query) || car.registration_number && car.registration_number.toLowerCase().includes(query);
   });
   if (loading) {
