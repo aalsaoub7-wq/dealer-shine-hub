@@ -348,6 +348,29 @@ const PhotoGalleryDraggable = ({
         onAdjustWatermark(watermarkOptionsId);
       }
     }} />
+      <AlertDialog open={!!photoToDelete} onOpenChange={(open) => !open && setPhotoToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Radera bild?</AlertDialogTitle>
+            <AlertDialogDescription>Bilden tas bort permanent och kan inte återställas.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (photoToDelete) {
+                  const id = photoToDelete;
+                  setPhotoToDelete(null);
+                  handleDelete(id);
+                }
+              }}
+            >
+              Radera
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>;
 };
 export default PhotoGalleryDraggable;
